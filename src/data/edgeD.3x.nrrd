@@ -1,0 +1,16 @@
+NRRD0002
+# Complete NRRD file format specification at:
+# http://teem.sourceforge.net/nrrd/format.html
+type: float
+dimension: 3
+sizes: 4 4 4
+spacings: 1 1 1
+endian: little
+encoding: raw
+ijkDatasetType:=square
+center:=1.5 -2 1.2
+cylinderAxisDirection:=1 0 0
+ratioHeightToWidth:=1
+sideDirection:=0 1 1
+
+ÃÐ@ÃÐ@ÃÐ@ÃÐ@ÿ>@ÿ>@ÿ>@ÿ>@<Sk@<Sk@<Sk@<Sk@=JŒ@=JŒ@=JŒ@=JŒ@Ç?Ç?Ç?Ç?ÃÐ@ÃÐ@ÃÐ@ÃÐ@ÿ>@ÿ>@ÿ>@ÿ>@<Sk@<Sk@<Sk@<Sk@Tmý?Tmý?Tmý?Tmý?ç÷+@ç÷+@ç÷+@ç÷+@$9Y@$9Y@$9Y@$9Y@0=ƒ@0=ƒ@0=ƒ@0=ƒ@ç÷+@ç÷+@ç÷+@ç÷+@$9Y@$9Y@$9Y@$9Y@0=ƒ@0=ƒ@0=ƒ@0=ƒ@ÏÝ™@ÏÝ™@ÏÝ™@ÏÝ™@
