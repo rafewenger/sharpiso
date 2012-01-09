@@ -11,13 +11,16 @@
 #include <cmath>
 #include <numeric>
 #include <algorithm>
+#include <stdlib.h>
 #include "sh_point_find.h"
 #include "sh_point_datastruct.h"
 #include "sh_point_svdcal.h"
 
 
+
 using namespace std;
 using namespace sh_cube;
+using namespace SHARPISO;
 
 void sh_normalize(double intial[],double normalized[])
 {
@@ -241,6 +244,15 @@ void setup_edgeIntercepts(CUBE &cb,const double isovalue,
   }
 };
 
+/*
+Function to check if the isovalue is within range 
+*/
+/*
+bool check_isoval_in_range()
+{
+
+}
+*/
 
 /*
  For each cube this function returns a double[3] 'point'
@@ -253,7 +265,7 @@ void setup_edgeIntercepts(CUBE &cb,const double isovalue,
  point(which is also its out put)
  */
 
-void shFindPoint
+bool shFindPoint
 (const GRADIENT_COORD_TYPE gradients[], 
 const  SCALAR_TYPE  scalar_vals[],
 const  SCALAR_TYPE  isovalue,
@@ -261,17 +273,22 @@ const  bool use_cmplx_interp,
 const  SCALAR_TYPE  err,
 float eigenvalues[DIM3],
 int &num_large_eigenvalues,
-COORD_TYPE *shpoint)
-{
+COORD_TYPE *shpoint){ 
     //setup sh_cube.
    CUBE cb;
-  setup_shCube(cb, gradients, scalar_vals);
- 
+   bool cubeSetup(true);
+   cubeSetup = sh_cube::setup_shCube(cb, gradients, isovalue, scalar_vals);
+
+   if (!cubeSetup)
+   {
+    return false;
+   }
     //setup edge_intercepts.
   setup_edgeIntercepts(cb, isovalue, use_cmplx_interp);
 
     //find point calcualtions.
   findPoint(cb, err, eigenvalues, num_large_eigenvalues, shpoint);
+  return true;
 }; 
 
 

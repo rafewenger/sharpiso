@@ -32,7 +32,7 @@
 #include "sharpiso_scalar.txx"
 
 
-//using namespace IJK;
+  //using namespace IJK;
 
   // **************************************************
   // COMPUTE SHARP VERTEX/EDGE
@@ -67,19 +67,24 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
   
   
   if(num_large_eigenvalues == 2){
-    bool isIntersect = calculate_point_intersect(coord, ray_direction, coord);
-   
+    bool isIntersect = false;
+    isIntersect = calculate_point_intersect(coord, ray_direction, coord);
+    
     if (!isIntersect) {
+      cout <<"in edge based centroid "<<endl;
       compute_isosurface_grid_edge_centroid
       (scalar_grid, isovalue, cube_index, coord);
     }
   }
-  if(num_large_eigenvalues < 2)
-  {
-  //set cube center 
-  for(int i=0; i < DIM3; i++){
-  	coord[i] = 0.5;
-  }
+  if(num_large_eigenvalues < 2){
+  /*
+    COORD_TYPE cube_coord[DIM3];
+    COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
+    scalar_grid.ComputeCoord(cube_index, cube_coord);
+    IJK::add_coord(DIM3, cube_coord, cube_center, coord);
+  */
+   compute_isosurface_grid_edge_centroid
+      (scalar_grid, isovalue, cube_index, coord);
   }
 }
 
@@ -104,22 +109,34 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
   get_large_cube_gradients
   (scalar_grid, gradient_grid, cube_index, max_small_mag,
    point_coord, gradient_coord, scalar, num_gradients);
-   
+  
     // Ray Direction to calculate intersection if there are 2 singular values.
   GRADIENT_COORD_TYPE ray_direction[3]={0.0};
   
     //tobe added as a parameters
   bool use_cmplx_interp = false; 
-  shFindPoint
-  (&(gradient_coord[0]), &(scalar[0]), isovalue, use_cmplx_interp,
-  max_small_eigenvalue, eigenvalues, num_large_eigenvalues, coord);
- 
   
+  bool cube_create = shFindPoint
+  (&(gradient_coord[0]), &(scalar[0]), isovalue, use_cmplx_interp,
+   max_small_eigenvalue, eigenvalues, num_large_eigenvalues, coord);
+  
+  COORD_TYPE cube_coord[DIM3];
+  COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
+  
+  scalar_grid.ComputeCoord(cube_index, cube_coord);
+    //check if cube creation failed.
+  if(cube_create){
+    IJK::add_coord(DIM3, cube_coord, coord, coord);
+  }
+  else{
+    cerr <<"ERROR: Isovalue out of range, set point to cube center."<<endl;
+    IJK::add_coord(DIM3, cube_coord, cube_center, coord);
+  }
 }
 
 /*
-Edge based using complex interpolation.
-*/
+ Edge based using complex interpolation.
+ */
 void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
 (const SHARPISO_SCALAR_GRID & scalar_grid, 
  const GRADIENT_GRID & gradient_grid, 
@@ -138,18 +155,29 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
   get_large_cube_gradients
   (scalar_grid, gradient_grid, cube_index, max_small_mag,
    point_coord, gradient_coord, scalar, num_gradients);
-   
+  
     // Ray Direction to calculate intersection if there are 2 singular values.
   GRADIENT_COORD_TYPE ray_direction[3]={0.0};
   
     //tobe added as a parameters
   bool use_cmplx_interp = true;
-  
-   shFindPoint
+  bool cube_create = shFindPoint
   (&(gradient_coord[0]), &(scalar[0]), isovalue, use_cmplx_interp,
-  max_small_eigenvalue, eigenvalues, num_large_eigenvalues, coord);
- 
- 
+   max_small_eigenvalue, eigenvalues, num_large_eigenvalues, coord);
+  
+  COORD_TYPE cube_coord[DIM3];
+  COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
+  
+  scalar_grid.ComputeCoord(cube_index, cube_coord);
+    //check if cube creation failed.
+  if(cube_create){
+    IJK::add_coord(DIM3, cube_coord, coord, coord);
+  }
+  else
+    {
+    cerr <<" Isovalue out of range, set point to cube center."<<endl;
+    IJK::add_coord(DIM3, cube_coord, cube_center, coord);
+    }
 }
 void SHARPISO::subgrid_compute_sharp_vertex_in_cube
 (const SHARPISO_SCALAR_GRID & scalar_grid, 
@@ -282,7 +310,7 @@ void SHARPISO::subgrid_calculate_iso_vertex_in_cube
   max_abs_scalar_error = sharp_max_abs_error;
 }
 
-  
+
   /// Compute centroid of intersections of isosurface and grid edges
 void SHARPISO::compute_isosurface_grid_edge_centroid
 (const SHARPISO_GRID_BASE & scalar_grid,

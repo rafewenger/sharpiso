@@ -12,7 +12,7 @@
 #include "sharpiso_findIntersect.h"
 #include <vector>
 
-
+using namespace sh_cube;
 /*
  Normalize a vector
  */
@@ -56,13 +56,13 @@ void clamp (COORD_TYPE *coord, const SCALAR_TYPE t)
   for (int i=0; i<3; i++) {
     if(coord[i]< 0.0)
       {
-      if (coord[i]>=-t) {
-        coord[i]=0.0;
+      if (coord[i] >= -t) {
+        coord[i] = 0.0;
       }
       }
     if (coord[i] > 1.0) {
-      if (coord[i]<=1.0+t) {
-        coord[i]=1.0;
+      if (coord[i] <= 1.0+t) {
+        coord[i] = 1.0;
       }
     } 
   }
@@ -190,12 +190,12 @@ MatrixXf computePseudoinv
 /*
 Find the sharp point in-cube.
 */
-void findPoint(const CUBE &cb,const SCALAR_TYPE err, float eigenvalues[DIM3],
+void sh_cube::findPoint(const CUBE &cb,const SCALAR_TYPE err, float eigenvalues[DIM3],
 int &num_large_eigenvalues, COORD_TYPE *shpoint)
 {
 	//// clamp threshold , have to check what exactly this should be
     //set threshold t;
-  const double t = 0.5;
+  const double t = 0.0001;
  
  //set m 
   int ind[cb.ne_intersect]; //ind (index) keeep tracks of the edges which are intersected

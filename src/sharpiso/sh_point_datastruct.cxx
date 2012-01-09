@@ -14,7 +14,9 @@ using namespace std;
 using namespace SHARPISO;
 using namespace sh_cube;
 
-void setup_shCube(CUBE &cb, const GRADIENT_COORD_TYPE  gradients[], 
+bool sh_cube::setup_shCube(CUBE &cb,
+const GRADIENT_COORD_TYPE  gradients[],
+const SCALAR_TYPE isovalue,
 const SCALAR_TYPE scalar_vals[])
 {
    
@@ -24,10 +26,24 @@ const SCALAR_TYPE scalar_vals[])
   cb.dim =3;
   cb.ne_intersect=0;
   int dim = cb.dim;
+  
+  //declare and initialize max and min scalar values
+  SCALAR_TYPE max_sval, min_sval;
+  
+  max_sval = scalar_vals[0];
+  min_sval = scalar_vals[1];
+  
   for (int i=0; i<cb.num_pts; i++) {
     POINT p;
     //set scalar
-    p.scalar = scalar_vals[i]; 
+    p.scalar = scalar_vals[i];
+    
+    if (scalar_vals[i] > max_sval)
+    max_sval = scalar_vals[i];
+    
+    if(scalar_vals[i] < min_sval)
+    min_sval = scalar_vals[i];
+    
     for (int k=0; k<cb.dim; k++) {
       //set gradient
       p.grads[k]=gradients[i*dim+k];
@@ -36,6 +52,11 @@ const SCALAR_TYPE scalar_vals[])
     }
     cb.pts.push_back(p); 
   }
+  
+  if (!(isovalue >= min_sval && isovalue <= max_sval))
+	{ 
+	return false;
+	}
   EDGE temp;
   temp.p1=cb.pts[0];
   temp.p2=cb.pts[1];
@@ -84,6 +105,8 @@ const SCALAR_TYPE scalar_vals[])
   temp.p1=cb.pts[2];
   temp.p2=cb.pts[6];
   cb.edges.push_back(temp); //12
+  
+  return true;
 };
 
 /*

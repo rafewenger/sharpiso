@@ -13,7 +13,6 @@
 #include "sharpiso_types.h"
 
 using namespace std;
-using namespace sh_cube;
 using namespace Eigen;
 using namespace SHARPISO;
 
@@ -21,5 +20,12 @@ using namespace SHARPISO;
 // Accepts a cube as an input and calculates the singular values , the num of large singular values
 // and the sharp point in the cube.
 
-void findPoint(const CUBE &cb, const SCALAR_TYPE err, float eigenvalues[DIM3],
-int &num_large_eigenvalues, COORD_TYPE *shpoint);
+namespace sh_cube{
+
+void findPoint
+(const CUBE &cb,
+const SCALAR_TYPE err,
+float eigenvalues[DIM3],
+int &num_large_eigenvalues,
+COORD_TYPE *shpoint);
+}

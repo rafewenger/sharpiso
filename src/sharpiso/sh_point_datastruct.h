@@ -12,6 +12,11 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <iostream>
+#include "sh_point_datastruct.h"
+#include "sharpiso_types.h"
+using namespace std;
+using namespace SHARPISO;
 
 using namespace std;
 const double TOLERANCE = 0.0001;
@@ -40,6 +45,13 @@ namespace sh_cube {
     vector<EDGE> edges;
     int intersects_ind[12];
   };
+  
+  /// set up the cube data structure 
+  
+bool setup_shCube(CUBE &cb,
+const GRADIENT_COORD_TYPE  gradients[],
+const SCALAR_TYPE isovalue,
+const SCALAR_TYPE scalar_vals[]);
   
 };
 #endif
