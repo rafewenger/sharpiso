@@ -103,12 +103,12 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
 {
   NUM_TYPE num_gradients = 0;
   std::vector<COORD_TYPE> point_coord;
-  std::vector<GRADIENT_COORD_TYPE> gradient_coord;
-  std::vector<SCALAR_TYPE> scalar;
+  GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3];
+  SCALAR_TYPE scalar[NUM_CUBE_VERTICES3D];
   
-  get_large_cube_gradients
-  (scalar_grid, gradient_grid, cube_index, max_small_mag,
-   point_coord, gradient_coord, scalar, num_gradients);
+  get_cube_gradients
+    (scalar_grid, gradient_grid, cube_index,
+     point_coord, gradient_coord, scalar);
   
     // Ray Direction to calculate intersection if there are 2 singular values.
   GRADIENT_COORD_TYPE ray_direction[3]={0.0};
@@ -149,12 +149,12 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
 {
   NUM_TYPE num_gradients = 0;
   std::vector<COORD_TYPE> point_coord;
-  std::vector<GRADIENT_COORD_TYPE> gradient_coord;
-  std::vector<SCALAR_TYPE> scalar;
-  
-  get_large_cube_gradients
-  (scalar_grid, gradient_grid, cube_index, max_small_mag,
-   point_coord, gradient_coord, scalar, num_gradients);
+  GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3];
+  SCALAR_TYPE scalar[NUM_CUBE_VERTICES3D];
+
+  get_cube_gradients
+    (scalar_grid, gradient_grid, cube_index,
+     point_coord, gradient_coord, scalar);
   
     // Ray Direction to calculate intersection if there are 2 singular values.
   GRADIENT_COORD_TYPE ray_direction[3]={0.0};
@@ -480,6 +480,24 @@ namespace {
   }
   }
   
+}
+
+// Get all 8 cube gradients
+void SHARPISO::get_cube_gradients
+(const SHARPISO_SCALAR_GRID & scalar_grid, 
+ const GRADIENT_GRID & gradient_grid, 
+ const VERTEX_INDEX cube_index,
+ std::vector<COORD_TYPE> & point_coord,
+ GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3],
+ SCALAR_TYPE scalar[NUM_CUBE_VERTICES3D])
+{
+  
+  for (NUM_TYPE k = 0; k < NUM_CUBE_VERTICES3D; k++) {
+    VERTEX_INDEX iv = scalar_grid.CubeVertex(cube_index, k);
+    scalar[k] = scalar_grid.Scalar(iv);
+    IJK::copy_coord(DIM3, gradient_grid.VectorPtrConst(iv),
+                    gradient_coord+k*DIM3);
+  }
 }
 
 void SHARPISO::get_large_cube_gradients

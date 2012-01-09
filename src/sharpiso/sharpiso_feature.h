@@ -133,11 +133,18 @@ namespace SHARPISO {
    const SCALAR_TYPE isovalue, const VERTEX_INDEX iv, 
    COORD_TYPE * coord);
   
-  
-  
     // **************************************************
     // ROUTINES TO GET GRADIENTS
     // **************************************************
+
+  // Get all 8 cube gradients
+  void get_cube_gradients
+    (const SHARPISO_SCALAR_GRID & scalar_grid, 
+     const GRADIENT_GRID & gradient_grid, 
+     const VERTEX_INDEX cube_index,
+     std::vector<COORD_TYPE> & point_coord,
+     GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3],
+     SCALAR_TYPE scalar[NUM_CUBE_VERTICES3D]);
   
     /// Get large gradients at cube vertices.
   void get_large_cube_gradients

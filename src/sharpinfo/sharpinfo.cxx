@@ -51,6 +51,10 @@ bool flag_location_set(false);
 bool flag_isovalue_set(false);
 bool flag_use_neighboring_facets(false);
 bool flag_use_selective_neighbors(true);
+
+bool flag_svd_gradients(false); //default
+bool flag_svd_edges_simple(false);
+bool flag_svd_edges_cmplx(false);
 COORD_TYPE cube_offset(0);
 
 // check routines
@@ -165,12 +169,25 @@ int main(int argc, char **argv)
       EIGENVALUE_TYPE eigenvalues[DIM3];
       NUM_TYPE num_large_eigenvalues(0);
 
-      // *** DEBUG.  CURRENTLY DOES NOTHING ***
-      svd_compute_sharp_vertex_in_cube
+      if (flag_svd_edges_simple){
+      svd_compute_sharp_vertex_in_cube_edge_based_simple 
         (scalar_grid, gradient_grid, cube_index, isovalue,
          max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
          num_large_eigenvalues);
-
+         }
+	else if (flag_svd_edges_cmplx){
+	svd_compute_sharp_vertex_in_cube_edge_based_cmplx
+        (scalar_grid, gradient_grid, cube_index, isovalue,
+         max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
+         num_large_eigenvalues);
+         }
+	else {
+	//default 
+	  svd_compute_sharp_vertex_in_cube
+        (scalar_grid, gradient_grid, cube_index, isovalue,
+         max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
+         num_large_eigenvalues);
+	}
       output_svd_results
         (cout, sharp_coord, eigenvalues, num_large_eigenvalues,
          max_small_eigenvalue);
@@ -474,6 +491,9 @@ void usage_error()
   cerr << "  -isovalue <isovalue> | -cube <cube_index> | "
        << "-neighbor <cube_index> | -coord \"point coord\"" << endl;
   cerr << "  -listg | -list_subgrid" << endl;
+  cerr << " -svd_grad { using the gradients } | "<<endl;
+  cerr <<" -svd_edge_simple {using simple edge interpolation} |"<<endl;
+  cerr <<" -svd_edge_cmplx {using complex edge interpolation} |"<<endl;
   exit(10);
 }
 
@@ -537,6 +557,18 @@ void parse_command_line(int argc, char **argv)
     }
     else if (s == "-list_subgrid") {
       flag_list_subgrid = true;
+    }
+    else if(s == "-svd_grad")
+    {
+    flag_svd_gradients = true;
+    }
+    else if(s == "-svd_edge_simple")
+    {
+    flag_svd_edges_simple = true;
+    }
+    else if(s == "-svd_edge_cmplx")
+    {
+    flag_svd_edges_cmplx = true;
     }
     else if (s == "-neighbor") {
       iarg++;
