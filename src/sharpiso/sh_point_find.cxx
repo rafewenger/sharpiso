@@ -273,6 +273,7 @@ const  bool use_cmplx_interp,
 const  SCALAR_TYPE  err,
 float eigenvalues[DIM3],
 int &num_large_eigenvalues,
+SVD_INFO &svd_debug_info,
 COORD_TYPE *shpoint){ 
     //setup sh_cube.
    CUBE cb;
@@ -287,7 +288,7 @@ COORD_TYPE *shpoint){
   setup_edgeIntercepts(cb, isovalue, use_cmplx_interp);
 
     //find point calcualtions.
-  findPoint(cb, err, eigenvalues, num_large_eigenvalues, shpoint);
+  findPoint(cb, err, eigenvalues, num_large_eigenvalues, svd_debug_info, shpoint);
   return true;
 }; 
 

@@ -98,17 +98,13 @@ void svd_calculate_sharpiso_vertex
   
     //Compute X as Ainverse times B
   RowVectorXf X = compute_X(inA, B);
-
-
-    //copy X to isoVertcoords
-  if (num_singular_vals == 3 ) {
+    //copy X to isoVertcoords  
     for (int i=0; i<3; i++) {
       isoVertcoords[i] = X(i);
     }
-  }
   
     //if num of singular values is 2 then it must return a direction.
-  else if(num_singular_vals == 2){
+  if(num_singular_vals == 2){
     
     RowVectorXf dir;
     MatrixXf I(3,3);
@@ -125,16 +121,9 @@ void svd_calculate_sharpiso_vertex
     ray_direction[0] = dir[0];
     ray_direction[1] = dir[1];
     ray_direction[2] = dir[2];
+    normalize(ray_direction, ray_direction);
     
-     normalize(ray_direction, ray_direction);
-     for (int i=0; i<3; i++) {
-      isoVertcoords[i] = X(i);
-    }
-  }
-  else{
-    
-  }
- 
+  } 
 }
 
   //debug. 

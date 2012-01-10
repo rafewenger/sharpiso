@@ -11,6 +11,7 @@
 #include <Eigen/Dense>
 #include "sh_point_datastruct.h"
 #include "sharpiso_types.h"
+#include "sharpiso_feature.h"
 
 using namespace std;
 using namespace Eigen;
@@ -27,5 +28,6 @@ void findPoint
 const SCALAR_TYPE err,
 float eigenvalues[DIM3],
 int &num_large_eigenvalues,
+SVD_INFO &svd_debug_info,
 COORD_TYPE *shpoint);
 }

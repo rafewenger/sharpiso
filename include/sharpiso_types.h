@@ -44,6 +44,8 @@ namespace SHARPISO {
 
   typedef int NUM_TYPE;
   typedef int VERTEX_INDEX;
+  
+  typedef enum { NONE, CENTROID, CUBE_CENTER } LOC_TYPE ;
 
   // **************************************************
   // CONSTANTS
@@ -57,6 +59,7 @@ namespace SHARPISO {
   const NUM_TYPE NUM_CUBE_FACET_EDGES3D = 
     (NUM_CUBE_EDGES3D-NUM_CUBE_FACET_VERTICES3D)/2;
   const NUM_TYPE NUM_CUBE_DIAGONALS3D = NUM_CUBE_FACET_VERTICES3D;
+  const SCALAR_TYPE clamp_threshold = 0.0001; // clamp very small values to the cube.
 };
 
 #endif

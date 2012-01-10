@@ -190,13 +190,14 @@ MatrixXf computePseudoinv
 /*
 Find the sharp point in-cube.
 */
-void sh_cube::findPoint(const CUBE &cb,const SCALAR_TYPE err, float eigenvalues[DIM3],
-int &num_large_eigenvalues, COORD_TYPE *shpoint)
-{
-	//// clamp threshold , have to check what exactly this should be
-    //set threshold t;
-  const double t = 0.0001;
- 
+void sh_cube::findPoint
+(const CUBE &cb,
+const SCALAR_TYPE err,
+float eigenvalues[DIM3],
+int &num_large_eigenvalues,
+SVD_INFO &svd_debug_info,
+COORD_TYPE *shpoint)
+{ 
  //set m 
   int ind[cb.ne_intersect]; //ind (index) keeep tracks of the edges which are intersected
   int i=0;
@@ -232,13 +233,18 @@ int &num_large_eigenvalues, COORD_TYPE *shpoint)
     shpoint[1] = x(1);
     shpoint[2] = x(2);
       //clamp the shpoint
-    clamp (shpoint, t);
+    clamp (shpoint, clamp_threshold);
+    
     bool isInsideCube = inCube(shpoint);
     if (!isInsideCube) {
         //check centroid.
       setCubeCentroid(cb, ind, shpoint);
+	// using centroid 
+	svd_debug_info.location = CENTROID;
+	
       bool isInsideCube2 = inCube(shpoint);
       if (!isInsideCube2) {
+      svd_debug_info.location = CUBE_CENTER; //set using centre
         setCubeCenter(shpoint);
       }
     }
@@ -249,11 +255,12 @@ int &num_large_eigenvalues, COORD_TYPE *shpoint)
     I<< 1,0,0, 0,1,0, 0,0,1;
     RowVectorXf w = Cal_w(pseudoInv_m, m, I );
     tempdir = (I-pseudoInv_m*m)*w.transpose();
-    GRADIENT_COORD_TYPE dir[3];
+    GRADIENT_COORD_TYPE dir[DIM3];
     dir[0]=tempdir(0);
     dir[1]=tempdir(1);
     dir[2]=tempdir(2);
     normalize3D(dir, dir);
+   
       //given x and ray direction , check if this intersects the identity cube.
     SCALAR_TYPE intersect[3]={0.0};
     SCALAR_TYPE p[3]={0.0};
@@ -262,35 +269,54 @@ int &num_large_eigenvalues, COORD_TYPE *shpoint)
     p[2]=x(2);
     bool isIntersect = calculate_point_intersect(p, dir, intersect);
     
+    svd_debug_info.ray_direction[0] = dir[0];
+        svd_debug_info.ray_direction[1] = dir[1];
+            svd_debug_info.ray_direction[2] = dir[2];
+    svd_debug_info.ray_initial_point[0] = p[0];
+        svd_debug_info.ray_initial_point[1] = p[1];
+            svd_debug_info.ray_initial_point[2] = p[2];
+    
     if (isIntersect) {
+    svd_debug_info.ray_intersect_cube = true;
+    /*
     //intersect is on a bigger cube so we clamp it.
-        clamp(intersect, t);
+        clamp(intersect, clamp_threshold);
         //test if the intersect is within the cube.
-      bool  isInCube=inCube(intersect);
+      bool  isInCube = inCube(intersect);
       if (isInCube) {
         for (int i=0; i<3; i++) {
           shpoint[i] = intersect[i];
-        } 
-      }
+        }
       else {
+      svd_debug_info.location = CENTROID ; 
         setCubeCentroid(cb, ind, shpoint);
-      }      
+      }
+      */
+       clamp(intersect, clamp_threshold);
+        for (int i=0; i<3; i++) {
+          shpoint[i] = intersect[i];
+      }
     }
     else {
+     svd_debug_info.location = CENTROID;
       setCubeCentroid(cb, ind, shpoint);
+      /*
       bool isInsideCube2 = inCube(shpoint);
       if (!isInsideCube2) {
         setCubeCenter(shpoint);
       }
+      */
     }
-    
   }
   else {
-      //cout << "1 or less singular values";
+     // One or less singular values 
     setCubeCentroid(cb, ind, shpoint);
+     svd_debug_info.location = CENTROID;
+    /*
     bool isInsideCube2 = inCube(shpoint);
     if (!isInsideCube2) {
       setCubeCenter(shpoint);
     }
+    */
   }
 }

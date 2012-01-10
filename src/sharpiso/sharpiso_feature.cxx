@@ -46,7 +46,8 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
  const GRADIENT_COORD_TYPE max_small_mag,
  const EIGENVALUE_TYPE max_small_eigenvalue,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
- NUM_TYPE & num_large_eigenvalues)
+ NUM_TYPE & num_large_eigenvalues,
+ SVD_INFO &svd_debug_info)
 {
   NUM_TYPE num_gradients = 0;
   std::vector<COORD_TYPE> point_coord;
@@ -68,12 +69,23 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
   
   if(num_large_eigenvalues == 2){
     bool isIntersect = false;
-    isIntersect = calculate_point_intersect(coord, ray_direction, coord);
     
+    svd_debug_info.ray_direction[0] = ray_direction[0];
+    svd_debug_info.ray_direction[1] = ray_direction[1];
+    svd_debug_info.ray_direction[2] = ray_direction[2];
+    svd_debug_info.ray_initial_point[0] = coord[0];
+    svd_debug_info.ray_initial_point[1] = coord[1];
+    svd_debug_info.ray_initial_point[2] = coord[2];
+    
+    
+    isIntersect = calculate_point_intersect(coord, ray_direction, coord);
+      svd_debug_info.ray_intersect_cube = true;
+        
     if (!isIntersect) {
-      cout <<"in edge based centroid "<<endl;
+        svd_debug_info.ray_intersect_cube = false;
       compute_isosurface_grid_edge_centroid
       (scalar_grid, isovalue, cube_index, coord);
+      svd_debug_info.location = CENTROID;
     }
   }
   if(num_large_eigenvalues < 2){
@@ -85,6 +97,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
   */
    compute_isosurface_grid_edge_centroid
       (scalar_grid, isovalue, cube_index, coord);
+       svd_debug_info.location = CENTROID;
   }
 }
 
@@ -99,7 +112,8 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
  const GRADIENT_COORD_TYPE max_small_mag,
  const EIGENVALUE_TYPE max_small_eigenvalue,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
- NUM_TYPE & num_large_eigenvalues)
+ NUM_TYPE & num_large_eigenvalues,
+ SVD_INFO &svd_debug_info)
 {
   NUM_TYPE num_gradients = 0;
   std::vector<COORD_TYPE> point_coord;
@@ -118,7 +132,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
   
   bool cube_create = shFindPoint
   (&(gradient_coord[0]), &(scalar[0]), isovalue, use_cmplx_interp,
-   max_small_eigenvalue, eigenvalues, num_large_eigenvalues, coord);
+   max_small_eigenvalue, eigenvalues, num_large_eigenvalues, svd_debug_info, coord);
   
   COORD_TYPE cube_coord[DIM3];
   COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
@@ -145,7 +159,8 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
  const GRADIENT_COORD_TYPE max_small_mag,
  const EIGENVALUE_TYPE max_small_eigenvalue,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
- NUM_TYPE & num_large_eigenvalues)
+ NUM_TYPE & num_large_eigenvalues,
+ SVD_INFO &svd_debug_info)
 {
   NUM_TYPE num_gradients = 0;
   std::vector<COORD_TYPE> point_coord;
@@ -163,7 +178,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
   bool use_cmplx_interp = true;
   bool cube_create = shFindPoint
   (&(gradient_coord[0]), &(scalar[0]), isovalue, use_cmplx_interp,
-   max_small_eigenvalue, eigenvalues, num_large_eigenvalues, coord);
+   max_small_eigenvalue, eigenvalues, num_large_eigenvalues,  svd_debug_info, coord);
   
   COORD_TYPE cube_coord[DIM3];
   COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};

@@ -52,7 +52,7 @@ bool flag_isovalue_set(false);
 bool flag_use_neighboring_facets(false);
 bool flag_use_selective_neighbors(true);
 
-bool flag_svd_gradients(false); //default
+bool flag_svd_gradients(true); //default
 bool flag_svd_edges_simple(false);
 bool flag_svd_edges_cmplx(false);
 COORD_TYPE cube_offset(0);
@@ -74,7 +74,7 @@ void output_gradients
 void output_svd_results
 (std::ostream & output, const COORD_TYPE sharp_coord[DIM3], 
  const EIGENVALUE_TYPE eigenvalues[DIM3], const NUM_TYPE num_large_eigenvalues,
- const EIGENVALUE_TYPE eigenvalue_tolerance);
+ const EIGENVALUE_TYPE eigenvalue_tolerance, SVD_INFO &svd_debug_info);
 void output_subgrid_results
 (std::ostream & output, const COORD_TYPE sharp_coord[DIM3], 
  const SCALAR_TYPE scalar_stdev, const SCALAR_TYPE max_abs_scalar_error);
@@ -108,6 +108,10 @@ int main(int argc, char **argv)
 {
   GRID_COORD_TYPE cube_coord[DIM3];
   IJK::ERROR error;
+  // accumulate information from svd_calls
+  SVD_INFO svd_debug_info;
+  svd_debug_info.ray_intersect_cube = false;
+  svd_debug_info.location = NONE;
 
   try {
 
@@ -170,27 +174,30 @@ int main(int argc, char **argv)
       NUM_TYPE num_large_eigenvalues(0);
 
       if (flag_svd_edges_simple){
+      
       svd_compute_sharp_vertex_in_cube_edge_based_simple 
         (scalar_grid, gradient_grid, cube_index, isovalue,
          max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
-         num_large_eigenvalues);
+         num_large_eigenvalues, svd_debug_info);
          }
 	else if (flag_svd_edges_cmplx){
+
 	svd_compute_sharp_vertex_in_cube_edge_based_cmplx
         (scalar_grid, gradient_grid, cube_index, isovalue,
          max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
-         num_large_eigenvalues);
+         num_large_eigenvalues, svd_debug_info);
          }
-	else {
-	//default 
+	else if(flag_svd_gradients) {
+
 	  svd_compute_sharp_vertex_in_cube
         (scalar_grid, gradient_grid, cube_index, isovalue,
          max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
-         num_large_eigenvalues);
+         num_large_eigenvalues, svd_debug_info);        
 	}
+          
       output_svd_results
         (cout, sharp_coord, eigenvalues, num_large_eigenvalues,
-         max_small_eigenvalue);
+         max_small_eigenvalue, svd_debug_info);
       cout << endl;
 
       if (flag_list_subgrid) {
@@ -297,7 +304,8 @@ void output_svd_results
  const COORD_TYPE sharp_coord[DIM3], 
  const EIGENVALUE_TYPE eigenvalues[DIM3], 
  const NUM_TYPE num_large_eigenvalues,
- const EIGENVALUE_TYPE eigenvalue_tolerance)
+ const EIGENVALUE_TYPE eigenvalue_tolerance,
+ SVD_INFO & svd_debug_info)
 {
   output << "Sharp coordinates: ";
   IJK::ijkgrid_output_coord(output, DIM3, sharp_coord);
@@ -308,6 +316,18 @@ void output_svd_results
   output << "Number of large eigenvalues (>= " << eigenvalue_tolerance
          << "): "
          << num_large_eigenvalues << endl;
+  if(num_large_eigenvalues == 2){
+  cerr <<"ray direction "<<
+    svd_debug_info.ray_direction[0]<<" "
+  <<svd_debug_info.ray_direction[1]<<" "
+  <<svd_debug_info.ray_direction[2]<<endl;
+  cerr <<"ray initial point "<<
+  svd_debug_info.ray_initial_point[0]<<" "
+  <<svd_debug_info.ray_initial_point[1]<<" "
+  <<svd_debug_info.ray_initial_point[2]<<endl;
+  cerr <<"ray intersected cube? "<<svd_debug_info.ray_intersect_cube<<endl;
+  }
+  cerr <<"used none[0]/centroid[1]/cube-center[2]: "<<svd_debug_info.location<<endl;
 }
 
 void output_subgrid_results
