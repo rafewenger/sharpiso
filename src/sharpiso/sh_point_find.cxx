@@ -227,8 +227,11 @@ void setup_edgeIntercepts(CUBE &cb,const double isovalue,
   int ne = cb.num_edges;
   int dim = cb.dim;
   for (int i=0; i<ne; i++) {
-    if(((cb.edges[i].p1.scalar > isovalue)&&( isovalue > cb.edges[i].p2.scalar) ) ||
-       (cb.edges[i].p1.scalar < isovalue)&&(isovalue < cb.edges[i].p2.scalar))
+
+    if(((cb.edges[i].p1.scalar >= isovalue)&&
+        ( isovalue > cb.edges[i].p2.scalar) ) ||
+       (cb.edges[i].p1.scalar < isovalue)&&
+       (isovalue <= cb.edges[i].p2.scalar))
       {
       cb.ne_intersect++;
       cb.edges[i].is_intersect = true;
@@ -274,21 +277,25 @@ const  SCALAR_TYPE  err,
 float eigenvalues[DIM3],
 int &num_large_eigenvalues,
 SVD_INFO &svd_debug_info,
-COORD_TYPE *shpoint){ 
-    //setup sh_cube.
-   CUBE cb;
-   bool cubeSetup(true);
-   cubeSetup = sh_cube::setup_shCube(cb, gradients, isovalue, scalar_vals);
+COORD_TYPE *shpoint)
+{ 
+  //setup sh_cube.
+  CUBE cb;
+  bool cubeSetup(true);
+  cubeSetup = sh_cube::setup_shCube(cb, gradients, isovalue, scalar_vals);
 
-   if (!cubeSetup)
-   {
-    return false;
-   }
-    //setup edge_intercepts.
+  for (int i = 0; i < DIM3; i++)
+    { eigenvalues[i] = 0; }
+  num_large_eigenvalues = 0;
+
+  if (!cubeSetup) { return false; }
+
+  //setup edge_intercepts.
   setup_edgeIntercepts(cb, isovalue, use_cmplx_interp);
 
-    //find point calcualtions.
-  findPoint(cb, err, eigenvalues, num_large_eigenvalues, svd_debug_info, shpoint);
+  //find point calcualtions.
+  findPoint(cb, err, eigenvalues, num_large_eigenvalues, 
+            svd_debug_info, shpoint);
   return true;
 }; 
 

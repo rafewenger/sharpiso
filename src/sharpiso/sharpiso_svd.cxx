@@ -30,7 +30,8 @@ MatrixXf compute_A_inverse(const MatrixXf A, const EIGENVALUE_TYPE  err_toleranc
   //Compute X as Ainverse times B
 RowVectorXf compute_X(const MatrixXf Inv_A, RowVectorXf B);
   //FUNCTION compute w 
-RowVectorXf calculate_w(const MatrixXf & inA, const MatrixXf & A, const MatrixXf &I);
+RowVectorXf calculate_w
+(const MatrixXf & inA, const MatrixXf & A, const MatrixXf &I);
 
 
 /*
@@ -92,18 +93,17 @@ void svd_calculate_sharpiso_vertex
     //Compute A inverse using svd
   MatrixXf inA = compute_A_inverse(A, err_tolerance, singular_values, num_singular_vals);
 
-    //set up singular values. convert from egein data type to normal type.
+  //set up singular values. convert from egein data type to normal type.
   for (int i=0; i<num_singular_vals; i++)
-    singular_vals[i]  = singular_values(i);
+    { singular_vals[i]  = singular_values(i); }
   
-    //Compute X as Ainverse times B
+  //Compute X as Ainverse times B
   RowVectorXf X = compute_X(inA, B);
-    //copy X to isoVertcoords  
-    for (int i=0; i<3; i++) {
-      isoVertcoords[i] = X(i);
-    }
+  //copy X to isoVertcoords  
+  for (int i=0; i<3; i++) 
+    { isoVertcoords[i] = X(i); }
   
-    //if num of singular values is 2 then it must return a direction.
+  //if num of singular values is 2 then it must return a direction.
   if(num_singular_vals == 2){
     
     RowVectorXf dir;
@@ -117,7 +117,7 @@ void svd_calculate_sharpiso_vertex
     RowVectorXf w = calculate_w (inA, A, I);
       //Calculate [I - A_pseudo_inv A ]w
     dir = ( I - inA * A ) * w.transpose();
-    
+
     ray_direction[0] = dir[0];
     ray_direction[1] = dir[1];
     ray_direction[2] = dir[2];
@@ -236,7 +236,7 @@ SCALAR_TYPE calculate_mag(const RowVectorXf &res)
 {
   SCALAR_TYPE sum=0.0;
   for (int i=0; i<3; i++) {
-    sum=+res(i)*res(i);
+    sum += res(i)*res(i);
   }
   return sqrt(sum);
 }
@@ -258,6 +258,7 @@ RowVectorXf calculate_w(const MatrixXf & inA, const MatrixXf & A, const MatrixXf
   SCALAR_TYPE max = -1.0;
   for (int i=0; i<e.size(); i++) {
     res = (I - inA*A)*e[i].transpose();
+
     mag = calculate_mag(res);
     if (mag>max) {
       max=mag;

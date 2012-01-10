@@ -27,7 +27,7 @@ namespace sh_cube {
     double scalar;
     double grads[3];
     double pos[3];
-    void print_point();
+    void print_point() const;
     void normalize_grads();
   };
   //edge

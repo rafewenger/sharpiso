@@ -79,7 +79,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
     
     
     isIntersect = calculate_point_intersect(coord, ray_direction, coord);
-      svd_debug_info.ray_intersect_cube = true;
+    svd_debug_info.ray_intersect_cube = true;
         
     if (!isIntersect) {
         svd_debug_info.ray_intersect_cube = false;

@@ -112,7 +112,7 @@ const SCALAR_TYPE scalar_vals[])
 /*
 PRINT POINT HELPER FUNCTION FOR DEBUGGING
 */
-void POINT::print_point()
+void POINT::print_point() const
 {
 	cout <<"\nscalar "<<scalar;
   cout <<" position ("<<pos[0]<<","<<pos[1]<<","<<pos[2]<<")";

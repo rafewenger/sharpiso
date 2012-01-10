@@ -135,10 +135,11 @@ RowVectorXf Cal_w(MatrixXf &pseudoInverse,const MatrixXf  &m,const MatrixXf  &I)
   int index;
   float Mag = 0;
   float Max = -1;
-  
+
   for (int i=0; i<e.size(); i++){
     res = (I - pseudoInverse*m)*e[i].transpose();
     Mag = CalMag(res);
+
     if (Mag > Max)
       {
       Max = Mag;
@@ -153,14 +154,12 @@ RowVectorXf Cal_w(MatrixXf &pseudoInverse,const MatrixXf  &m,const MatrixXf  &I)
 void computePseudoSigmaInv(MatrixXf &PseudoInvSigma, MatrixXf &singular_vals,
                            int& num_svals ,const double & err )
 {
-  for (int i=0; i<3; i++)
-    {
-    if (singular_vals(i) > err)
-      {
+  for (int i=0; i<singular_vals.rows(); i++) {
+    if (singular_vals(i) > err) {
       num_svals++;
       PseudoInvSigma(i,i) = 1.0/singular_vals(i);
-      }
     }
+  }
 };
 
 
@@ -168,20 +167,26 @@ void computePseudoSigmaInv(MatrixXf &PseudoInvSigma, MatrixXf &singular_vals,
  compute the pseudo inverse of m
  */
 MatrixXf computePseudoinv
-( const MatrixXf &m, const double err, int & num_svals,float eigenvalues[DIM3]){
-
+( const MatrixXf &m, const double err, int & num_svals,float eigenvalues[DIM3])
+{
   JacobiSVD<MatrixXf> svd(m, ComputeThinU | ComputeThinV);
+
   MatrixXf singular_vals;
   singular_vals = svd.singularValues();
-  
-  for(int i=0; i <DIM3;i++)
-  eigenvalues[i] = singular_vals(i);
-  
+  const int num_singular_values = singular_vals.rows();
+
+  for (int i=0; i <DIM3;i++) 
+    { eigenvalues[i] = 0; }
+
+  for (int i=0; i < singular_vals.rows(); i++)
+    { eigenvalues[i] = singular_vals(i); }
+
     // compute the pseudo inverse.
-  MatrixXf PseudoInvSigma(3,3);
-  PseudoInvSigma << 0,0,0,0,0,0,0,0,0;
-  
+  MatrixXf PseudoInvSigma =
+    MatrixXf::Zero(num_singular_values,num_singular_values);
+
   computePseudoSigmaInv(PseudoInvSigma, singular_vals, num_svals , err );
+
   MatrixXf pseudoInverse;
   pseudoInverse = svd.matrixV()*PseudoInvSigma.transpose()*svd.matrixU().transpose();
   return pseudoInverse;
@@ -200,6 +205,7 @@ COORD_TYPE *shpoint)
 { 
  //set m 
   int ind[cb.ne_intersect]; //ind (index) keeep tracks of the edges which are intersected
+
   int i=0;
   MatrixXf m(cb.ne_intersect, cb.dim);
   for (int k=0; k<cb.num_edges; k++) {
@@ -211,7 +217,8 @@ COORD_TYPE *shpoint)
       i++; 
     }
   }
-    //set b
+
+  //set b
   RowVectorXf b(cb.ne_intersect);
   for (int i=0; i<cb.ne_intersect; i++) {
     b(i)=m(i,0)*cb.edges[ind[i]].pt_intersect.pos[0]+
@@ -223,10 +230,11 @@ COORD_TYPE *shpoint)
 
   MatrixXf pseudoInv_m = computePseudoinv(m, err, num_svals, eigenvalues);
   num_large_eigenvalues = num_svals;
-    //x = m inv *b, mx=b
+
+  // x = m inv *b, mx=b
   RowVectorXf x;
   x = pseudoInv_m*b.transpose();
-   //
+
   if (num_svals == 3 ) {
       //set shpoint to x
     shpoint[0] = x(0); 
@@ -252,6 +260,7 @@ COORD_TYPE *shpoint)
   else if(num_svals == 2){
     RowVectorXf tempdir;
     MatrixXf I(3,3);
+
     I<< 1,0,0, 0,1,0, 0,0,1;
     RowVectorXf w = Cal_w(pseudoInv_m, m, I );
     tempdir = (I-pseudoInv_m*m)*w.transpose();
@@ -270,15 +279,15 @@ COORD_TYPE *shpoint)
     bool isIntersect = calculate_point_intersect(p, dir, intersect);
     
     svd_debug_info.ray_direction[0] = dir[0];
-        svd_debug_info.ray_direction[1] = dir[1];
-            svd_debug_info.ray_direction[2] = dir[2];
+    svd_debug_info.ray_direction[1] = dir[1];
+    svd_debug_info.ray_direction[2] = dir[2];
     svd_debug_info.ray_initial_point[0] = p[0];
-        svd_debug_info.ray_initial_point[1] = p[1];
-            svd_debug_info.ray_initial_point[2] = p[2];
+    svd_debug_info.ray_initial_point[1] = p[1];
+    svd_debug_info.ray_initial_point[2] = p[2];
     
     if (isIntersect) {
     svd_debug_info.ray_intersect_cube = true;
-    /*
+    /* BIGGER CLAMP.  TEMPORARILY DISABLED.
     //intersect is on a bigger cube so we clamp it.
         clamp(intersect, clamp_threshold);
         //test if the intersect is within the cube.
@@ -300,7 +309,7 @@ COORD_TYPE *shpoint)
     else {
      svd_debug_info.location = CENTROID;
       setCubeCentroid(cb, ind, shpoint);
-      /*
+      /* BIGGER CLAMP.  TEMPORARILY DISABLED.
       bool isInsideCube2 = inCube(shpoint);
       if (!isInsideCube2) {
         setCubeCenter(shpoint);
@@ -312,7 +321,7 @@ COORD_TYPE *shpoint)
      // One or less singular values 
     setCubeCentroid(cb, ind, shpoint);
      svd_debug_info.location = CENTROID;
-    /*
+    /* BIGGER CLAMP.  TEMPORARILY DISABLED.
     bool isInsideCube2 = inCube(shpoint);
     if (!isInsideCube2) {
       setCubeCenter(shpoint);
