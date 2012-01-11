@@ -69,7 +69,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
   
   if(num_large_eigenvalues == 2){
     bool isIntersect = false;
-    
+    //
     svd_debug_info.ray_direction[0] = ray_direction[0];
     svd_debug_info.ray_direction[1] = ray_direction[1];
     svd_debug_info.ray_direction[2] = ray_direction[2];
@@ -77,8 +77,11 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
     svd_debug_info.ray_initial_point[1] = coord[1];
     svd_debug_info.ray_initial_point[2] = coord[2];
     
+    //coord of the cube index
+    COORD_TYPE cube_coord[DIM3];
+    scalar_grid.ComputeCoord(cube_index, cube_coord);
     
-    isIntersect = calculate_point_intersect(coord, ray_direction, coord);
+    isIntersect = calculate_point_intersect(cube_coord, coord, ray_direction, coord);
     svd_debug_info.ray_intersect_cube = true;
         
     if (!isIntersect) {

@@ -25,6 +25,12 @@ bool calculate_point_intersect
 (const SCALAR_TYPE * point, const SCALAR_TYPE *dir, SCALAR_TYPE *intersect);
 
 
+//Separate version which translate back and forth to find the intersection with the unit cube.
+
+bool calculate_point_intersect
+(const COORD_TYPE cube_coord[], const SCALAR_TYPE *p,
+const SCALAR_TYPE *dir, SCALAR_TYPE *intersect);
+
 //debug
 /*
 //Function calculates the intersection between a larger cube and the ray, it takes  a extra parameter
