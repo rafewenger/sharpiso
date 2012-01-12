@@ -25,6 +25,7 @@
 #include <iostream>
 
 #include "ijkcoord.txx"
+#include "ijkgrid_macros.h"
 #include "ijkgrid_nrrd.txx"
 
 #include "sharpiso_feature.h"
@@ -51,6 +52,7 @@ bool flag_location_set(false);
 bool flag_isovalue_set(false);
 bool flag_use_neighboring_facets(false);
 bool flag_use_selective_neighbors(true);
+bool flag_list_eigen(false);
 
 bool flag_svd_gradients(true); //default
 bool flag_svd_edges_simple(false);
@@ -65,6 +67,10 @@ bool check_input_grids
  const GRADIENT_GRID & gradient_grid, IJK::ERROR & error);
 
 // output routines
+void output_cube_coordinates
+(std::ostream & output, 
+ const SHARPISO_SCALAR_GRID & scalar_grid,
+ const VERTEX_INDEX icube);
 void output_gradients
 (std::ostream & output,
  const std::vector<COORD_TYPE> & point_coord, 
@@ -91,6 +97,13 @@ void output_gradient_based_scalars
  const std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
  const std::vector<SCALAR_TYPE> & scalar, const NUM_TYPE num_points, 
  const std::vector<COORD_TYPE> & location);
+void output_cube_eigenvalues
+(std::ostream & output, 
+ const SHARPISO_SCALAR_GRID & scalar_grid, 
+ const GRADIENT_GRID & gradient_grid, 
+ const SCALAR_TYPE isovalue,
+ const GRADIENT_COORD_TYPE max_zero_mag,
+ const EIGENVALUE_TYPE eigenvalue_tolerance);
 
 
 
@@ -244,6 +257,12 @@ int main(int argc, char **argv)
         (cout, point_coord, gradient_coord, scalar, num_gradients,
          location);
     }
+
+    if (flag_list_eigen) {
+      output_cube_eigenvalues
+        (cout, scalar_grid, gradient_grid, isovalue, 
+         max_small_mag, max_small_eigenvalue);
+    }
   } 
   catch (IJK::ERROR error) {
     if (error.NumMessages() == 0) {
@@ -264,6 +283,21 @@ int main(int argc, char **argv)
 // **************************************************
 // OUTPUT ROUTINES
 // **************************************************
+
+void output_cube_coordinates
+(std::ostream & output, 
+ const SHARPISO_SCALAR_GRID & scalar_grid,
+ const VERTEX_INDEX icube)
+{
+  GRID_COORD_TYPE coord[DIM3];
+  
+  scalar_grid.ComputeCoord(icube, coord);
+
+  output << "Cube " << icube << ".";
+  output << "  Coordinates: ";
+  IJK::ijkgrid_output_coord(output, DIM3, coord);
+  output << ".";
+}
 
 void output_gradients
 (std::ostream & output,
@@ -448,6 +482,38 @@ void output_gradient_based_scalars
      num_points, &(location[0]));
 }
 
+// *** NOT CURRENTLY WORKING ***
+void output_cube_eigenvalues
+(std::ostream & output, 
+ const SHARPISO_SCALAR_GRID & scalar_grid, 
+ const GRADIENT_GRID & gradient_grid, 
+ const SCALAR_TYPE isovalue,
+ const GRADIENT_COORD_TYPE max_zero_mag,
+ const EIGENVALUE_TYPE eigenvalue_tolerance)
+{
+  COORD_TYPE sharp_coord[DIM3];
+  EIGENVALUE_TYPE eigenvalues[DIM3];
+  NUM_TYPE num_large_eigenvalues(0);
+  SVD_INFO svd_debug_info;
+
+  IJK_FOR_EACH_GRID_CUBE(icube, scalar_grid, VERTEX_INDEX) {
+
+    // *** SEG FAULTS ***
+    svd_compute_sharp_vertex_in_cube
+      (scalar_grid, gradient_grid, icube, isovalue,
+       max_zero_mag, eigenvalue_tolerance, sharp_coord,
+       eigenvalues, num_large_eigenvalues,
+       svd_debug_info);
+
+    output_cube_coordinates(output, scalar_grid, icube);
+
+    output << " Num eigen: " << num_large_eigenvalues
+           << " Eigen: ";
+    IJK::ijkgrid_output_coord(output, DIM3, eigenvalues);
+    output << endl;
+  }
+}
+
 // **************************************************
 // CHECK ROUTINES
 // **************************************************
@@ -575,6 +641,9 @@ void parse_command_line(int argc, char **argv)
     }
     else if (s == "-list_subgrid") {
       flag_list_subgrid = true;
+    }
+    else if (s == "-list_eigen") {
+      flag_list_eigen = true;
     }
     else if(s == "-svd_grad")
     {
