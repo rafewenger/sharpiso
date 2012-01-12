@@ -508,12 +508,10 @@ void usage_error()
   cerr << "Usage: sharpinfo [OPTIONS] <scalar filename> <gradient filename>"
        << endl;
   cerr << "OPTIONS:" << endl;
-  cerr << "  -isovalue <isovalue> | -cube <cube_index> | "
-       << "-neighbor <cube_index> | -coord \"point coord\"" << endl;
+  cerr << "  -isovalue <isovalue> | -cube <cube_index>" << endl;
+  cerr << "  -neighbor <cube_index> | -coord \"point coord\"" << endl;
+  cerr << "  -svd_grad | -svd_edge_simple | -svd_edge_cmplx"<<endl;
   cerr << "  -listg | -list_subgrid" << endl;
-  cerr << " -svd_grad { using the gradients } | "<<endl;
-  cerr <<" -svd_edge_simple {using simple edge interpolation} |"<<endl;
-  cerr <<" -svd_edge_cmplx {using complex edge interpolation} |"<<endl;
   exit(10);
 }
 
@@ -580,15 +578,15 @@ void parse_command_line(int argc, char **argv)
     }
     else if(s == "-svd_grad")
     {
-    flag_svd_gradients = true;
+      flag_svd_gradients = true;
     }
     else if(s == "-svd_edge_simple")
     {
-    flag_svd_edges_simple = true;
+      flag_svd_edges_simple = true;
     }
     else if(s == "-svd_edge_cmplx")
     {
-    flag_svd_edges_cmplx = true;
+      flag_svd_edges_cmplx = true;
     }
     else if (s == "-neighbor") {
       iarg++;
@@ -608,6 +606,9 @@ void parse_command_line(int argc, char **argv)
       iarg++;
       if (iarg >= argc) { usage_error(); };
       sscanf(argv[iarg], "%f", &cube_offset);
+    }
+    else if (s == "-help") {
+      help();
     }
     else {
       cerr << "Option error. Unknown option: " << argv[iarg] << endl;
@@ -656,3 +657,25 @@ void parse_command_line(int argc, char **argv)
   }
 }
 
+void help()
+{
+  cerr << "Usage: sharpinfo [OPTIONS] <scalar filename> <gradient filename>"
+       << endl;
+  cerr << "OPTIONS:" << endl;
+  cerr << "  -isovalue <isovalue>:  Compute isosurface vertex for given <isovalue>." << endl;
+  cerr << "  -cube <cube_index>:  Compute isosurface vertex for cube <cube_index>." << endl;
+  cerr << "      Default is cube 0." << endl;
+  cerr << "  -neighbor <cube_index>:  Use gradients from cube and" << endl
+       << "             neighbors of cube <cube_index>." << endl;
+  cerr << "  -svd_grad: Compute using svd directly on gradients."<<endl;
+  cerr << "  -svd_edge_simple: Interpolate intersection points/normals and" 
+       << endl
+       << "                   apply svd." << endl;
+  cerr << "  -svd_edge_cmplx:  Compute edge-isosurface intersection points/normals"
+       << endl
+       << "                   using gradient assignment and apply svd." << endl;
+  cerr << "  -coord \"point_coord\":  Compute scalar values at coordinate point_coord." << endl;
+  cerr << "  -listg: List gradients." << endl;
+  cerr << "  -list_subgrid:  List all scalar values at vertices of subgrid." << endl;
+  exit(15);
+}
