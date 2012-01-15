@@ -63,44 +63,44 @@ COORD_TYPE cube_offset(0);
 bool check_gradient_grid
 (const GRADIENT_GRID & gradient_grid, IJK::ERROR & error);
 bool check_input_grids
-(const SHARPISO_SCALAR_GRID & scalar_grid, 
+(const SHARPISO_SCALAR_GRID & scalar_grid,
  const GRADIENT_GRID & gradient_grid, IJK::ERROR & error);
 
 // output routines
 void output_cube_coordinates
-(std::ostream & output, 
+(std::ostream & output,
  const SHARPISO_SCALAR_GRID & scalar_grid,
  const VERTEX_INDEX icube);
 void output_gradients
 (std::ostream & output,
- const std::vector<COORD_TYPE> & point_coord, 
+ const std::vector<COORD_TYPE> & point_coord,
  const std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
  const std::vector<SCALAR_TYPE> & scalar,
  const NUM_TYPE num_points);
 void output_svd_results
-(std::ostream & output, const COORD_TYPE sharp_coord[DIM3], 
+(std::ostream & output, const COORD_TYPE sharp_coord[DIM3],
  const EIGENVALUE_TYPE eigenvalues[DIM3], const NUM_TYPE num_large_eigenvalues,
  const EIGENVALUE_TYPE eigenvalue_tolerance, SVD_INFO &svd_debug_info);
 void output_subgrid_results
-(std::ostream & output, const COORD_TYPE sharp_coord[DIM3], 
+(std::ostream & output, const COORD_TYPE sharp_coord[DIM3],
  const SCALAR_TYPE scalar_stdev, const SCALAR_TYPE max_abs_scalar_error);
 void output_cube_subgrid_scalar_errors
 (std::ostream & output,
- const std::vector<COORD_TYPE> & point_coord, 
+ const std::vector<COORD_TYPE> & point_coord,
  const std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
- const std::vector<SCALAR_TYPE> & scalar, const NUM_TYPE num_points, 
- const GRID_COORD_TYPE cube_coord[DIM3], const SCALAR_TYPE isovalue, 
+ const std::vector<SCALAR_TYPE> & scalar, const NUM_TYPE num_points,
+ const GRID_COORD_TYPE cube_coord[DIM3], const SCALAR_TYPE isovalue,
  const NUM_TYPE subgrid_axis_size);
 void output_gradient_based_scalars
-(std::ostream & output, 
- const std::vector<COORD_TYPE> & point_coord, 
+(std::ostream & output,
+ const std::vector<COORD_TYPE> & point_coord,
  const std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
- const std::vector<SCALAR_TYPE> & scalar, const NUM_TYPE num_points, 
+ const std::vector<SCALAR_TYPE> & scalar, const NUM_TYPE num_points,
  const std::vector<COORD_TYPE> & location);
 void output_cube_eigenvalues
-(std::ostream & output, 
- const SHARPISO_SCALAR_GRID & scalar_grid, 
- const GRADIENT_GRID & gradient_grid, 
+(std::ostream & output,
+ const SHARPISO_SCALAR_GRID & scalar_grid,
+ const GRADIENT_GRID & gradient_grid,
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_zero_mag,
  const EIGENVALUE_TYPE eigenvalue_tolerance);
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
     nrrd_in_gradient.ReadVectorGrid
       (gradient_filename, gradient_grid, error);
 
-    if (!check_gradient_grid(gradient_grid, error)) 
+    if (!check_gradient_grid(gradient_grid, error))
       { throw error; };
 
     if (!check_input_grids(scalar_grid, gradient_grid, error))
@@ -183,12 +183,12 @@ int main(int argc, char **argv)
     if (flag_isovalue_set) {
 
       COORD_TYPE sharp_coord[DIM3];
-      EIGENVALUE_TYPE eigenvalues[DIM3];
+      EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
       NUM_TYPE num_large_eigenvalues(0);
 
       if (flag_svd_edges_simple){
-      
-      svd_compute_sharp_vertex_in_cube_edge_based_simple 
+
+      svd_compute_sharp_vertex_in_cube_edge_based_simple
         (scalar_grid, gradient_grid, cube_index, isovalue,
          max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
          num_large_eigenvalues, svd_debug_info);
@@ -205,9 +205,10 @@ int main(int argc, char **argv)
 	  svd_compute_sharp_vertex_in_cube
         (scalar_grid, gradient_grid, cube_index, isovalue,
          max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
-         num_large_eigenvalues, svd_debug_info);        
+         num_large_eigenvalues, svd_debug_info);
+
 	}
-          
+
       output_svd_results
         (cout, sharp_coord, eigenvalues, num_large_eigenvalues,
          max_small_eigenvalue, svd_debug_info);
@@ -235,7 +236,7 @@ int main(int argc, char **argv)
         else {
           scalar_grid.ComputeCoord(cube_index, cube_coord);
           subgrid_calculate_iso_vertex_in_cube
-            (point_coord, gradient_coord, scalar, 
+            (point_coord, gradient_coord, scalar,
              num_gradients, cube_coord, isovalue, subgrid_axis_size,
              sharp_coord, scalar_stdev, max_abs_scalar_error);
         }
@@ -260,10 +261,10 @@ int main(int argc, char **argv)
 
     if (flag_list_eigen) {
       output_cube_eigenvalues
-        (cout, scalar_grid, gradient_grid, isovalue, 
+        (cout, scalar_grid, gradient_grid, isovalue,
          max_small_mag, max_small_eigenvalue);
     }
-  } 
+  }
   catch (IJK::ERROR error) {
     if (error.NumMessages() == 0) {
       cerr << "Unknown error." << endl;
@@ -285,12 +286,12 @@ int main(int argc, char **argv)
 // **************************************************
 
 void output_cube_coordinates
-(std::ostream & output, 
+(std::ostream & output,
  const SHARPISO_SCALAR_GRID & scalar_grid,
  const VERTEX_INDEX icube)
 {
   GRID_COORD_TYPE coord[DIM3];
-  
+
   scalar_grid.ComputeCoord(icube, coord);
 
   output << "Cube " << icube << ".";
@@ -301,7 +302,7 @@ void output_cube_coordinates
 
 void output_gradients
 (std::ostream & output,
- const COORD_TYPE * point_coord, 
+ const COORD_TYPE * point_coord,
  const GRADIENT_COORD_TYPE * gradient_coord,
  const SCALAR_TYPE * scalar,
  const NUM_TYPE num_points)
@@ -323,20 +324,20 @@ void output_gradients
 
 void output_gradients
 (std::ostream & output,
- const std::vector<COORD_TYPE> & point_coord, 
+ const std::vector<COORD_TYPE> & point_coord,
  const std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
  const std::vector<SCALAR_TYPE> & scalar,
  const NUM_TYPE num_points)
 {
-  output_gradients(output, &(point_coord[0]), &(gradient_coord[0]), 
+  output_gradients(output, &(point_coord[0]), &(gradient_coord[0]),
                    &(scalar[0]), num_points);
-                   
+
 }
 
 void output_svd_results
 (std::ostream & output,
- const COORD_TYPE sharp_coord[DIM3], 
- const EIGENVALUE_TYPE eigenvalues[DIM3], 
+ const COORD_TYPE sharp_coord[DIM3],
+ const EIGENVALUE_TYPE eigenvalues[DIM3],
  const NUM_TYPE num_large_eigenvalues,
  const EIGENVALUE_TYPE eigenvalue_tolerance,
  SVD_INFO & svd_debug_info)
@@ -366,7 +367,7 @@ void output_svd_results
 
 void output_subgrid_results
 (std::ostream & output,
- const COORD_TYPE sharp_coord[DIM3], 
+ const COORD_TYPE sharp_coord[DIM3],
  const SCALAR_TYPE scalar_stdev,
  const SCALAR_TYPE max_abs_scalar_error)
 {
@@ -381,8 +382,8 @@ void output_subgrid_results
 void output_cube_subgrid_scalar_errors
 (std::ostream & output,
  const COORD_TYPE * point_coord, const GRADIENT_COORD_TYPE * gradient_coord,
- const SCALAR_TYPE * scalar, const NUM_TYPE num_points, 
- const GRID_COORD_TYPE cube_coord[DIM3], const SCALAR_TYPE isovalue, 
+ const SCALAR_TYPE * scalar, const NUM_TYPE num_points,
+ const GRID_COORD_TYPE cube_coord[DIM3], const SCALAR_TYPE isovalue,
  const NUM_TYPE subgrid_axis_size)
 {
   COORD_TYPE coord[DIM3];
@@ -397,7 +398,7 @@ void output_cube_subgrid_scalar_errors
   }
 
   // Compute center coordinate
-  for (NUM_TYPE d = 0; d < DIM3; d++) 
+  for (NUM_TYPE d = 0; d < DIM3; d++)
     { center_coord[d] = cube_coord[d] + 0.5; }
 
   const COORD_TYPE h = 1.0/(subgrid_axis_size+1);
@@ -432,22 +433,22 @@ void output_cube_subgrid_scalar_errors
 
 void output_cube_subgrid_scalar_errors
 (std::ostream & output,
- const std::vector<COORD_TYPE> & point_coord, 
+ const std::vector<COORD_TYPE> & point_coord,
  const std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
- const std::vector<SCALAR_TYPE> & scalar, const NUM_TYPE num_points, 
- const GRID_COORD_TYPE cube_coord[DIM3], const SCALAR_TYPE isovalue, 
+ const std::vector<SCALAR_TYPE> & scalar, const NUM_TYPE num_points,
+ const GRID_COORD_TYPE cube_coord[DIM3], const SCALAR_TYPE isovalue,
  const NUM_TYPE subgrid_axis_size)
 {
   output_cube_subgrid_scalar_errors
-    (output, &(point_coord[0]), &(gradient_coord[0]), 
+    (output, &(point_coord[0]), &(gradient_coord[0]),
      &(scalar[0]), num_points, cube_coord, isovalue, subgrid_axis_size);
 }
 
 void output_gradient_based_scalars
-(std::ostream & output, 
- const COORD_TYPE * point_coord, 
+(std::ostream & output,
+ const COORD_TYPE * point_coord,
  const GRADIENT_COORD_TYPE * gradient_coord,
- const SCALAR_TYPE * scalar, const NUM_TYPE num_points, 
+ const SCALAR_TYPE * scalar, const NUM_TYPE num_points,
  const COORD_TYPE * location)
 {
   output << "Location: ";
@@ -462,7 +463,7 @@ void output_gradient_based_scalars
     IJK::ijkgrid_output_coord(output, DIM3, gradient_coord+i*DIM3);
     output << ".";
 
-    SCALAR_TYPE s = 
+    SCALAR_TYPE s =
       compute_gradient_based_scalar
       (location, point_coord+i*DIM3, gradient_coord+i*DIM3, scalar[i]);
 
@@ -471,10 +472,10 @@ void output_gradient_based_scalars
 }
 
 void output_gradient_based_scalars
-(std::ostream & output, 
- const std::vector<COORD_TYPE> & point_coord, 
+(std::ostream & output,
+ const std::vector<COORD_TYPE> & point_coord,
  const std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
- const std::vector<SCALAR_TYPE> & scalar, const NUM_TYPE num_points, 
+ const std::vector<SCALAR_TYPE> & scalar, const NUM_TYPE num_points,
  const std::vector<COORD_TYPE> & location)
 {
   output_gradient_based_scalars
@@ -484,20 +485,25 @@ void output_gradient_based_scalars
 
 // *** NOT CURRENTLY WORKING ***
 void output_cube_eigenvalues
-(std::ostream & output, 
- const SHARPISO_SCALAR_GRID & scalar_grid, 
- const GRADIENT_GRID & gradient_grid, 
+(std::ostream & output,
+ const SHARPISO_SCALAR_GRID & scalar_grid,
+ const GRADIENT_GRID & gradient_grid,
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_zero_mag,
  const EIGENVALUE_TYPE eigenvalue_tolerance)
 {
   COORD_TYPE sharp_coord[DIM3];
-  EIGENVALUE_TYPE eigenvalues[DIM3];
+  EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
   NUM_TYPE num_large_eigenvalues(0);
   SVD_INFO svd_debug_info;
 
   IJK_FOR_EACH_GRID_CUBE(icube, scalar_grid, VERTEX_INDEX) {
+  //re-initialize eigenvalues;
+  for ( int i=0; i <DIM3; i++){
+  eigenvalues[i] = 0.0;
+  }
 
+  num_large_eigenvalues = 0;
     // *** SEG FAULTS ***
     svd_compute_sharp_vertex_in_cube
       (scalar_grid, gradient_grid, icube, isovalue,
@@ -519,19 +525,19 @@ void output_cube_eigenvalues
 // **************************************************
 
 bool check_input_grids
-(const SHARPISO_SCALAR_GRID & scalar_grid, 
+(const SHARPISO_SCALAR_GRID & scalar_grid,
  const GRADIENT_GRID & gradient_grid, IJK::ERROR & error)
 {
-  if (!check_gradient_grid(gradient_grid, error)) 
+  if (!check_gradient_grid(gradient_grid, error))
     { return(false); }
 
   IJK::ERROR size_error;
   if (!gradient_grid.Check
       (scalar_grid, "Gradient grid", "Scalar grid", size_error)) {
     error.AddMessage
-      ("Scalar grid (file ", scalar_filename, 
+      ("Scalar grid (file ", scalar_filename,
        ") and gradient grid (file ", gradient_filename, ") do not match.");
-    for (int i = 0; i < size_error.NumMessages(); i++) 
+    for (int i = 0; i < size_error.NumMessages(); i++)
       { error.AddMessage(size_error.Message(i)); }
 
     return(false);
@@ -737,7 +743,7 @@ void help()
   cerr << "  -neighbor <cube_index>:  Use gradients from cube and" << endl
        << "             neighbors of cube <cube_index>." << endl;
   cerr << "  -svd_grad: Compute using svd directly on gradients."<<endl;
-  cerr << "  -svd_edge_simple: Interpolate intersection points/normals and" 
+  cerr << "  -svd_edge_simple: Interpolate intersection points/normals and"
        << endl
        << "                   apply svd." << endl;
   cerr << "  -svd_edge_cmplx:  Compute edge-isosurface intersection points/normals"
