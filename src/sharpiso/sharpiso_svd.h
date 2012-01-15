@@ -37,7 +37,7 @@ void svd_calculate_sharpiso_vertex
  const SCALAR_TYPE isovalue,
  const EIGENVALUE_TYPE err_tolerance,
  NUM_TYPE & num_singular_vals,
- EIGENVALUE_TYPE * singular_vals,
+ EIGENVALUE_TYPE singular_vals[DIM3],
  COORD_TYPE * isoVertcoords,
  GRADIENT_COORD_TYPE *ray_direction);
 

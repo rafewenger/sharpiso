@@ -74,7 +74,7 @@ void svd_calculate_sharpiso_vertex
  const SCALAR_TYPE isovalue,
  const EIGENVALUE_TYPE err_tolerance,
  NUM_TYPE & num_singular_vals,
- EIGENVALUE_TYPE * singular_vals,
+ EIGENVALUE_TYPE singular_vals[DIM3],
  COORD_TYPE * isoVertcoords,
  GRADIENT_COORD_TYPE * ray_direction)
 {
@@ -91,6 +91,10 @@ void svd_calculate_sharpiso_vertex
 
     //Compute A inverse using svd
   MatrixXf inA = compute_A_inverse(A, err_tolerance, singular_values, num_singular_vals);
+
+  // Initialize singular vals.
+  for (int i=0; i<DIM3; i++)
+    { singular_vals[i]  = 0; }
 
   //set up singular values. convert from egein data type to normal type.
   for (int i=0; i<num_singular_vals; i++)
@@ -194,6 +198,8 @@ MatrixXf compute_A_pseudoinverse(const MatrixXf A, MatrixXf &singular_values,
     //Compute the sigma interms of the tolerance
   MatrixXf sigma(3,3);
   sigma << 0,0,0,0,0,0,0,0,0;
+
+  num_singular_vals = 0;
 
   for (int i=0; i<DIM; i++) {
     if (singular_values(i)>err_tolerance) {

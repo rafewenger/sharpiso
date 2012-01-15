@@ -483,7 +483,6 @@ void output_gradient_based_scalars
      num_points, &(location[0]));
 }
 
-// *** NOT CURRENTLY WORKING ***
 void output_cube_eigenvalues
 (std::ostream & output,
  const SHARPISO_SCALAR_GRID & scalar_grid,
@@ -498,13 +497,7 @@ void output_cube_eigenvalues
   SVD_INFO svd_debug_info;
 
   IJK_FOR_EACH_GRID_CUBE(icube, scalar_grid, VERTEX_INDEX) {
-  //re-initialize eigenvalues;
-  for ( int i=0; i <DIM3; i++){
-  eigenvalues[i] = 0.0;
-  }
 
-  num_large_eigenvalues = 0;
-    // *** SEG FAULTS ***
     svd_compute_sharp_vertex_in_cube
       (scalar_grid, gradient_grid, icube, isovalue,
        max_zero_mag, eigenvalue_tolerance, sharp_coord,
