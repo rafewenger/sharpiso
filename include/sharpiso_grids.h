@@ -44,20 +44,20 @@ namespace SHARPISO {
   // GRID DATA STRUCTURES
   // **************************************************
 
-  typedef IJK::GRID_PLUS<NUM_TYPE, AXIS_SIZE_TYPE, VERTEX_INDEX, VERTEX_INDEX> 
+  typedef IJK::GRID_PLUS<NUM_TYPE, AXIS_SIZE_TYPE, VERTEX_INDEX, VERTEX_INDEX>
     SHARPISO_GRID;                  ///< Regular grid.
 
-  typedef IJK::SCALAR_GRID_BASE<SHARPISO_GRID, SCALAR_TYPE> 
-    SHARPISO_GRID_BASE;              ///< sharpiso base scalar grid.
+  typedef IJK::SCALAR_GRID_BASE<SHARPISO_GRID, SCALAR_TYPE>
+    SHARPISO_SCALAR_GRID_BASE;              ///< sharpiso base scalar grid.
   typedef IJK::SCALAR_GRID_WRAPPER<SHARPISO_GRID, SCALAR_TYPE>
     SHARPISO_SCALAR_GRID_WRAPPER;   ///< sharpiso scalar grid wrapper.
-  typedef IJK::SCALAR_GRID<SHARPISO_GRID, SCALAR_TYPE> 
+  typedef IJK::SCALAR_GRID<SHARPISO_GRID, SCALAR_TYPE>
     SHARPISO_SCALAR_GRID;           ///< sharpiso scalar grid.
   typedef IJK::VECTOR_GRID_BASE
-    <SHARPISO_GRID, GRADIENT_LENGTH_TYPE, GRADIENT_COORD_TYPE> 
+    <SHARPISO_GRID, GRADIENT_LENGTH_TYPE, GRADIENT_COORD_TYPE>
     GRADIENT_GRID_BASE;             ///<  sharpiso base gradient grid
   typedef IJK::VECTOR_GRID
-    <SHARPISO_GRID, GRADIENT_LENGTH_TYPE, GRADIENT_COORD_TYPE> 
+    <SHARPISO_GRID, GRADIENT_LENGTH_TYPE, GRADIENT_COORD_TYPE>
     GRADIENT_GRID;                  ///< sharpiso gradient grid
 
 };

@@ -39,8 +39,8 @@
   // **************************************************
 
 void SHARPISO::svd_compute_sharp_vertex_in_cube
-(const SHARPISO_SCALAR_GRID & scalar_grid,
- const GRADIENT_GRID & gradient_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
@@ -49,6 +49,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO &svd_debug_info)
 {
+
   NUM_TYPE num_gradients = 0;
   std::vector<COORD_TYPE> point_coord;
   std::vector<GRADIENT_COORD_TYPE> gradient_coord;
@@ -109,8 +110,8 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
  edge based using simple interpolation.
  */
 void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
-(const SHARPISO_SCALAR_GRID & scalar_grid,
- const GRADIENT_GRID & gradient_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
@@ -156,8 +157,8 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
  Edge based using complex interpolation.
  */
 void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
-(const SHARPISO_SCALAR_GRID & scalar_grid,
- const GRADIENT_GRID & gradient_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
@@ -199,8 +200,8 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
     }
 }
 void SHARPISO::subgrid_compute_sharp_vertex_in_cube
-(const SHARPISO_SCALAR_GRID & scalar_grid,
- const GRADIENT_GRID & gradient_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
@@ -227,8 +228,8 @@ void SHARPISO::subgrid_compute_sharp_vertex_in_cube
 }
 
 void SHARPISO::subgrid_compute_sharp_vertex_neighborhood
-(const SHARPISO_SCALAR_GRID & scalar_grid,
- const GRADIENT_GRID & gradient_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
@@ -332,7 +333,7 @@ void SHARPISO::subgrid_calculate_iso_vertex_in_cube
 
   /// Compute centroid of intersections of isosurface and grid edges
 void SHARPISO::compute_isosurface_grid_edge_centroid
-(const SHARPISO_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
  COORD_TYPE * coord)
 {
@@ -417,8 +418,8 @@ namespace {
   using namespace SHARPISO;
 
   inline void add_gradient
-  (const SHARPISO_SCALAR_GRID & scalar_grid,
-   const GRADIENT_GRID & gradient_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX iv,
    std::vector<COORD_TYPE> & point_coord,
    std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
@@ -440,8 +441,8 @@ namespace {
   }
 
   inline void add_large_gradient
-  (const SHARPISO_SCALAR_GRID & scalar_grid,
-   const GRADIENT_GRID & gradient_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX iv,
    const GRADIENT_COORD_TYPE max_small_mag_squared,
    std::vector<COORD_TYPE> & point_coord,
@@ -459,8 +460,8 @@ namespace {
   }
 
   inline void add_selected_gradient
-  (const SHARPISO_SCALAR_GRID & scalar_grid,
-   const GRADIENT_GRID & gradient_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX iv,
    const GRID_COORD_TYPE * cube_coord,
    const GRADIENT_COORD_TYPE max_small_mag_squared,
@@ -503,8 +504,8 @@ namespace {
 
 // Get all 8 cube gradients
 void SHARPISO::get_cube_gradients
-(const SHARPISO_SCALAR_GRID & scalar_grid,
- const GRADIENT_GRID & gradient_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  std::vector<COORD_TYPE> & point_coord,
  GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3],
@@ -520,8 +521,8 @@ void SHARPISO::get_cube_gradients
 }
 
 void SHARPISO::get_large_cube_gradients
-(const SHARPISO_SCALAR_GRID & scalar_grid,
- const GRADIENT_GRID & gradient_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const GRADIENT_COORD_TYPE max_small_mag,
  std::vector<COORD_TYPE> & point_coord,
@@ -547,8 +548,8 @@ void SHARPISO::get_large_cube_gradients
 
 
 void SHARPISO::get_large_cube_neighbor_gradients
-(const SHARPISO_SCALAR_GRID & scalar_grid,
- const GRADIENT_GRID & gradient_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const GRADIENT_COORD_TYPE max_small_mag,
  std::vector<COORD_TYPE> & point_coord,
@@ -603,8 +604,8 @@ void SHARPISO::get_large_cube_neighbor_gradients
 }
 
 void SHARPISO::get_selected_cube_neighbor_gradients
-(const SHARPISO_SCALAR_GRID & scalar_grid,
- const GRADIENT_GRID & gradient_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index, const GRADIENT_COORD_TYPE max_small_mag,
  const SCALAR_TYPE isovalue,
  std::vector<COORD_TYPE> & point_coord,

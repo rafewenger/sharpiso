@@ -24,6 +24,8 @@
 #ifndef _SHARPISO_TYPES_
 #define _SHARPISO_TYPES_
 
+
+
 /// Definitions for sharp isosurface processing.
 namespace SHARPISO {
 
@@ -44,19 +46,20 @@ namespace SHARPISO {
 
   typedef int NUM_TYPE;
   typedef int VERTEX_INDEX;
-  
+
   typedef enum { NONE, CENTROID, CUBE_CENTER } LOC_TYPE ;
 
   // **************************************************
   // CONSTANTS
   // **************************************************
 
+  //Debug
   const NUM_TYPE DIM3 = 3;
   const NUM_TYPE NUM_CUBE_VERTICES3D = 8;
   const NUM_TYPE NUM_CUBE_EDGES3D = NUM_CUBE_VERTICES3D*DIM3/2;
   const NUM_TYPE NUM_CUBE_FACETS3D = 2*DIM3;
   const NUM_TYPE NUM_CUBE_FACET_VERTICES3D = NUM_CUBE_VERTICES3D/2;
-  const NUM_TYPE NUM_CUBE_FACET_EDGES3D = 
+  const NUM_TYPE NUM_CUBE_FACET_EDGES3D =
     (NUM_CUBE_EDGES3D-NUM_CUBE_FACET_VERTICES3D)/2;
   const NUM_TYPE NUM_CUBE_DIAGONALS3D = NUM_CUBE_FACET_VERTICES3D;
   const SCALAR_TYPE clamp_threshold = 0.0001; // clamp very small values to the cube.

@@ -50,7 +50,7 @@ namespace IJK {
   /// @param coord0 = Input coordinates.
   /// @param[out] coord1 = Output coordinates.
   template <class DTYPE, class CTYPE0, class CTYPE1>
-  void copy_coord(const DTYPE dimension, 
+  void copy_coord(const DTYPE dimension,
                   const CTYPE0 coord0[], CTYPE1 coord1[])
   {
     for (DTYPE d = 0; d < dimension; d++)
@@ -61,7 +61,7 @@ namespace IJK {
   /// Faster algorithm when \a coord0[] and \a coord1[] are both type float.
   /// @param[out] coord1 = Output coordinates.
   template <class DTYPE>
-  void copy_coord(const DTYPE dimension, 
+  void copy_coord(const DTYPE dimension,
                   const float * coord0[], const float * coord1[])
   {
     std::copy(coord0, coord0+dimension, coord1);
@@ -71,7 +71,7 @@ namespace IJK {
   /// Faster algorithm when \a coord0[] and \a coord1[] are both type double.
   /// @param[out] coord1 = Output coordinates.
   template <class DTYPE>
-  void copy_coord(const DTYPE dimension, 
+  void copy_coord(const DTYPE dimension,
                   const double * coord0[], const double * coord1[])
   {
     std::copy(coord0, coord0+dimension, coord1);
@@ -86,7 +86,7 @@ namespace IJK {
   void add_coord(const DTYPE dimension, const CTYPE0 coord0[],
                  const CTYPE1 coord1[], CTYPE2 coord2[])
   {
-    for (DTYPE d = 0; d < dimension; d++) 
+    for (DTYPE d = 0; d < dimension; d++)
       { coord2[d] = coord0[d] + coord1[d]; };
   }
 
@@ -128,7 +128,7 @@ namespace IJK {
   (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
    CTYPE2 midpoint_coord[])
   {
-    for (DTYPE d = 0; d < dimension; d++) 
+    for (DTYPE d = 0; d < dimension; d++)
       { midpoint_coord[d] = (coord0[d] + coord1[d])/2.0; };
   }
 
@@ -142,7 +142,7 @@ namespace IJK {
                              const CTYPE1 coord1[], STYPE & product)
   {
     product = 0;
-    for (DTYPE d = 0; d < dimension; d++) 
+    for (DTYPE d = 0; d < dimension; d++)
       { product = product + coord0[d]*coord1[d]; }
   }
 
@@ -155,7 +155,7 @@ namespace IJK {
                               STYPE & sum)
   {
     sum = 0;
-    for (DTYPE d = 0; d < dimension; d++) 
+    for (DTYPE d = 0; d < dimension; d++)
       { sum = sum + coord0[d]*coord0[d]; }
   }
 
@@ -193,7 +193,7 @@ namespace IJK {
   /// @param coord0 = Input coordinates.
   /// @param coord1 = Input coordinates.
   template <class DTYPE, class CTYPE0, class CTYPE1>
-  bool is_coord_equal(const DTYPE dimension, 
+  bool is_coord_equal(const DTYPE dimension,
                       const CTYPE0 coord0[], const CTYPE1 coord1[])
   {
     for (DTYPE d = 0; d < dimension; d++)
@@ -222,7 +222,7 @@ namespace IJK {
 
   /// DEPRECATED: Replaced by is_coord_equal()
   template <class DTYPE, class CTYPE0, class CTYPE1>
-  bool compare_coord(const DTYPE dimension, 
+  bool compare_coord(const DTYPE dimension,
                      const CTYPE0 coord0[], const CTYPE1 coord1[])
   {
     return(is_coord_equal(dimension, coord0, coord1));
