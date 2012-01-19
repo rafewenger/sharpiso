@@ -125,7 +125,11 @@ void svd_calculate_sharpiso_vertex
     ray_direction[1] = dir[1];
     ray_direction[2] = dir[2];
     normalize(ray_direction, ray_direction);
-
+  }
+  else {
+    ray_direction[0] = 0.0;
+    ray_direction[1] = 0.0;
+    ray_direction[2] = 0.0;
   }
 }
 

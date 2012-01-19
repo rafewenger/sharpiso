@@ -42,6 +42,7 @@ namespace SHARPISO {
   // **************************************************
 
   class OFFSET_CUBE_111;
+
   class SVD_INFO {
   public:
     GRADIENT_COORD_TYPE  ray_direction[DIM3];     //ray direction
@@ -56,6 +57,7 @@ namespace SHARPISO {
   // **************************************************
 
   /// Compute sharp isosurface vertex using singular valued decomposition.
+  /// Use only cube vertex gradients.
   void svd_compute_sharp_vertex_in_cube
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -65,7 +67,20 @@ namespace SHARPISO {
    const EIGENVALUE_TYPE eigenvalue_tolerance,
    COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_nonzero_eigenvalues,
-   SVD_INFO &svd_debug_info);
+   SVD_INFO & svd_info);
+
+  /// Compute sharp isosurface vertex using singular valued decomposition.
+  /// Use gradients from cube and neighboring cubes.
+  void svd_compute_sharp_vertex_in_cube
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const GRADIENT_COORD_TYPE max_zero_mag,
+   const EIGENVALUE_TYPE eigenvalue_tolerance,
+   COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
+   NUM_TYPE & num_nonzero_eigenvalues,
+   SVD_INFO & svd_info);
 
   /// Compute sharp isosurface vertex using simple interpolation on the edges.
   void svd_compute_sharp_vertex_in_cube_edge_based_simple
@@ -77,9 +92,10 @@ namespace SHARPISO {
    const EIGENVALUE_TYPE max_small_eigenvalue,
    COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
-   SVD_INFO &svd_debug_info);
+   SVD_INFO & svd_info);
 
-  /// Compute sharp isosurface vertex using complex interpolation on the edges
+  /// Compute sharp isosurface vertex using edge intersection.
+  /// Compute edge intersections using endpoint gradients.
   void svd_compute_sharp_vertex_in_cube_edge_based_cmplx
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -89,7 +105,7 @@ namespace SHARPISO {
    const EIGENVALUE_TYPE max_small_eigenvalue,
    COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
-   SVD_INFO &svd_debug_info);
+   SVD_INFO & svd_info);
 
   /// Compute sharp isosurface vertex using subgrid sampling of cube.
   /// Use only cube vertex gradients.
@@ -102,7 +118,7 @@ namespace SHARPISO {
    SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error);
 
   /// Compute sharp isosurface vertex using subgrid sampling of cube.
-  /// Use gradients from neighborhood around cube.
+  /// Use gradients from cube and neighboring cubes.
   void subgrid_compute_sharp_vertex_neighborhood
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -133,7 +149,6 @@ namespace SHARPISO {
    const NUM_TYPE subgrid_axis_size,
    COORD_TYPE sharp_coord[DIM3],
    SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error);
-  //debug/
 
   /// Compute centroid of intersections of isosurface and grid edges
   void compute_isosurface_grid_edge_centroid
