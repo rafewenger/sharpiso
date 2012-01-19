@@ -1,19 +1,19 @@
 
-3x examples:
+4x examples:
 
 Span of cube (1,1,1):
 
-edgeA.3x.nrrd: [3,4]
-edgeB.3x.nrrd: [2.47,3.18]
-edgeC.3x.nrrd: [3.5,4.5]
-edgeD.3x.nrrd: [2.26,3.39]
+edgeA.4x.nrrd: [3,4]
+edgeB.4x.nrrd: [2.47,3.18]
+edgeC.4x.nrrd: [3.5,4.5]
+edgeD.4x.nrrd: [2.26,3.39]
 
-cornerA.3x.nrrd: [1,2]
-cornerB.3x.nrrd: [1,2]
+cornerA.4x.nrrd: [1,2]
+cornerB.4x.nrrd: [1,2]
 
-saddleA.3x.nrrd: [2,3]
-saddleB.3x.nrrd: [2.1,3.1]
-saddleC.3x.nrrd: [1.7,2.7].  
+saddleA.4x.nrrd: [2,3]
+saddleB.4x.nrrd: [2.1,3.1]
+saddleC.4x.nrrd: [1.7,2.7].  
   Note: Only two gradients represented at corner vertices even though cube
   intersects three different gradient fields.
 
