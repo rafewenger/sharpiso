@@ -71,7 +71,8 @@ namespace SHARPISO {
 
   /// Compute sharp isosurface vertex using singular valued decomposition.
   /// Use gradients from cube and neighboring cubes.
-  void svd_compute_sharp_vertex_in_cube
+  /// @param cube_111 Cube with origin at (1-offset,1-offset,1-offset).
+  void svd_compute_sharp_vertex_neighborhood
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
@@ -80,7 +81,8 @@ namespace SHARPISO {
    const EIGENVALUE_TYPE eigenvalue_tolerance,
    COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_nonzero_eigenvalues,
-   SVD_INFO & svd_info);
+   SVD_INFO & svd_info,
+   const OFFSET_CUBE_111 & cube_111);
 
   /// Compute sharp isosurface vertex using simple interpolation on the edges.
   void svd_compute_sharp_vertex_in_cube_edge_based_simple
@@ -119,6 +121,7 @@ namespace SHARPISO {
 
   /// Compute sharp isosurface vertex using subgrid sampling of cube.
   /// Use gradients from cube and neighboring cubes.
+  /// @param cube_111 Cube with origin at (1-offset,1-offset,1-offset).
   void subgrid_compute_sharp_vertex_neighborhood
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -217,7 +220,7 @@ namespace SHARPISO {
   // OFFSET_CUBE_111
   // **************************************************
 
-  /// Unit cube with origin at (1-offset,1-offset,1-offset)
+  /// Cube with origin at (1-offset,1-offset,1-offset)
   ///   and edge length (1+2*offset).
   class OFFSET_CUBE_111:public SHARPISO_CUBE {
 
@@ -238,8 +241,6 @@ namespace SHARPISO {
     template <typename CTYPE2, typename LTYPE2>
     void SetVertexCoord             ///< Set cube vertex coordinates.
     (const CTYPE2 * vertex0_coord, const LTYPE2 edge_length);
-
-
   };
 
 };

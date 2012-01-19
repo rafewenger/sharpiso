@@ -36,6 +36,8 @@
 // COMPUTE SHARP VERTEX/EDGE
 // **************************************************
 
+// Compute sharp isosurface vertex using singular valued decomposition.
+// Use only cube vertex gradients.
 void SHARPISO::svd_compute_sharp_vertex_in_cube
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -56,6 +58,72 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
   get_large_cube_gradients
     (scalar_grid, gradient_grid, cube_index, max_small_mag,
      point_coord, gradient_coord, scalar, num_gradients);
+
+  // If there are two singular values, svd returns a ray.
+  GRADIENT_COORD_TYPE ray_direction[DIM3];
+
+  svd_calculate_sharpiso_vertex
+    (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
+     num_gradients, isovalue, max_small_eigenvalue,
+     num_large_eigenvalues, eigenvalues, coord, ray_direction);
+
+
+  if (num_large_eigenvalues == 2) {
+    bool isIntersect = false;
+
+    IJK::copy_coord_3D(ray_direction, svd_info.ray_direction);
+    IJK::copy_coord_3D(coord, svd_info.ray_initial_point);
+
+    //coord of the cube index
+    COORD_TYPE cube_coord[DIM3];
+    scalar_grid.ComputeCoord(cube_index, cube_coord);
+
+    isIntersect = calculate_point_intersect
+      (cube_coord, coord, ray_direction, coord);
+    svd_info.ray_intersect_cube = true;
+
+    if (!isIntersect) {
+      svd_info.ray_intersect_cube = false;
+      compute_isosurface_grid_edge_centroid
+        (scalar_grid, isovalue, cube_index, coord);
+      svd_info.location = CENTROID;
+    }
+  }
+  else if (num_large_eigenvalues < 2) {
+    compute_isosurface_grid_edge_centroid
+      (scalar_grid, isovalue, cube_index, coord);
+    svd_info.location = CENTROID;
+  }
+}
+
+
+// Compute sharp isosurface vertex using singular valued decomposition.
+// Use gradients from cube and neighboring cubes.
+void SHARPISO::svd_compute_sharp_vertex_neighborhood
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const SCALAR_TYPE isovalue,
+ const GRADIENT_COORD_TYPE max_small_mag,
+ const EIGENVALUE_TYPE max_small_eigenvalue,
+ COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
+ NUM_TYPE & num_large_eigenvalues,
+ SVD_INFO & svd_info,
+ const OFFSET_CUBE_111 & cube_111)
+{
+
+  NUM_TYPE num_gradients = 0;
+  std::vector<COORD_TYPE> point_coord;
+  std::vector<GRADIENT_COORD_TYPE> gradient_coord;
+  std::vector<SCALAR_TYPE> scalar;
+
+  // *** DEBUG ***
+  using namespace std;
+  cerr << "Calling get_selected_cube_neighbor_gradients." << endl;
+
+  get_selected_cube_neighbor_gradients
+    (scalar_grid, gradient_grid, cube_index, max_small_mag, isovalue,
+     point_coord, gradient_coord, scalar, num_gradients, cube_111);
 
   // If there are two singular values, svd returns a ray.
   GRADIENT_COORD_TYPE ray_direction[DIM3];

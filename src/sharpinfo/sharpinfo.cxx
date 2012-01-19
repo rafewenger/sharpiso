@@ -188,26 +188,39 @@ int main(int argc, char **argv)
 
       if (flag_svd_edges_simple){
 
-      svd_compute_sharp_vertex_in_cube_edge_based_simple
-        (scalar_grid, gradient_grid, cube_index, isovalue,
-         max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
-         num_large_eigenvalues, svd_info);
-         }
-	else if (flag_svd_edges_cmplx){
+        svd_compute_sharp_vertex_in_cube_edge_based_simple
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
+           num_large_eigenvalues, svd_info);
+      }
+      else if (flag_svd_edges_cmplx){
 
-	svd_compute_sharp_vertex_in_cube_edge_based_cmplx
-        (scalar_grid, gradient_grid, cube_index, isovalue,
-         max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
-         num_large_eigenvalues, svd_info);
-         }
-	else if(flag_svd_gradients) {
+        svd_compute_sharp_vertex_in_cube_edge_based_cmplx
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
+           num_large_eigenvalues, svd_info);
+      }
+      else if(flag_svd_gradients) {
 
-	  svd_compute_sharp_vertex_in_cube
-        (scalar_grid, gradient_grid, cube_index, isovalue,
-         max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
-         num_large_eigenvalues, svd_info);
+        if (flag_use_neighboring_facets &&
+            flag_use_selective_neighbors) {
+          OFFSET_CUBE_111 cube_111(cube_offset);
 
-	}
+          // Use only cube gradients
+          svd_compute_sharp_vertex_neighborhood
+            (scalar_grid, gradient_grid, cube_index, isovalue,
+             max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
+             num_large_eigenvalues, svd_info, cube_111);
+        }
+        else {
+          // Use only cube gradients
+          svd_compute_sharp_vertex_in_cube
+            (scalar_grid, gradient_grid, cube_index, isovalue,
+             max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
+             num_large_eigenvalues, svd_info);
+        }
+
+      }
 
       output_svd_results
         (cout, sharp_coord, eigenvalues, num_large_eigenvalues,
@@ -647,17 +660,17 @@ void parse_command_line(int argc, char **argv)
       flag_list_eigen = true;
     }
     else if(s == "-svd_grad")
-    {
-      flag_svd_gradients = true;
-    }
+      {
+        flag_svd_gradients = true;
+      }
     else if(s == "-svd_edge_simple")
-    {
-      flag_svd_edges_simple = true;
-    }
+      {
+        flag_svd_edges_simple = true;
+      }
     else if(s == "-svd_edge_cmplx")
-    {
-      flag_svd_edges_cmplx = true;
-    }
+      {
+        flag_svd_edges_cmplx = true;
+      }
     else if (s == "-neighbor") {
       iarg++;
       if (iarg >= argc) { usage_error(); };
