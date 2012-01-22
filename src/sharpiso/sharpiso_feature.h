@@ -53,7 +53,7 @@ namespace SHARPISO {
 	};
 
   // **************************************************
-  // ROUTINES TO COMPUTE SHARP VERTEX/EDGE
+  // SVD ROUTINES TO COMPUTE SHARP VERTEX/EDGE
   // **************************************************
 
   /// Compute sharp isosurface vertex using singular valued decomposition.
@@ -70,9 +70,37 @@ namespace SHARPISO {
    SVD_INFO & svd_info);
 
   /// Compute sharp isosurface vertex using singular valued decomposition.
+  /// Use selected cube vertex gradients.
+  void svd_compute_sharp_vertex_in_cube_S
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const GRADIENT_COORD_TYPE max_zero_mag,
+   const EIGENVALUE_TYPE eigenvalue_tolerance,
+   COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
+   NUM_TYPE & num_nonzero_eigenvalues,
+   SVD_INFO & svd_info,
+   const OFFSET_CUBE_111 & cube_111);
+
+  /// Compute sharp isosurface vertex using singular valued decomposition.
   /// Use gradients from cube and neighboring cubes.
   /// @param cube_111 Cube with origin at (1-offset,1-offset,1-offset).
   void svd_compute_sharp_vertex_neighborhood
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const GRADIENT_COORD_TYPE max_zero_mag,
+   const EIGENVALUE_TYPE eigenvalue_tolerance,
+   COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
+   NUM_TYPE & num_nonzero_eigenvalues,
+   SVD_INFO & svd_info);
+
+  /// Compute sharp isosurface vertex using singular valued decomposition.
+  /// Use gradients from cube and neighboring cubes.
+  /// @param cube_111 Cube with origin at (1-offset,1-offset,1-offset).
+  void svd_compute_sharp_vertex_neighborhood_S
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
@@ -109,6 +137,10 @@ namespace SHARPISO {
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
 
+  // **************************************************
+  // SUBGRID ROUTINES TO COMPUTE SHARP VERTEX/EDGE
+  // **************************************************
+
   /// Compute sharp isosurface vertex using subgrid sampling of cube.
   /// Use only cube vertex gradients.
   void subgrid_compute_sharp_vertex_in_cube
@@ -120,9 +152,33 @@ namespace SHARPISO {
    SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error);
 
   /// Compute sharp isosurface vertex using subgrid sampling of cube.
-  /// Use gradients from cube and neighboring cubes.
+  /// Use selected cube vertex gradients.
+  void subgrid_compute_sharp_vertex_in_cube_S
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index, const SCALAR_TYPE isovalue,
+   const GRADIENT_COORD_TYPE max_small_mag, const NUM_TYPE subgrid_axis_size,
+   COORD_TYPE sharp_coord[DIM3],
+   SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error,
+   const OFFSET_CUBE_111 & cube_111);
+
+  /// Compute sharp isosurface vertex using subgrid sampling of cube.
+  /// Use large gradients from cube and neighboring cubes.
   /// @param cube_111 Cube with origin at (1-offset,1-offset,1-offset).
   void subgrid_compute_sharp_vertex_neighborhood
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const GRADIENT_COORD_TYPE max_small_mag,
+   const NUM_TYPE subgrid_axis_size,
+   COORD_TYPE sharp_coord[DIM3],
+   SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error);
+
+  /// Compute sharp isosurface vertex using subgrid sampling of cube.
+  /// Use selected gradients from cube and neighboring cubes.
+  /// @param cube_111 Cube with origin at (1-offset,1-offset,1-offset).
+  void subgrid_compute_sharp_vertex_neighborhood_S
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
@@ -152,6 +208,10 @@ namespace SHARPISO {
    const NUM_TYPE subgrid_axis_size,
    COORD_TYPE sharp_coord[DIM3],
    SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error);
+
+  // **************************************************
+  // COMPUTE ISO VERTEX AT CENTROID
+  // **************************************************
 
   /// Compute centroid of intersections of isosurface and grid edges
   void compute_isosurface_grid_edge_centroid
@@ -183,10 +243,26 @@ namespace SHARPISO {
    std::vector<SCALAR_TYPE> & scalar,
    NUM_TYPE & num_gradients);
 
+  /// Select gradients at cube vertices.
+  /// Select large gradients which give a level set intersecting the cube.
+  /// @param cube_111 Cube with origin at (1-offset,1-offset,1-offset).
+  void select_cube_gradients
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const GRADIENT_COORD_TYPE max_small_grad,
+   const SCALAR_TYPE isovalue,
+   std::vector<COORD_TYPE> & point_coord,
+   std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+   std::vector<SCALAR_TYPE> & scalar,
+   NUM_TYPE & num_gradients,
+   const OFFSET_CUBE_111 & cube_111);
+
   /// Get large gradients at cube and neighboring cube vertices.
   /// @pre cube_index is the index of the lowest/leftmost cube vertex.
   ///      0 <= cube_index < number of grid vertices and
   ///      the vertex with index cube_index is not on the right/top of grid.
+  /// @param cube_111 Cube with origin at (1-offset,1-offset,1-offset).
   void get_large_cube_neighbor_gradients
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -200,11 +276,11 @@ namespace SHARPISO {
   /// Get selected gradients at cube and neighboring cube vertices.
   /// Selected gradient have magnitudes at least max_small_grad.
   /// Isosurfaces from selected neighboring gradients must intersect cube.
-  /// @param cube_111 Data structure for processing
-  ///       cube-isosurface intersections.
-  /// @pre cube_index is the index of the lowest/leftmost cube vertex.
+  /// @param cube_index Index of the lowest/leftmost cube vertex.
   ///      0 <= cube_index < number of grid vertices and
   ///      the vertex with index cube_index is not on the right/top of grid.
+  /// @param cube_111 Cube with origin at (1-offset,1-offset,1-offset).
+  ///      Data structure for processing cube-isosurface intersections.
   void get_selected_cube_neighbor_gradients
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
