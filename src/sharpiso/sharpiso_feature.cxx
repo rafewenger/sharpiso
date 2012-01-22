@@ -81,6 +81,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
     isIntersect = calculate_point_intersect
       (cube_coord, coord, ray_direction, coord);
     svd_info.ray_intersect_cube = true;
+    svd_info.location = LOC_SVD;
 
     if (!isIntersect) {
       svd_info.ray_intersect_cube = false;
@@ -142,6 +143,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_S
     isIntersect = calculate_point_intersect
       (cube_coord, coord, ray_direction, coord);
     svd_info.ray_intersect_cube = true;
+    svd_info.location = LOC_SVD;
 
     if (!isIntersect) {
       svd_info.ray_intersect_cube = false;
@@ -203,6 +205,7 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood
     isIntersect = calculate_point_intersect
       (cube_coord, coord, ray_direction, coord);
     svd_info.ray_intersect_cube = true;
+    svd_info.location = LOC_SVD;
 
     if (!isIntersect) {
       svd_info.ray_intersect_cube = false;
@@ -264,6 +267,7 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
     isIntersect = calculate_point_intersect
       (cube_coord, coord, ray_direction, coord);
     svd_info.ray_intersect_cube = true;
+    svd_info.location = LOC_SVD;
 
     if (!isIntersect) {
       svd_info.ray_intersect_cube = false;
@@ -316,13 +320,15 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
   COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
 
   scalar_grid.ComputeCoord(cube_index, cube_coord);
+
   //check if cube creation failed.
   if(cube_create){
     IJK::add_coord(DIM3, cube_coord, coord, coord);
+    svd_info.location = LOC_SVD;
   }
   else{
-    cerr <<"ERROR: Isovalue out of range, set point to cube center."<<endl;
     IJK::add_coord(DIM3, cube_coord, cube_center, coord);
+    svd_info.location = CUBE_CENTER;
   }
 }
 
@@ -365,11 +371,11 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
   //check if cube creation failed.
   if(cube_create) {
     IJK::add_coord(DIM3, cube_coord, coord, coord);
+    svd_info.location = LOC_SVD;
   }
   else {
-    // *** NOTE:  SHOULD NOT BE A cerr STATEMENT HERE ***
-    cerr <<" Isovalue out of range, set point to cube center."<<endl;
     IJK::add_coord(DIM3, cube_coord, cube_center, coord);
+    svd_info.location = CUBE_CENTER;
   }
 }
 

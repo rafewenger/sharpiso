@@ -47,7 +47,7 @@ namespace SHARPISO {
   typedef int NUM_TYPE;
   typedef int VERTEX_INDEX;
 
-  typedef enum { NONE, CENTROID, CUBE_CENTER } LOC_TYPE ;
+  typedef enum { LOC_NONE, CENTROID, CUBE_CENTER, LOC_SVD } LOC_TYPE ;
 
   // **************************************************
   // CONSTANTS

@@ -48,7 +48,6 @@ namespace SHARPISO {
     GRADIENT_COORD_TYPE  ray_direction[DIM3];     //ray direction
     SCALAR_TYPE   ray_initial_point[DIM3]; //ray initial point
     LOC_TYPE location; //defined in sharpiso_types typedef enum
-    //{ NONE, CENTROID, CUBE_CENTER } LOC_TYPE ;
     bool ray_intersect_cube;
 	};
 

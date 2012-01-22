@@ -285,7 +285,7 @@ void ISODUAL3D::compute_dual_isovertex_using_gradients
   //set up svd info
   SVD_INFO svd_debug_info;
   svd_debug_info.ray_intersect_cube = false;
-  svd_debug_info.location = NONE;
+  svd_debug_info.location = LOC_NONE;
 
   EIGENVALUE_TYPE eigenvalues[DIM3];
 
@@ -311,7 +311,7 @@ void ISODUAL3D::compute_dual_isovertex_using_edges_simple
   //set up svd info
   SVD_INFO svd_info;
   svd_info.ray_intersect_cube = false;
-  svd_info.location = NONE;
+  svd_info.location = LOC_NONE;
 
   EIGENVALUE_TYPE eigenvalues[DIM3];
 
@@ -337,7 +337,7 @@ void ISODUAL3D::compute_dual_isovertex_using_edges_complex
   //set up svd info
   SVD_INFO svd_info;
   svd_info.ray_intersect_cube = false;
-  svd_info.location = NONE;
+  svd_info.location = LOC_NONE;
 
   EIGENVALUE_TYPE eigenvalues[DIM3];
 

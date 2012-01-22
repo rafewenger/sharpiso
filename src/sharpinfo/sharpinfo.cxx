@@ -157,7 +157,7 @@ int main(int argc, char **argv)
   // accumulate information from svd_calls
   SVD_INFO svd_info;
   svd_info.ray_intersect_cube = false;
-  svd_info.location = NONE;
+  svd_info.location = LOC_NONE;
 
   try {
 
@@ -485,7 +485,7 @@ void output_svd_results
  SVD_INFO & svd_info)
 {
   output << "SVD: Sharp coordinates ";
-  if (svd_info.location == NONE) 
+  if (svd_info.location == LOC_NONE) 
     { output << "(svd): "; }
   else if (svd_info.location == CENTROID) 
     { output << "(centroid): "; }
