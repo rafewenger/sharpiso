@@ -80,7 +80,7 @@ int main(int argc, char **argv)
       }
     }
 
-    if (!check_input(io_info, full_scalar_grid, error)) 
+    if (!check_input(io_info, full_scalar_grid, error))
       { throw(error); };
 
     // copy nrrd_info into io_info
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
         (full_scalar_grid, io_info.flag_subsample, io_info.subsample_resolution,
          io_info.flag_supersample, io_info.supersample_resolution);
     }
-    // Note: isodual_data.SetScalarGrid or isodual_data.SetGrids 
+    // Note: isodual_data.SetScalarGrid or isodual_data.SetGrids
     //       must be called before set_mesh_data.
     set_isodual_data(io_info, isodual_data, isodual_time);
     report_num_cubes(full_scalar_grid, io_info, isodual_data);
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
       report_time(io_info, io_time, isodual_time, total_elapsed_time);
     };
 
-  } 
+  }
   catch (ERROR error) {
     if (error.NumMessages() == 0) {
       cerr << "Unknown error." << endl;
@@ -146,7 +146,7 @@ void construct_isosurface
   for (unsigned int i = 0; i < io_info.isovalue.size(); i++) {
 
     const SCALAR_TYPE isovalue = io_info.isovalue[i];
-    
+
     DUAL_ISOSURFACE dual_isosurface(num_cube_vertices);
     ISODUAL_INFO isodual_info(dimension);
     isodual_info.grid.num_cubes = num_cubes;
@@ -161,9 +161,9 @@ void construct_isosurface
 
     int grow_factor = 1;
     int shrink_factor = 1;
-    if (io_info.flag_subsample) 
+    if (io_info.flag_subsample)
       { grow_factor = io_info.subsample_resolution; }
-    if (io_info.flag_supersample) 
+    if (io_info.flag_supersample)
       { shrink_factor = io_info.supersample_resolution; }
 
     rescale_vertex_coord(grow_factor, shrink_factor, io_info.grid_spacing,

@@ -55,7 +55,9 @@ void ISODUAL3D::dual_contouring
   ISO_MERGE_DATA merge_data(dimension, axis_size);
 
   if (isodual_data.IsGradientGridSet() &&
-      isodual_data.VertexPositionMethod() == GRADIENT_POSITIONING) {
+      isodual_data.VertexPositionMethod() == GRADIENT_POSITIONING
+      || isodual_data.VertexPositionMethod() == EDGE_SIMPLE
+      || isodual_data.VertexPositionMethod() == EDGE_COMPLEX) {
     dual_contouring
       (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
        isovalue, isodual_data.VertexPositionMethod(),
@@ -88,17 +90,17 @@ void ISODUAL3D::dual_contouring
  std::vector<COORD_TYPE> & vertex_coord,
  MERGE_DATA & merge_data,
  ISODUAL_INFO & isodual_info)
-  // extract isosurface using Dual Contouring algorithm
-  // returns list of isosurface simplex vertices
-  //   and list of isosurface vertex coordinates
-  // scalar_grid = scalar grid data
-  // isovalue = isosurface scalar value
-  // vertex_position_method = vertex position method
-  // isopoly_vert[] = list of isosurface polytope vertices
-  // vertex_coord[] = list of isosurface vertex coordinates
-  //   vertex_coord[dimension*iv+k] = k'th coordinate of vertex iv
-  // merge_data = internal data structure for merging identical edges
-  // isodual_info = information about running time and grid cubes and edges
+// extract isosurface using Dual Contouring algorithm
+// returns list of isosurface simplex vertices
+//   and list of isosurface vertex coordinates
+// scalar_grid = scalar grid data
+// isovalue = isosurface scalar value
+// vertex_position_method = vertex position method
+// isopoly_vert[] = list of isosurface polytope vertices
+// vertex_coord[] = list of isosurface vertex coordinates
+//   vertex_coord[dimension*iv+k] = k'th coordinate of vertex iv
+// merge_data = internal data structure for merging identical edges
+// isodual_info = information about running time and grid cubes and edges
 {
   PROCEDURE_ERROR error("dual_contouring");
 
@@ -145,21 +147,23 @@ void ISODUAL3D::dual_contouring
  std::vector<COORD_TYPE> & vertex_coord,
  MERGE_DATA & merge_data,
  ISODUAL_INFO & isodual_info)
-  // extract isosurface using Dual Contouring algorithm
-  // returns list of isosurface simplex vertices
-  //   and list of isosurface vertex coordinates
-  // scalar_grid = scalar grid data
-  // isovalue = isosurface scalar value
-  // vertex_position_method = vertex position method
-  // isopoly_vert[] = list of isosurface polytope vertices
-  // vertex_coord[] = list of isosurface vertex coordinates
-  //   vertex_coord[dimension*iv+k] = k'th coordinate of vertex iv
-  // merge_data = internal data structure for merging identical edges
-  // isodual_info = information about running time and grid cubes and edges
+// extract isosurface using Dual Contouring algorithm
+// returns list of isosurface simplex vertices
+//   and list of isosurface vertex coordinates
+// scalar_grid = scalar grid data
+// isovalue = isosurface scalar value
+// vertex_position_method = vertex position method
+// isopoly_vert[] = list of isosurface polytope vertices
+// vertex_coord[] = list of isosurface vertex coordinates
+//   vertex_coord[dimension*iv+k] = k'th coordinate of vertex iv
+// merge_data = internal data structure for merging identical edges
+// isodual_info = information about running time and grid cubes and edges
 {
   PROCEDURE_ERROR error("dual_contouring");
 
   clock_t t0 = clock();
+  //debug
+  std::cout <<"default  "<<std::endl;
 
   isopoly_vert.clear();
   vertex_coord.clear();
@@ -175,7 +179,21 @@ void ISODUAL3D::dual_contouring
   clock_t t2 = clock();
 
   if (vertex_position_method == GRADIENT_POSITIONING) {
+    //debug
+    std::cout <<" position_dual_isovertices_using_gradients  "<<std::endl;
     position_dual_isovertices_using_gradients
+      (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);
+  }
+  else if (vertex_position_method == EDGE_SIMPLE) {
+    //debug
+    std::cout <<"position_dual_isovertices_using_edge_intersection_simple  "<<std::endl;
+    //EDGE SIMPLE
+    position_dual_isovertices_using_edge_intersection_simple
+      (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);
+  }
+  else if (vertex_position_method == EDGE_COMPLEX) {
+    //EDGE COMPLEX
+    position_dual_isovertices_using_edge_intersection_complex
       (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);
   }
   else {
@@ -198,9 +216,9 @@ void ISODUAL3D::dual_contouring
  const SCALAR_TYPE isovalue,
  std::vector<VERTEX_INDEX> & isopoly_vert,
  std::vector<COORD_TYPE> & vertex_coord)
-  // same as previous function but with default vertex_position_method
-  //   and without reporting time
-  // see previous function for explanation of parameter list
+// same as previous function but with default vertex_position_method
+//   and without reporting time
+// see previous function for explanation of parameter list
 {
   const int dimension = scalar_grid.Dimension();
   const AXIS_SIZE_TYPE * axis_size = scalar_grid.AxisSize();
@@ -208,7 +226,7 @@ void ISODUAL3D::dual_contouring
   ISODUAL_INFO isodual_info;
   ISO_MERGE_DATA merge_data(dimension, axis_size);
   dual_contouring(scalar_grid, isovalue, CENTROID_EDGE_ISO,
-                 isopoly_vert, vertex_coord, merge_data, isodual_info);
+		  isopoly_vert, vertex_coord, merge_data, isodual_info);
 }
 
 
@@ -218,9 +236,9 @@ void ISODUAL3D::dual_contouring
  const SCALAR_TYPE isovalue,
  std::vector<VERTEX_INDEX> & isopoly_vert,
  std::vector<COORD_TYPE> & vertex_coord)
-  // same as previous function but with default vertex_position_method
-  //   and without reporting time
-  // see previous function for explanation of parameter list
+// same as previous function but with default vertex_position_method
+//   and without reporting time
+// see previous function for explanation of parameter list
 {
   const int dimension = scalar_grid.Dimension();
   const AXIS_SIZE_TYPE * axis_size = scalar_grid.AxisSize();
@@ -229,5 +247,26 @@ void ISODUAL3D::dual_contouring
   ISO_MERGE_DATA merge_data(dimension, axis_size);
   dual_contouring(scalar_grid, gradient_grid,
                   isovalue, CENTROID_EDGE_ISO,
+                  isopoly_vert, vertex_coord, merge_data, isodual_info);
+}
+
+void ISODUAL3D::dual_contouring
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const VERTEX_POSITION_METHOD vertex_position_method,
+ std::vector<VERTEX_INDEX> & isopoly_vert,
+ std::vector<COORD_TYPE> & vertex_coord)
+// same as previous function but with default vertex_position_method
+//   and without reporting time
+// see previous function for explanation of parameter list
+{
+  const int dimension = scalar_grid.Dimension();
+  const AXIS_SIZE_TYPE * axis_size = scalar_grid.AxisSize();
+
+  ISODUAL_INFO isodual_info;
+  ISO_MERGE_DATA merge_data(dimension, axis_size);
+  dual_contouring(scalar_grid, gradient_grid,
+                  isovalue, vertex_position_method,
                   isopoly_vert, vertex_coord, merge_data, isodual_info);
 }
