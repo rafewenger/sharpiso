@@ -102,7 +102,18 @@ namespace ISODUAL3D {
      std::vector<COORD_TYPE> & vertex_coord,
      MERGE_DATA & merge_data, ISODUAL_INFO & isodual_info);
 
-
+  /// Dual Contouring Algorithm.
+  /// Represents each grid edge by a single integer.
+  /// @param merge_data = Data structure for merging edges.
+  /// Requires memory of size(MERGE_INDEX) for each grid edge.
+  void dual_contouring
+    (const ISODUAL_DATA_FLAGS & isodual_data_flags,
+     const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+     const GRADIENT_GRID_BASE & gradient_grid,
+     const SCALAR_TYPE isovalue,
+     std::vector<VERTEX_INDEX> & isopoly_vert,
+     std::vector<COORD_TYPE> & vertex_coord,
+     MERGE_DATA & merge_data, ISODUAL_INFO & isodual_info);
 
 }
 

@@ -75,7 +75,19 @@ namespace ISODUAL3D {
      const SCALAR_TYPE isovalue,
      const bool use_selected_gradients,
      const bool use_only_cube_gradients,
+     const SIGNED_COORD_TYPE cube_offset,
      const std::vector<ISO_VERTEX_INDEX> & vlist, COORD_TYPE * coord);
+
+  /// Position dual isosurface vertices using gradients
+    void position_dual_isovertices_using_gradients
+      (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+       const GRADIENT_GRID_BASE & gradient_grid,
+       const SCALAR_TYPE isovalue,
+       const bool use_selected_gradients,
+       const bool use_only_cube_gradients,
+       const SIGNED_COORD_TYPE cube_offset,
+       const std::vector<ISO_VERTEX_INDEX> & vlist,
+       std::vector<COORD_TYPE> & coord);
 
   /// Position dual isosurface vertices using SVD and edge intersection simple.
   void position_dual_isovertices_using_edge_intersection_simple

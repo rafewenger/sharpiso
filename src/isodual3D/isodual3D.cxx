@@ -59,8 +59,8 @@ void ISODUAL3D::dual_contouring
       || isodual_data.VertexPositionMethod() == EDGE_SIMPLE
       || isodual_data.VertexPositionMethod() == EDGE_COMPLEX) {
     dual_contouring
-      (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
-       isovalue, isodual_data.VertexPositionMethod(),
+      (isodual_data, isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
+       isovalue, 
        dual_isosurface.isopoly_vert, dual_isosurface.vertex_coord,
        merge_data, isodual_info);
   }
@@ -187,6 +187,83 @@ void ISODUAL3D::dual_contouring
   else if (vertex_position_method == EDGE_SIMPLE) {
     //debug
     std::cout <<"position_dual_isovertices_using_edge_intersection_simple  "<<std::endl;
+    //EDGE SIMPLE
+    position_dual_isovertices_using_edge_intersection_simple
+      (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);
+  }
+  else if (vertex_position_method == EDGE_COMPLEX) {
+    //EDGE COMPLEX
+    position_dual_isovertices_using_edge_intersection_complex
+      (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);
+  }
+  else {
+    // default
+    position_dual_isovertices_centroid
+      (scalar_grid, isovalue, iso_vlist, vertex_coord);
+  }
+
+  clock_t t3 = clock();
+
+  // store times
+  clock2seconds(t1-t0, isodual_info.time.extract);
+  clock2seconds(t2-t1, isodual_info.time.merge);
+  clock2seconds(t3-t2, isodual_info.time.position);
+  clock2seconds(t3-t0, isodual_info.time.total);
+}
+
+void ISODUAL3D::dual_contouring
+(const ISODUAL_DATA_FLAGS & isodual_data_flags,
+ const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ std::vector<VERTEX_INDEX> & isopoly_vert,
+ std::vector<COORD_TYPE> & vertex_coord,
+ MERGE_DATA & merge_data,
+ ISODUAL_INFO & isodual_info)
+// extract isosurface using Dual Contouring algorithm
+// returns list of isosurface simplex vertices
+//   and list of isosurface vertex coordinates
+// scalar_grid = scalar grid data
+// isovalue = isosurface scalar value
+// isopoly_vert[] = list of isosurface polytope vertices
+// vertex_coord[] = list of isosurface vertex coordinates
+//   vertex_coord[dimension*iv+k] = k'th coordinate of vertex iv
+// merge_data = internal data structure for merging identical edges
+// isodual_info = information about running time and grid cubes and edges
+{
+  PROCEDURE_ERROR error("dual_contouring");
+  const VERTEX_POSITION_METHOD vertex_position_method =
+    isodual_data_flags.vertex_position_method;
+  const bool use_selected_gradients =
+    isodual_data_flags.use_selected_gradients;
+  const bool use_only_cube_gradients =
+    isodual_data_flags.use_only_cube_gradients;
+
+  // *** NOTE:  SHOULD BE SET IN isodual_data_flags ***
+  const SIGNED_COORD_TYPE cube_offset = 0.1;
+
+  clock_t t0 = clock();
+
+  isopoly_vert.clear();
+  vertex_coord.clear();
+  isodual_info.time.Clear();
+
+  std::vector<ISO_VERTEX_INDEX> isopoly;
+  extract_dual_isopoly
+    (scalar_grid, isovalue, isopoly, isodual_info);
+  clock_t t1 = clock();
+
+  std::vector<ISO_VERTEX_INDEX> iso_vlist;
+  merge_identical(isopoly, iso_vlist, isopoly_vert, merge_data);
+  clock_t t2 = clock();
+
+  if (vertex_position_method == GRADIENT_POSITIONING) {
+    position_dual_isovertices_using_gradients
+      (scalar_grid, gradient_grid, isovalue, 
+       use_selected_gradients, use_only_cube_gradients, cube_offset,
+       iso_vlist, vertex_coord);
+  }
+  else if (vertex_position_method == EDGE_SIMPLE) {
     //EDGE SIMPLE
     position_dual_isovertices_using_edge_intersection_simple
       (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);

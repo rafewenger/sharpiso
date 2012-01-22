@@ -122,7 +122,7 @@ namespace ISODUAL3D {
   };
 
   /// Input data to Dual Contouring and related algorithms
-  class ISODUAL_DATA:protected ISODUAL_DATA_FLAGS {
+  class ISODUAL_DATA:public ISODUAL_DATA_FLAGS {
 
   protected:
     ISODUAL_SCALAR_GRID scalar_grid;

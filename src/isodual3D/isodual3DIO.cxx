@@ -196,12 +196,12 @@ namespace {
     }
     else if (str == "gradC"){
       io_info.vertex_position_method = GRADIENT_POSITIONING;
-      io_info.use_only_cube_gradients = false;
+      io_info.use_only_cube_gradients = true;
       io_info.use_selected_gradients = false;
     }
     else if (str == "gradN"){
       io_info.vertex_position_method = GRADIENT_POSITIONING;
-      io_info.use_only_cube_gradients = true;
+      io_info.use_only_cube_gradients = false;
       io_info.use_selected_gradients = false;
     }
     else if (str == "gradCS"){
