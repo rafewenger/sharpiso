@@ -149,33 +149,81 @@ namespace {
   }
 
   VERTEX_POSITION_METHOD get_vertex_position_method(char * s)
-    // convert string s into parameter token
+  // convert string s into parameter token
   {
-  VERTEX_POSITION_METHOD method = CENTROID_EDGE_ISO;
-  string str = s;
+    VERTEX_POSITION_METHOD method = CENTROID_EDGE_ISO;
+    string str = s;
 
-  if (str == "cube_center") {
-    method = CUBECENTER;
-  }
-  else if (str == "centroid") {
-    method = CENTROID_EDGE_ISO;
-  }
-  else if (str == "grad_based"){
-    method = GRADIENT_POSITIONING;
-  }
-  else if (str == "es_based"){
-    method = EDGE_SIMPLE;
-  }
-  else if (str == "ec_based"){
-    method = EDGE_COMPLEX;
-  }
-  else {
-    cerr << "Error in input parameter -position.  Illegal position method: "
-    << str << "." << endl;
-    exit(1030);
+    if (str == "cube_center") {
+      method = CUBECENTER;
+    }
+    else if (str == "centroid") {
+      method = CENTROID_EDGE_ISO;
+    }
+    else if (str == "grad"){
+      method = GRADIENT_POSITIONING;
+    }
+    else if (str == "gradES"){
+      method = EDGE_SIMPLE;
+    }
+    else if (str == "gradEC"){
+      method = EDGE_COMPLEX;
+    }
+    else {
+      cerr << "Error in input parameter -position.  Illegal position method: "
+           << str << "." << endl;
+      exit(1030);
+    }
+
+    return(method);
   }
 
-  return(method);
+  // Set vertex position method and flags.
+  void set_vertex_position_method(const char * s, IO_INFO & io_info)
+  {
+    const string str = s;
+
+    // set default method
+    io_info.vertex_position_method = CENTROID_EDGE_ISO;
+    io_info.use_only_cube_gradients = false;
+    io_info.use_selected_gradients = true;
+
+    if (str == "cube_center") {
+      io_info.vertex_position_method = CUBECENTER;
+    }
+    else if (str == "centroid") {
+      io_info.vertex_position_method = CENTROID_EDGE_ISO;
+    }
+    else if (str == "gradC"){
+      io_info.vertex_position_method = GRADIENT_POSITIONING;
+      io_info.use_only_cube_gradients = false;
+      io_info.use_selected_gradients = false;
+    }
+    else if (str == "gradN"){
+      io_info.vertex_position_method = GRADIENT_POSITIONING;
+      io_info.use_only_cube_gradients = true;
+      io_info.use_selected_gradients = false;
+    }
+    else if (str == "gradCS"){
+      io_info.vertex_position_method = GRADIENT_POSITIONING;
+      io_info.use_only_cube_gradients = true;
+      io_info.use_selected_gradients = true;
+    }
+    else if (str == "gradNS"){
+      io_info.use_only_cube_gradients = false;
+      io_info.use_selected_gradients = true;
+    }
+    else if (str == "gradES"){
+      io_info.vertex_position_method = EDGE_SIMPLE;
+    }
+    else if (str == "gradEC"){
+      io_info.vertex_position_method = EDGE_COMPLEX;
+    }
+    else {
+      cerr << "Error in input parameter -position.  Illegal position method: "
+           << str << "." << endl;
+      exit(1030);
+    }
   }
 
 }
@@ -218,8 +266,13 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
       case POSITION_PARAM:
         iarg++;
         if (iarg >= argc) usage_error();
-        io_info.vertex_position_method =
-	  get_vertex_position_method(argv[iarg]);
+        set_vertex_position_method(argv[iarg], io_info);
+
+        /* OBSOLETE
+           io_info.vertex_position_method =
+           get_vertex_position_method(argv[iarg]);
+        */
+
         is_vertex_position_method_set = true;
         break;
 
@@ -941,7 +994,8 @@ namespace {
   void options_msg()
   {
   cerr << "OPTIONS:" << endl;
-  cerr << "[-subsample S] [-supersample S] [-position {centroid|grad_based|cube_center|es_based|ec_based}]" << endl;
+  cerr << "  [-subsample S] [-supersample S]" << endl;
+  cerr << "  [-position {centroid|cube_center|grad|gradES|gradEC" << endl;
   cerr << "[-gradient {gradient_nrrd_filename}]" << endl;
   cerr << "[-off|-iv] [-o {output_filename}] [-stdout]"
   << endl;
@@ -967,13 +1021,13 @@ void ISODUAL3D::help()
 
   cout << "  -subsample S: Subsample grid at every S vertices." << endl;
   cout << "                S must be an integer greater than 1." << endl;
-  cout << "  -position {centroid|grad_based|cube_center}: Isosurface vertex position method." << endl;
+  cout << "  -position {centroid|cube_center|grad|gradES|gradEC}: Isosurface vertex position method." << endl;
   cout << "            centroid: Position isosurface vertices at centroid of"
   << endl;
   cout << "                      intersection of grid edges and isosurface."
   << endl;
-  cout << "            grad_based: Position isosurface vertices based on gradients and svd." << endl;
   cout << "            cube_center: Position isosurface vertices at cube centers." << endl;
+  cout << "            grad: Position isosurface vertices based on gradients and svd." << endl;
   cout << "  -gradient {gradient_nrrd_filename}: Read gradients from gradient nrrd file." << endl;
   cout << "  -off: Output in geomview OFF format. (Default.)" << endl;
   cout << "  -iv: Output in OpenInventor .iv format." << endl;
@@ -1107,6 +1161,8 @@ void ISODUAL3D::set_isodual_data
 
     // Set data structures in isodual_data
   isodual_data.SetVertexPositionMethod(io_info.vertex_position_method);
+  isodual_data.SetUseSelectedGradients(io_info.use_selected_gradients);
+  isodual_data.SetUseOnlyCubeGradients(io_info.use_only_cube_gradients);
 }
 
 void ISODUAL3D::set_io_info

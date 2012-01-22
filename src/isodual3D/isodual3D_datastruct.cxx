@@ -54,6 +54,8 @@ void ISODUAL_DATA_FLAGS::Init()
 {
   interpolation_type = LINEAR_INTERPOLATION;
   vertex_position_method = CENTROID_EDGE_ISO;
+  use_only_cube_gradients = false;
+  use_selected_gradients = true;
 }
 
 // **************************************************
@@ -173,6 +175,20 @@ void ISODUAL_DATA::SetVertexPositionMethod
 (const VERTEX_POSITION_METHOD vertex_position_method)
 {
   this->vertex_position_method = vertex_position_method;
+}
+
+/// Set flag for using selected gradients
+void ISODUAL_DATA::SetUseSelectedGradients
+(const bool flag)
+{
+  this->use_selected_gradients = flag;
+}
+
+/// Set flag for using only cube gradients.
+void ISODUAL_DATA::SetUseOnlyCubeGradients
+(const bool flag)
+{
+  this->use_only_cube_gradients = flag;
 }
 
 /// Check data structure

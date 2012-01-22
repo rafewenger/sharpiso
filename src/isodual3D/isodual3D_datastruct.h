@@ -113,6 +113,8 @@ namespace ISODUAL3D {
     // control parameters
     INTERPOLATION_TYPE interpolation_type;
     VERTEX_POSITION_METHOD vertex_position_method;
+    bool use_only_cube_gradients;
+    bool use_selected_gradients;
 
   public:
     ISODUAL_DATA_FLAGS() { Init(); };
@@ -152,6 +154,10 @@ namespace ISODUAL3D {
       (const INTERPOLATION_TYPE interpolation_type);
     void SetVertexPositionMethod    /// Set isosurface vertex position method.
       (const VERTEX_POSITION_METHOD vertex_position_method);
+    void SetUseSelectedGradients    /// Set flag for using selected gradients.
+      (const bool flag);
+    void SetUseOnlyCubeGradients    /// Set flag for using only cube gradients.
+      (const bool flag);
 
     /// Copy, subsample or supersample scalar grid.
     /// Precondition: flag_subsample and flag_supersample are not both true.
@@ -185,6 +191,14 @@ namespace ISODUAL3D {
     /// Return isosurface vertex position method.
     VERTEX_POSITION_METHOD VertexPositionMethod() const
       { return(vertex_position_method); };
+
+    /// Return flag to use only selected gradients.
+    bool UseSelectedGradients() const
+    { return(use_selected_gradients); }
+
+    /// Return flag to use only cube gradients
+    bool UseOnlyCubeGradients() const
+    { return(use_only_cube_gradients); }
 
     /// Check data structure
     bool Check(IJK::ERROR & error) const;

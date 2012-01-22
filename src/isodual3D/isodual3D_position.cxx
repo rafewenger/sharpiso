@@ -21,7 +21,6 @@
 */
 
 #include "isodual3D_position.h"
-//#include "ijkcoord.txx"
 #include "ijkinterpolate.txx"
 
 #include "sharpiso_types.h"
@@ -113,16 +112,26 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
  const std::vector<ISO_VERTEX_INDEX> & vlist,
- COORD_TYPE * coord)
+ COORD_TYPE * sharp_coord)
 {
-
   const int dimension = scalar_grid.Dimension();
+  SVD_INFO svd_info;
+  svd_info.ray_intersect_cube = false;
+  svd_info.location = LOC_NONE;
+
+  EIGENVALUE_TYPE eigenvalues[DIM3];
+
+  GRADIENT_COORD_TYPE max_small_mag(0.0);
+  EIGENVALUE_TYPE max_small_eigenvalue(0.1);
+  VERTEX_INDEX num_large_eigenvalues;
 
   for (VERTEX_INDEX i = 0; i < vlist.size(); i++) {
     VERTEX_INDEX iv = vlist[i];
 
-    compute_dual_isovertex_using_gradients
-      (scalar_grid, gradient_grid, isovalue, iv, coord+i*dimension);
+    svd_compute_sharp_vertex_in_cube
+      (scalar_grid, gradient_grid, iv, isovalue,
+       max_small_mag, max_small_eigenvalue, sharp_coord+i*dimension, 
+       eigenvalues, num_large_eigenvalues, svd_info);
   }
 }
 
@@ -272,32 +281,6 @@ void ISODUAL3D::compute_isosurface_grid_edge_centroid
   }
 
   IJK::copy_coord(dimension, vcoord, coord);
-}
-
-/// Compute dual isosurface vertex using gradients
-void ISODUAL3D::compute_dual_isovertex_using_gradients
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
- COORD_TYPE * sharp_coord)
-{
-
-  //set up svd info
-  SVD_INFO svd_debug_info;
-  svd_debug_info.ray_intersect_cube = false;
-  svd_debug_info.location = LOC_NONE;
-
-  EIGENVALUE_TYPE eigenvalues[DIM3];
-
-  GRADIENT_COORD_TYPE max_small_mag(0.0);
-  EIGENVALUE_TYPE max_small_eigenvalue(0.1);
-  VERTEX_INDEX cube_index(0);
-  VERTEX_INDEX num_large_eigenvalues;
-
-  svd_compute_sharp_vertex_in_cube
-    (scalar_grid, gradient_grid, iv, isovalue,
-     max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
-     num_large_eigenvalues, svd_debug_info);
 }
 
 
