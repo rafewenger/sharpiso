@@ -23,7 +23,7 @@
 /*!
   \mainpage ISODUAL3D: 3D DUAL CONTOURING
 
-  ISODUAL3D is a program for generating isosurfaces 
+  ISODUAL3D is a program for generating isosurfaces
   using the dual contouring algorithm.  It computes
   isosurfaces from three dimensional volumetric grid data.
 */
@@ -40,58 +40,69 @@
 /// isodual3D classes and routines.
 namespace ISODUAL3D {
 
-// **************************************************
-// DUAL CONTOURING 
-// **************************************************
+  // **************************************************
+  // DUAL CONTOURING
+  // **************************************************
 
   /// Dual Contouring Algorithm.
   void dual_contouring
-    (const ISODUAL_DATA & isodual_data, const SCALAR_TYPE isovalue, 
+    (const ISODUAL_DATA & isodual_data, const SCALAR_TYPE isovalue,
      DUAL_ISOSURFACE & dual_isosurface, ISODUAL_INFO & isodual_info);
 
-// **************************************************
-// DUAL CONTOURING
-// **************************************************
+  // **************************************************
+  // DUAL CONTOURING
+  // **************************************************
 
   /// Dual Contouring Algorithm.
   void dual_contouring
-   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
-    const SCALAR_TYPE isovalue, 
-    std::vector<VERTEX_INDEX> & isopoly_vert, 
-    std::vector<COORD_TYPE> & vertex_coord);
+    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+     const SCALAR_TYPE isovalue,
+     std::vector<VERTEX_INDEX> & isopoly_vert,
+     std::vector<COORD_TYPE> & vertex_coord);
 
   /// Dual Contouring Algorithm.
   void dual_contouring
-   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-    const GRADIENT_GRID_BASE & gradient_grid,
-    const SCALAR_TYPE isovalue, 
-    std::vector<VERTEX_INDEX> & isopoly_vert, 
-    std::vector<COORD_TYPE> & vertex_coord);
+    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+     const GRADIENT_GRID_BASE & gradient_grid,
+     const SCALAR_TYPE isovalue,
+     std::vector<VERTEX_INDEX> & isopoly_vert,
+     std::vector<COORD_TYPE> & vertex_coord);
 
   /// Dual Contouring Algorithm.
-  /// Represents each grid edge by a single integer.
-  /// @param merge_data = Data structure for merging edges.  
-  /// Requires memory of size(MERGE_INDEX) for each grid edge.
   void dual_contouring
-   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
-    const SCALAR_TYPE isovalue, 
-    const VERTEX_POSITION_METHOD vertex_position_method,
-    std::vector<VERTEX_INDEX> & isopoly_vert, 
-    std::vector<COORD_TYPE> & vertex_coord,
-    MERGE_DATA & merge_data, ISODUAL_INFO & isodual_info);
+    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+     const GRADIENT_GRID_BASE & gradient_grid,
+     const SCALAR_TYPE isovalue,
+     const VERTEX_POSITION_METHOD vertex_position_method,
+     std::vector<VERTEX_INDEX> & isopoly_vert,
+     std::vector<COORD_TYPE> & vertex_coord);
 
   /// Dual Contouring Algorithm.
   /// Represents each grid edge by a single integer.
-  /// @param merge_data = Data structure for merging edges.  
+  /// @param merge_data = Data structure for merging edges.
   /// Requires memory of size(MERGE_INDEX) for each grid edge.
   void dual_contouring
-   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-    const GRADIENT_GRID_BASE & gradient_grid,
-    const SCALAR_TYPE isovalue, 
-    const VERTEX_POSITION_METHOD vertex_position_method,
-    std::vector<VERTEX_INDEX> & isopoly_vert, 
-    std::vector<COORD_TYPE> & vertex_coord,
-    MERGE_DATA & merge_data, ISODUAL_INFO & isodual_info);
+    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+     const SCALAR_TYPE isovalue,
+     const VERTEX_POSITION_METHOD vertex_position_method,
+     std::vector<VERTEX_INDEX> & isopoly_vert,
+     std::vector<COORD_TYPE> & vertex_coord,
+     MERGE_DATA & merge_data, ISODUAL_INFO & isodual_info);
+
+  /// Dual Contouring Algorithm.
+  /// Represents each grid edge by a single integer.
+  /// @param merge_data = Data structure for merging edges.
+  /// Requires memory of size(MERGE_INDEX) for each grid edge.
+  void dual_contouring
+    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+     const GRADIENT_GRID_BASE & gradient_grid,
+     const SCALAR_TYPE isovalue,
+     const VERTEX_POSITION_METHOD vertex_position_method,
+     std::vector<VERTEX_INDEX> & isopoly_vert,
+     std::vector<COORD_TYPE> & vertex_coord,
+     MERGE_DATA & merge_data, ISODUAL_INFO & isodual_info);
+
+
 
 }
 

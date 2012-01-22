@@ -219,7 +219,7 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
         iarg++;
         if (iarg >= argc) usage_error();
         io_info.vertex_position_method =
-        get_vertex_position_method(argv[iarg]);
+	  get_vertex_position_method(argv[iarg]);
         is_vertex_position_method_set = true;
         break;
 
