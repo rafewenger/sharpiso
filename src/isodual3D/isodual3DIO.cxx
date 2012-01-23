@@ -210,6 +210,7 @@ namespace {
       io_info.use_selected_gradients = true;
     }
     else if (str == "gradNS"){
+      io_info.vertex_position_method = GRADIENT_POSITIONING;
       io_info.use_only_cube_gradients = false;
       io_info.use_selected_gradients = true;
     }
