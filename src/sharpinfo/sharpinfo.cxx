@@ -27,6 +27,7 @@
 #include "ijkcoord.txx"
 #include "ijkgrid_macros.h"
 #include "ijkgrid_nrrd.txx"
+#include "ijkstring.txx"
 
 #include "sharpiso_feature.h"
 #include "sharpiso_eigen.h"
@@ -733,36 +734,6 @@ void usage_error()
   exit(10);
 }
 
-template <typename CTYPE>
-void get_coord(const char * s, vector<CTYPE> & coord)
-{
-  istringstream coord_string;
-
-  coord.clear();
-
-  string s2 = s;
-  // remove trailing blanks from s2
-  size_t pos = 0;
-  for (size_t i = 0; i < s2.length(); i++) {
-    if (!isspace(s2[i])) { pos = i+1; }
-  }
-  if (pos < s2.length()) { s2.erase(pos); };
-
-  coord_string.str(s2);
-  while (coord_string.good()) {
-    CTYPE c;
-    coord_string >> c;
-    coord.push_back(c);
-  }
-
-  if (coord_string.fail() && !coord_string.eof()) {
-    cerr << "Error reading coordinates: "
-         << "\"" << s << "\"" << endl;
-    cerr << "  Non-numeric character in coordinate string." << endl;
-    exit(600);
-  }
-
-}
 
 void parse_command_line(int argc, char **argv)
 {
@@ -785,7 +756,7 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-coord") {
       iarg++;
       if (iarg >= argc) { usage_error(); };
-      get_coord(argv[iarg], location);
+      IJK::string2vector(argv[iarg], location);
       flag_location_set = true;
     }
     else if (s == "-listg") {
@@ -872,6 +843,12 @@ void parse_command_line(int argc, char **argv)
 
   if (!flag_isovalue_set && flag_list_gradients && use_selected_gradients) {
     cerr << "Error. Option -isovalue required when listing selected gradients."
+         << endl;
+    exit(15);
+  }
+
+  if (!flag_isovalue_set && flag_location_set && use_selected_gradients) {
+    cerr << "Error. Option -isovalue required when using selected gradients."
          << endl;
     exit(15);
   }
