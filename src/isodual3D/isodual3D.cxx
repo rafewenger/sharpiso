@@ -161,9 +161,7 @@ void ISODUAL3D::dual_contouring
 {
   PROCEDURE_ERROR error("dual_contouring");
 
-  clock_t t0 = clock();
-  //debug
-  std::cout <<"default  "<<std::endl;
+    clock_t t0 = clock();
 
   isopoly_vert.clear();
   vertex_coord.clear();
@@ -179,14 +177,10 @@ void ISODUAL3D::dual_contouring
   clock_t t2 = clock();
 
   if (vertex_position_method == GRADIENT_POSITIONING) {
-    //debug
-    std::cout <<" position_dual_isovertices_using_gradients  "<<std::endl;
     position_dual_isovertices_using_gradients
       (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);
   }
   else if (vertex_position_method == EDGE_SIMPLE) {
-    //debug
-    std::cout <<"position_dual_isovertices_using_edge_intersection_simple  "<<std::endl;
     //EDGE SIMPLE
     position_dual_isovertices_using_edge_intersection_simple
       (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);

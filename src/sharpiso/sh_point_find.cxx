@@ -247,15 +247,7 @@ void setup_edgeIntercepts(CUBE &cb,const double isovalue,
   }
 };
 
-/*
-Function to check if the isovalue is within range 
-*/
-/*
-bool check_isoval_in_range()
-{
 
-}
-*/
 
 /*
  For each cube this function returns a double[3] 'point'
