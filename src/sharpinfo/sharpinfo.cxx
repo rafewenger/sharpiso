@@ -45,6 +45,7 @@ SCALAR_TYPE isovalue(0);
 GRADIENT_COORD_TYPE max_small_mag(0.0);
 EIGENVALUE_TYPE max_small_eigenvalue(0.1);
 VERTEX_INDEX cube_index(0);
+std::vector<GRID_COORD_TYPE> cube_coord;
 AXIS_SIZE_TYPE subgrid_axis_size(3);
 bool flag_list_gradients(false);
 bool flag_list_subgrid(false);
@@ -99,6 +100,9 @@ bool check_gradient_grid
 bool check_input_grids
 (const SHARPISO_SCALAR_GRID & scalar_grid,
  const GRADIENT_GRID & gradient_grid, IJK::ERROR & error);
+bool check_cube_coord
+(const SHARPISO_SCALAR_GRID & scalar_grid,
+ const std::vector<GRID_COORD_TYPE> & cube_coord, IJK::ERROR & error);
 
 // output routines
 void output_cube_coordinates
@@ -153,7 +157,6 @@ void parse_command_line(int argc, char **argv);
 
 int main(int argc, char **argv)
 {
-  GRID_COORD_TYPE cube_coord[DIM3];
   IJK::ERROR error;
   // accumulate information from svd_calls
   SVD_INFO svd_info;
@@ -182,6 +185,13 @@ int main(int argc, char **argv)
 
     if (!check_input_grids(scalar_grid, gradient_grid, error))
       { throw error; }
+
+    if (cube_coord.size() > 0) {
+      if (!check_cube_coord(scalar_grid, cube_coord, error))
+        { throw error; }
+
+      cube_index = scalar_grid.ComputeVertexIndex(cube_coord);
+    }
 
     NUM_TYPE num_gradients = 0;
     std::vector<COORD_TYPE> point_coord;
@@ -220,6 +230,8 @@ int main(int argc, char **argv)
         cout << endl;
 
         if (flag_list_subgrid) {
+          GRID_COORD_TYPE cube_coord[DIM3];
+
           scalar_grid.ComputeCoord(cube_index, cube_coord);
           output_cube_subgrid_scalar_errors
             (cout, point_coord, gradient_coord, scalar, num_gradients,
@@ -711,6 +723,33 @@ bool check_gradient_grid
   return(true);
 }
 
+bool check_cube_coord
+(const SHARPISO_SCALAR_GRID & scalar_grid,
+ const std::vector<GRID_COORD_TYPE> & cube_coord, IJK::ERROR & error)
+{
+  if (scalar_grid.Dimension() != cube_coord.size()) {
+    error.AddMessage("Error: Option -cc followed by incorrect number of coordinates.");
+    error.AddMessage("  Option -cc followed by ", cube_coord.size(), " coordinates.");
+    error.AddMessage("  Option -cc should be followed by ", scalar_grid.Dimension(),
+                     " coordinates.");
+    return(false);
+  }
+
+  for (int d = 0; d < scalar_grid.Dimension(); d++) {
+    if (cube_coord[d] < 0) {
+      error.AddMessage("Error: Illegal negative coordinate following -cc.");
+      return(false);
+    }
+
+    if (cube_coord[d]+1 >= scalar_grid.AxisSize(d)) {
+      error.AddMessage("Error: Coordinate following -cc is not a valid cube coordinate.");
+      return(false);
+    }
+  }
+
+  return(true);
+}
+
 // **************************************************
 // MISCELLANEOUS ROUTINES
 // **************************************************
@@ -726,7 +765,8 @@ void usage_error()
   cerr << "Usage: sharpinfo [OPTIONS] <scalar filename> <gradient filename>"
        << endl;
   cerr << "OPTIONS:" << endl;
-  cerr << "  -isovalue <isovalue> | -cube <cube_index>" << endl;
+  cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\"" 
+       << endl;
   cerr << "  [-gradC | -gradN | -gradCS | -gradNS ]" << endl;
   cerr << "  -coord \"point coord\"" << endl;
   cerr << "  -svd_grad | -svd_edge_simple | -svd_edge_cmplx"<<endl;
@@ -742,10 +782,16 @@ void parse_command_line(int argc, char **argv)
   while (iarg < argc && argv[iarg][0] == '-') {
 
     std::string s = argv[iarg];
+
     if (s == "-cube") {
       iarg++;
       if (iarg >= argc) { usage_error(); };
       sscanf(argv[iarg], "%d", &cube_index);
+    }
+    else if (s == "-cc") {
+      iarg++;
+      if (iarg >= argc) { usage_error(); };
+      IJK::string2vector(argv[iarg], cube_coord);
     }
     else if (s == "-isovalue") {
       iarg++;
@@ -867,23 +913,26 @@ void help()
   cerr << "OPTIONS:" << endl;
   cerr << "  -isovalue <isovalue>:  Compute isosurface vertex for given <isovalue>." << endl;
   cerr << "  -cube <cube_index>:  Compute isosurface vertex for cube <cube_index>." << endl;
-  cerr << "      Default is cube 0." << endl;
-  cerr << "  -gradC: Use only cube gradients." << endl;
-  cerr << "  -gradN: Use gradients from cube and neighboring cubes." << endl;
+  cerr << "           Default is cube 0." << endl;
+  cerr << "  -cc \"cube coordinates\":  Compute isosurface vertex for cube"
+       << endl
+       << "           at given coordinates." << endl;
+  cerr << "  -gradC:  Use only cube gradients." << endl;
+  cerr << "  -gradN:  Use gradients from cube and neighboring cubes." << endl;
   cerr << "  -gradCS: Use selected cube gradients." << endl;
   cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
   cerr << "  -gradNS: Use selected gradients from cube and neighboring cubes." 
        << endl;
   cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
   cerr << "  -neighbor <cube_index>:  Use gradients from cube and" << endl
-       << "             neighbors of cube <cube_index>." << endl;
+       << "           neighbors of cube <cube_index>." << endl;
   cerr << "  -svd_grad: Compute using svd directly on gradients."<<endl;
   cerr << "  -svd_edge_simple: Interpolate intersection points/normals and"
        << endl
-       << "                   apply svd." << endl;
+       << "           apply svd." << endl;
   cerr << "  -svd_edge_cmplx:  Compute edge-isosurface intersection points/normals"
        << endl
-       << "                   using gradient assignment and apply svd." << endl;
+       << "           using gradient assignment and apply svd." << endl;
   cerr << "  -coord \"point_coord\":  Compute scalar values at coordinate point_coord." << endl;
   cerr << "  -listg: List gradients." << endl;
   cerr << "  -list_subgrid:  List all scalar values at vertices of subgrid." << endl;
