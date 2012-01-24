@@ -93,6 +93,8 @@ namespace IJK {
     NTYPE ComputeNumCubes() const;
     NTYPE ComputeNumInteriorCubes() const;
     NTYPE ComputeNumBoundaryCubes() const;
+    template <typename DTYPE2>
+    NTYPE ComputeNumVerticesInFacet(const DTYPE2 orth_dir) const;
     template <typename DTYPE2, typename WTYPE>
     NTYPE ComputeNumVerticesInFacet
     (const DTYPE2 orth_dir, const WTYPE boundary_width) const;
@@ -110,6 +112,20 @@ namespace IJK {
     bool CompareSize(const DTYPE2 dimension, const ATYPE2 * axis_size) const;
     template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
     bool CompareSize(const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid) const;
+
+    /// Return true if grid contains specified point.
+    template <typename CTYPE>
+    bool ContainsPoint(const CTYPE * coord) const;
+    template <typename CTYPE>
+    bool ContainsPoint(const std::vector<CTYPE> & coord) const;
+
+    /// Return true if cube contains specified point.
+    template <typename CTYPE, typename VTYPE2>
+    bool CubeContainsPoint
+    (const VTYPE2 icube, const CTYPE * coord) const;
+    template <typename CTYPE, typename VTYPE2>
+    bool CubeContainsPoint
+    (const VTYPE2 icube, const std::vector<CTYPE> & coord) const;
 
     /// Return true if grid contains specified region.
     /// @pre Box.MinCoord(d) <= Box.MaxCoord(d) for every d < Box.Dimension().
@@ -546,6 +562,29 @@ namespace IJK {
     void GetCubes(const GCLASS & grid);
   };
 
+  /// Class containing list of facet vertices.
+  /// List length is max size
+  template <typename VTYPE>
+  class FACET_VERTEX_LIST:public GRID_VERTEX_LIST<VTYPE> {
+
+  public:
+    /// FACET_VERTEX_LIST constructor.
+    /// Get and store vertices in facet orthogonal to \a orth_dir.
+    /// @param grid Grid.
+    /// @param orth_dir Directional orthogonal to facet.
+    /// @param allocate_max If true, allocate the list length
+    ///            to be max number of interior vertices over all facets.
+    template<typename GCLASS>
+    FACET_VERTEX_LIST
+    (const GCLASS & grid, const VTYPE orth_dir,
+     const bool allocate_max=true);
+
+    /// Get vertices from grid and store in list.
+    /// Reallocates list if (current list length < num vertices in facet)
+    template<typename GCLASS>
+    void GetVertices(const GCLASS & grid, const VTYPE orth_dir);
+  };
+
   /// Class containing list of facet interior vertices.
   /// List length is max size
   template <typename VTYPE>
@@ -553,7 +592,7 @@ namespace IJK {
 
   public:
     /// FACET_INTERIOR_VERTEX_LIST constructor.
-    /// Get and store vertices in facet orthogonal to \a orth_dir.
+    /// Get and store interior vertices in facet orthogonal to \a orth_dir.
     /// @param grid Grid.
     /// @param orth_dir Directional orthogonal to facet.
     /// @param allocate_max If true, allocate the list length
@@ -3104,6 +3143,18 @@ namespace IJK {
 
   /// Compute and return number of vertices in facet.
   template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
+  template <typename DTYPE2>
+  NTYPE GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  ComputeNumVerticesInFacet(const DTYPE2 orth_dir) const
+  {
+    NTYPE num_vertices_in_facet;
+    compute_num_vertices_in_grid_facet
+      (Dimension(), AxisSize(), orth_dir, num_vertices_in_facet);
+    return(num_vertices_in_facet);
+  }
+
+  /// Compute and return number of vertices in facet.
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   template <typename DTYPE2, typename WTYPE>
   NTYPE GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
   ComputeNumVerticesInFacet
@@ -3188,6 +3239,60 @@ namespace IJK {
   CompareSize(const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2) const
   {
     return(CompareSize(grid2.Dimension(), grid2.AxisSize()));
+  }
+
+  /// Return true if grid contains specified point.
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
+  template <typename CTYPE>
+  bool GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  ContainsPoint(const CTYPE * coord) const
+  {
+    const DTYPE dimension = this->Dimension();
+
+    for (DTYPE d = 0; d < dimension; d++) {
+      if (coord[d] < 0 || coord[d]+1 > this->AxisSize(d))
+        { return(false); }
+    }
+
+    return(true);
+  }
+
+  /// Return true if grid contains specified point.
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
+  template <typename CTYPE>
+  bool GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  ContainsPoint(const std::vector<CTYPE> & coord) const
+  {
+    return(this->ContainsPoint(&(coord[0])));
+  }
+
+  /// Return true if cube contains specified point.
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
+  template <typename CTYPE, typename VTYPE2>
+  bool GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  CubeContainsPoint(const VTYPE2 icube, const CTYPE * coord) const
+  {
+    const DTYPE dimension = this->Dimension();
+    IJK::ARRAY<VTYPE> cube_coord(dimension);
+
+    this->ComputeCoord(icube, cube_coord.Ptr());
+
+    for (DTYPE d = 0; d < dimension; d++) {
+      if (coord[d] < cube_coord[d] || coord[d] > cube_coord[d]+1)
+        { return(false); }
+    }
+
+    return(true);
+  }
+
+  /// Return true if cube contains specified point.
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
+  template <typename CTYPE, typename VTYPE2>
+  bool GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  CubeContainsPoint
+  (const VTYPE2 icube, const std::vector<CTYPE> & coord) const
+  {
+    return(this->CubeContainsPoint(icube, &(coord[0])));
   }
 
   /// Return true if grid contains specified region.
@@ -3802,6 +3907,52 @@ namespace IJK {
     }
 
     this->num_vertices = num_cubes;
+  }
+
+  /// FACET_VERTEX_LIST constructor.
+  template <typename VTYPE>
+  template<typename GCLASS>
+  FACET_VERTEX_LIST<VTYPE>::FACET_VERTEX_LIST
+  (const GCLASS & grid, const VTYPE orth_dir,
+   const bool allocate_max)
+  {
+    VTYPE numv = 0;
+
+    if (allocate_max) {
+      compute_max_num_vertices_in_grid_facet
+        (grid.Dimension(), grid.AxisSize(), numv);
+    }
+    else {
+      compute_num_vertices_in_grid_facet
+        (grid.Dimension(), grid.AxisSize(), orth_dir, numv);
+    }
+
+    AllocateList(numv);
+    GetVertices(grid, orth_dir);
+  }
+
+  /// Get vertices in grid facet
+  template <typename VTYPE>
+  template<typename GCLASS>
+  void FACET_VERTEX_LIST<VTYPE>::GetVertices
+  (const GCLASS & grid, const VTYPE orth_dir)
+  {
+    VTYPE numv;
+    const bool side = false;
+
+    compute_num_vertices_in_grid_facet
+      (grid.Dimension(), grid.AxisSize(), orth_dir, numv);
+
+    if (numv > this->ListLength()) 
+      { this->AllocateList(numv); }
+
+    if (numv > 0) {
+      get_vertices_in_grid_facet
+        (grid.Dimension(), grid.AxisSize(), orth_dir, side,
+         this->vertex_list);
+    }
+
+    this->num_vertices = numv;
   }
 
   /// FACET_INTERIOR_VERTEX_LIST constructor.
