@@ -265,14 +265,14 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
         scalar_grid.ComputeCoord(cube_index, cube_coord);
         
         isIntersect = calculate_point_intersect
-        (cube_coord, coord, ray_direction, coord);
+          (cube_coord, coord, ray_direction, coord);
         svd_info.ray_intersect_cube = true;
         svd_info.location = LOC_SVD;
-        
+
         if (!isIntersect) {
             svd_info.ray_intersect_cube = false;
             compute_isosurface_grid_edge_centroid
-            (scalar_grid, isovalue, cube_index, coord);
+              (scalar_grid, isovalue, cube_index, coord);
             svd_info.location = CENTROID;
         }
     }

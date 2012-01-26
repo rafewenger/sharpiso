@@ -498,7 +498,7 @@ void output_svd_results
  SVD_INFO & svd_info)
 {
   output << "SVD: Sharp coordinates ";
-  if (svd_info.location == LOC_NONE) 
+  if (svd_info.location == LOC_SVD) 
     { output << "(svd): "; }
   else if (svd_info.location == CENTROID) 
     { output << "(centroid): "; }
