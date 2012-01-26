@@ -103,8 +103,8 @@ namespace ISODUAL3D {
   // DUAL CONTOURING INPUT DATA AND DATA STRUCTURES
   // **************************************************
 
-  /// dual contouring flags.
-  class ISODUAL_DATA_FLAGS {
+  /// dual contouring paramaters
+  class ISODUAL_PARAM {
 
   protected:
     void Init();
@@ -117,12 +117,12 @@ namespace ISODUAL3D {
     bool use_selected_gradients;
 
   public:
-    ISODUAL_DATA_FLAGS() { Init(); };
-    ~ISODUAL_DATA_FLAGS() { Init(); };
+    ISODUAL_PARAM() { Init(); };
+    ~ISODUAL_PARAM() { Init(); };
   };
 
   /// Input data to Dual Contouring and related algorithms
-  class ISODUAL_DATA:public ISODUAL_DATA_FLAGS {
+  class ISODUAL_DATA:public ISODUAL_PARAM {
 
   protected:
     ISODUAL_SCALAR_GRID scalar_grid;

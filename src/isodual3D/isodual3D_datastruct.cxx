@@ -46,11 +46,11 @@ void DUAL_ISOSURFACE::Clear()
 }
 
 // **************************************************
-// CLASS ISODUAL_DATA_FLAGS
+// CLASS ISODUAL_PARAM
 // **************************************************
 
-// Initialize ISODUAL_DATA_FLAGS
-void ISODUAL_DATA_FLAGS::Init()
+// Initialize ISODUAL_PARAM
+void ISODUAL_PARAM::Init()
 {
   interpolation_type = LINEAR_INTERPOLATION;
   vertex_position_method = CENTROID_EDGE_ISO;

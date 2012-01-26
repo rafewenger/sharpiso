@@ -68,7 +68,7 @@ namespace ISODUAL3D {
 // **************************************************
 
   /// IO information
-  class IO_INFO:public ISODUAL_DATA_FLAGS {
+  class IO_INFO:public ISODUAL_PARAM {
 
   protected:
     void Init();

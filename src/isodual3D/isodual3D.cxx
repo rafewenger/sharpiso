@@ -31,7 +31,7 @@ using namespace IJK;
 using namespace ISODUAL3D;
 
 /****** debug **********/
-SCALAR_TYPE cube_offset2 = 0.0;
+SCALAR_TYPE cube_offset2 = 0.3;
 
 
 // **************************************************
@@ -209,7 +209,7 @@ void ISODUAL3D::dual_contouring
 }
 
 void ISODUAL3D::dual_contouring
-(const ISODUAL_DATA_FLAGS & isodual_data_flags,
+(const ISODUAL_PARAM & isodual_param,
  const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
@@ -230,13 +230,13 @@ void ISODUAL3D::dual_contouring
 {
   PROCEDURE_ERROR error("dual_contouring");
   const VERTEX_POSITION_METHOD vertex_position_method =
-    isodual_data_flags.vertex_position_method;
+    isodual_param.vertex_position_method;
   const bool use_selected_gradients =
-    isodual_data_flags.use_selected_gradients;
+    isodual_param.use_selected_gradients;
   const bool use_only_cube_gradients =
-    isodual_data_flags.use_only_cube_gradients;
+    isodual_param.use_only_cube_gradients;
 
-  // *** NOTE:  SHOULD BE SET IN isodual_data_flags ***
+  // *** NOTE:  SHOULD BE SET IN isodual_param ***
   const SIGNED_COORD_TYPE cube_offset = 0.1;
 
   clock_t t0 = clock();
