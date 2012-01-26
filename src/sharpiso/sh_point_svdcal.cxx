@@ -53,8 +53,8 @@ bool inCube(COORD_TYPE *pt){
  */
 void clamp (COORD_TYPE *coord, const SCALAR_TYPE t)
 {
-    for (int i=0; i<3; i++) {
-        if(coord[i]< 0.0)
+    for (int i = 0; i < 3; i++) {
+        if(coord[i] < 0.0)
         {
             if (coord[i] >= -t) {
                 coord[i] = 0.0;
@@ -206,11 +206,11 @@ void sh_cube::findPoint
     //set m 
     int ind[cb.ne_intersect]; //ind (index) keeep tracks of the edges which are intersected
     
-    int i=0;
+    int i = 0;
     MatrixXf m(cb.ne_intersect, cb.dim);
-    for (int k=0; k<cb.num_edges; k++) {
+    for (int k = 0; k < cb.num_edges; k++) {
         if (cb.edges[k].is_intersect) {
-            for (int j=0; j<3; j++) {
+            for (int j = 0; j < 3; j++) {
                 m(i,j) = cb.edges[k].pt_intersect.grads[j];
             }
             ind[i]=k;
@@ -225,6 +225,7 @@ void sh_cube::findPoint
         m(i,1)*cb.edges[ind[i]].pt_intersect.pos[1]+
         m(i,2)*cb.edges[ind[i]].pt_intersect.pos[2];
     }  
+    
     //compute pseudo inverse of m. and also return the number of sing vals.
     int num_svals = 0;
     
@@ -240,6 +241,7 @@ void sh_cube::findPoint
         shpoint[0] = x(0); 
         shpoint[1] = x(1);
         shpoint[2] = x(2);
+        
         //clamp the shpoint
         clamp (shpoint, clamp_threshold);
         
@@ -250,11 +252,15 @@ void sh_cube::findPoint
             // using centroid 
             svd_debug_info.location = CENTROID;
             
+            //// DEBUG: once we have centroid we dont need the 
+            //// cube center
+            /*
             bool isInsideCube2 = inCube(shpoint);
             if (!isInsideCube2) {
                 svd_debug_info.location = CUBE_CENTER; //set using centre
                 setCubeCenter(shpoint);
             }
+            */
         }
     }
     else if(num_svals == 2){
@@ -287,6 +293,8 @@ void sh_cube::findPoint
         
         if (isIntersect) {
             svd_debug_info.ray_intersect_cube = true;
+            
+            
             /* BIGGER CLAMP.  TEMPORARILY DISABLED.
              //intersect is on a bigger cube so we clamp it.
              clamp(intersect, clamp_threshold);
@@ -301,7 +309,10 @@ void sh_cube::findPoint
              setCubeCentroid(cb, ind, shpoint);
              }
              */
+            
+            // clamp the intersect point ? is this needed
             clamp(intersect, clamp_threshold);
+            
             for (int i=0; i<3; i++) {
                 shpoint[i] = intersect[i];
             }

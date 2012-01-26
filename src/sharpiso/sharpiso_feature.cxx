@@ -45,6 +45,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
  const EIGENVALUE_TYPE max_small_eigenvalue,
+ const SCALAR_TYPE cube_offset2,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info)
@@ -78,8 +79,8 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
         COORD_TYPE cube_coord[DIM3];
         scalar_grid.ComputeCoord(cube_index, cube_coord);
         
-        isIntersect = calculate_point_intersect
-        (cube_coord, coord, ray_direction, coord);
+        isIntersect = calculate_point_intersect_complex
+        (cube_coord, coord, ray_direction, cube_offset2, coord);
         svd_info.ray_intersect_cube = true;
         svd_info.location = LOC_SVD;
         
@@ -91,6 +92,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
         }
     }
     else if (num_large_eigenvalues < 2) {
+        // centroid 
         compute_isosurface_grid_edge_centroid
         (scalar_grid, isovalue, cube_index, coord);
         svd_info.location = CENTROID;
@@ -106,6 +108,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_S
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
  const EIGENVALUE_TYPE max_small_eigenvalue,
+ const SCALAR_TYPE cube_offset2,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info,
@@ -140,8 +143,8 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_S
         COORD_TYPE cube_coord[DIM3];
         scalar_grid.ComputeCoord(cube_index, cube_coord);
         
-        isIntersect = calculate_point_intersect
-        (cube_coord, coord, ray_direction, coord);
+        isIntersect = calculate_point_intersect_complex
+        (cube_coord, coord, ray_direction, cube_offset2, coord);
         svd_info.ray_intersect_cube = true;
         svd_info.location = LOC_SVD;
         
@@ -169,6 +172,7 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
  const EIGENVALUE_TYPE max_small_eigenvalue,
+ const SCALAR_TYPE cube_offset2,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info)
@@ -202,8 +206,8 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood
         COORD_TYPE cube_coord[DIM3];
         scalar_grid.ComputeCoord(cube_index, cube_coord);
         
-        isIntersect = calculate_point_intersect
-        (cube_coord, coord, ray_direction, coord);
+        isIntersect = calculate_point_intersect_complex
+        (cube_coord, coord, ray_direction, cube_offset2, coord);
         svd_info.ray_intersect_cube = true;
         svd_info.location = LOC_SVD;
         
@@ -230,6 +234,7 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
  const EIGENVALUE_TYPE max_small_eigenvalue,
+ const SCALAR_TYPE cube_offset2,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info,
@@ -264,10 +269,19 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
         COORD_TYPE cube_coord[DIM3];
         scalar_grid.ComputeCoord(cube_index, cube_coord);
         
-        isIntersect = calculate_point_intersect
-        (cube_coord, coord, ray_direction, coord);
-        svd_info.ray_intersect_cube = true;
-        svd_info.location = LOC_SVD;
+        
+        //debug use the complex intersect.
+        isIntersect = calculate_point_intersect_complex
+        (cube_coord, coord, ray_direction, cube_offset2, coord);
+        
+        
+        /*
+         //debug use the complex intersect.
+         isIntersect = calculate_point_intersect
+         (cube_coord, coord, ray_direction, coord);
+         svd_info.ray_intersect_cube = true;
+         svd_info.location = LOC_SVD;
+         */
         
         if (!isIntersect) {
             svd_info.ray_intersect_cube = false;
@@ -292,6 +306,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
  const EIGENVALUE_TYPE max_small_eigenvalue,
+ const SCALAR_TYPE cube_offset2,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info)
@@ -340,6 +355,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
  const EIGENVALUE_TYPE max_small_eigenvalue,
+ const SCALAR_TYPE cube_offset2,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info)
@@ -390,6 +406,7 @@ void SHARPISO::subgrid_compute_sharp_vertex_in_cube
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
+ const SCALAR_TYPE cube_offset2,
  const NUM_TYPE subgrid_axis_size,
  COORD_TYPE sharp_coord[DIM3],
  SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error)
@@ -420,6 +437,7 @@ void SHARPISO::subgrid_compute_sharp_vertex_in_cube_S
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
+ const SCALAR_TYPE cube_offset2,
  const NUM_TYPE subgrid_axis_size,
  COORD_TYPE sharp_coord[DIM3],
  SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error,
@@ -452,6 +470,7 @@ void SHARPISO::subgrid_compute_sharp_vertex_neighborhood
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
+ const SCALAR_TYPE cube_offset2,
  const NUM_TYPE subgrid_axis_size,
  COORD_TYPE sharp_coord[DIM3],
  SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error)
@@ -483,6 +502,7 @@ void SHARPISO::subgrid_compute_sharp_vertex_neighborhood_S
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
+ const SCALAR_TYPE cube_offset2,
  const NUM_TYPE subgrid_axis_size,
  COORD_TYPE sharp_coord[DIM3],
  SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error,

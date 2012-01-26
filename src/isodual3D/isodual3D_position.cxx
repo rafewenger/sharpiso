@@ -34,6 +34,9 @@ using namespace ISODUAL3D;
 using namespace SHARPISO;
 using namespace std;
 
+// Offest for the ray-cube intersection
+//SCALAR_TYPE cube_offset2 = 0.3;
+
 
 // **************************************************
 // Position routines
@@ -111,9 +114,11 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
+ const SCALAR_TYPE cube_offset2,
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  COORD_TYPE * sharp_coord)
 {
+    
     const int dimension = scalar_grid.Dimension();
     SVD_INFO svd_info;
     svd_info.ray_intersect_cube = false;
@@ -125,16 +130,14 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
     EIGENVALUE_TYPE max_small_eigenvalue(0.1);
     VERTEX_INDEX num_large_eigenvalues;
     
-    // *** DEDUG ***
-    using namespace std;
-    cerr << "Calling svd_compute_sharp_vertex_in_cube." << endl;
     
     for (VERTEX_INDEX i = 0; i < vlist.size(); i++) {
         VERTEX_INDEX iv = vlist[i];
         
         svd_compute_sharp_vertex_in_cube
         (scalar_grid, gradient_grid, iv, isovalue,
-         max_small_mag, max_small_eigenvalue, sharp_coord+i*dimension, 
+         max_small_mag, max_small_eigenvalue,
+         cube_offset2, sharp_coord+i*dimension, 
          eigenvalues, num_large_eigenvalues, svd_info);
     }
 }
@@ -147,14 +150,16 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
  const bool use_selected_gradients,
  const bool use_only_cube_gradients,
  const SIGNED_COORD_TYPE cube_offset,
+ const SCALAR_TYPE cube_offset2,
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  COORD_TYPE * sharp_coord)
 {
+        
     const int dimension = scalar_grid.Dimension();
     SVD_INFO svd_info;
     svd_info.ray_intersect_cube = false;
     svd_info.location = LOC_NONE;
-    
+
     EIGENVALUE_TYPE eigenvalues[DIM3];
     
     GRADIENT_COORD_TYPE max_small_mag(0.0);
@@ -172,7 +177,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
                 
                 svd_compute_sharp_vertex_in_cube_S
                 (scalar_grid, gradient_grid, iv, isovalue,
-                 max_small_mag, max_small_eigenvalue, sharp_coord+i*dimension, 
+                 max_small_mag, max_small_eigenvalue,cube_offset2, sharp_coord+i*dimension, 
                  eigenvalues, num_large_eigenvalues, svd_info, cube_offset);
             }
             
@@ -184,7 +189,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
                 
                 svd_compute_sharp_vertex_neighborhood_S
                 (scalar_grid, gradient_grid, iv, isovalue,
-                 max_small_mag, max_small_eigenvalue, sharp_coord+i*dimension, 
+                 max_small_mag, max_small_eigenvalue, cube_offset2, sharp_coord+i*dimension, 
                  eigenvalues, num_large_eigenvalues, svd_info, cube_offset);
             }
             
@@ -198,7 +203,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
                 
                 svd_compute_sharp_vertex_in_cube
                 (scalar_grid, gradient_grid, iv, isovalue,
-                 max_small_mag, max_small_eigenvalue, sharp_coord+i*dimension, 
+                 max_small_mag, max_small_eigenvalue, cube_offset2, sharp_coord+i*dimension, 
                  eigenvalues, num_large_eigenvalues, svd_info);
             }
         }
@@ -209,7 +214,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
                 
                 svd_compute_sharp_vertex_neighborhood
                 (scalar_grid, gradient_grid, iv, isovalue,
-                 max_small_mag, max_small_eigenvalue, sharp_coord+i*dimension, 
+                 max_small_mag, max_small_eigenvalue, cube_offset2, sharp_coord+i*dimension, 
                  eigenvalues, num_large_eigenvalues, svd_info);
             }
         }
@@ -223,9 +228,11 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_simple
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
+ const SCALAR_TYPE cube_offset2,
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  COORD_TYPE * sharp_coord)
 {
+    
     const int dimension = scalar_grid.Dimension();
     for (VERTEX_INDEX i = 0; i<vlist.size(); i++)
     {
@@ -245,7 +252,7 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_simple
         
         svd_compute_sharp_vertex_in_cube_edge_based_simple
         (scalar_grid, gradient_grid, iv, isovalue,
-         max_small_mag, max_small_eigenvalue, sharp_coord+i*dimension,
+         max_small_mag, max_small_eigenvalue,cube_offset2, sharp_coord+i*dimension,
          eigenvalues, num_large_eigenvalues, svd_info);
         
     }
@@ -256,6 +263,7 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_complex
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
+ const SCALAR_TYPE cube_offset2,
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  COORD_TYPE * sharp_coord)
 {
@@ -277,7 +285,7 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_complex
         
         svd_compute_sharp_vertex_in_cube_edge_based_cmplx
         (scalar_grid, gradient_grid, iv, isovalue,
-         max_small_mag, max_small_eigenvalue, sharp_coord+i*dimension, eigenvalues,
+         max_small_mag, max_small_eigenvalue, cube_offset2, sharp_coord+i*dimension, eigenvalues,
          num_large_eigenvalues, svd_info);
     }
 };
@@ -289,6 +297,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
+ const SCALAR_TYPE cube_offset2,
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  std::vector<COORD_TYPE> & coord)
 
@@ -297,7 +306,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
     
     coord.resize(vlist.size()*dimension);
     position_dual_isovertices_using_gradients
-    (scalar_grid, gradient_grid, isovalue, vlist, &(coord.front()));
+    (scalar_grid, gradient_grid, isovalue, cube_offset2, vlist, &(coord.front()));
 }
 
 /// Position dual isosurface vertices using gradients
@@ -308,6 +317,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
  const bool use_selected_gradients,
  const bool use_only_cube_gradients,
  const SIGNED_COORD_TYPE cube_offset,
+ const SCALAR_TYPE cube_offset2,
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  std::vector<COORD_TYPE> & coord)
 {
@@ -316,7 +326,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
     coord.resize(vlist.size()*dimension);
     position_dual_isovertices_using_gradients
     (scalar_grid, gradient_grid, isovalue, 
-     use_selected_gradients, use_only_cube_gradients, cube_offset,
+     use_selected_gradients, use_only_cube_gradients, cube_offset, cube_offset2,
      vlist, &(coord.front()));
 }
 
@@ -326,6 +336,7 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_simple
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
+ const SCALAR_TYPE cube_offset2,
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  std::vector<COORD_TYPE> & coord)
 {
@@ -334,7 +345,7 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_simple
     coord.resize(vlist.size()*dimension);
     
     position_dual_isovertices_using_edge_intersection_simple
-    (scalar_grid, gradient_grid, isovalue, vlist, &(coord.front()));
+    (scalar_grid, gradient_grid, isovalue, cube_offset2, vlist, &(coord.front()));
 };
 
 /// Position dual isosurface vertices using SVD and edge intersection complex
@@ -342,13 +353,14 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_complex
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
+ const SCALAR_TYPE cube_offset2,
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  std::vector<COORD_TYPE> & coord){
     const int dimension = scalar_grid.Dimension();
     
     coord.resize(vlist.size()*dimension);
     position_dual_isovertices_using_edge_intersection_complex
-    (scalar_grid, gradient_grid, isovalue, vlist, &(coord.front()));
+    (scalar_grid, gradient_grid, isovalue, cube_offset2, vlist, &(coord.front()));
 };
 
 // **************************************************
@@ -414,56 +426,3 @@ void ISODUAL3D::compute_isosurface_grid_edge_centroid
     
     IJK::copy_coord(dimension, vcoord, coord);
 }
-
-/*
- /// Compute dual isosurface vertex using edges simple
- void ISODUAL3D::compute_dual_isovertex_using_edges_simple
- (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
- COORD_TYPE * sharp_coord){
- 
- //set up svd info
- SVD_INFO svd_info;
- svd_info.ray_intersect_cube = false;
- svd_info.location = LOC_NONE;
- 
- EIGENVALUE_TYPE eigenvalues[DIM3];
- 
- GRADIENT_COORD_TYPE max_small_mag(0.0);
- EIGENVALUE_TYPE max_small_eigenvalue(0.1);
- VERTEX_INDEX cube_index(0);
- VERTEX_INDEX num_large_eigenvalues;
- 
- svd_compute_sharp_vertex_in_cube_edge_based_simple
- (scalar_grid, gradient_grid, cube_index, isovalue,
- max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
- num_large_eigenvalues, svd_info);
- 
- };
- 
- /// Compute dual isosurface vertex using edges complex
- void ISODUAL3D::compute_dual_isovertex_using_edges_complex
- (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
- COORD_TYPE * sharp_coord){
- 
- //set up svd info
- SVD_INFO svd_info;
- svd_info.ray_intersect_cube = false;
- svd_info.location = LOC_NONE;
- 
- EIGENVALUE_TYPE eigenvalues[DIM3];
- 
- GRADIENT_COORD_TYPE max_small_mag(0.0);
- EIGENVALUE_TYPE max_small_eigenvalue(0.1);
- VERTEX_INDEX cube_index(0);
- VERTEX_INDEX num_large_eigenvalues;
- 
- svd_compute_sharp_vertex_in_cube_edge_based_cmplx
- (scalar_grid, gradient_grid, cube_index, isovalue,
- max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
- num_large_eigenvalues, svd_info);
- };
- */

@@ -30,6 +30,9 @@
 using namespace IJK;
 using namespace ISODUAL3D;
 
+/****** debug **********/
+SCALAR_TYPE cube_offset2 = 0.0;
+
 
 // **************************************************
 // DUAL CONTOURING (HYPERCUBES)
@@ -178,17 +181,17 @@ void ISODUAL3D::dual_contouring
 
   if (vertex_position_method == GRADIENT_POSITIONING) {
     position_dual_isovertices_using_gradients
-      (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);
+      (scalar_grid, gradient_grid, isovalue, cube_offset2, iso_vlist, vertex_coord);
   }
   else if (vertex_position_method == EDGE_SIMPLE) {
     //EDGE SIMPLE
     position_dual_isovertices_using_edge_intersection_simple
-      (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);
+      (scalar_grid, gradient_grid, isovalue, cube_offset2, iso_vlist, vertex_coord);
   }
   else if (vertex_position_method == EDGE_COMPLEX) {
     //EDGE COMPLEX
     position_dual_isovertices_using_edge_intersection_complex
-      (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);
+      (scalar_grid, gradient_grid, isovalue, cube_offset2, iso_vlist, vertex_coord);
   }
   else {
     // default
@@ -252,20 +255,21 @@ void ISODUAL3D::dual_contouring
   clock_t t2 = clock();
 
   if (vertex_position_method == GRADIENT_POSITIONING) {
+   
     position_dual_isovertices_using_gradients
       (scalar_grid, gradient_grid, isovalue, 
-       use_selected_gradients, use_only_cube_gradients, cube_offset,
+       use_selected_gradients, use_only_cube_gradients, cube_offset, cube_offset2,
        iso_vlist, vertex_coord);
   }
   else if (vertex_position_method == EDGE_SIMPLE) {
     //EDGE SIMPLE
     position_dual_isovertices_using_edge_intersection_simple
-      (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);
+      (scalar_grid, gradient_grid, isovalue, cube_offset2, iso_vlist, vertex_coord);
   }
   else if (vertex_position_method == EDGE_COMPLEX) {
     //EDGE COMPLEX
     position_dual_isovertices_using_edge_intersection_complex
-      (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);
+      (scalar_grid, gradient_grid, isovalue, cube_offset2, iso_vlist, vertex_coord);
   }
   else {
     // default
