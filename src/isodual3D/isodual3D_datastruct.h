@@ -115,6 +115,8 @@ namespace ISODUAL3D {
     VERTEX_POSITION_METHOD vertex_position_method;
     bool use_only_cube_gradients;
     bool use_selected_gradients;
+    SIGNED_COORD_TYPE grad_selection_cube_offset;
+    SIGNED_COORD_TYPE ray_intersection_cube_offset;
 
   public:
     ISODUAL_PARAM() { Init(); };

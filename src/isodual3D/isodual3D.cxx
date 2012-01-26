@@ -30,9 +30,6 @@
 using namespace IJK;
 using namespace ISODUAL3D;
 
-/****** debug **********/
-SCALAR_TYPE cube_offset2 = 0.3;
-
 
 // **************************************************
 // DUAL CONTOURING (HYPERCUBES)
@@ -162,9 +159,11 @@ void ISODUAL3D::dual_contouring
 // merge_data = internal data structure for merging identical edges
 // isodual_info = information about running time and grid cubes and edges
 {
+  COORD_TYPE cube_offset = 0.0;
   PROCEDURE_ERROR error("dual_contouring");
 
-    clock_t t0 = clock();
+
+  clock_t t0 = clock();
 
   isopoly_vert.clear();
   vertex_coord.clear();
@@ -181,17 +180,20 @@ void ISODUAL3D::dual_contouring
 
   if (vertex_position_method == GRADIENT_POSITIONING) {
     position_dual_isovertices_using_gradients
-      (scalar_grid, gradient_grid, isovalue, cube_offset2, iso_vlist, vertex_coord);
+      (scalar_grid, gradient_grid, isovalue, cube_offset, 
+       iso_vlist, vertex_coord);
   }
   else if (vertex_position_method == EDGE_SIMPLE) {
     //EDGE SIMPLE
     position_dual_isovertices_using_edge_intersection_simple
-      (scalar_grid, gradient_grid, isovalue, cube_offset2, iso_vlist, vertex_coord);
+      (scalar_grid, gradient_grid, isovalue, cube_offset, 
+       iso_vlist, vertex_coord);
   }
   else if (vertex_position_method == EDGE_COMPLEX) {
     //EDGE COMPLEX
     position_dual_isovertices_using_edge_intersection_complex
-      (scalar_grid, gradient_grid, isovalue, cube_offset2, iso_vlist, vertex_coord);
+      (scalar_grid, gradient_grid, isovalue, cube_offset, 
+       iso_vlist, vertex_coord);
   }
   else {
     // default
@@ -235,9 +237,10 @@ void ISODUAL3D::dual_contouring
     isodual_param.use_selected_gradients;
   const bool use_only_cube_gradients =
     isodual_param.use_only_cube_gradients;
-
-  // *** NOTE:  SHOULD BE SET IN isodual_param ***
-  const SIGNED_COORD_TYPE cube_offset = 0.1;
+  const SIGNED_COORD_TYPE grad_selection_cube_offset =
+    isodual_param.grad_selection_cube_offset;
+  const SIGNED_COORD_TYPE ray_intersection_cube_offset =
+    isodual_param.ray_intersection_cube_offset;
 
   clock_t t0 = clock();
 
@@ -258,18 +261,21 @@ void ISODUAL3D::dual_contouring
    
     position_dual_isovertices_using_gradients
       (scalar_grid, gradient_grid, isovalue, 
-       use_selected_gradients, use_only_cube_gradients, cube_offset, cube_offset2,
+       use_selected_gradients, use_only_cube_gradients, 
+       grad_selection_cube_offset, ray_intersection_cube_offset,
        iso_vlist, vertex_coord);
   }
   else if (vertex_position_method == EDGE_SIMPLE) {
     //EDGE SIMPLE
     position_dual_isovertices_using_edge_intersection_simple
-      (scalar_grid, gradient_grid, isovalue, cube_offset2, iso_vlist, vertex_coord);
+      (scalar_grid, gradient_grid, isovalue, ray_intersection_cube_offset,
+       iso_vlist, vertex_coord);
   }
   else if (vertex_position_method == EDGE_COMPLEX) {
     //EDGE COMPLEX
     position_dual_isovertices_using_edge_intersection_complex
-      (scalar_grid, gradient_grid, isovalue, cube_offset2, iso_vlist, vertex_coord);
+      (scalar_grid, gradient_grid, isovalue, ray_intersection_cube_offset,
+       iso_vlist, vertex_coord);
   }
   else {
     // default

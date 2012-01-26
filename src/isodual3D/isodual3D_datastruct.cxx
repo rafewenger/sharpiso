@@ -56,6 +56,8 @@ void ISODUAL_PARAM::Init()
   vertex_position_method = CENTROID_EDGE_ISO;
   use_only_cube_gradients = false;
   use_selected_gradients = true;
+  grad_selection_cube_offset = 0;
+  ray_intersection_cube_offset = 0;
 }
 
 // **************************************************
