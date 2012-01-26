@@ -285,7 +285,7 @@ COORD_TYPE *shpoint)
   //setup edge_intercepts.
   setup_edgeIntercepts(cb, isovalue, use_cmplx_interp);
 
-  //find point calcualtions.
+  //find point calculations.
   findPoint(cb, err, eigenvalues, num_large_eigenvalues, 
             svd_debug_info, shpoint);
   return true;

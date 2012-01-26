@@ -16,27 +16,28 @@
 
 using namespace std;
 const int DIM(3);
-//FUNCTION PROTOTYPES
 
-//Compute A where A is g_i's
+// FUNCTION PROTOTYPES
+
+// Compute A where A is g_i's
 MatrixXf compute_A(const GRADIENT_COORD_TYPE * vert_grads, const int num_vert);
-//Compute B where B is isovalue - s_i;
+// Compute B where B is isovalue - s_i;
 RowVectorXf compute_B(const COORD_TYPE *vert_cooords, const GRADIENT_COORD_TYPE *vert_grads,
                       const  SCALAR_TYPE *vert_scalars, const int num_vert,
                       const SCALAR_TYPE isovalue);
-//Compute A inverse using svd
+// Compute A inverse using svd
 MatrixXf compute_A_inverse(const MatrixXf A, const EIGENVALUE_TYPE  err_tolerance,
                            MatrixXf &singularValues, NUM_TYPE & num_singular_vals );
-//Compute X as Ainverse times B
+// Compute X as Ainverse times B
 RowVectorXf compute_X(const MatrixXf Inv_A, RowVectorXf B);
-//FUNCTION compute w
+// FUNCTION compute w
 RowVectorXf calculate_w
 (const MatrixXf & inA, const MatrixXf & A, const MatrixXf &I);
 
 
-/*
- Normalize a vector
- */
+
+// Normalize a vector
+
 void normalize(GRADIENT_COORD_TYPE *intial,GRADIENT_COORD_TYPE  *normalized)
 {
     double sum(0.0),mag(0.0);
@@ -52,18 +53,17 @@ void normalize(GRADIENT_COORD_TYPE *intial,GRADIENT_COORD_TYPE  *normalized)
 }
 
 //FUNCTION DEFINITION
-/*
- * inputs:
- * grid_vertex_coords
- * gris_vertex_scalars
- * grid_vertex_gradients
- * Number of grid vertex
- * Isovalue
- * EigenValue Tolerance
- *
- */
-//sharp iso eigen as the include file.
-//eigen vaue type and eigen value coord type !
+
+// Inputs:
+// grid_vertex_coords
+// gris_vertex_scalars
+// grid_vertex_gradients
+// Number of grid vertex
+// Isovalue
+// EigenValue Tolerance
+
+// sharp iso eigen as the include file.
+// eigen vaue type and eigen value coord type !
 
 
 void svd_calculate_sharpiso_vertex
@@ -133,28 +133,11 @@ void svd_calculate_sharpiso_vertex
     }
 }
 
-//debug.
-/*
- void svd_calculate_sharpiso_vertex_edge_based
- (const COORD_TYPE * vert_coords,
- const GRADIENT_COORD_TYPE * vert_grads,
- const SCALAR_TYPE * vert_scalars,
- const NUM_TYPE  num_vert,
- const SCALAR_TYPE isovalue,
- const EIGENVALUE_TYPE err_tolerance,
- NUM_TYPE & num_singular_vals,
- EIGENVALUE_TYPE * singular_vals,
- COORD_TYPE * isoVertcoords,
- GRADIENT_COORD_TYPE * ray_direction){
- CUBE cb;
- 
- }
- */
 
 //FUNCTION Compute A, where A is g_i's
 
 MatrixXf compute_A(const GRADIENT_COORD_TYPE * vert_grads, const int num_vert){
-    //declare the A matrix;
+    // declare the A matrix;
     MatrixXf A(num_vert, DIM);
     
     for (int i=0; i<num_vert; i++) {
@@ -167,7 +150,7 @@ MatrixXf compute_A(const GRADIENT_COORD_TYPE * vert_grads, const int num_vert){
 };
 
 
-//FUNCTION to compute the dot product
+// FUNCTION to compute the dot product
 GRADIENT_COORD_TYPE compute_dot_pdt(const GRADIENT_COORD_TYPE * A, const COORD_TYPE * B , const int num)
 {
     double sum(0.0);
@@ -177,7 +160,7 @@ GRADIENT_COORD_TYPE compute_dot_pdt(const GRADIENT_COORD_TYPE * A, const COORD_T
     return sum;
 }
 
-//FUNCTION to compute B where B is given as isovalue - c_i + g_i*p_i
+// FUNCTION to compute B where B is given as isovalue - c_i + g_i*p_i
 RowVectorXf compute_B(const COORD_TYPE *vert_cooords,
                       const GRADIENT_COORD_TYPE *vert_grads,const  SCALAR_TYPE *vert_scalars, const int num_vert,
                       const SCALAR_TYPE isovalue)
@@ -189,10 +172,11 @@ RowVectorXf compute_B(const COORD_TYPE *vert_cooords,
     }
     return B;
 }
-//FUNCTION compute the pseudo inverse of A
-//helper function to compute_A_inverse.
-//it calcualates the sigma interms of the given tolerance
-//debug change this to error type.
+
+// FUNCTION compute the pseudo inverse of A
+// helper function to compute_A_inverse.
+// it calcualates the sigma interms of the given tolerance
+// debug change this to error type.
 MatrixXf compute_A_pseudoinverse(const MatrixXf A, MatrixXf &singular_values,
                                  const float  err_tolerance, int &num_singular_vals)
 {
@@ -218,10 +202,10 @@ MatrixXf compute_A_pseudoinverse(const MatrixXf A, MatrixXf &singular_values,
     return svd.matrixV()*sigma.transpose()*svd.matrixU().transpose();
 }
 
-//FUNCTION compute the inverse of A,
-/* accepts as input the matrix A , it calculates the singular values and the number of singular
- * values above the user set tolerance
- */
+// FUNCTION compute the inverse of A,
+// accepts as input the matrix A , it calculates the singular values and the number of singular
+// values above the user set tolerance
+
 MatrixXf compute_A_inverse(const MatrixXf A, const EIGENVALUE_TYPE  err_tolerance,
                            MatrixXf &singularValues, NUM_TYPE & num_singular_vals )
 {
@@ -231,16 +215,16 @@ MatrixXf compute_A_inverse(const MatrixXf A, const EIGENVALUE_TYPE  err_toleranc
 }
 
 
-//FUNCTION compute x which computes the position x based on x - Ainverse times B
+// FUNCTION compute x which computes the position x based on x - Ainverse times B
 RowVectorXf compute_X(const MatrixXf Inv_A, RowVectorXf B)
 {
-    //compute the vector X
+    // compute the vector X
     RowVectorXf x = Inv_A*B.transpose();
     return x;
     
 }
 
-//Calculate the magnitude
+// Calculate the magnitude
 SCALAR_TYPE calculate_mag(const RowVectorXf &res)
 {
     SCALAR_TYPE sum=0.0;
@@ -250,7 +234,7 @@ SCALAR_TYPE calculate_mag(const RowVectorXf &res)
     return sqrt(sum);
 }
 
-//FUNCTION compute w
+// FUNCTION compute w
 RowVectorXf calculate_w(const MatrixXf & inA, const MatrixXf & A, const MatrixXf &I){
     vector<RowVectorXf> e;
     RowVectorXf e1(3);
