@@ -16,7 +16,8 @@ using namespace Eigen;
 
 namespace SHARPISO {
     
-    const int THRESHOLD_CLAMP = 0.001; // clamp threshold 
+    const float THRESHOLD_CLAMP = 0.001; // clamp threshold 
+    const float EPSILON = 0.0001;
     
     // FindIntersect , 
     // accepts as inputs  a point p[], a direction dir[].It returns a boolean which is TRUE 

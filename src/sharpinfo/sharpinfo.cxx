@@ -769,6 +769,7 @@ void usage_error()
     cerr << "  [-gradC | -gradN | -gradCS | -gradNS ]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -svd_grad | -svd_edge_simple | -svd_edge_cmplx"<<endl;
+    cerr << "  -cube_offset2 <offsetvalue>" <<endl;
     cerr << "  -listg | -list_subgrid" << endl;
     exit(10);
 }

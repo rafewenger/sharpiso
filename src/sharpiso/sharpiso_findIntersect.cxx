@@ -111,7 +111,7 @@ bool SHARPISO::calculate_point_intersect
  SCALAR_TYPE *intersect)
 {
 	SCALAR_TYPE p[DIM3] ={0.0};
-	for (int i=0; i<DIM3; i++){
+	for (int i=0; i < DIM3; i++){
 		p[i] = original_pt[i] - cube_coord[i];
 	}
     
@@ -134,6 +134,7 @@ bool SHARPISO::calculate_point_intersect
                 swap(t0, t1);
                 swap(min_coord_j, max_coord_j);
             }
+            
             if (min_coord_j - 1.0 < THRESHOLD_CLAMP ) {
                 min_coord_j = 1.0;
             }
@@ -164,15 +165,15 @@ bool SHARPISO::calculate_point_intersect
         }
     }
     
-    SCALAR_TYPE endPt0[3];
-    SCALAR_TYPE endPt1[3];
-    for (int i=0; i<3; i++)
+    SCALAR_TYPE endPt0[DIM3];
+    SCALAR_TYPE endPt1[DIM3];
+    for (int i=0; i<DIM3; i++)
     {
         SCALAR_TYPE temp = p[i] + t0*dir[i];
         endPt0[i] = temp;
     }
     //t1
-    for (int i=0; i<3; i++)
+    for (int i=0; i<DIM3; i++)
     {
         SCALAR_TYPE temp = p[i] + t1*dir[i];
         endPt1[i] = temp;
@@ -202,23 +203,23 @@ bool SHARPISO::calculate_point_intersect_complex
 (const COORD_TYPE cube_coord[],
  const SCALAR_TYPE *original_pt,
  const SCALAR_TYPE *dir,
- const float th,  // th is the threshold,
- //if t = 1 then it acts like a normal cube
+ const float th,
  SCALAR_TYPE *intersect)
 { 
 	SCALAR_TYPE p[DIM3] ={0.0};
-	for (int i=0; i<DIM3; i++){
+    
+	for (int i = 0; i < DIM3; i++){
 		p[i] = original_pt[i] - cube_coord[i];
 	}
     
-    int ind  = findmax(dir);
+    int ind  = findmax(dir);    
     //find t0 and t1
-    SCALAR_TYPE t0 = (-th -1.0*p[ind])/(dir[ind]);
+    SCALAR_TYPE t0 = (-th -p[ind])/(dir[ind]);
     SCALAR_TYPE t1 = (1.0 + th - p[ind])/(dir[ind]);
     SCALAR_TYPE min_coord_j;
     SCALAR_TYPE max_coord_j;
     
-    for (int j = 0; j < 3; j++)
+    for (int j = 0; j < DIM3; j++)
     {
         if(j != ind)
         {
@@ -230,32 +231,25 @@ bool SHARPISO::calculate_point_intersect_complex
                 swap(t0, t1);
                 swap(min_coord_j, max_coord_j);
             }
-            if (min_coord_j - (1.0 + th)  < THRESHOLD_CLAMP ) {
-                min_coord_j = (1.0 + th);
-            }
-            if (max_coord_j- (0.0 - th) > -THRESHOLD_CLAMP ) {
-                max_coord_j= (0.0 - th);
-            }
             
-            if(min_coord_j > (1.0 + th))
+            if (( min_coord_j - (1.0 + th)) > EPSILON)  
             {
                 return false ;
             }
-            else if(max_coord_j < (0.0 - th))
+            else if (((0.0 - th) - max_coord_j) > EPSILON)
             {
                 return false;
             }
             else
             {
+                if ((min_coord_j <= (0.0 - th))
+                    && (max_coord_j > (0.0 - th)))
+                {  t0 = (-th - p[j])/dir[j]; }
                 
-                if ((min_coord_j <= (0.0 - th)) && (max_coord_j > (0.0 - th)))
-                {
-                    t0 = (-th - p[j])/dir[j];
-                }
-                if ((min_coord_j < 1.0) &&(max_coord_j >= 1.0 ))
-                {
-                    t1  = (1.0 + th - p[j])/dir[j];
-                }
+                
+                if ((min_coord_j < (1.0 + th)) &&
+                    (max_coord_j >= (1.0 + th)))
+                { t1  = (1.0 + th - p[j])/dir[j]; }
             }
         }
     }
@@ -264,28 +258,23 @@ bool SHARPISO::calculate_point_intersect_complex
     SCALAR_TYPE endPt1[3];
     for (int i=0; i<3; i++)
     {
-        SCALAR_TYPE temp = p[i] + t0*dir[i];
-        endPt0[i] = temp;
+        endPt0[i] = p[i] + t0*dir[i];
+        endPt1[i] = p[i] + t1*dir[i];
     }
-    //t1
-    for (int i=0; i<3; i++)
-    {
-        SCALAR_TYPE temp = p[i] + t1*dir[i];
-        endPt1[i] = temp;
-    }
-    /* /// used for debug purpose
-     cout <<" pt 1 x:["<< endPt0[0] <<"] y:["<< endPt0[1] <<"] z:["<< endPt0[2] <<"]"
+    /*
+     /// used for debug purpose
+     cout <<" pt 1 ["<< endPt0[0] <<" "<< endPt0[1] <<" "<< endPt0[2] <<"]"
      <<" t0: "<<t0<<endl;
-     cout <<" pt 2 x:["<< endPt1[0] <<"] y:["<< endPt1[1] <<"] z:["<< endPt1[2] <<"]"
+     cout <<" pt 2 ["<< endPt1[0] <<" "<< endPt1[1] <<"  "<< endPt1[2] <<"]"
      <<" t1: "<<t1<<endl;
      */
-    //Find the point of intersection.
-    for (int i=0; i<DIM3; i++) {
-        intersect[i] = (endPt0[i] + endPt1[i])/2.0;
-        intersect[i] += cube_coord[i];
-    }
-    return true;
     
+    //Find the point of intersection.
+    for (int i = 0; i < DIM3; i++) {
+        intersect[i] = (endPt0[i] + endPt1[i] ) / 2.0;
+        intersect[i] = intersect[i] + cube_coord[i];
+    }
+    return true;    
 };
 
 
