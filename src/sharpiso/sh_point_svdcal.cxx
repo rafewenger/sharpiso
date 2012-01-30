@@ -192,9 +192,9 @@ MatrixXf computePseudoinv
     return pseudoInverse;
 };
 
-/*
- Find the sharp point in-cube.
- */
+//
+// Find the sharp point inside cube.
+//
 void sh_cube::findPoint
 (const CUBE &cb,
  const SCALAR_TYPE err,
@@ -226,6 +226,7 @@ void sh_cube::findPoint
         m(i,2)*cb.edges[ind[i]].pt_intersect.pos[2];
     }  
     
+   
     //compute pseudo inverse of m. and also return the number of sing vals.
     int num_svals = 0;
     
@@ -243,7 +244,7 @@ void sh_cube::findPoint
         shpoint[2] = x(2);
         
         //clamp the shpoint
-        clamp (shpoint, clamp_threshold);
+        // clamp (shpoint, clamp_threshold);
         
         bool isInsideCube = inCube(shpoint);
         if (!isInsideCube) {
@@ -251,19 +252,9 @@ void sh_cube::findPoint
             setCubeCentroid(cb, ind, shpoint);
             // using centroid 
             svd_debug_info.location = CENTROID;
-            
-            //// DEBUG: once we have centroid we dont need the 
-            //// cube center
-            /*
-            bool isInsideCube2 = inCube(shpoint);
-            if (!isInsideCube2) {
-                svd_debug_info.location = CUBE_CENTER; //set using centre
-                setCubeCenter(shpoint);
-            }
-            */
         }
     }
-    else if(num_svals == 2){
+    else if ( num_svals == 2 ){
         RowVectorXf tempdir;
         MatrixXf I(3,3);
         
@@ -274,6 +265,7 @@ void sh_cube::findPoint
         dir[0]=tempdir(0);
         dir[1]=tempdir(1);
         dir[2]=tempdir(2);
+        
         normalize3D(dir, dir);
         
         //given x and ray direction , check if this intersects the identity cube.
@@ -282,8 +274,17 @@ void sh_cube::findPoint
         p[0]=x(0);
         p[1]=x(1);
         p[2]=x(2);
-        bool isIntersect = calculate_point_intersect(p, dir, intersect);
         
+        //bool isIntersect = calculate_point_intersect(p, dir, intersect);
+        bool isIntersect = calculate_point_intersect(p, dir, shpoint);
+        /*
+        bool isIntersect  = calculate_point_intersect_complex
+        (const COORD_TYPE cube_coord[],
+         const SCALAR_TYPE *original_pt,
+         const SCALAR_TYPE *dir,
+         const float th,  
+         SCALAR_TYPE *intersect);
+        */
         svd_debug_info.ray_direction[0] = dir[0];
         svd_debug_info.ray_direction[1] = dir[1];
         svd_debug_info.ray_direction[2] = dir[2];
@@ -294,25 +295,6 @@ void sh_cube::findPoint
         if (isIntersect) {
             svd_debug_info.ray_intersect_cube = true;
             
-            
-            /* BIGGER CLAMP.  TEMPORARILY DISABLED.
-             //intersect is on a bigger cube so we clamp it.
-             clamp(intersect, clamp_threshold);
-             //test if the intersect is within the cube.
-             bool  isInCube = inCube(intersect);
-             if (isInCube) {
-             for (int i=0; i<3; i++) {
-             shpoint[i] = intersect[i];
-             }
-             else {
-             svd_debug_info.location = CENTROID ; 
-             setCubeCentroid(cb, ind, shpoint);
-             }
-             */
-            
-            // clamp the intersect point ? is this needed
-            clamp(intersect, clamp_threshold);
-            
             for (int i=0; i<3; i++) {
                 shpoint[i] = intersect[i];
             }
@@ -320,23 +302,11 @@ void sh_cube::findPoint
         else {
             svd_debug_info.location = CENTROID;
             setCubeCentroid(cb, ind, shpoint);
-            /* BIGGER CLAMP.  TEMPORARILY DISABLED.
-             bool isInsideCube2 = inCube(shpoint);
-             if (!isInsideCube2) {
-             setCubeCenter(shpoint);
-             }
-             */
         }
     }
     else {
         // One or less singular values 
         setCubeCentroid(cb, ind, shpoint);
         svd_debug_info.location = CENTROID;
-        /* BIGGER CLAMP.  TEMPORARILY DISABLED.
-         bool isInsideCube2 = inCube(shpoint);
-         if (!isInsideCube2) {
-         setCubeCenter(shpoint);
-         }
-         */
     }
 }

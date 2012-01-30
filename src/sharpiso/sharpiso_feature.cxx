@@ -324,7 +324,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
     (&(gradient_coord[0]), &(scalar[0]), isovalue, use_cmplx_interp,
      max_small_eigenvalue, eigenvalues, num_large_eigenvalues, 
      svd_info, coord);
-    
+
     COORD_TYPE cube_coord[DIM3];
     COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
     
@@ -332,6 +332,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
     //check if cube creation failed.
     if(cube_create){
         IJK::add_coord(DIM3, cube_coord, coord, coord);
+        
         svd_info.location = LOC_SVD;
     }
     else{
