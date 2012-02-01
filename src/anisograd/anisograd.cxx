@@ -40,7 +40,7 @@ void compute_gradient_central_difference
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const VERTEX_INDEX iv1, GRADIENT_TYPE * gradient);
 
-void compute_central_differnce_d
+void compute_central_difference_d
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const VERTEX_INDEX iv1,  const DIRECTION &d, GRADIENT_TYPE cntrl_diff_d);
 
@@ -96,9 +96,9 @@ void compute_grad_H_d
             compute_forward_difference_d(scalar_grid, iv1, i, gradient[i]);
         }
         else{
-            compute_central_differnce_d(scalar_grid, iv1, i, temp0);
+            compute_central_difference_d(scalar_grid, iv1, i, temp0);
             VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
-            compute_central_differnce_d(scalar_grid, iv2, i, temp1);
+            compute_central_difference_d(scalar_grid, iv2, i, temp1);
             gradient[i] = temp0 + temp1;
         }
     }
@@ -117,7 +117,7 @@ void compute_gradient_central_difference
 }
 
 
-void compute_central_differnce_d
+void compute_central_difference_d
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const VERTEX_INDEX iv1,  const DIRECTION &d, GRADIENT_TYPE cntrl_diff_d)
 {
