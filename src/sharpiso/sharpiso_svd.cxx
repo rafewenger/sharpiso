@@ -20,14 +20,17 @@ const int DIM(3);
 // FUNCTION PROTOTYPES
 
 // Compute A where A is g_i's
-MatrixXf compute_A(const GRADIENT_COORD_TYPE * vert_grads, const int num_vert);
+MatrixXf compute_A
+(const GRADIENT_COORD_TYPE * vert_grads, const int num_vert);
 // Compute B where B is isovalue - s_i;
-RowVectorXf compute_B(const COORD_TYPE *vert_cooords, const GRADIENT_COORD_TYPE *vert_grads,
-                      const  SCALAR_TYPE *vert_scalars, const int num_vert,
-                      const SCALAR_TYPE isovalue);
+RowVectorXf compute_B
+(const COORD_TYPE *vert_cooords, const GRADIENT_COORD_TYPE *vert_grads,
+ const  SCALAR_TYPE *vert_scalars, const int num_vert,
+ const SCALAR_TYPE isovalue);
 // Compute A inverse using svd
-MatrixXf compute_A_inverse(const MatrixXf A, const EIGENVALUE_TYPE  err_tolerance,
-                           MatrixXf &singularValues, NUM_TYPE & num_singular_vals );
+MatrixXf compute_A_inverse
+(const MatrixXf A, const EIGENVALUE_TYPE  err_tolerance,
+ MatrixXf &singularValues, NUM_TYPE & num_singular_vals );
 // Compute X as Ainverse times B
 RowVectorXf compute_X(const MatrixXf Inv_A, RowVectorXf B);
 // FUNCTION compute w
@@ -88,7 +91,7 @@ void svd_calculate_sharpiso_vertex
     
     //Compute B where B is isovalue - s_i + g_i*p_i;
     RowVectorXf B =  compute_B(vert_coords, vert_grads, vert_scalars, num_vert, isovalue);
-    
+
     //Compute A inverse using svd
     MatrixXf inA = compute_A_inverse(A, err_tolerance, singular_values, num_singular_vals);
     
@@ -105,7 +108,7 @@ void svd_calculate_sharpiso_vertex
     //copy X to isoVertcoords
     for (int i=0; i<3; i++)
     { isoVertcoords[i] = X(i); }
-    
+
     //if num of singular values is 2 then it must return a direction.
     if(num_singular_vals == 2){
         
@@ -151,7 +154,8 @@ MatrixXf compute_A(const GRADIENT_COORD_TYPE * vert_grads, const int num_vert){
 
 
 // FUNCTION to compute the dot product
-GRADIENT_COORD_TYPE compute_dot_pdt(const GRADIENT_COORD_TYPE * A, const COORD_TYPE * B , const int num)
+GRADIENT_COORD_TYPE compute_dot_pdt
+(const GRADIENT_COORD_TYPE * A, const COORD_TYPE * B , const int num)
 {
     double sum(0.0);
     for (int i=0; i<num; i++) {
@@ -161,14 +165,15 @@ GRADIENT_COORD_TYPE compute_dot_pdt(const GRADIENT_COORD_TYPE * A, const COORD_T
 }
 
 // FUNCTION to compute B where B is given as isovalue - c_i + g_i*p_i
-RowVectorXf compute_B(const COORD_TYPE *vert_cooords,
-                      const GRADIENT_COORD_TYPE *vert_grads,const  SCALAR_TYPE *vert_scalars, const int num_vert,
-                      const SCALAR_TYPE isovalue)
+RowVectorXf compute_B
+(const COORD_TYPE *vert_cooords, const GRADIENT_COORD_TYPE *vert_grads,
+ const  SCALAR_TYPE *vert_scalars, const int num_vert, const SCALAR_TYPE isovalue)
 {
     RowVectorXf B(num_vert);
     for (int i=0; i<num_vert; i++) {
         
-        B(i) = isovalue - vert_scalars[i] + compute_dot_pdt(&(vert_grads[DIM*i]), &(vert_cooords[DIM*i]), DIM );
+        B(i) = isovalue - vert_scalars[i]
+          + compute_dot_pdt(&(vert_grads[DIM*i]), &(vert_cooords[DIM*i]), DIM );
     }
     return B;
 }

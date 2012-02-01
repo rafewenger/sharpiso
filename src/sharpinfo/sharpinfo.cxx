@@ -551,6 +551,7 @@ void output_cube_subgrid_scalar_errors
 {
     COORD_TYPE coord[DIM3];
     COORD_TYPE center_coord[DIM3];
+    COORD_TYPE vdiff[DIM3];
     IJK::PROCEDURE_ERROR error("output_cube_subgrid_scalar_errors");
     
     if (subgrid_axis_size < 1) {
@@ -583,11 +584,9 @@ void output_cube_subgrid_scalar_errors
                 IJK::ijkgrid_output_coord(cerr, DIM3, coord);
                 output << "  stdev: " << std::sqrt(stdev_squared);
                 output << "  max abs error: " << max_abs_error;
-                COORD_TYPE dist2center_squared;
-                IJK::compute_distance_squared
-                (DIM3, coord, center_coord, dist2center_squared);
-                cerr << "  dist to center: " << std::sqrt(dist2center_squared);
-                cerr << endl;
+                COORD_TYPE distance;
+                IJK::compute_distance(DIM3, coord, center_coord, distance);
+                cerr << "  dist to center: " << distance << endl;
             }
         }
     }
