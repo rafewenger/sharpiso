@@ -92,6 +92,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
         }
     }
     else if (num_large_eigenvalues < 2) {
+       
         // centroid 
         compute_isosurface_grid_edge_centroid
         (scalar_grid, isovalue, cube_index, coord);
@@ -156,6 +157,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_S
         }
     }
     else if (num_large_eigenvalues < 2) {
+         cout <<"centroid calculations called from here"<<endl;
         compute_isosurface_grid_edge_centroid
         (scalar_grid, isovalue, cube_index, coord);
         svd_info.location = CENTROID;
@@ -285,6 +287,9 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
         }
     }
     else if (num_large_eigenvalues < 2) {
+        //debug 
+        cout <<"centroid calculations called from here"<<endl;
+        
         compute_isosurface_grid_edge_centroid
         (scalar_grid, isovalue, cube_index, coord);
         svd_info.location = CENTROID;
@@ -606,6 +611,8 @@ void SHARPISO::compute_isosurface_grid_edge_centroid
  const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
  COORD_TYPE * coord)
 {
+    // debug
+    cout <<" centroid calculations: " <<endl;
     const int dimension = scalar_grid.Dimension();
     GRID_COORD_TYPE grid_coord[dimension];
     COORD_TYPE vcoord[dimension];

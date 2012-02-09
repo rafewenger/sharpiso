@@ -365,6 +365,9 @@ void compute_iso_vertex_using_svd
                  num_large_eigenvalues, svd_info, cube_111);
             }
             else {
+                //debug 
+                using namespace std;
+                cout <<" cube index "<< cube_index<<endl;
                 svd_compute_sharp_vertex_neighborhood_S
                 (scalar_grid, gradient_grid, cube_index, isovalue,
                  max_small_mag, max_small_eigenvalue, cube_offset2, sharp_coord, eigenvalues,

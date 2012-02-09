@@ -84,6 +84,9 @@ void setCubeCenter(COORD_TYPE *shpoint)
 
 void setCubeCentroid(const CUBE &cb, NUM_TYPE index[], COORD_TYPE *shpoint)
 {
+    //debug 
+    using namespace std;
+    cout << " centroid calculations "<<endl;
     for( int k=0; k<3; k++){
         double temp_k = 0.0;    
         for(int i=0; i<12; i++){
