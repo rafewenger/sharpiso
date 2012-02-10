@@ -44,3 +44,6 @@ void anisotropic_diff
 void compute_anisotropic_gradient_filtering
 (const ISODUAL3D::ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  ISODUAL3D::GRADIENT_GRID & gradient_grid);
+
+// Normalize the vectors.
+void normalize (float *vec, const int num_elements);

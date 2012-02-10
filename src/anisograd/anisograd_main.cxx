@@ -91,6 +91,12 @@ int main(int argc, char **argv)
         {
             
             compute_gradient_central_difference(full_scalar_grid, gradient_grid);
+            // Normalize the gradients
+            for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
+            {
+                GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
+                normalize (N, DIM3);
+            }
             // Calculate the anisotropic diff of the gradients.
             anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, gradient_grid);
         }
