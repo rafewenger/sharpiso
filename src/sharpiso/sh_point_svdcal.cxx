@@ -154,8 +154,11 @@ RowVectorXf Cal_w(MatrixXf &pseudoInverse,const MatrixXf  &m,const MatrixXf  &I)
 /*
  Compute pseudo inverse of sigma
  */
-void computePseudoSigmaInv(MatrixXf &PseudoInvSigma, MatrixXf &singular_vals,
-                           int& num_svals ,const double & err )
+void computePseudoSigmaInv
+(MatrixXf &PseudoInvSigma,
+ MatrixXf &singular_vals,
+ int &num_svals ,
+ const double & err )
 {
     for (int i=0; i<singular_vals.rows(); i++) {
         if (singular_vals(i) > err) {
@@ -170,7 +173,10 @@ void computePseudoSigmaInv(MatrixXf &PseudoInvSigma, MatrixXf &singular_vals,
  compute the pseudo inverse of m
  */
 MatrixXf computePseudoinv
-( const MatrixXf &m, const double err, int & num_svals,float eigenvalues[DIM3])
+( const MatrixXf &m,
+ const double err,
+ int & num_svals,
+ float eigenvalues[DIM3])
 {
     JacobiSVD<MatrixXf> svd(m, ComputeThinU | ComputeThinV);
     
@@ -229,7 +235,7 @@ void sh_cube::findPoint
         m(i,2)*cb.edges[ind[i]].pt_intersect.pos[2];
     }  
     
-   
+    
     //compute pseudo inverse of m. and also return the number of sing vals.
     int num_svals = 0;
     
@@ -278,16 +284,7 @@ void sh_cube::findPoint
         p[1]=x(1);
         p[2]=x(2);
         
-        //bool isIntersect = calculate_point_intersect(p, dir, intersect);
         bool isIntersect = calculate_point_intersect(p, dir, shpoint);
-        /*
-        bool isIntersect  = calculate_point_intersect_complex
-        (const COORD_TYPE cube_coord[],
-         const SCALAR_TYPE *original_pt,
-         const SCALAR_TYPE *dir,
-         const float th,  
-         SCALAR_TYPE *intersect);
-        */
         svd_debug_info.ray_direction[0] = dir[0];
         svd_debug_info.ray_direction[1] = dir[1];
         svd_debug_info.ray_direction[2] = dir[2];

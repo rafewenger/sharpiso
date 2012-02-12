@@ -15,7 +15,7 @@
 using namespace std;
 using namespace Eigen;
 using namespace SHARPISO;
-  //FUNCTION DEFINITION
+//FUNCTION DEFINITION
 /*
  * inputs:
  * grid_vertex_coords
@@ -42,7 +42,7 @@ void svd_calculate_sharpiso_vertex
  GRADIENT_COORD_TYPE *ray_direction);
 
 
- void svd_calculate_sharpiso_vertex_edge_based
+void svd_calculate_sharpiso_vertex_edge_based
 
 (const COORD_TYPE * vert_coords,
  const GRADIENT_COORD_TYPE * vert_grads,

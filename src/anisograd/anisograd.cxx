@@ -199,10 +199,13 @@ void compute_grad_H_d
         }
         else{
             compute_central_difference_d(scalar_grid, gradient_grid, iv1, i, index_coord, temp0);
+            
             VERTEX_INDEX iv2 = gradient_grid.NextVertex(iv1, d);
             compute_central_difference_d(scalar_grid, gradient_grid, iv2, i, index_coord, temp1);
+            
             gradient[i] = (temp0 + temp1)/2.0;
         }
+        
     }
 }
 
@@ -217,9 +220,9 @@ void compute_grad_H_d
 {
     // This generates a  3X3 matrix
     const int dimension = scalar_grid.Dimension();
-    for (int i=0; i<dimension; i++) {
-        //compute_grad_H_d (scalar_grid, gradient_grid, iv1, d, i, &(gradient[3*i]));
-        compute_grad_H_d (scalar_grid, gradient_grid, iv1, d, i, gradient + 3*i);
+    for (int index_coord=0; index_coord<dimension; index_coord++) {
+        
+        compute_grad_H_d (scalar_grid, gradient_grid, iv1, d, index_coord, gradient + 3*index_coord);
     }
 }
 
@@ -292,7 +295,6 @@ void compute_central_difference_d
     const GRADIENT_TYPE * vertex_gradient_coord2 = gradient_grid.VectorPtrConst(iv2);
     
     cntrl_diff_d = (vertex_gradient_coord2[index_coord] - vertex_gradient_coord0[index_coord])/2.0;
-    
 }
 
 
@@ -611,21 +613,6 @@ void anisotropic_diff_per_vert
     compute_M_d (scalar_grid, gradient_grid, iv1, Cy, dimension, Dy, My);
     // calculate Mz
     compute_M_d (scalar_grid, gradient_grid, iv1, Cz, dimension, Dz, Mz);
-    // debug
-    
-    if(iv1 == 887)
-    {
-        cout <<" Gx "<<Gx[0]<<" "<<Gx[1]<<" "<<Gx[2]<<endl;
-        cout <<" Gy "<<Gy[0]<<" "<<Gy[1]<<" "<<Gy[2]<<endl;
-        cout <<" Gz "<<Gz[0]<<" "<<Gz[1]<<" "<<Gz[2]<<endl;
-        cout <<" GNx "<<GNx[0]<<" "<<GNx[1]<<" "<<GNx[2]<<" "<<GNx[3]<<" "<<GNx[4]<<" "<<GNx[5]<<" "<<GNx[6]<<" "<<GNx[7]<<" "<<GNx[8]<<endl;
-              cout <<" GNx "<<GNy[0]<<" "<<GNy[1]<<" "<<GNy[2]<<" "<<GNy[3]<<" "<<GNy[4]<<" "<<GNy[5]<<" "<<GNy[6]<<" "<<GNy[7]<<" "<<GNy[8]<<endl;
-                cout <<" GNx "<<GNz[0]<<" "<<GNz[1]<<" "<<GNz[2]<<" "<<GNz[3]<<" "<<GNz[4]<<" "<<GNz[5]<<" "<<GNz[6]<<" "<<GNz[7]<<" "<<GNz[8]<<endl;
-        cout <<" Cx "<<Cx[0]<<" "<<Cx[1]<<" "<<Cx[2]<<endl;
-        cout <<" Cy "<<Cy[0]<<" "<<Cy[1]<<" "<<Cy[2]<<endl;
-        cout <<" Cz "<<Cz[0]<<" "<<Cz[1]<<" "<<Cz[2]<<endl;
-    }
-    
     
     // calculate K x
     compute_K_d (scalar_grid, Gx, GNx, Cx, 9, 3, 3, Kx);
@@ -702,22 +689,10 @@ void anisotropic_diff
             }
             else {
                 GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
-                if(iv ==887)
-                {
-                    std::cout <<" vertex "<< iv  
-                    <<" gradient      "<< N[0]<<" "<<N[1]<<" "<<N[2]<<endl;
-                }
-                
                 // normalize the normals 
                 anisotropic_diff_per_vert(scalar_grid, mu, lambda, iv, gradient_grid);
                 
                 N = gradient_grid.VectorPtr(iv);
-                if (iv == 887) {
-                    std::cout <<" vertex "<< iv  
-                    <<" gradient  new "<< N[0]<<" "<<N[1]<<" "<<N[2]<<endl;
-                    
-                }
-                
             }
         }
     }
@@ -734,10 +709,7 @@ void vector_magnitude (const float * vec, const int num_elements, float & mag)
     for (int i=0; i<num_elements; i++) {
         sum = sum + vec[i]*vec[i];
     }
-    if (sum - 0.0 > EPSILON)
-        mag = sqrt(sum);
-    else
-        std::cout <<" the  magnitude of the vector is too small "<<std::endl;
+    mag = sqrt(sum);
 }
 
 
@@ -757,12 +729,13 @@ void normalize (float *vec, const int num_elements)
 {
     float mag = 0.0;
     vector_magnitude (vec, num_elements, mag);
-    if (abs(mag-0.0) < 0.0001) {
-        cout <<" the magnitude is 0."<<endl;
-        exit(0);
-    }
+    
     for (int i=0; i<num_elements; i++) {
-        vec[i] = vec[i] / mag;
+        if (abs(mag-0.0) < EPSILON) {
+            vec[i] = 0.0;
+        }
+        else
+            vec[i] = vec[i] / mag;
     }
 }
 
