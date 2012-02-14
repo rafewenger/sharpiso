@@ -149,36 +149,6 @@ namespace {
   return(type);
   }
 
-  VERTEX_POSITION_METHOD get_vertex_position_method(char * s)
-  // convert string s into parameter token
-  {
-    VERTEX_POSITION_METHOD method = CENTROID_EDGE_ISO;
-    string str = s;
-
-    if (str == "cube_center") {
-      method = CUBECENTER;
-    }
-    else if (str == "centroid") {
-      method = CENTROID_EDGE_ISO;
-    }
-    else if (str == "grad"){
-      method = GRADIENT_POSITIONING;
-    }
-    else if (str == "gradES"){
-      method = EDGE_SIMPLE;
-    }
-    else if (str == "gradEC"){
-      method = EDGE_COMPLEX;
-    }
-    else {
-      cerr << "Error in input parameter -position.  Illegal position method: "
-           << str << "." << endl;
-      exit(1030);
-    }
-
-    return(method);
-  }
-
   // Set vertex position method and flags.
   void set_vertex_position_method(const char * s, IO_INFO & io_info)
   {
@@ -269,11 +239,6 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
         iarg++;
         if (iarg >= argc) usage_error();
         set_vertex_position_method(argv[iarg], io_info);
-
-        /* OBSOLETE
-           io_info.vertex_position_method =
-           get_vertex_position_method(argv[iarg]);
-        */
 
         is_vertex_position_method_set = true;
         break;
@@ -1092,10 +1057,10 @@ namespace {
   cerr << "OPTIONS:" << endl;
   cerr << "  [-subsample S] [-supersample S]" << endl;
   cerr << "  [-position {centroid|cube_center|grad|gradES|gradEC" << endl;
-  cerr << "[-gradient {gradient_nrrd_filename}]" << endl;
-  cerr << "[-off|-iv] [-o {output_filename}] [-stdout]"
+  cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
+  cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
   << endl;
-  cerr << "[-help] [-s] [-nowrite] [-time]" << endl;
+  cerr << "  [-help] [-s] [-nowrite] [-time]" << endl;
   }
 
 }
