@@ -92,6 +92,7 @@ namespace ISODUAL3D {
     int supersample_resolution;
     bool flag_color_alternating;  ///< Color simplices in alternating cubes
     int region_length;
+    bool flag_output_tri_mesh;
 
     /// List of high resolution arguments,
     ///   e.g., "-highres {coord list}".
@@ -120,6 +121,7 @@ namespace ISODUAL3D {
     bool nowrite_flag;
     bool use_stdout;
     bool flag_silent;
+    bool flag_output_tri_mesh;
     OUTPUT_FORMAT output_format;
     COORD_ARRAY grid_spacing;
     int grow_factor;
@@ -256,12 +258,12 @@ namespace ISODUAL3D {
 // WRITE_DUAL_MESH
 // **************************************************
 
-  void write_dual_mesh
+  void write_dual_quad_mesh
     (const OUTPUT_INFO & output_info,
      const std::vector<COORD_TYPE> & vertex_coord, 
      const std::vector<VERTEX_INDEX> & slist);
 
-  void write_dual_mesh
+  void write_dual_quad_mesh
     (const OUTPUT_INFO & output_info,
      const std::vector<COORD_TYPE> & vertex_coord, 
      const std::vector<VERTEX_INDEX> & slist,
@@ -279,6 +281,26 @@ namespace ISODUAL3D {
      const std::vector<VERTEX_INDEX> & slist, 
      const COLOR_TYPE * front_color, const COLOR_TYPE * back_color,
      IO_TIME & io_time);
+
+  /// Convert dual quadrilateral meshes to triangles and write mesh.
+  /// @param output_info Output information.
+  /// @param vertex_coord List of vertex coordinates.
+  /// @param quad_vert[] List of quadrilateral vertices.
+  ///        quad_vert[4*i+k] is k'th quadrilateral vertices.
+  ///        Quadrilateral vertices are listed in order:
+  ///            Lower-Left, Lower-Right, Upper-Left, Upper-Right
+  void write_dual_tri_mesh
+  (const OUTPUT_INFO & output_info,
+   const std::vector<COORD_TYPE> & vertex_coord, 
+   const std::vector<VERTEX_INDEX> & quad_vert);
+
+  /// Convert dual quadrilateral meshes to triangles and write mesh.
+  /// Time write operation.
+  void write_dual_tri_mesh
+  (const OUTPUT_INFO & output_info,
+   const std::vector<COORD_TYPE> & vertex_coord, 
+   const std::vector<VERTEX_INDEX> & quad_vert,
+   IO_TIME & io_time);
 
 // **************************************************
 // SET ROUTINES
