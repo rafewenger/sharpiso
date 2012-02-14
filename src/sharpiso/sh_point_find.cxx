@@ -252,7 +252,7 @@ void setup_edgeIntercepts
  gradients, 
  scalar_values,
  isovalue, 
- err for svd calculation 
+ EIGEN_VALUE_CUTOFF for svd calculation 
  point(which is also its out put)
  */
 
@@ -261,7 +261,7 @@ bool shFindPoint
  const  SCALAR_TYPE  scalar_vals[],
  const  SCALAR_TYPE  isovalue,
  const  bool use_cmplx_interp, 
- const  SCALAR_TYPE  err,
+ const  SCALAR_TYPE   EIGEN_VALUE_CUTOFF,
  float eigenvalues[DIM3],
  int &num_large_eigenvalues,
  SVD_INFO &svd_debug_info,
@@ -285,7 +285,7 @@ bool shFindPoint
     
     //find point calculations.
     findPoint
-    (cb, err, eigenvalues, num_large_eigenvalues, 
+    (cb, EIGEN_VALUE_CUTOFF, eigenvalues, num_large_eigenvalues, 
      svd_debug_info, shpoint);
     
     return true;

@@ -29,7 +29,7 @@ namespace sh_cube
     ///Find the sharp point in-cube.
     void findPoint
     (const CUBE &cb,
-     const SCALAR_TYPE err,
+     const SCALAR_TYPE EIGEN_VALUE_CUTOFF,
      float eigenvalues[DIM3],
      int &num_large_eigenvalues,
      SVD_INFO &svd_debug_info,

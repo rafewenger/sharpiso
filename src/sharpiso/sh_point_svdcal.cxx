@@ -11,6 +11,7 @@
 #include "sh_point_datastruct.h"
 #include "sharpiso_findIntersect.h"
 #include <vector>
+#include <algorithm>
 
 using namespace sh_cube;
 /*
@@ -153,19 +154,33 @@ RowVectorXf Cal_w(MatrixXf &pseudoInverse,const MatrixXf  &m,const MatrixXf  &I)
 }
 /*
  Compute pseudo inverse of sigma
+ notes:
+ before calculating the cutoff, the eigen values must be normalized.
+ to normalize the eigen value divide the all of them with the largest one.
+ 
  */
 void computePseudoSigmaInv
 (MatrixXf &PseudoInvSigma,
  MatrixXf &singular_vals,
- int &num_svals ,
- const double & err )
+ int &num_svals,
+ const double & EIGEN_VALUE_CUTOFF )
 {
+    
+    float max =-1.0;
+    using namespace std;
+    cout << singular_vals.maxCoeff();
+    
     for (int i=0; i<singular_vals.rows(); i++) {
-        if (singular_vals(i) > err) {
+        
+        if (max< singular_vals(i))
+            max = singular_vals(i);
+        if ( singular_vals(i) > EIGEN_VALUE_CUTOFF) {
             num_svals++;
             PseudoInvSigma(i,i) = 1.0/singular_vals(i);
         }
     }
+    cout <<" max "<<max <<endl;
+    
 };
 
 
@@ -174,7 +189,7 @@ void computePseudoSigmaInv
  */
 MatrixXf computePseudoinv
 ( const MatrixXf &m,
- const double err,
+ const double EIGEN_VALUE_CUTOFF,
  int & num_svals,
  float eigenvalues[DIM3])
 {
@@ -194,7 +209,9 @@ MatrixXf computePseudoinv
     MatrixXf PseudoInvSigma =
     MatrixXf::Zero(num_singular_values,num_singular_values);
     
-    computePseudoSigmaInv(PseudoInvSigma, singular_vals, num_svals , err );
+    //debug 
+    cout <<" cutt off "<< EIGEN_VALUE_CUTOFF<<endl;
+    computePseudoSigmaInv(PseudoInvSigma, singular_vals, num_svals, EIGEN_VALUE_CUTOFF );
     
     MatrixXf pseudoInverse;
     pseudoInverse = svd.matrixV()*PseudoInvSigma.transpose()*svd.matrixU().transpose();
@@ -206,7 +223,7 @@ MatrixXf computePseudoinv
 //
 void sh_cube::findPoint
 (const CUBE &cb,
- const SCALAR_TYPE err,
+ const SCALAR_TYPE EIGEN_VALUE_CUTOFF,
  float eigenvalues[DIM3],
  int &num_large_eigenvalues,
  SVD_INFO &svd_debug_info,
@@ -239,7 +256,7 @@ void sh_cube::findPoint
     //compute pseudo inverse of m. and also return the number of sing vals.
     int num_svals = 0;
     
-    MatrixXf pseudoInv_m = computePseudoinv(m, err, num_svals, eigenvalues);
+    MatrixXf pseudoInv_m = computePseudoinv(m, EIGEN_VALUE_CUTOFF, num_svals, eigenvalues);
     num_large_eigenvalues = num_svals;
     
     // x = m inv *b, mx=b

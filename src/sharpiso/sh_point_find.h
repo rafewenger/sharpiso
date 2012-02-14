@@ -23,7 +23,7 @@ using namespace SHARPISO;
  gradients, 
  scalar_values,
  isovalue, 
- err for svd calculation 
+ EIGEN_VALUE_CUTOFF for svd calculation 
  point(which is also its out put)
  */
 
@@ -31,7 +31,7 @@ bool shFindPoint
 (const GRADIENT_COORD_TYPE gradients[],
  const  SCALAR_TYPE  scalar_vals[],
  const  SCALAR_TYPE  isovalue, const  bool use_cmplx_interp, 
- const  SCALAR_TYPE err, float eigenvalues[DIM3],
+ const  SCALAR_TYPE EIGEN_VALUE_CUTOFF, float eigenvalues[DIM3],
  int &num_large_eigenvalues, 
  SVD_INFO &svd_debug_info, 
  COORD_TYPE *shpoint)

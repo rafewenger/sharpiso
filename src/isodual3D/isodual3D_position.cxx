@@ -118,7 +118,6 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  COORD_TYPE * sharp_coord)
 {
-    
     const int dimension = scalar_grid.Dimension();
     SVD_INFO svd_info;
     svd_info.ray_intersect_cube = false;
@@ -154,13 +153,16 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  COORD_TYPE * sharp_coord)
 {
-        
+    //debug :
+    
+    cout <<" isodual3D_position position_dual_isovertices_using_gradients"<<endl;
+    
     const int dimension = scalar_grid.Dimension();
     SVD_INFO svd_info;
     svd_info.ray_intersect_cube = false;
     svd_info.location = LOC_NONE;
 
-    EIGENVALUE_TYPE eigenvalues[DIM3];
+    EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
     
     GRADIENT_COORD_TYPE max_small_mag(0.0);
     EIGENVALUE_TYPE max_small_eigenvalue(0.1);
