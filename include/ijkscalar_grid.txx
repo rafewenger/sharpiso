@@ -1820,6 +1820,45 @@ namespace IJK {
   }
 
   // **************************************************
+  // SCALAR GRID TEMPLATE FUNCTIONS
+  // **************************************************
+
+  /// Returns true if \a s is greater than min scalar value of cube vertices
+  ///   and \a s is less then or equal to max scalar value of cube vertices.
+  /// @param scalar_grid Scalar grid.
+  /// @pre GRID_TYPE must have member function CubeVertex(iv0,k)
+  /// @pre scalar_grid.Dimension() > 0 so scalar_grid.NumCubeVertices() > 0.
+  /// @param icube Cube index.
+  /// @param s Scalar value
+  template <typename GRID_TYPE, typename ITYPE, typename STYPE>
+  bool is_gt_cube_min_le_cube_max
+  (const GRID_TYPE & scalar_grid, const ITYPE icube,
+   const STYPE s)
+  {
+    typedef typename GRID_TYPE::VERTEX_INDEX_TYPE VTYPE;
+    typedef typename GRID_TYPE::NUMBER_TYPE NTYPE;
+
+    const VTYPE iv0 = icube;  // Vertex icube is primary vertex of cube icube.
+
+    if (scalar_grid.Scalar(iv0) < s) {
+      for (NTYPE k = 1; k < scalar_grid.NumCubeVertices(); k++) {
+        VTYPE iv1 = scalar_grid.CubeVertex(icube, k);
+        if (scalar_grid.Scalar(iv1) >= s) 
+          { return(true); }
+      }
+    }
+    else {
+      for (NTYPE k = 1; k < scalar_grid.NumCubeVertices(); k++) {
+        VTYPE iv1 = scalar_grid.CubeVertex(icube, k);
+        if (scalar_grid.Scalar(iv1) < s) 
+          { return(true); }
+      }
+    }
+
+    return(false);
+  }
+
+  // **************************************************
   // TEMPLATE OUTPUT FUNCTIONS
   // **************************************************
 
