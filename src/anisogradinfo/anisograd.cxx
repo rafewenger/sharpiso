@@ -114,7 +114,7 @@ void compute_gradient_central_difference
             cout.width(10);
             GRADIENT_TYPE * grad = gradient_grid.VectorPtr(icube);
             cout <<"central diff gradient at the vertex "<<icube <<" [";
-            cout <<grad[0]<<" "<<grad[1]<<" "<<grad[2]<<"] "<<endl;
+            cout <<grad[0]<<" "<<grad[1]<<" "<<grad[2]<<"]" << endl;
         }
     }
 }
@@ -515,8 +515,11 @@ void anisotropic_diff
             if(iv == icube && flag_aniso == 0 )
             {
                 GRADIENT_TYPE * grad = gradient_grid.VectorPtr(icube);
-                cout <<" iso  grad at the vertex "<<icube <<" num iter "<< k<<" [";
-                cout <<grad[0]<<" "<<grad[1]<<" "<<grad[2]<<"] "<<" is inside "<<flag_is_inside_2_grid<<endl;
+                cout <<" iso grad at the vertex "<<icube <<" num iter "<< k<<" [";
+                cout <<grad[0]<<" "<<grad[1]<<" "<<grad[2]<<"] "
+                     << "(Magnitude " << gradient_grid.ComputeMagnitude(icube)
+                     << ")"
+                     <<" is inside "<<flag_is_inside_2_grid<<endl;
             }
             
             if(iv == icube && flag_aniso != 0 )
