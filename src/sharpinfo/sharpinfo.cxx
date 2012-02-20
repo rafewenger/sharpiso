@@ -771,173 +771,204 @@ void usage_error()
     exit(10);
 }
 
+int get_int(const int iarg, const int argc, char **argv)
+{
+  if (iarg+1 >= argc) { 
+    cerr << "Usage error. Missing argument for option " 
+         << argv[iarg] << " and missing file name." << endl;
+    usage_error(); 
+  }
+
+  int x;
+  if (!IJK::string2val(argv[iarg+1], x)) {
+    cerr << "Error in argument for option: " << argv[iarg] << endl;
+    cerr << "Non-integer character in string: " << argv[iarg+1] << endl;
+    exit(50);
+  }
+
+  return(x);
+}
+
+float get_float(const int iarg, const int argc, char **argv)
+{
+  if (iarg+1 >= argc) { 
+    cerr << "Usage error. Missing argument for option " 
+         << argv[iarg] << " and missing file name." << endl;
+    usage_error(); 
+  }
+
+  float x;
+  if (!IJK::string2val(argv[iarg+1], x)) {
+    cerr << "Error in argument for option: " << argv[iarg] << endl;
+    cerr << "Non-numeric character in string: " << argv[iarg+1] << endl;
+    exit(50);
+  }
+
+  return(x);
+}
 
 void parse_command_line(int argc, char **argv)
 {
-    int iarg = 1;
-    bool flag_none = false;
-    while (iarg < argc && argv[iarg][0] == '-') {
+  int iarg = 1;
+  bool flag_none = false;
+  while (iarg < argc && argv[iarg][0] == '-') {
 
-        std::string s = argv[iarg];
+    std::string s = argv[iarg];
 
-        if (s == "-cube") {
-            iarg++;
-            if (iarg >= argc) { usage_error(); };
-            sscanf(argv[iarg], "%d", &cube_index);
-        }
-        else if (s == "-cc") {
-            iarg++;
-            if (iarg >= argc) { usage_error(); };
-            IJK::string2vector(argv[iarg], cube_coord);
-        }
-        else if (s == "-isovalue") {
-            iarg++;
-            if (iarg >= argc) { usage_error(); };
-            sscanf(argv[iarg], "%f", &isovalue);
-            flag_isovalue_set = true;
-        }
-        else if (s == "-cube_offset2") {
-            iarg++;
-            if (iarg >= argc) { usage_error(); };
-            sscanf(argv[iarg], "%f", &cube_offset2);
-        }
-        else if (s == "-coord") {
-            iarg++;
-            if (iarg >= argc) { usage_error(); };
-            IJK::string2vector(argv[iarg], location);
-            flag_location_set = true;
-        }
-        else if (s == "-listg") {
-            flag_list_gradients = true;
-        }
-        else if (s == "-list_subgrid") {
-            flag_list_subgrid = true;
-        }
-        else if (s == "-list_eigen") {
-            flag_list_eigen = true;
-        }
-        else if(s == "-svd_grad") {
-            flag_svd_gradients = true;
-        }
-        else if(s == "-svd_edge_simple") {
-            flag_svd_edges_simple = true;
-        }
-        else if(s == "-svd_edge_cmplx") {
-            flag_svd_edges_cmplx = true;
-        }
-        else if (s == "-gradC") {
-            use_only_cube_gradients = true;
-            use_selected_gradients = false;
-        }
-        else if (s == "-gradN") {
-            use_only_cube_gradients = false;
-            use_selected_gradients = false;
-        }
-        else if (s == "-gradCS") {
-            use_only_cube_gradients = true;
-            use_selected_gradients = true;
-        }
-        else if (s == "-gradNS") {
-            use_only_cube_gradients = false;
-            use_selected_gradients = true;
-        }
-        else if (s == "-offset") {
-            iarg++;
-            if (iarg >= argc) { usage_error(); };
-            sscanf(argv[iarg], "%f", &cube_offset);
-        }
-        else if (s == "-help") {
-            help();
-        }
-        else {
-            cerr << "Option error. Unknown option: " << argv[iarg] << endl;
-            cerr << endl;
-            usage_error();
-        }
-
-        iarg++;
+    if (s == "-cube") {
+      cube_index = get_int(iarg, argc, argv);
+      iarg++;
+    }
+    else if (s == "-cc") {
+      iarg++;
+      if (iarg >= argc) { usage_error(); };
+      IJK::string2vector(argv[iarg], cube_coord);
+    }
+    else if (s == "-isovalue") {
+      isovalue = get_float(iarg, argc, argv);
+      iarg++;
+      flag_isovalue_set = true;
+    }
+    else if (s == "-coord") {
+      iarg++;
+      if (iarg >= argc) { usage_error(); };
+      IJK::string2vector(argv[iarg], location);
+      flag_location_set = true;
+    }
+    else if (s == "-listg") {
+      flag_list_gradients = true;
+    }
+    else if (s == "-list_subgrid") {
+      flag_list_subgrid = true;
+    }
+    else if (s == "-list_eigen") {
+      flag_list_eigen = true;
+    }
+    else if(s == "-svd_grad") {
+      flag_svd_gradients = true;
+    }
+    else if(s == "-svd_edge_simple") {
+      flag_svd_edges_simple = true;
+    }
+    else if(s == "-svd_edge_cmplx") {
+      flag_svd_edges_cmplx = true;
+    }
+    else if (s == "-gradC") {
+      use_only_cube_gradients = true;
+      use_selected_gradients = false;
+    }
+    else if (s == "-gradN") {
+      use_only_cube_gradients = false;
+      use_selected_gradients = false;
+    }
+    else if (s == "-gradCS") {
+      use_only_cube_gradients = true;
+      use_selected_gradients = true;
+    }
+    else if (s == "-gradNS") {
+      use_only_cube_gradients = false;
+      use_selected_gradients = true;
+    }
+    else if (s == "-offset") {
+      cube_offset = get_float(iarg, argc, argv);
+      iarg++;
+    }
+    else if (s == "-cube_offset2") {
+      cube_offset2 = get_float(iarg, argc, argv);
+      iarg++;
+    }
+    else if (s == "-help") {
+      help();
+    }
+    else {
+      cerr << "Option error. Unknown option: " << argv[iarg] << endl;
+      cerr << endl;
+      usage_error();
     }
 
-    if (iarg >= argc) {
-        cerr << "Error. Missing scalar and gradient file names." << endl;
-        usage_error();
-    }
+    iarg++;
+  }
 
-    if (iarg + 1 >= argc) {
-        cerr << "Error. Missing gradient file name." << endl;
-        usage_error();
-    }
+  if (iarg >= argc) {
+    cerr << "Error. Missing scalar and gradient file names." << endl;
+    usage_error();
+  }
 
-    if (iarg + 2 < argc) {
-        cerr << "Error. Command line has more than two input file names." << endl;
-        usage_error();
-    }
+  if (iarg + 1 >= argc) {
+    cerr << "Error. Missing gradient file name." << endl;
+    usage_error();
+  }
 
-    scalar_filename = argv[iarg];
-    gradient_filename = argv[iarg+1];
+  if (iarg + 2 < argc) {
+    cerr << "Error. Command line has more than two input file names." << endl;
+    usage_error();
+  }
 
-    if (!flag_isovalue_set && !flag_location_set && !flag_list_gradients) {
-        cerr << "Error.  Option  -isovalue or -coord or -listg must be specified."
-        << endl;
-        usage_error();
-        exit(15);
-    }
+  scalar_filename = argv[iarg];
+  gradient_filename = argv[iarg+1];
 
-    if (!flag_isovalue_set && flag_list_subgrid) {
-        cerr << "Error.  Option -list_subgrid cannot be used without -isovalue."
-        << endl;
-        exit(15);
-    }
+  if (!flag_isovalue_set && !flag_location_set && !flag_list_gradients) {
+    cerr << "Error.  Option  -isovalue or -coord or -listg must be specified."
+         << endl;
+    usage_error();
+    exit(15);
+  }
 
-    if (!flag_isovalue_set && flag_list_gradients && use_selected_gradients) {
-        cerr << "Error. Option -isovalue required when listing selected gradients."
-        << endl;
-        exit(15);
-    }
+  if (!flag_isovalue_set && flag_list_subgrid) {
+    cerr << "Error.  Option -list_subgrid cannot be used without -isovalue."
+         << endl;
+    exit(15);
+  }
 
-    if (!flag_isovalue_set && flag_location_set && use_selected_gradients) {
-        cerr << "Error. Option -isovalue required when using selected gradients."
-        << endl;
-        exit(15);
-    }
+  if (!flag_isovalue_set && flag_list_gradients && use_selected_gradients) {
+    cerr << "Error. Option -isovalue required when listing selected gradients."
+         << endl;
+    exit(15);
+  }
 
-    if (cube_offset <= -1 || cube_offset > 1) {
-        cerr << "Error in option -cube_offset." << endl;
-        cerr << "  Cube offset must be greater than -1 and at most 1." << endl;
-        exit(15);
-    }
+  if (!flag_isovalue_set && flag_location_set && use_selected_gradients) {
+    cerr << "Error. Option -isovalue required when using selected gradients."
+         << endl;
+    exit(15);
+  }
+
+  if (cube_offset <= -1 || cube_offset > 1) {
+    cerr << "Error in option -cube_offset." << endl;
+    cerr << "  Cube offset must be greater than -1 and at most 1." << endl;
+    exit(15);
+  }
 }
 
 void help()
 {
-    cerr << "Usage: sharpinfo [OPTIONS] <scalar filename> <gradient filename>"
-    << endl;
-    cerr << "OPTIONS:" << endl;
-    cerr << "  -isovalue <isovalue>:  Compute isosurface vertex for given <isovalue>." << endl;
-    cerr << "  -cube <cube_index>:  Compute isosurface vertex for cube <cube_index>." << endl;
-    cerr << "           Default is cube 0." << endl;
-    cerr << "  -cc \"cube coordinates\":  Compute isosurface vertex for cube"
-    << endl
-    << "           at given coordinates." << endl;
-    cerr << "  -gradC:  Use only cube gradients." << endl;
-    cerr << "  -gradN:  Use gradients from cube and neighboring cubes." << endl;
-    cerr << "  -gradCS: Use selected cube gradients." << endl;
-    cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
-    cerr << "  -gradNS: Use selected gradients from cube and neighboring cubes."
-    << endl;
-    cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
-    cerr << "  -neighbor <cube_index>:  Use gradients from cube and" << endl
-    << "           neighbors of cube <cube_index>." << endl;
-    cerr << "  -svd_grad: Compute using svd directly on gradients."<<endl;
-    cerr << "  -svd_edge_simple: Interpolate intersection points/normals and"
-    << endl
-    << "           apply svd." << endl;
-    cerr << "  -svd_edge_cmplx:  Compute edge-isosurface intersection points/normals"
-    << endl
-    << "           using gradient assignment and apply svd." << endl;
-    cerr << "  -coord \"point_coord\":  Compute scalar values at coordinate point_coord." << endl;
-    cerr << "  -cube_offset2: set the cube offset for intersection calculations. Initial value set to 0.3." << endl;
-    cerr << "  -listg: List gradients." << endl;
-    cerr << "  -list_subgrid:  List all scalar values at vertices of subgrid." << endl;
-    exit(15);
+  cerr << "Usage: sharpinfo [OPTIONS] <scalar filename> <gradient filename>"
+       << endl;
+  cerr << "OPTIONS:" << endl;
+  cerr << "  -isovalue <isovalue>:  Compute isosurface vertex for given <isovalue>." << endl;
+  cerr << "  -cube <cube_index>:  Compute isosurface vertex for cube <cube_index>." << endl;
+  cerr << "           Default is cube 0." << endl;
+  cerr << "  -cc \"cube coordinates\":  Compute isosurface vertex for cube"
+       << endl
+       << "           at given coordinates." << endl;
+  cerr << "  -gradC:  Use only cube gradients." << endl;
+  cerr << "  -gradN:  Use gradients from cube and neighboring cubes." << endl;
+  cerr << "  -gradCS: Use selected cube gradients." << endl;
+  cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
+  cerr << "  -gradNS: Use selected gradients from cube and neighboring cubes."
+       << endl;
+  cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
+  cerr << "  -neighbor <cube_index>:  Use gradients from cube and" << endl
+       << "           neighbors of cube <cube_index>." << endl;
+  cerr << "  -svd_grad: Compute using svd directly on gradients."<<endl;
+  cerr << "  -svd_edge_simple: Interpolate intersection points/normals and"
+       << endl
+       << "           apply svd." << endl;
+  cerr << "  -svd_edge_cmplx:  Compute edge-isosurface intersection points/normals"
+       << endl
+       << "           using gradient assignment and apply svd." << endl;
+  cerr << "  -coord \"point_coord\":  Compute scalar values at coordinate point_coord." << endl;
+  cerr << "  -cube_offset2: set the cube offset for intersection calculations. Initial value set to 0.3." << endl;
+  cerr << "  -listg: List gradients." << endl;
+  cerr << "  -list_subgrid:  List all scalar values at vertices of subgrid." << endl;
+  exit(15);
 }
