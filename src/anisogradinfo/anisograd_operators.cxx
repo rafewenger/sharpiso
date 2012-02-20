@@ -199,6 +199,7 @@ void compute_m_d
 (
  const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
+ const int icube,
  const VERTEX_INDEX iv1,
  const int d,
  GRADIENT_TYPE m[DIM3]
