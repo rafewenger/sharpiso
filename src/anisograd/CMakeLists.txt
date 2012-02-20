@@ -27,7 +27,7 @@ LINK_DIRECTORIES("${NRRD_LIBDIR}")
 LINK_LIBRARIES(expat NrrdIO z)
 ADD_DEFINITIONS(-DSHARP_ISOTABLE_DIR=\"${SHARP_ISOTABLE_DIR}\")
 
-ADD_EXECUTABLE(anisograd anisograd_main.cxx anisograd.cxx)
+ADD_EXECUTABLE(anisograd anisograd_main.cxx anisograd_operators.cxx  anisograd.cxx)
 
 SET(CMAKE_INSTALL_PREFIX ${SHARP_DIR})
 INSTALL(TARGETS anisograd DESTINATION "bin/$ENV{OSTYPE}")

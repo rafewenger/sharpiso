@@ -44,7 +44,7 @@ namespace IJK {
   // **************************************************
 
   /// Base grid class
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   class GRID {
 
   protected:
@@ -86,7 +86,7 @@ namespace IJK {
     { return(axis_size); }
     ATYPE AxisSize(const DTYPE i) const /// Axis size[i].
     { return(axis_size[i]); }
-    NTYPE NumVertices() const       /// Number of grid vertices. 
+    NTYPE NumVertices() const       /// Number of grid vertices.
     { return(num_vertices); }
 
     // compute functions
@@ -153,12 +153,12 @@ namespace IJK {
     template <typename GTYPE>
     bool CheckCoord(const GTYPE * coord, IJK::ERROR & error) const;
     template <class GTYPE>
-    bool CheckCoord(const std::vector<GTYPE> & coord, 
+    bool CheckCoord(const std::vector<GTYPE> & coord,
                     IJK::ERROR & error) const;
     template <typename GTYPE>
     bool CheckCubeCoord(const GTYPE * coord, IJK::ERROR & error) const;
     template <class GTYPE>
-    bool CheckCubeCoord(const std::vector<GTYPE> & coord, 
+    bool CheckCubeCoord(const std::vector<GTYPE> & coord,
                     IJK::ERROR & error) const;
     template <typename ITYPE>
     bool CheckVertexIndex(const ITYPE vertex_index,
@@ -183,19 +183,19 @@ namespace IJK {
   /// @tparam ATYPE  Axis size type.
   /// @tparam VTYPE  Vertex index type.
   /// @tparam NTYPE  Number type.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   class GRID_PLUS:public GRID<DTYPE,ATYPE,VTYPE,NTYPE> {
 
   protected:
 
     /// iv+axis_increment[d] is vertex next to iv
-    VTYPE * axis_increment;    
+    VTYPE * axis_increment;
 
     /// iv0+cube_vertex_increment[k] = k'th vertex of cube with primary vertex iv0
     VTYPE * cube_vertex_increment;
 
     /// \brief Increment for computing facet vertices.
-    /// iv0+facet_vertex_increment[k+num_facet_vertices*d] = 
+    /// iv0+facet_vertex_increment[k+num_facet_vertices*d] =
     ///   k'th vertex of facet orthogonal to d with primary vertex iv0
     VTYPE * facet_vertex_increment;
 
@@ -244,10 +244,10 @@ namespace IJK {
     const VTYPE * CubeVertexIncrement() const /// Return cube_vertex_increment[]
     { return(cube_vertex_increment); }
     const VTYPE CubeVertexIncrement     /// Return cube_vertex_increment[k]
-    (const VTYPE k) const              
+    (const VTYPE k) const
     { return(cube_vertex_increment[k]); }
     const VTYPE FacetVertexIncrement    /// Return facet_vertex_increment[k]
-    (const DTYPE ifacet, const VTYPE k) const              
+    (const DTYPE ifacet, const VTYPE k) const
     { return(facet_vertex_increment[k+ifacet*num_facet_vertices]); }
 
     // *** DEPRECATED. REPLACE BY class UNIT_CUBE. ***
@@ -257,25 +257,25 @@ namespace IJK {
 
     // *** DEPRECATED. REPLACE BY class UNIT_CUBE. ***
     /// Return j'th coordinate of k'th vertex
-    const NTYPE UnitCubeCoord         
+    const NTYPE UnitCubeCoord
     (const NTYPE k, const NTYPE j) const
     { return(unit_cube_coord[this->Dimension()*k+j]); }
 
     /// \brief Return next vertex in direction d.
     /// @pre iv is not the last vertex in direction d.
-    VTYPE NextVertex(const VTYPE iv, const DTYPE d) const  
+    VTYPE NextVertex(const VTYPE iv, const DTYPE d) const
     { return(iv+axis_increment[d]); }
 
     /// \brief Return previous vertex in direction d.
     /// @pre iv is not the first vertex in direction d.
-    VTYPE PrevVertex(const VTYPE iv, const DTYPE d) const  
+    VTYPE PrevVertex(const VTYPE iv, const DTYPE d) const
     { return(iv-axis_increment[d]); }
 
     /// \brief Return k'th cube vertex.
     /// @param iv0 is a primary cube vertex.
     /// @param k k'th cube vertex.
     /// @pre k is less than the number of unit cube vertices.
-    VTYPE CubeVertex(const VTYPE iv0, const int k) const  
+    VTYPE CubeVertex(const VTYPE iv0, const int k) const
     { return(iv0+cube_vertex_increment[k]); }
 
     /// \brief Return k'th facet vertex.
@@ -303,14 +303,14 @@ namespace IJK {
   /// @tparam VTYPE  Vertex index type.
   /// @tparam DIFFTYPE  Index difference type.  Must be signed.
   /// @tparam NTYPE  Number type.
-  template <class DTYPE, class ATYPE, class VTYPE, class DIFFTYPE, 
-            class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class DIFFTYPE,
+            class NTYPE>
   class GRID_NEIGHBORS:public GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE> {
 
   protected:
 
     /// Number of neighbors of a vertex in cubes containing the vertex.
-    NTYPE num_vertex_neighborsC; 
+    NTYPE num_vertex_neighborsC;
 
     /// iv + vertex_neighborC[k] = k'th neighbor of vertex iv in cubes containing iv.
     DIFFTYPE * vertex_neighborC;
@@ -321,11 +321,11 @@ namespace IJK {
     /// iv + vertex_neighborE[k] = k'th neighbor sharing an edge with vertex iv.
     DIFFTYPE * vertex_neighborE;
 
-    /// \brief Number of vertices in cubes containing a facet, 
+    /// \brief Number of vertices in cubes containing a facet,
     ///   not including facet vertices.
     NTYPE num_facet_neighborsC;
 
-    /// \brief iv + facet_neighborC[d*num_facet_neighborsC+k] = 
+    /// \brief iv + facet_neighborC[d*num_facet_neighborsC+k] =
     ///   k'th neighbor of facet d, primary vertex iv
     DIFFTYPE * facet_neighborC;
 
@@ -361,37 +361,37 @@ namespace IJK {
     /// \brief Return number of neighbors of a vertex.
     /// \details All vertices in a cube containing the vertex are counted as neighbors.
     /// The vertex itself is not counted in this number.
-    NTYPE NumVertexNeighborsC() const   
+    NTYPE NumVertexNeighborsC() const
     { return(num_vertex_neighborsC); };
 
     /// \brief Return number of vertices which share an edge with a vertex.
     /// \details The vertex itself is not counted in this number.
-    NTYPE NumVertexNeighborsE() const   
+    NTYPE NumVertexNeighborsE() const
     { return(num_vertex_neighborsE); };
 
     /// \brief Return number of neighbors of a facet.
     /// \details All vertices in a cube containing the facet are counted as neighbors,
     ///          not including vertices lying on the facet.
-    NTYPE NumFacetNeighborsC() const   
+    NTYPE NumFacetNeighborsC() const
     { return(num_facet_neighborsC); };
 
     /// \brief Return number of neighbors of an edge.
     /// \details All vertices in a 2-face containing the fedge are counted as neighbors,
     ///          not including the edge endpoints.
-    NTYPE NumEdgeNeighborsF2() const   
+    NTYPE NumEdgeNeighborsF2() const
     { return(num_edge_neighborsF2); };
 
     /// \brief Return k'th neighbor of vertex \a iv in cubes containing \a iv.
     /// \details A grid vertex is not a neighbor of itself.
-    /// @pre Vertex \a iv must be an internal grid vertex, 
+    /// @pre Vertex \a iv must be an internal grid vertex,
     ///    i.e., not on the grid boundary.
-    VTYPE VertexNeighborC               
+    VTYPE VertexNeighborC
     (const VTYPE iv, const NTYPE k) const
     { return(iv+vertex_neighborC[k]); };
 
     /// \brief Return k'th vertex which shares an edge with the vertex.
     /// \details A grid vertex is not a neighbor of itself.
-    /// @pre Vertex \a iv must be an internal grid vertex, 
+    /// @pre Vertex \a iv must be an internal grid vertex,
     ///    i.e., not on the grid boundary.
     VTYPE VertexNeighborE
     (const VTYPE iv, const NTYPE k) const
@@ -461,7 +461,7 @@ namespace IJK {
 
     /// Return true if facet list contains facet \a d.
     /// @param d Facet index (= direction orthogonal to facet.)
-    inline bool Contains(const DTYPE d) const { 
+    inline bool Contains(const DTYPE d) const {
       if (d == facet0) { return(true); };
       return(false);
     };
@@ -478,16 +478,16 @@ namespace IJK {
   public:
 
     /// Set facet0 and facet1.
-    inline void Set(const DTYPE facet0, const DTYPE facet1) 
+    inline void Set(const DTYPE facet0, const DTYPE facet1)
     { this->facet0 = facet0; this->facet1 = facet1; };
 
     /// Constructor.
-    FACET_LIST2(const DTYPE facet0, const DTYPE facet1) 
+    FACET_LIST2(const DTYPE facet0, const DTYPE facet1)
     { Set(facet0, facet1); };
 
     /// Return true if facet list contains facet \a d.
     /// @param d Facet index (= direction orthogonal to facet.)
-    inline bool Contains(const DTYPE d) const { 
+    inline bool Contains(const DTYPE d) const {
       if (d == facet0 || d == facet1) { return(true); };
       return(false);
     };
@@ -512,7 +512,7 @@ namespace IJK {
     void AllocateList(const VTYPE n); ///< Allocate vertex list.
 
   public:
-    GRID_VERTEX_LIST() 
+    GRID_VERTEX_LIST()
     { Init(); };
     ~GRID_VERTEX_LIST()
     { FreeAll(); }
@@ -624,9 +624,9 @@ namespace IJK {
   /// Integer divide.
   inline int integer_divide(const int a, const int b)
   { return(a/b); }
-  
+
   /// Integer divide.
-  inline unsigned long 
+  inline unsigned long
   integer_divide(const unsigned long a, const unsigned long b)
   { return(a/b); }
 
@@ -723,7 +723,7 @@ namespace IJK {
   {
     num_vertices = 1;
     for (DTYPE d = 0; d < dimension; d++) {
-      if (!facet_list.Contains(d)) 
+      if (!facet_list.Contains(d))
         { num_vertices = num_vertices * axis_size[d]; }
     }
   }
@@ -735,8 +735,8 @@ namespace IJK {
   template <class ATYPE, class PTYPE>
   inline ATYPE compute_num_subsampled_vertices_along_axis
   (const ATYPE axis_size, const PTYPE subsample_period)
-  { 
-    return(integer_divide(axis_size+subsample_period-1, subsample_period)); 
+  {
+    return(integer_divide(axis_size+subsample_period-1, subsample_period));
   }
 
   /// Return number of vertices in subsampled grid or grid subspace.
@@ -756,7 +756,7 @@ namespace IJK {
     for (DTYPE d = 0; d < dimension; d++) {
       if (!facet_list.Contains(d)) {
 
-        if (subsample_period[d] < 1) 
+        if (subsample_period[d] < 1)
           { throw_subsample_period_error
               ("compute_num_subsampled_vertices", subsample_period[d]); }
 
@@ -772,7 +772,7 @@ namespace IJK {
   template <class DTYPE, class ATYPE, class NTYPE>
   void compute_num_grid_vertices
   (const DTYPE dimension, const ATYPE * axis_size, NTYPE & num_vertices)
-  { 
+  {
     FACET_LIST0<DTYPE> facet_list0;
     compute_num_vertices(dimension, axis_size, facet_list0, num_vertices);
   }
@@ -803,7 +803,7 @@ namespace IJK {
       if (coord0[d] > coord1[d]) {
         error.AddMessage("Programming error in calculating ", d,
                          "'th coordinate.");
-        error.AddMessage("  coord0 (", coord0[d], 
+        error.AddMessage("  coord0 (", coord0[d],
                          ") > coord1 (", coord1[d], ").");
         throw error;
       }
@@ -840,7 +840,7 @@ namespace IJK {
   /// Return number of vertices in grid boundary.
   template <class DTYPE, class ATYPE, class WTYPE, class NTYPE>
   void compute_num_boundary_grid_vertices
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const WTYPE boundary_width, NTYPE & num_boundary_vertices)
   {
     NTYPE num_grid_vertices;
@@ -854,7 +854,7 @@ namespace IJK {
   /// Return number of cubes in grid or grid subspace
   template <class DTYPE, class ATYPE, class FTYPE, class NTYPE>
   void compute_num_cubes
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const FTYPE & facet_list, NTYPE & num_cubes)
     // facet_list = ignore facets in facet_list
   {
@@ -866,9 +866,9 @@ namespace IJK {
     num_cubes = 1;
     for (DTYPE d = 0; d < dimension; d++) {
       if (!facet_list.Contains(d)) {
-        if (axis_size[d] < 2) { 
+        if (axis_size[d] < 2) {
           num_cubes = 0;
-          return; 
+          return;
         };
         num_cubes = num_cubes * (axis_size[d]-1);
       }
@@ -887,7 +887,7 @@ namespace IJK {
   /// Return number of cubes in grid interior
   template <class DTYPE, class ATYPE, class NTYPE>
   void compute_num_interior_grid_cubes
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    NTYPE & num_interior_cubes)
   {
     if (dimension <= 0) {
@@ -897,9 +897,9 @@ namespace IJK {
 
     num_interior_cubes = 1;
     for (DTYPE d = 0; d < dimension; d++) {
-      if (axis_size[d] <= 3) { 
+      if (axis_size[d] <= 3) {
         num_interior_cubes = 0;
-        return; 
+        return;
       };
       num_interior_cubes = num_interior_cubes*(axis_size[d]-3);
     }
@@ -908,7 +908,7 @@ namespace IJK {
   /// Return number of cubes in grid boundary
   template <class DTYPE, class ATYPE, class NTYPE>
   void compute_num_boundary_grid_cubes
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    NTYPE & num_boundary_cubes)
   {
     NTYPE num_cubes, num_interior_cubes;
@@ -929,17 +929,17 @@ namespace IJK {
     // dimension = grid dimension
     // axis_size[d] = number of vertices along grid axis d
   {
-    if (dimension < 1) { 
+    if (dimension < 1) {
       num_vertices = 0;
-      return; 
+      return;
     };
 
     num_vertices = 1;
     for (DTYPE d = 0; d < dimension; d++) {
       ATYPE asize = axis_size[d];
-      if (asize < 2) { 
+      if (asize < 2) {
         num_vertices = 0;
-        return; 
+        return;
       }
       else { num_vertices = num_vertices * (asize-1);  }
     }
@@ -950,7 +950,7 @@ namespace IJK {
   /// Outer facets are grid facets which do not contain the origin.
   template <class DTYPE, class ATYPE, class NTYPE>
   void compute_num_outer_vertices
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    NTYPE & num_outer_vertices)
     // dimension = grid dimension
     // axis_size[d] = number of vertices along grid axis d
@@ -986,8 +986,8 @@ namespace IJK {
   (const DTYPE dimension, const ATYPE region_edge_length,
    NTYPE & num_region_cubes)
   {
-    if (region_edge_length < 1) { 
-      num_region_cubes = 0; 
+    if (region_edge_length < 1) {
+      num_region_cubes = 0;
       return;
     };
 
@@ -997,7 +997,7 @@ namespace IJK {
     }
   }
 
-  /// \brief Return number of vertices in a region.  
+  /// \brief Return number of vertices in a region.
   ///        Regions completely contained in the interior of the grid all have the
   ///        same number of vertices.
   ///        Regions bounded by the grid boundary will have fewer vertices.
@@ -1020,7 +1020,7 @@ namespace IJK {
     for (DTYPE d = 0; d < dimension; d++) {
       ATYPE numv_along_axis = max_region_edge_length + 1;
       if (coord[d] + max_region_edge_length >= axis_size[d]) {
-        if (coord[d] < axis_size[d]) 
+        if (coord[d] < axis_size[d])
           { numv_along_axis = axis_size[d] - coord[d]; }
         else
           { numv_along_axis = 0; };
@@ -1037,7 +1037,7 @@ namespace IJK {
   ATYPE compute_num_regions_along_axis
   (const ATYPE axis_size, const ATYPE region_edge_length)
   {
-    ATYPE num_regions_along_axis = 
+    ATYPE num_regions_along_axis =
       long(axis_size+region_edge_length-2)/long(region_edge_length);
     return(num_regions_along_axis);
   }
@@ -1053,7 +1053,7 @@ namespace IJK {
   /// @pre \a region_edge_length > 0.
   template <class DTYPE, class ATYPE, class FTYPE, class NTYPE>
   void compute_num_regions
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length, const FTYPE & facet_list,
    NTYPE & num_regions)
   {
@@ -1064,14 +1064,14 @@ namespace IJK {
     for (DTYPE d = 0; d < dimension; d++) {
 
       if (!facet_list.Contains(d)) {
-        if (axis_size[d] <= 1) { 
+        if (axis_size[d] <= 1) {
           num_regions = 0;
-          return; 
+          return;
         };
 
-        ATYPE num_regions_along_axis = 
+        ATYPE num_regions_along_axis =
           compute_num_regions_along_axis(axis_size[d], region_edge_length);
-        num_regions = num_regions * num_regions_along_axis; 
+        num_regions = num_regions * num_regions_along_axis;
       }
     }
   }
@@ -1084,7 +1084,7 @@ namespace IJK {
   /// @pre \a region_edge_length > 0.
   template <class DTYPE, class ATYPE, class NTYPE>
   void compute_num_regions
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length, NTYPE & num_regions)
   {
     FACET_LIST0<DTYPE> facet_list0;
@@ -1101,7 +1101,7 @@ namespace IJK {
   (const ATYPE axis_size, const ATYPE region_edge_length)
   {
     if (axis_size < 1) { return(0); };
-    ATYPE num_full_regions_along_axis = 
+    ATYPE num_full_regions_along_axis =
       long(axis_size-1)/long(region_edge_length);
     return(num_full_regions_along_axis);
   }
@@ -1117,7 +1117,7 @@ namespace IJK {
   /// @pre \a region_edge_length > 0.
   template <class DTYPE, class ATYPE, class FTYPE, class NTYPE>
   void compute_num_full_regions
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length, const FTYPE & facet_list,
    NTYPE & num_full_regions)
   {
@@ -1137,12 +1137,12 @@ namespace IJK {
   /// Return number of full regions in grid.
   template <class DTYPE, class ATYPE, class NTYPE>
   void compute_num_full_regions
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length, NTYPE & num_full_regions)
   {
     FACET_LIST0<DTYPE> facet_list0;
     compute_num_full_regions
-      (dimension, axis_size, region_edge_length, 
+      (dimension, axis_size, region_edge_length,
        facet_list0, num_full_regions);
   }
 
@@ -1160,20 +1160,20 @@ namespace IJK {
   }
 
   /// Return number of partial regions in grid or subgrid.
-  template <class DTYPE, class ATYPE, 
+  template <class DTYPE, class ATYPE,
             class FTYPE, class NTYPE>
   void compute_num_partial_regions
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length, const FTYPE & facet_list,
    NTYPE & num_partial_regions)
   {
     NTYPE num_regions;
     compute_num_regions
-      (dimension, axis_size, region_edge_length, 
+      (dimension, axis_size, region_edge_length,
        facet_list, num_regions);
     NTYPE num_full_regions;
     compute_num_full_regions
-      (dimension, axis_size, region_edge_length, 
+      (dimension, axis_size, region_edge_length,
        facet_list, num_full_regions);
     num_partial_regions = num_regions-num_full_regions;
   }
@@ -1181,13 +1181,13 @@ namespace IJK {
   /// Return number of partial regions in grid.
   template <class DTYPE, class ATYPE, class NTYPE>
   void compute_num_partial_regions
-  (const DTYPE dimension, const ATYPE * axis_size, 
-   const ATYPE region_edge_length, 
+  (const DTYPE dimension, const ATYPE * axis_size,
+   const ATYPE region_edge_length,
    NTYPE & num_partial_regions)
   {
     FACET_LIST0<DTYPE> facet_list0;
     compute_num_partial_regions
-      (dimension, axis_size, region_edge_length, 
+      (dimension, axis_size, region_edge_length,
        facet_list0, num_partial_regions);
   }
 
@@ -1198,7 +1198,7 @@ namespace IJK {
   /// @param orth_dir = Direction orthogonal to facet.
   template <class NTYPE, class DTYPE, class ATYPE>
   NTYPE compute_num_regions_in_grid_facet
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE * region_edge_length, const DTYPE orth_dir)
   {
     NTYPE num_regions = 1;
@@ -1207,9 +1207,9 @@ namespace IJK {
       if (d != orth_dir) {
         if (axis_size[d] <= 1) { return(0); };
 
-        ATYPE num_regions_along_axis = 
+        ATYPE num_regions_along_axis =
           compute_num_regions_along_axis(axis_size[d], region_edge_length[d]);
-        num_regions = num_regions * num_regions_along_axis; 
+        num_regions = num_regions * num_regions_along_axis;
       }
     }
     return(num_regions);
@@ -1223,26 +1223,26 @@ namespace IJK {
   /// @param[out] num_full_regions  Number of full regions in grid or subgrid.
   template <class DTYPE, class ATYPE, class NTYPE>
   void compute_num_full_regions_in_grid_facet
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length, const DTYPE orth_dir,
    NTYPE & num_full_regions)
   {
     FACET_LIST1<DTYPE> facet_list1(orth_dir);
     compute_num_full_regions
-      (dimension, axis_size, region_edge_length, 
+      (dimension, axis_size, region_edge_length,
        facet_list1, num_full_regions);
   }
 
   /// Return total number of partial regions in grid facet.
   template <class DTYPE, class ATYPE, class NTYPE>
   void compute_num_partial_regions_in_grid_facet
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length, const DTYPE orth_dir,
    NTYPE & num_partial_regions)
   {
     FACET_LIST1<DTYPE> facet_list1(orth_dir);
     compute_num_partial_regions
-      (dimension, axis_size, region_edge_length, 
+      (dimension, axis_size, region_edge_length,
        facet_list1, num_partial_regions);
   }
 
@@ -1262,12 +1262,12 @@ namespace IJK {
   /// Return number of vertices in subsampled grid.
   /// @param dimension  Dimension of grid.
   /// @param axis_size  Array: <em>axis_size[d]</em> = Number of vertices along axis \a d.
-  /// @param subsample_period  
+  /// @param subsample_period
   ///        Array: <em>subsample_period[d]</em> = subsample period along axis \a d.
   /// @param[out] num_vertices Number of vertices.
   template <class DTYPE, class ATYPE, class PTYPE, class NTYPE>
   void compute_subsample_size
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const PTYPE subsample_period, NTYPE & num_vertices)
   {
     FACET_LIST0<DTYPE> facet_list0;
@@ -1319,7 +1319,7 @@ namespace IJK {
     compute_num_grid_vertices(dimension, axis_size, total_num_grid_vertices);
 
     if (iv0 > iv1) {
-      error.AddMessage("Illegal vertex range. Vertex index ", iv0, 
+      error.AddMessage("Illegal vertex range. Vertex index ", iv0,
                        " is greater than vertex index ", iv1, ".");
       return(false);
     }
@@ -1337,16 +1337,16 @@ namespace IJK {
   /// Check region coordinates.
   template <class DTYPE, class VTYPE, class CTYPE>
   bool check_region_coordinates
-  (const DTYPE dimension, const VTYPE iv0, const CTYPE * coord0, 
+  (const DTYPE dimension, const VTYPE iv0, const CTYPE * coord0,
    const VTYPE iv1, const CTYPE * coord1, IJK::ERROR & error)
     // return true if (coord0[d] <= coord1[d]) for all d
   {
     for (DTYPE d = 0; d < dimension; ++d) {
       if (coord0[d] > coord1[d]) {
         error.AddMessage("Illegal coordinates.  Coordinates of vertex 0 should be less than or equal to coordinates of vertex 1.");
-        error.AddMessage(" Vertex 0 = ", iv0, 
+        error.AddMessage(" Vertex 0 = ", iv0,
                          ".  Coordinate ", d , " = ", coord0[d], ".");
-        error.AddMessage(" Vertex 1 = ", iv1, 
+        error.AddMessage(" Vertex 1 = ", iv1,
                          ".  Coordinate ", d, " = ", coord1[d], ".");
         return(false);
       }
@@ -1499,7 +1499,7 @@ namespace IJK {
   /// @pre Array increment[] is pre-allocated to size at least \a dimension.
   template <class DTYPE, class ATYPE, class PTYPE, class ITYPE>
   void compute_subsample_increment
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const PTYPE subsample_period, ITYPE * increment)
   {
     compute_increment(dimension, axis_size, increment);
@@ -1517,7 +1517,7 @@ namespace IJK {
   /// @pre Array increment[] is allocated with size at least number of corner regions.
   template <class DTYPE, class ATYPE, class ITYPE>
   void compute_region_corner_increment
-  (const DTYPE dimension, const ATYPE * grid_axis_size, 
+  (const DTYPE dimension, const ATYPE * grid_axis_size,
    const ATYPE * region_axis_size, ITYPE * increment)
   {
     IJK::PROCEDURE_ERROR error("compute_region_corner_increment");
@@ -1532,7 +1532,7 @@ namespace IJK {
     if (region_axis_size == NULL) {
       error.AddMessage("Programming error. region_axis_size == NULL.");
       throw error;
-    }    
+    }
     if (increment == NULL) {
       error.AddMessage("Programming error. increment == NULL.");
       throw error;
@@ -1569,7 +1569,7 @@ namespace IJK {
   /// @pre Array increment[] is allocated with size at least number of corner regions.
   template <class DTYPE, class ATYPE, class ITYPE>
   void compute_cubic_region_corner_increment
-  (const DTYPE dimension, const ATYPE * grid_axis_size, 
+  (const DTYPE dimension, const ATYPE * grid_axis_size,
    const ATYPE region_axis_size, ITYPE * increment)
   {
     IJK::PROCEDURE_ERROR error("compute_cubic_region_corner_increment");
@@ -1613,14 +1613,14 @@ namespace IJK {
   /// @pre Array increment is allocated with size at least number of region vertices
   template <class DTYPE, class ATYPE, class ITYPE>
   void compute_region_vertex_increment
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length, const ATYPE scale, ITYPE * increment)
   {
     IJK::ARRAY<ATYPE> subgrid_axis_size(dimension);
     IJK::CONSTANT<ATYPE,ATYPE> subsample_period(scale);
 
     for (DTYPE d = 0; d < dimension; d++) {
-      subgrid_axis_size[d] = region_edge_length*scale+1; 
+      subgrid_axis_size[d] = region_edge_length*scale+1;
 
       if (subgrid_axis_size[d] > axis_size[d]) {
         IJK::PROCEDURE_ERROR error("compute_region_vertex_increment");
@@ -1633,7 +1633,7 @@ namespace IJK {
     }
 
     subsample_subgrid_vertices
-      (dimension, axis_size, ITYPE(0), subgrid_axis_size.PtrConst(), 
+      (dimension, axis_size, ITYPE(0), subgrid_axis_size.PtrConst(),
        subsample_period, increment);
   }
 
@@ -1646,7 +1646,7 @@ namespace IJK {
   /// @pre Array increment[] is allocated with size at least number of grid cubes contained in the region.
   template <class DTYPE, class ATYPE, class ITYPE>
   void compute_region_cube_increment
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length, ITYPE * increment)
   {
     IJK::ARRAY<ATYPE> subgrid_size(dimension);
@@ -1654,7 +1654,7 @@ namespace IJK {
     if (region_edge_length < 1)  // No cubes.
       { return; }
 
-    for (DTYPE d = 0; d < dimension; d++) 
+    for (DTYPE d = 0; d < dimension; d++)
       { subgrid_size[d] = region_edge_length; }
 
     get_subgrid_vertices
@@ -1668,7 +1668,7 @@ namespace IJK {
   /// @pre Array cube_vertex_increment[] is allocated with size at least number of cube vertices
   template <class DTYPE, class ITYPE1, class ITYPE2>
   void compute_cube_vertex_increment
-  (const DTYPE dimension, const ITYPE1 * axis_increment, 
+  (const DTYPE dimension, const ITYPE1 * axis_increment,
    ITYPE2 * cube_vertex_increment)
   {
     IJK::PROCEDURE_ERROR error("compute_cube_vertex_increment");
@@ -1684,7 +1684,7 @@ namespace IJK {
       error.AddMessage("Programming error. Array cube_vertex_increment[] must be allocated before calling compute_cube_vertex_increment.");
       throw error;
     }
-    
+
     ITYPE2 num_cube_vertices = compute_num_cube_vertices(dimension);
 
     for (ITYPE2 j = 0; j < num_cube_vertices; j++) {
@@ -1737,7 +1737,7 @@ namespace IJK {
       error.AddMessage("Programming error. Array facet_vertex_increment[] must be allocated before calling compute_facet_vertex_increment.");
       throw error;
     }
-    
+
     DTYPE orth_dir = ifacet%dimension;
     ITYPE num_cube_vertices = compute_num_cube_vertices(dimension);
     ITYPE num_facet_vertices = compute_num_cube_facet_vertices(dimension);
@@ -1771,7 +1771,7 @@ namespace IJK {
       if (num_facet_vertices > 1) {
         ITYPE num_subfacet_vertices = num_facet_vertices/2;
         for (ITYPE i = 0; i < num_subfacet_vertices; i++) {
-          std::swap(facet_vertex_increment[i], 
+          std::swap(facet_vertex_increment[i],
                     facet_vertex_increment[i+num_subfacet_vertices]);
         }
       }
@@ -1787,9 +1787,9 @@ namespace IJK {
   /// @param axis_size  Array: <em>axis_size[d]</em> = Number of vertices along axis \a d.
   /// @param  subgrid_origin  Subgrid origin.
   ///   Note: subgrid_origin is always reported (unless num_vertices == 0.)
-  /// @param subgrid_axis_size 
+  /// @param subgrid_axis_size
   ///        Array: <em>subgrid_axis_size[d]</em> = Number of vertices along subgrid axis d.
-  /// @param subsample_period 
+  /// @param subsample_period
   ///             Array: <em>subsample_period[d]</em> = Only report every k'th vertex along subgrid axis \a d where k = \a subsample_period[d].
   /// @param[out] vlist[]  List of vertices.
   /// @pre \li Subgrid is contained in grid, i.e. ( \a d'th coord of \a subgrid_origin ) + \a subgrid_axis_size[d] < \a axis_size[d].
@@ -1797,8 +1797,8 @@ namespace IJK {
   /// @pre \li Array vlist[] is preallocated to length at least number of vertices in grid or subgrid.
   template <class DTYPE, class ATYPE, class PTYPE, class VTYPE>
   void subsample_subgrid_vertices
-  (const DTYPE dimension, const ATYPE * axis_size, 
-   const VTYPE subgrid_origin, const ATYPE * subgrid_axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
+   const VTYPE subgrid_origin, const ATYPE * subgrid_axis_size,
    const PTYPE subsample_period, VTYPE * vlist)
   {
     IJK::PROCEDURE_ERROR error("subsample_subgrid_vertices");
@@ -1831,7 +1831,7 @@ namespace IJK {
       VTYPE iv0 = subsample_increment[d];
 
       for (VTYPE i = 1; i < num_subsampled_along_axis; i++) {
-        for (VTYPE * vprev_ptr = vlist; 
+        for (VTYPE * vprev_ptr = vlist;
              vprev_ptr != vlist+prev_num_vertices; vprev_ptr++) {
           *(vcur_ptr) = iv0 + *(vprev_ptr);
           vcur_ptr++;
@@ -1851,7 +1851,7 @@ namespace IJK {
   template <class DTYPE, class ATYPE, class PTYPE, class VTYPE, class NTYPE>
   void subsample_subgrid_vertices
   (const GRID<DTYPE,ATYPE,VTYPE,NTYPE> & grid,
-   const VTYPE subgrid_origin, const ATYPE * subgrid_axis_size, 
+   const VTYPE subgrid_origin, const ATYPE * subgrid_axis_size,
    const PTYPE subsample_period, VTYPE * vlist)
   {
     subsample_subgrid_vertices
@@ -1868,10 +1868,10 @@ namespace IJK {
   /// @pre \li Array vlist[] is preallocated to length at least number of vertices in grid or subgrid.
   template <class DTYPE, class ATYPE, class PTYPE, class VTYPE>
   void subsample_grid_vertices
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const PTYPE subsample_period, VTYPE * vlist)
   {
-    subsample_subgrid_vertices(dimension, axis_size, VTYPE(0), axis_size, 
+    subsample_subgrid_vertices(dimension, axis_size, VTYPE(0), axis_size,
                                subsample_period, vlist);
   }
 
@@ -1888,14 +1888,14 @@ namespace IJK {
   /// @pre \li Array vlist[] is preallocated to length at least number of vertices in grid or subgrid.
   template <class DTYPE, class ATYPE, class VTYPE>
   void get_subgrid_vertices
-  (const DTYPE dimension, const ATYPE * axis_size, 
-   const VTYPE subgrid_origin, const ATYPE * subgrid_axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
+   const VTYPE subgrid_origin, const ATYPE * subgrid_axis_size,
    VTYPE * vlist)
   {
     IJK::CONSTANT<ATYPE,ATYPE> ONE(1);
 
     subsample_subgrid_vertices
-      (dimension, axis_size, subgrid_origin, subgrid_axis_size, 
+      (dimension, axis_size, subgrid_origin, subgrid_axis_size,
        ONE, vlist);
   }
 
@@ -1906,7 +1906,7 @@ namespace IJK {
   /// @pre \li Array vlist[] is preallocated to length at least number of vertices in grid or subgrid.
   template <class DTYPE, class ATYPE, class VTYPE>
   void get_grid_vertices
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    VTYPE * vlist)
   {
     subsample_grid_vertices(dimension, axis_size, 1, vlist);
@@ -1922,7 +1922,7 @@ namespace IJK {
   /// @pre \li Array vlist[] is preallocated to size at least number of region vertices.
   template <class DTYPE, class ATYPE, class VTYPE>
   void get_grid_vertices_between
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const VTYPE iv0, const VTYPE iv1, VTYPE * vlist)
   {
     ATYPE coord0[dimension];
@@ -1956,7 +1956,7 @@ namespace IJK {
   /// @pre \li Array vlist[] is preallocated to size at least number of region vertices.
   template <class DTYPE, class ATYPE, class VTYPE>
   void get_grid_vertices_in_region
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const VTYPE iv0, const ATYPE max_region_edge_length, VTYPE * vlist)
   {
     ATYPE coord[dimension];
@@ -1989,7 +1989,7 @@ namespace IJK {
   /// @pre \li Array vlist[] is preallocated to size at least number of region vertices.
   template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   void get_grid_cubes_in_region
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const VTYPE iv0, const ATYPE max_region_edge_length, VTYPE * vlist,
    NTYPE & num_cubes)
   {
@@ -2013,7 +2013,7 @@ namespace IJK {
     }
 
     num_cubes = 1;
-    for (DTYPE d = 0; d < dimension; d++) 
+    for (DTYPE d = 0; d < dimension; d++)
       { num_cubes *= subgrid_size[d]; }
 
     get_subgrid_vertices
@@ -2023,19 +2023,19 @@ namespace IJK {
   /// Get primary cube vertices in subgrid.
   template <class DTYPE, class ATYPE, class VTYPE>
   void get_primary_cube_vertices
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const VTYPE subgrid_origin, const ATYPE * subgrid_axis_size,
    VTYPE * vlist)
   {
     IJK::ARRAY<ATYPE> subgrid_axis_size2(dimension);
 
     for (DTYPE d = 0; d < dimension; d++) {
-      if (subgrid_axis_size[d] < 2) 
+      if (subgrid_axis_size[d] < 2)
         { return; }                      // zero cubes
       subgrid_axis_size2[d] = subgrid_axis_size[d]-1;
     }
     get_subgrid_vertices
-      (dimension, axis_size, subgrid_origin, subgrid_axis_size2.PtrConst(), 
+      (dimension, axis_size, subgrid_origin, subgrid_axis_size2.PtrConst(),
        vlist);
   }
 
@@ -2063,7 +2063,7 @@ namespace IJK {
 
     for (DTYPE d = 0; d < dimension; d++) {
       if (d != orth_dir) {
-        if (axis_size[d] > 2*boundary_width) 
+        if (axis_size[d] > 2*boundary_width)
           { num_vertices *= (axis_size[d]-2*boundary_width); }
         else
           { num_vertices = 0; };
@@ -2127,7 +2127,7 @@ namespace IJK {
   {
     max_num_vertices = 0;
     for (DTYPE d = 0; d < dimension; d++) {
-      NTYPE num_face_vertices; 
+      NTYPE num_face_vertices;
       compute_num_vertices_in_grid_facet
         (dimension, axis_size, d, num_face_vertices);
       if (num_face_vertices > max_num_vertices)
@@ -2143,7 +2143,7 @@ namespace IJK {
   {
     max_num_vertices = 0;
     for (DTYPE d = 0; d < dimension; d++) {
-      NTYPE num_face_vertices; 
+      NTYPE num_face_vertices;
       compute_num_vertices_in_grid_facet_interior
         (dimension, axis_size, d, boundary_width, num_face_vertices);
       if (num_face_vertices > max_num_vertices)
@@ -2161,9 +2161,9 @@ namespace IJK {
   {
     num_cubes = 1;
     for (DTYPE d = 0; d < dimension; d++) {
-      if (axis_size[d] <= 1) { 
+      if (axis_size[d] <= 1) {
         num_cubes = 0;
-        return; 
+        return;
       };
       if (d != orth_dir) {
         num_cubes = num_cubes*(axis_size[d]-1);
@@ -2176,7 +2176,7 @@ namespace IJK {
   void compute_num_cubes_in_grid_facet0
   (const DTYPE dimension, const ATYPE * axis_size, NTYPE & num_cubes)
   {
-    if (dimension < 1) 
+    if (dimension < 1)
       { num_cubes = 0; }
     else {
       compute_num_cubes_in_grid_facet
@@ -2195,7 +2195,7 @@ namespace IJK {
   /// @pre Array vlist[] must be pre-allocated to size at least number of vertices in facet.
   template <class DTYPE, class DTYPE2, class ATYPE, class BTYPE, class VTYPE>
   void get_vertices_in_grid_facet
-  (const DTYPE dimension, const ATYPE * axis_size, const DTYPE2 orth_dir, 
+  (const DTYPE dimension, const ATYPE * axis_size, const DTYPE2 orth_dir,
    const bool side, const BTYPE boundary_width, VTYPE * vlist)
   {
     IJK::ARRAY<ATYPE> subgrid_axis_size(dimension);
@@ -2207,13 +2207,13 @@ namespace IJK {
     VTYPE subgrid_origin = 0;
 
     if (boundary_width == 0) {
-      std::copy(axis_size, axis_size+dimension, 
+      std::copy(axis_size, axis_size+dimension,
                 subgrid_axis_size.Ptr());
-    
+
       if (side) {
         for (DTYPE d = 0; d < dimension; d++) { coord[d] = 0; };
         coord[orth_dir] = axis_size[orth_dir]-1;
-        subgrid_origin = 
+        subgrid_origin =
           compute_vertex_index<VTYPE>(coord.PtrConst(), dimension, axis_size);
       }
     }
@@ -2222,7 +2222,7 @@ namespace IJK {
         if (d != orth_dir) {
           if (axis_size[d] < 2*boundary_width) { return; };
 
-          coord[d] = boundary_width; 
+          coord[d] = boundary_width;
           subgrid_axis_size[d] = axis_size[d]-2*boundary_width;
         }
       }
@@ -2230,19 +2230,19 @@ namespace IJK {
       if (side) { coord[orth_dir] = axis_size[orth_dir]-1; }
       else { coord[orth_dir] = 0; }
 
-      subgrid_origin = 
+      subgrid_origin =
         compute_vertex_index<VTYPE>(coord.PtrConst(), dimension, axis_size);
     }
     subgrid_axis_size[orth_dir] = 1;
 
-    get_subgrid_vertices(dimension, axis_size, subgrid_origin, 
+    get_subgrid_vertices(dimension, axis_size, subgrid_origin,
                          subgrid_axis_size.PtrConst(), vlist);
   }
 
   /// Get vertices in specified grid facet.
   template <class DTYPE, class DTYPE2, class ATYPE, class VTYPE>
   void get_vertices_in_grid_facet
-  (const DTYPE dimension, const ATYPE * axis_size, const DTYPE2 orth_dir, 
+  (const DTYPE dimension, const ATYPE * axis_size, const DTYPE2 orth_dir,
    const bool side, VTYPE * vlist)
   {
     get_vertices_in_grid_facet
@@ -2252,7 +2252,7 @@ namespace IJK {
   /// Get vertices in grid facet 0.
   template <class DTYPE, class ATYPE, class BTYPE, class VTYPE>
   void get_vertices_in_grid_facet0
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const BTYPE boundary_width, VTYPE * vlist)
   {
     get_vertices_in_grid_facet
@@ -2280,7 +2280,7 @@ namespace IJK {
   /// Same as get_vertices_in_grid_facet.
   template <class DTYPE, class DTYPE2, class ATYPE, class BTYPE, class VTYPE>
   void get_vertices_in_grid_facet_interior
-  (const DTYPE dimension, const ATYPE * axis_size, const DTYPE2 orth_dir, 
+  (const DTYPE dimension, const ATYPE * axis_size, const DTYPE2 orth_dir,
    const bool side, const BTYPE boundary_width, VTYPE * vlist)
   {
     get_vertices_in_grid_facet(dimension, axis_size, orth_dir, side,
@@ -2306,7 +2306,7 @@ namespace IJK {
     std::copy(axis_size, axis_size+dimension, subgrid_axis_size.Ptr());
     subgrid_axis_size[orth_dir0] = 1;
     subgrid_axis_size[orth_dir1] = 1;
-    
+
     get_subgrid_vertices
       (dimension, axis_size, 0, subgrid_axis_size.PtrConst(), vlist);
   }
@@ -2340,7 +2340,7 @@ namespace IJK {
     }
 
     get_primary_cube_vertices
-      (dimension, axis_size, subgrid_origin, subgrid_axis_size.PtrConst(), 
+      (dimension, axis_size, subgrid_origin, subgrid_axis_size.PtrConst(),
        vlist);
   }
 
@@ -2370,7 +2370,7 @@ namespace IJK {
   template <class DTYPE, class ATYPE, class VTYPE>
   void get_outer_grid_vertices
   (const DTYPE dimension, const ATYPE * axis_size, VTYPE * vlist)
-    // Precondition: vlist[] is preallocated to size 
+    // Precondition: vlist[] is preallocated to size
     //   at least num_outer_vertices
   {
     VTYPE axis_increment[dimension];
@@ -2390,7 +2390,7 @@ namespace IJK {
       if (axis_size[d_last] < 2) { return; }
 
       get_outer_grid_vertices(d_last, axis_size, vlist);
-      VTYPE num_vertices; 
+      VTYPE num_vertices;
       compute_num_outer_vertices(d_last, axis_size, num_vertices);
 
       compute_increment(dimension, axis_size, axis_increment);
@@ -2400,7 +2400,7 @@ namespace IJK {
         VTYPE k_increment = i*axis_increment[d_last];
         for (VTYPE j = 0; j < num_vertices; j++) {
           vlist[k+j] = vlist[j]+k_increment;
-        } 
+        }
       }
 
       num_vertices = num_vertices * (axis_size[d_last]-1);
@@ -2420,12 +2420,12 @@ namespace IJK {
   /// @pre Array vlist[] must be pre-allocated to size at least number of full regions.
   template <class DTYPE, class ATYPE, class VTYPE>
   void get_region_primary_vertices
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length, VTYPE * vlist)
   {
     ATYPE subgrid_axis_size[dimension];
     IJK::CONSTANT<ATYPE,ATYPE> subsample_period(region_edge_length);
-    
+
     IJK::PROCEDURE_ERROR error("get_region_primary_vertices");
     if (!check_region_edge_length(region_edge_length, error)) { throw error; };
 
@@ -2450,7 +2450,7 @@ namespace IJK {
   /// @pre Array is_full[] must be pre-allocated to size at least number of regions.
   template <class DTYPE, class ATYPE, class VTYPE>
   void get_region_primary_vertices
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length, VTYPE * vlist, bool * is_full)
   {
     IJK::PROCEDURE_ERROR error("get_region_primary_vertices");
@@ -2525,7 +2525,7 @@ namespace IJK {
   /// @pre Array vlist[] must be pre-allocated to size at least number of full regions.
   template <class DTYPE, class ATYPE, class VTYPE>
   void get_full_region_primary_vertices
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length, VTYPE * vlist)
   {
     ATYPE subgrid_axis_size[dimension];
@@ -2553,7 +2553,7 @@ namespace IJK {
   /// @pre Array vlist[] must be pre-allocated to size at least number of partial regions.
   template <class DTYPE, class ATYPE, class VTYPE>
   void get_partial_region_primary_vertices
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length, VTYPE * vlist)
   {
     IJK::PROCEDURE_ERROR error("get_partial_region_primary_vertices");
@@ -2580,13 +2580,13 @@ namespace IJK {
     for (DTYPE d = 0; d < dimension; d++) {
       VTYPE * vcur_ptr = vlist + prev_num_vertices;
 
-      ATYPE num_full_regions_along_axis = 
+      ATYPE num_full_regions_along_axis =
         compute_num_full_regions_along_axis
         (axis_size[d], region_edge_length);
 
       VTYPE iv0 = region_axis_increment[d];
       for (VTYPE i = 1; i < num_full_regions_along_axis; i++) {
-        for (VTYPE * vprev_ptr = vlist; 
+        for (VTYPE * vprev_ptr = vlist;
              vprev_ptr != vlist+prev_num_vertices; vprev_ptr++) {
           *(vcur_ptr) = iv0 + *(vprev_ptr);
           vcur_ptr++;
@@ -2602,7 +2602,7 @@ namespace IJK {
 
       if (num_partial_regions_along_axis > 0) {
 
-        VTYPE inc = 
+        VTYPE inc =
           region_axis_increment[d]*num_full_regions_along_axis;
 
         if (d == 0) {
@@ -2611,7 +2611,7 @@ namespace IJK {
         }
         else {
 
-          get_region_primary_vertices(d, axis_size, region_edge_length, 
+          get_region_primary_vertices(d, axis_size, region_edge_length,
                                       vlist + prev_num_vertices);
 
           ATYPE k;
@@ -2625,9 +2625,9 @@ namespace IJK {
     }
 
     if (prev_num_vertices != num_vertices) {
-      error.AddMessage("Programming error.  Added ", prev_num_vertices, 
+      error.AddMessage("Programming error.  Added ", prev_num_vertices,
                        " vertices to vertex list.");
-      error.AddMessage("Number of vertices in list should be ", 
+      error.AddMessage("Number of vertices in list should be ",
                        num_vertices, ".");
       throw error;
     }
@@ -2684,7 +2684,7 @@ namespace IJK {
   /// Get boundary grid vertices
   template <class DTYPE, class ATYPE, class VTYPE, class WTYPE>
   void get_boundary_grid_vertices
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const WTYPE boundary_width, VTYPE * vlist)
   {
     if (dimension < 1) { return; }
@@ -2696,13 +2696,13 @@ namespace IJK {
       // all vertices are on the boundary
       VTYPE num_grid_vertices;
       compute_num_grid_vertices(dimension, axis_size, num_grid_vertices);
-      for (VTYPE j = 0; j < num_grid_vertices; j++) 
+      for (VTYPE j = 0; j < num_grid_vertices; j++)
         { vlist[j] = j; }
       return;
     }
 
     if (dimension == 1) {
-      for (VTYPE j = 0; j < boundary_width; j++) 
+      for (VTYPE j = 0; j < boundary_width; j++)
         { vlist[j] = j; }
 
       for (VTYPE j = 0; j < boundary_width; j++) {
@@ -2730,22 +2730,22 @@ namespace IJK {
     }
 
     VTYPE * vlist2 = vlist+boundary_width*num_vertices_in_grid_facet;
-    get_boundary_grid_vertices(dimension-1, axis_size, 
+    get_boundary_grid_vertices(dimension-1, axis_size,
                                boundary_width, vlist2);
 
     VTYPE num_boundary_grid_vertices;
     compute_num_boundary_grid_vertices
       (dimension-1, axis_size, boundary_width, num_boundary_grid_vertices);
-    for (VTYPE * vcur_ptr = vlist2; 
+    for (VTYPE * vcur_ptr = vlist2;
          vcur_ptr != vlist2+num_boundary_grid_vertices; vcur_ptr++)
       { *vcur_ptr += boundary_width*axis_increment[d_last]; }
 
     VTYPE * vlist3 = vlist2+num_boundary_grid_vertices;
-    for (ATYPE j = boundary_width+1; j+boundary_width < axis_size[d_last]; 
+    for (ATYPE j = boundary_width+1; j+boundary_width < axis_size[d_last];
          j++) {
       VTYPE inc = axis_increment[d_last]*(j-boundary_width);
 
-      for (VTYPE i = 0; i < num_boundary_grid_vertices; i++)  
+      for (VTYPE i = 0; i < num_boundary_grid_vertices; i++)
         { vlist3[i] = vlist2[i] + inc; }
 
       vlist3 += num_boundary_grid_vertices;
@@ -2763,7 +2763,7 @@ namespace IJK {
         vlist3[i*num_vertices_in_grid_facet + j] = vlist4[j] - inc;
       }
     }
-  
+
   }
 
   // ********************************************************
@@ -2772,28 +2772,28 @@ namespace IJK {
 
   /// \brief Compute number of neighbors of a vertex in all cubes containing the vertex.
   /// Does not count the vertex itself.
-  template <class DTYPE, class NTYPE> 
+  template <class DTYPE, class NTYPE>
   void compute_num_vertex_neighborsC
   (const DTYPE dimension, NTYPE & num_neighbors)
-  { 
+  {
     num_neighbors = 1;
-    for (DTYPE d = 0; d < dimension; d++) 
+    for (DTYPE d = 0; d < dimension; d++)
       { num_neighbors = num_neighbors*3; }
     num_neighbors = num_neighbors-1;
   }
 
   /// \brief Compute number of vertices which share an edge with a vertex.
   /// Does not count the vertex itself.
-  template <class DTYPE, class NTYPE> 
+  template <class DTYPE, class NTYPE>
   void compute_num_vertex_neighborsE
   (const DTYPE dimension, NTYPE & num_neighbors)
-  { 
+  {
     num_neighbors = 2*dimension;
   }
 
   /// \brief Compute number of vertices in cubes containing a facet,
   ///        not including facet vertices.
-  template <class DTYPE, class NTYPE> 
+  template <class DTYPE, class NTYPE>
   void compute_num_facet_neighborsC
   (const DTYPE dimension, NTYPE & num_neighbors)
   {
@@ -2803,18 +2803,18 @@ namespace IJK {
 
   /// \brief Compute number of vertices in 2-faces containing an edge,
   ///        not including edge vertices.
-  template <class DTYPE, class NTYPE> 
+  template <class DTYPE, class NTYPE>
   void compute_num_edge_neighborsF2
   (const DTYPE dimension, NTYPE & num_neighbors)
   {
     num_neighbors = 0;
-    if (dimension > 0) 
+    if (dimension > 0)
       { num_neighbors = 4*(dimension-1); }
   }
 
   /// \brief Compute integer to add to vertex index to compute vertex neighbors.
   ///        Use only for vertex neighbors of internal vertices.
-  /// @param[out] vertex_neighborC Array. 
+  /// @param[out] vertex_neighborC Array.
   ///        iv + vertex_neighborC[k] = index of k'th vertex neighbor of iv
   ///        where iv is the index of an internal grid vertex.
   template <class DTYPE, class ATYPE, class DIFFTYPE>
@@ -2824,7 +2824,7 @@ namespace IJK {
   {
     IJK::PROCEDURE_ERROR error("compute_vertex_neighborC");
 
-    if (!check_difftype<DIFFTYPE>(1, error)) 
+    if (!check_difftype<DIFFTYPE>(1, error))
       { throw error; }
 
     if (dimension == 0) { return; }
@@ -2834,7 +2834,7 @@ namespace IJK {
 
     // iv0 = index of vertex (1,1,...,1).
     DIFFTYPE iv0 = 0;
-    for (DTYPE d = 0; d < dimension; d++) 
+    for (DTYPE d = 0; d < dimension; d++)
       { iv0 += axis_increment[d]; };
 
     vertex_neighborC[0] = -iv0;
@@ -2846,12 +2846,12 @@ namespace IJK {
     for (DTYPE d = 0; d < dimension; d++) {
 
       for (ATYPE j = 1; j < 3; j++) {
-        for (DIFFTYPE * vprev_ptr = vertex_neighborC; 
+        for (DIFFTYPE * vprev_ptr = vertex_neighborC;
              vprev_ptr != vertex_neighborC+k; vprev_ptr++) {
           DIFFTYPE iv = j*axis_increment[d] + *(vprev_ptr);
-          if ((d+1 < dimension) || (j != 1) || 
-              (vprev_ptr != vcenter_ptr)) { 
-            *(vcur_ptr) = iv; 
+          if ((d+1 < dimension) || (j != 1) ||
+              (vprev_ptr != vcenter_ptr)) {
+            *(vcur_ptr) = iv;
             vcur_ptr++;
           }
         }
@@ -2861,7 +2861,7 @@ namespace IJK {
       k = vcur_ptr - vertex_neighborC;
     }
 
-    DIFFTYPE num_neighbors; 
+    DIFFTYPE num_neighbors;
     compute_num_vertex_neighborsC(dimension, num_neighbors);
 
     if (!check_num_vertices_added(k, num_neighbors, error))
@@ -2877,18 +2877,18 @@ namespace IJK {
     IJK::ARRAY<DIFFTYPE> axis_increment(dimension);
     IJK::PROCEDURE_ERROR error("compute_vertex_neighborE");
 
-    if (!check_difftype<DIFFTYPE>(1, error)) 
+    if (!check_difftype<DIFFTYPE>(1, error))
       { throw error; }
 
-    DIFFTYPE num_neighbors; 
+    DIFFTYPE num_neighbors;
     compute_num_vertex_neighborsE(dimension, num_neighbors);
 
     compute_increment(dimension, axis_size, axis_increment.Ptr());
 
-    for (DIFFTYPE d = 0; d < dimension; d++) 
+    for (DIFFTYPE d = 0; d < dimension; d++)
       { vertex_neighborE[d] = -axis_increment[d]; };
 
-    for (DIFFTYPE d = 0; d < dimension; d++) 
+    for (DIFFTYPE d = 0; d < dimension; d++)
       { vertex_neighborE[d + dimension] = axis_increment[d]; };
   }
 
@@ -2901,7 +2901,7 @@ namespace IJK {
     IJK::ARRAY<DIFFTYPE> axis_increment(dimension);
     IJK::PROCEDURE_ERROR error("compute_facet_neighborC");
 
-    if (!check_difftype<DIFFTYPE>(1, error)) 
+    if (!check_difftype<DIFFTYPE>(1, error))
       { throw error; }
 
     compute_increment(dimension, axis_size, axis_increment.Ptr());
@@ -2909,26 +2909,26 @@ namespace IJK {
     DIFFTYPE num_neighbors;
     compute_num_facet_neighborsC(dimension, num_neighbors);
 
-    const DIFFTYPE num_cube_vertices = 
+    const DIFFTYPE num_cube_vertices =
       compute_num_cube_vertices(dimension);
     IJK::ARRAY<DIFFTYPE> cube_vertex_increment(num_cube_vertices);
 
     compute_cube_vertex_increment
       (dimension, axis_increment.PtrConst(), cube_vertex_increment.Ptr());
 
-    const DIFFTYPE num_facet_vertices = 
+    const DIFFTYPE num_facet_vertices =
       compute_num_cube_facet_vertices(dimension);
     IJK::ARRAY<DIFFTYPE> facet_vertex_increment(dimension*num_facet_vertices);
-    
+
     // for each facet defined by a different orthogonal direction
     for (DTYPE orth_dir = 0; orth_dir < dimension; orth_dir++) {
 
-      DIFFTYPE * facet_ptr = 
+      DIFFTYPE * facet_ptr =
         facet_vertex_increment.Ptr()+num_facet_vertices*orth_dir;
 
       compute_facet_vertex_increment
         (dimension, orth_dir, cube_vertex_increment.PtrConst(), facet_ptr);
-      
+
       // for each vertex in the prvious facet
       for (DIFFTYPE k = 0; k < num_facet_vertices; k++) {
         facet_neighborC[k+num_neighbors*orth_dir] =
@@ -2952,7 +2952,7 @@ namespace IJK {
     IJK::ARRAY<DIFFTYPE> axis_increment(dimension);
     IJK::PROCEDURE_ERROR error("compute_edge_neighborF2");
 
-    if (!check_difftype<DIFFTYPE>(1, error)) 
+    if (!check_difftype<DIFFTYPE>(1, error))
       { throw error; }
 
     compute_increment(dimension, axis_size, axis_increment.Ptr());
@@ -3007,7 +3007,7 @@ namespace IJK {
   // **************************************************
 
   /// Constructor.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   GRID<DTYPE,ATYPE,VTYPE,NTYPE>::GRID
   (const DTYPE dimension, const ATYPE * axis_size)
   {
@@ -3015,14 +3015,14 @@ namespace IJK {
   }
 
   /// Default constructor.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   GRID<DTYPE,ATYPE,VTYPE,NTYPE>::GRID()
   {
     Init(0, NULL);
   }
 
   /// Destructor.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   GRID<DTYPE,ATYPE,VTYPE,NTYPE>::~GRID()
   {
     FreeAll();
@@ -3031,18 +3031,18 @@ namespace IJK {
   /// Initialize grid.
   /// @param dimension  Dimension of grid.
   /// @param axis_size  Array: <em>axis_size[d]</em> = Number of vertices along axis \a d.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::Init
   (const DTYPE dimension, const ATYPE * axis_size)
   {
     this->axis_size = NULL;
     this->dimension = 0;
     this->num_vertices = 1;
-    if (dimension > 0) 
+    if (dimension > 0)
       { SetSize(dimension, axis_size); };
   }
 
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   template <class DTYPE2, class ATYPE2>
   void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::SetSize
   (const DTYPE2 dimension, const ATYPE2 * axis_size)
@@ -3066,7 +3066,7 @@ namespace IJK {
       this->axis_size = new ATYPE[1];
       this->axis_size[0] = 0;
     }
-      
+
     for (DTYPE d = 0; d < dimension; d++)
       { this->axis_size[d] = axis_size[d]; }
 
@@ -3075,7 +3075,7 @@ namespace IJK {
 
   /// Set size of \a grid to size of \a grid2.
   /// @param grid2  Grid.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
   void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::SetSize
   (const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2)
@@ -3085,7 +3085,7 @@ namespace IJK {
 
 
   /// Free all allocated memory in class GRID.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::FreeAll()
   {
     if (axis_size != NULL) { delete [] axis_size; };
@@ -3095,7 +3095,7 @@ namespace IJK {
   }
 
   /// Copy constructor.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
   GRID(const GRID<DTYPE,ATYPE,VTYPE,NTYPE> & grid)
   {
@@ -3103,8 +3103,8 @@ namespace IJK {
   }
 
   /// Copy assignment.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
-  const GRID<DTYPE,ATYPE,VTYPE,NTYPE> & 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
+  const GRID<DTYPE,ATYPE,VTYPE,NTYPE> &
   GRID<DTYPE,ATYPE,VTYPE,NTYPE>::operator = (const GRID<DTYPE,ATYPE,VTYPE,NTYPE> & right)
   {
     if (&right != this) {         // avoid self-assignment
@@ -3337,7 +3337,7 @@ namespace IJK {
   /// @param dimension  Dimension.
   /// @param axis_size  Array: <em>axis_size[d]</em> = Number of vertices along axis \a d.
   /// @param[out] error Error message if grid dimension or axis_size do not match.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   bool GRID<DTYPE,ATYPE,VTYPE,NTYPE>::Check
   (const DTYPE dimension, const ATYPE * axis_size, IJK::ERROR & error) const
   {
@@ -3349,7 +3349,7 @@ namespace IJK {
 
     for (int d = 0; d < dimension; d++) {
       if (axis_size[d] != this->axis_size[d]) {
-        error.AddMessage("Illegal axis size[", d, "] = ", 
+        error.AddMessage("Illegal axis size[", d, "] = ",
                          this->axis_size[d], ".");
         error.AddMessage("  Axis size[", d, "] should be ", axis_size[d], ".");
         return(false);
@@ -3360,9 +3360,9 @@ namespace IJK {
     compute_num_grid_vertices(dimension, axis_size, num_vertices);
 
     if (num_vertices != this->num_vertices) {
-      error.AddMessage("Incorrect number of grid vertices ", 
+      error.AddMessage("Incorrect number of grid vertices ",
                        this->num_vertices, ".");
-      error.AddMessage("  Number of grid vertices should be ", 
+      error.AddMessage("  Number of grid vertices should be ",
                        num_vertices, ".");
       return(false);
     }
@@ -3418,16 +3418,16 @@ namespace IJK {
         error.AddMessage("Coordinate ", d, " is out of bounds.");
         error.AddMessage("  coord[", d, "] = ", coord[d], ".");
         error.AddMessage
-          ("  axis size[", d, "] = ", AxisSize(d), 
+          ("  axis size[", d, "] = ", AxisSize(d),
            " so all coordinates on axis ", d, " are out of bounds.");
         return(false);
 
       }
       else if (coord[d] >= AxisSize(d)) {
         error.AddMessage("Coordinate ", d, " is out of bounds.");
-        error.AddMessage("  coord[", d, "] = ", coord[d], 
+        error.AddMessage("  coord[", d, "] = ", coord[d],
                          ".  axis size[", d, "] = ", AxisSize(d), ".");
-        error.AddMessage("  coord[", d, 
+        error.AddMessage("  coord[", d,
                          "] should be less than axis size[", d, "].");
         return(false);
       }
@@ -3459,16 +3459,16 @@ namespace IJK {
         error.AddMessage("Cube coordinate ", d, " is out of bounds.");
         error.AddMessage("  coord[", d, "] = ", coord[d], ".");
         error.AddMessage
-          ("  axis size[", d, "] = ", AxisSize(d), 
+          ("  axis size[", d, "] = ", AxisSize(d),
            " so all cube coordinates on axis ", d, " are out of bounds.");
         return(false);
 
       }
       else if (coord[d]+1 >= AxisSize(d)) {
         error.AddMessage("Cube coordinate ", d, " is out of bounds.");
-        error.AddMessage("  coord[", d, "] = ", coord[d], 
+        error.AddMessage("  coord[", d, "] = ", coord[d],
                          ".  axis size[", d, "] = ", AxisSize(d), ".");
-        error.AddMessage("  coord[", d, 
+        error.AddMessage("  coord[", d,
                          "] should be less than (axis size[", d, "]-1).");
         return(false);
       }
@@ -3500,7 +3500,7 @@ namespace IJK {
       error.AddMessage("Illegal vertex index ", vertex_index, ".");
       error.AddMessage
         ("  Vertex index should be less than number of grid vertices.");
-      error.AddMessage("  Number of grid vertices = ", 
+      error.AddMessage("  Number of grid vertices = ",
                        NumVertices(), ".");
       return(false);
     }
@@ -3535,7 +3535,7 @@ namespace IJK {
       error.AddMessage("Illegal cube index ", cube_index, ".");
       error.AddMessage
         ("  Cube index should be less than number of grid vertices.");
-      error.AddMessage("  Number of grid vertices = ", 
+      error.AddMessage("  Number of grid vertices = ",
                        NumVertices(), ".");
       return(false);
     }
@@ -3577,20 +3577,20 @@ namespace IJK {
 
     for (DTYPE d = 0; d < dimension; d++) {
       if (region_axis_size[d] < 0) {
-        error.AddMessage("Illegal region_axis_size[", d, 
+        error.AddMessage("Illegal region_axis_size[", d,
                          "] = ", region_axis_size[d], ".");
-        return(false); 
+        return(false);
       }
 
       if (coord0[d] + region_axis_size[d] > this->AxisSize(d)) {
         error.AddMessage("Error.  Region extends beyond grid.");
-        error.AddMessage("  lower/leftmost coord[", d, 
+        error.AddMessage("  lower/leftmost coord[", d,
                          "] = ", coord0[d], ".");
         error.AddMessage("  region_axis_size[", d, "] = ",
                          region_axis_size[d], ".");
         error.AddMessage("  grid axis_size[", d, "] = ",
                          this->AxisSize(d), ".");
-        return(false); 
+        return(false);
       }
     }
 
@@ -3602,7 +3602,7 @@ namespace IJK {
   // **************************************************
 
   /// Constructor.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE>::GRID_PLUS
   (const DTYPE dimension, const ATYPE * axis_size):
     GRID<DTYPE,ATYPE,VTYPE,NTYPE> (dimension,axis_size)
@@ -3611,7 +3611,7 @@ namespace IJK {
   }
 
   /// Default constructor.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE>::GRID_PLUS()
   {
     InitLocal();
@@ -3619,7 +3619,7 @@ namespace IJK {
 
   /// \brief Set all local (not inherited) arrays to NULL.
   /// Set all local variables to 0.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   void GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE>::ZeroLocal()
   {
     this->axis_increment = NULL;
@@ -3634,7 +3634,7 @@ namespace IJK {
 
   /// \brief Initialize data structures in GRID_PLUS.
   /// @pre \a dimension and \a axis_size are already set.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   void GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE>::InitLocal()
   {
     ZeroLocal();
@@ -3642,7 +3642,7 @@ namespace IJK {
   }
 
   /// Destructor.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE>::~GRID_PLUS()
   {
     FreeLocal();
@@ -3651,7 +3651,7 @@ namespace IJK {
   /// Allocate arrays and compute data in GRID_PLUS.
   /// @pre \a dimension and \a axis_size[] are already set.
   /// @pre All other arrays are set to NULL.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   void GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE>::Create()
   {
     IJK::PROCEDURE_ERROR error("GRID_PLUS::Create");
@@ -3670,7 +3670,7 @@ namespace IJK {
       { throw error; }
 
     this->num_cube_vertices = compute_num_cube_vertices(this->Dimension());
-    this->num_facet_vertices = 
+    this->num_facet_vertices =
       compute_num_cube_facet_vertices(this->Dimension());
     this->num_cube_facets = compute_num_cube_facets(this->Dimension());
     this->num_cube_edges = compute_num_cube_edges(this->Dimension());
@@ -3687,7 +3687,7 @@ namespace IJK {
 
     for (DTYPE ifacet = 0; ifacet < this->NumCubeFacets(); ifacet++) {
       compute_facet_vertex_increment
-        (this->Dimension(), ifacet, this->cube_vertex_increment, 
+        (this->Dimension(), ifacet, this->cube_vertex_increment,
          this->facet_vertex_increment+this->num_facet_vertices*ifacet);
     }
 
@@ -3696,11 +3696,11 @@ namespace IJK {
   }
 
   /// Free memory in the derived class GRID_PLUS.
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   void GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE>::FreeLocal()
   {
     if (axis_increment != NULL) { delete [] axis_increment; }
-    if (cube_vertex_increment != NULL) 
+    if (cube_vertex_increment != NULL)
       { delete [] cube_vertex_increment; };
     if (facet_vertex_increment != NULL)
       { delete [] facet_vertex_increment; };
@@ -3708,7 +3708,7 @@ namespace IJK {
     ZeroLocal();
   }
 
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   template <class DTYPE2, class ATYPE2>
   void GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE>::SetSize
   (const DTYPE2 dimension, const ATYPE2 * axis_size)
@@ -3721,7 +3721,7 @@ namespace IJK {
     Create();
   }
 
-  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
   void GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE>::SetSize
   (const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2)
@@ -3734,8 +3734,8 @@ namespace IJK {
   // **************************************************
 
   /// Constructor.
-  template <class DTYPE, class ATYPE, class VTYPE, 
-            class DIFFTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE,
+            class DIFFTYPE, class NTYPE>
   GRID_NEIGHBORS<DTYPE,ATYPE,VTYPE,DIFFTYPE,NTYPE>::GRID_NEIGHBORS
   (const DTYPE dimension, const ATYPE * axis_size):
     GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE> (dimension,axis_size)
@@ -3744,8 +3744,8 @@ namespace IJK {
   }
 
   /// Default constructor.
-  template <class DTYPE, class ATYPE, class VTYPE, 
-            class DIFFTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE,
+            class DIFFTYPE, class NTYPE>
   GRID_NEIGHBORS<DTYPE,ATYPE,VTYPE,DIFFTYPE,NTYPE>::GRID_NEIGHBORS()
   {
     InitLocal();
@@ -3753,8 +3753,8 @@ namespace IJK {
 
   /// Set all local (not inherited) arrays to NULL.
   /// Set all local variables to 0.
-  template <class DTYPE, class ATYPE, class VTYPE, 
-            class DIFFTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE,
+            class DIFFTYPE, class NTYPE>
   void GRID_NEIGHBORS<DTYPE,ATYPE,VTYPE,DIFFTYPE,NTYPE>::ZeroLocal()
   {
     this->vertex_neighborC = NULL;
@@ -3769,8 +3769,8 @@ namespace IJK {
 
   /// \briefInitialize data structures in GRID_NEIGHBORS
   /// @pre \a dimension and \a axis_size are already set
-  template <class DTYPE, class ATYPE, class VTYPE, 
-            class DIFFTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE,
+            class DIFFTYPE, class NTYPE>
   void GRID_NEIGHBORS<DTYPE,ATYPE,VTYPE,DIFFTYPE,NTYPE>::InitLocal()
   {
     ZeroLocal();
@@ -3778,8 +3778,8 @@ namespace IJK {
   }
 
   /// Destructor.
-  template <class DTYPE, class ATYPE, class VTYPE, 
-            class DIFFTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE,
+            class DIFFTYPE, class NTYPE>
   GRID_NEIGHBORS<DTYPE,ATYPE,VTYPE,DIFFTYPE,NTYPE>::~GRID_NEIGHBORS()
   {
     FreeLocal();
@@ -3788,8 +3788,8 @@ namespace IJK {
   /// Allocate arrays and compute data in GRID_NEIGHBORS.
   /// @pre \a dimension and \a axis_size[] are already set.
   /// @pre All other arrays are set to NULL.
-  template <class DTYPE, class ATYPE, class VTYPE, 
-            class DIFFTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE,
+            class DIFFTYPE, class NTYPE>
   void GRID_NEIGHBORS<DTYPE,ATYPE,VTYPE,DIFFTYPE,NTYPE>::CreateLocal()
   {
     const DTYPE dimension = this->Dimension();
@@ -3809,21 +3809,21 @@ namespace IJK {
 
     compute_num_facet_neighborsC
       (dimension, num_facet_neighborsC);
-    facet_neighborC = 
+    facet_neighborC =
       new DIFFTYPE[num_facet_neighborsC*(dimension)];
     compute_facet_neighborC(dimension, axis_size, facet_neighborC);
 
     compute_num_edge_neighborsF2
       (dimension, num_edge_neighborsF2);
-    this->edge_neighborF2 = 
+    this->edge_neighborF2 =
       new DIFFTYPE[num_edge_neighborsF2*(dimension)];
     compute_edge_neighborF2(dimension, axis_size, edge_neighborF2);
   }
 
   // \brief Free all local (not inherited) arrays.
   // Set all local arrays to NULL and variables to 0.
-  template <class DTYPE, class ATYPE, class VTYPE, 
-            class DIFFTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE,
+            class DIFFTYPE, class NTYPE>
   void GRID_NEIGHBORS<DTYPE,ATYPE,VTYPE,DIFFTYPE,NTYPE>::FreeLocal()
   {
     if (vertex_neighborC != NULL) { delete [] vertex_neighborC; };
@@ -3833,8 +3833,8 @@ namespace IJK {
     ZeroLocal();
   }
 
-  template <class DTYPE, class ATYPE, class VTYPE, 
-            class DIFFTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE,
+            class DIFFTYPE, class NTYPE>
   template <class DTYPE2, class ATYPE2>
   void GRID_NEIGHBORS<DTYPE,ATYPE,VTYPE,DIFFTYPE,NTYPE>::SetSize
   (const DTYPE2 dimension, const ATYPE2 * axis_size)
@@ -3847,8 +3847,8 @@ namespace IJK {
     CreateLocal();
   }
 
-  template <class DTYPE, class ATYPE, class VTYPE, 
-            class DIFFTYPE, class NTYPE> 
+  template <class DTYPE, class ATYPE, class VTYPE,
+            class DIFFTYPE, class NTYPE>
   template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
   void GRID_NEIGHBORS<DTYPE,ATYPE,VTYPE,DIFFTYPE,NTYPE>::SetSize
   (const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2)
@@ -3859,7 +3859,7 @@ namespace IJK {
   // **************************************************
   // TEMPLATE CLASS GRID_VERTEX_LIST MEMBER FUNCTIONS
   // **************************************************
-  
+
   template <typename VTYPE>
   void GRID_VERTEX_LIST<VTYPE>::Init()
   {
@@ -3898,7 +3898,7 @@ namespace IJK {
     compute_num_cubes_in_grid_facet0
       (grid.Dimension(), grid.AxisSize(), num_cubes);
 
-    if (num_cubes > this->ListLength()) 
+    if (num_cubes > this->ListLength())
       { this->AllocateList(num_cubes); }
 
     if (num_cubes > 0) {
@@ -3943,7 +3943,7 @@ namespace IJK {
     compute_num_vertices_in_grid_facet
       (grid.Dimension(), grid.AxisSize(), orth_dir, numv);
 
-    if (numv > this->ListLength()) 
+    if (numv > this->ListLength())
       { this->AllocateList(numv); }
 
     if (numv > 0) {
@@ -3993,7 +3993,7 @@ namespace IJK {
       (grid.Dimension(), grid.AxisSize(), orth_dir, boundary_width,
        numv);
 
-    if (numv > this->ListLength()) 
+    if (numv > this->ListLength())
       { this->AllocateList(numv); }
 
     if (numv > 0) {
@@ -4018,7 +4018,7 @@ namespace IJK {
     out << "(";
     for (DTYPE d = 0; d < dimension; d++) {
       out << coord[d];
-      if (d+1 < dimension) 
+      if (d+1 < dimension)
         { out << ","; }
     }
     out << ")";
@@ -4027,7 +4027,7 @@ namespace IJK {
   /// Output vertex coord (for debugging purposes)
   template <class GTYPE, class VTYPE>
   void ijkgrid_output_vertex_coord
-  (std::ostream & out, 
+  (std::ostream & out,
    const GTYPE & grid, const VTYPE iv)
   {
     typedef typename GTYPE::DIMENSION_TYPE DTYPE;

@@ -69,7 +69,7 @@ void normalize(GRADIENT_COORD_TYPE *intial,GRADIENT_COORD_TYPE  *normalized)
 /* this function calculates the 
  singular values and the isovert predicted by the singular value.
  if the number of singular values is 2 , it also calculates the direction of the ray.
- It does NOT compute the final veertex, which is computed under
+ It does NOT compute the final vertex, which is computed under
  'svd_compute_sharp_vertex_neighborhood_S'
 */
 
@@ -85,6 +85,7 @@ void svd_calculate_sharpiso_vertex
  COORD_TYPE * isoVertcoords,
  GRADIENT_COORD_TYPE * ray_direction)
 {
+    
     if (num_vert == 0)
         return;
     

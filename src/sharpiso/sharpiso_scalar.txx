@@ -35,7 +35,7 @@ namespace SHARPISO {
   template <typename CTYPE0, typename CTYPE1, typename GTYPE,
             typename STYPE>
   inline STYPE compute_gradient_based_scalar
-  (const CTYPE0 coord0[DIM3], const CTYPE1 coord1[DIM3], 
+  (const CTYPE0 coord0[DIM3], const CTYPE1 coord1[DIM3],
    const GTYPE gradient1[DIM3], const STYPE scalar1)
   {
     STYPE scalar0 =
@@ -46,15 +46,15 @@ namespace SHARPISO {
     return(scalar0);
   }
 
-  /// Compute maximum absolute value and average sum of squares 
+  /// Compute maximum absolute value and average sum of squares
   ///   of difference between given and predicted scalar values.
   template <typename CTYPE0, typename CTYPE1, typename GTYPE,
             typename STYPE0, typename STYPE1, typename NTYPE,
             typename ETYPE>
   void compute_gradient_based_scalar_diff
   (const CTYPE0 coord0[DIM3], const STYPE0 scalar0,
-   const CTYPE1 * coord1, const GTYPE * gradient1, const STYPE1 * scalar1, 
-   const NTYPE num_point1, 
+   const CTYPE1 * coord1, const GTYPE * gradient1, const STYPE1 * scalar1,
+   const NTYPE num_point1,
    ETYPE & avg_sum_of_diff_squared, ETYPE & max_abs_diff)
   {
     // Initialize output.
@@ -70,7 +70,7 @@ namespace SHARPISO {
       if (diff > max_abs_diff) { max_abs_diff = diff; }
     }
 
-    if (num_point1 > 0) 
+    if (num_point1 > 0)
       { avg_sum_of_diff_squared = avg_sum_of_diff_squared/num_point1; }
   }
 
@@ -86,9 +86,9 @@ namespace SHARPISO {
    const CTYPE2 coord[DIM3], const GTYPE gradient[DIM3],
    const STYPE0 scalar, const STYPE1 isovalue)
   {
-    STYPE0 s0 = 
+    STYPE0 s0 =
         compute_gradient_based_scalar(endpoint0, coord, gradient, scalar);
-    STYPE1 s1 = 
+    STYPE1 s1 =
         compute_gradient_based_scalar(endpoint1, coord, gradient, scalar);
 
     if (s0 < isovalue) {
@@ -103,11 +103,11 @@ namespace SHARPISO {
   }
 
   /// Return true if isosurface intersects cube
-  template <typename CUBE_TYPE, typename CTYPE0, typename GTYPE0, 
+  template <typename CUBE_TYPE, typename CTYPE0, typename GTYPE0,
             typename STYPE0, typename STYPE1>
   bool iso_intersects_cube
   (const CUBE_TYPE & cube,
-   const CTYPE0 coord[DIM3], const GTYPE0 gradient[DIM3], 
+   const CTYPE0 coord[DIM3], const GTYPE0 gradient[DIM3],
    const STYPE0 scalar, const STYPE1 isovalue)
   {
     typedef typename CUBE_TYPE::NUMBER_TYPE NTYPE;
@@ -121,7 +121,7 @@ namespace SHARPISO {
     const CTYPE2 * end1 = cube.DiagonalEnd0Coord(icorner);
     const CTYPE2 * end0 = cube.DiagonalEnd1Coord(icorner);
 
-    bool flag = 
+    bool flag =
       iso_intersects_line_segment
       (end0, end1, coord, gradient, scalar, isovalue);
 

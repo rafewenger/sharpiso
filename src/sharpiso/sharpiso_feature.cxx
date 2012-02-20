@@ -28,6 +28,7 @@
 #include "sh_point_find.h"
 
 #include "ijkcoord.txx"
+#include "ijkgrid.txx"
 #include "ijkinterpolate.txx"
 #include "sharpiso_scalar.txx"
 
@@ -255,6 +256,24 @@ void check_l1_distance
 };
 
 
+// Check to see if the coord is within the allowable offset 
+// of the cube
+
+void is_coord_inside_offset
+(const COORD_TYPE * sharp_coord,
+ const COORD_TYPE * cube_center, 
+ const SCALAR_TYPE  threshold,
+ bool is_inside)
+{
+    for (int d=0; d<DIM3; d++) {
+        if (sharp_coord[d] - cube_center[d] > (0.5 + threshold)) {
+            is_inside = false;
+        }
+    }
+}
+
+
+
 /////  THIS  CODE WILL BE REMOVED IN THE NEXT ITERATION
 // Compute sharp isosurface vertex using singular valued decomposition.
 // Use selected gradients from cube and neighboring cubes.
@@ -379,7 +398,7 @@ void check_l1_distance
  
  }
  */
-// new version for the
+// new version 
 void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -394,7 +413,9 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
  SVD_INFO & svd_info,
  const OFFSET_CUBE_111 & cube_111)
 {
-    SCALAR_TYPE allowable_dist = 1.0;    
+    // how far can the point predicted by 
+    // the 3 singular values from th cube.
+    SCALAR_TYPE allowable_dist = 0.0;    
     
     NUM_TYPE num_gradients = 0;
     std::vector<COORD_TYPE> point_coord;
@@ -415,13 +436,14 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
     // flag used centroid initialized to false
     bool flag_use_centroid = false;
     
+    
+    //compute the cube center
     IJK::add_coord_3D(offset, cube_coord, cube_center); 
     
     get_selected_cube_neighbor_gradients
     (scalar_grid, gradient_grid, cube_index, max_small_mag, isovalue,
      point_coord, gradient_coord, scalar, num_gradients, cube_111);
     
-    // If there are two singular values, svd returns a ray.
     GRADIENT_COORD_TYPE ray_direction[DIM3]={0.0};
     
     svd_calculate_sharpiso_vertex
@@ -434,14 +456,22 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
     // keeps track of ray cube intersection 
     bool isIntersect = false;
     
+    // is the coord predicted by the three singular values inside 
+    // the allowable distance.
+    bool is_inside = true;
+    
     if (num_large_eigenvalues == 2) 
     {
         IJK::copy_coord_3D(ray_direction, svd_info.ray_direction);
         IJK::copy_coord_3D(coord, svd_info.ray_initial_point);
-        
+        /*
         // use the complex intersect. the cube_offset 2 is set to 0.3 (default)
         isIntersect = calculate_point_intersect_complex
         (cube_coord, coord, ray_direction, cube_offset2, coord);
+        */
+        // debug
+        isIntersect = calculate_point_intersect_complex
+        (cube_coord, coord, ray_direction, 1.0, coord);
     }
     /// this is affected by the cube_offset 2
     if (!isIntersect && num_large_eigenvalues == 2)
@@ -453,6 +483,7 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
     
     if (isIntersect && num_large_eigenvalues == 2) 
     {
+        
         svd_info.ray_intersect_cube = true;
         svd_info.location = LOC_SVD;
     }
@@ -460,10 +491,11 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
     
     if (num_large_eigenvalues == 3)
     {
-        //check for l1 distance
-        check_l1_distance(cube_center, coord, l1dist);
+        //check if the coord is inside the threshold
+        is_coord_inside_offset
+        ( coord, cube_center, allowable_dist, is_inside);
         
-        if ( l1dist > allowable_dist) 
+        if ( !is_inside) 
         {
             flag_use_centroid = true;  
             svd_info.location = CENTROID;  
@@ -471,6 +503,47 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
         else
             svd_info.location = LOC_SVD;
     }
+    
+   
+    
+    // check if the coord is within the cube 
+    cout.setf(ios::fixed);
+    cout.precision(9);
+    
+    //debug
+    
+    if ( scalar_grid.ContainsPoint(coord) ) {
+      
+        // check if NOT in  present cube.
+        // Note : does not use a offset to check for on the boundary
+        
+        if(!scalar_grid.CubeContainsPoint(cube_index, coord)){
+            COORD_TYPE new_index_coord[DIM3];
+           
+            // find which cube does it belong to ?
+            for (int d=0; d<DIM3; d++) {
+                new_index_coord[d]  = floor(coord[d]);
+                
+            }
+    
+            // compute the new vertex index
+            VERTEX_INDEX new_icube = scalar_grid.ComputeVertexIndex(coord);
+            
+            // check if the isosurface intersects the new vertex index
+            bool does_cube_intersect_isosurface = false;
+          
+            does_cube_intersect_isosurface = 
+            IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue);
+            if (does_cube_intersect_isosurface) {
+                
+                cout <<" trying to put point in a cube which has its own sharp point"<<endl;
+                flag_use_centroid = true;  
+                svd_info.location = CENTROID; 
+            }   
+        }
+    }
+    
+       
     
     if (num_large_eigenvalues  == 1 || flag_use_centroid == true)
     {
@@ -481,8 +554,7 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
     
     if (num_large_eigenvalues == 0 )
     {
-        COORD_TYPE  offset[DIM3] = {0.5,0.5,0.5};
-        IJK::add_coord_3D(offset, cube_coord, coord); 
+        IJK::copy_coord_3D(cube_center, coord); 
         svd_info.location = CUBE_CENTER;
     }
     

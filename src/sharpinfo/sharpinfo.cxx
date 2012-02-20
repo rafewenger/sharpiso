@@ -5,17 +5,17 @@
 /*
  IJK: Isosurface Jeneration Kode
  Copyright (C) 2011 Rephael Wenger
- 
+
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public License
  (LGPL) as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
- 
+
  This library is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public
  License along with this library; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -92,7 +92,7 @@ void compute_iso_vertex_using_subgrid
  const GRADIENT_COORD_TYPE max_small_mag,
  const NUM_TYPE subgrid_axis_size,
  COORD_TYPE sharp_coord[DIM3],
- SCALAR_TYPE & scalar_stdev, 
+ SCALAR_TYPE & scalar_stdev,
  SCALAR_TYPE & max_abs_scalar_error);
 
 // check routines
@@ -163,104 +163,104 @@ int main(int argc, char **argv)
     SVD_INFO svd_info;
     svd_info.ray_intersect_cube = false;
     svd_info.location = LOC_NONE;
-    
+
     try {
-        
+
         std::set_new_handler(memory_exhaustion);
-        
+
         parse_command_line(argc, argv);
-        
+
         SHARPISO_SCALAR_GRID scalar_grid;
         IJK::GRID_NRRD_IN<NUM_TYPE,AXIS_SIZE_TYPE> nrrd_in_scalar;
         nrrd_in_scalar.ReadScalarGrid
         (scalar_filename, scalar_grid,  error);
-        
+
         GRADIENT_GRID gradient_grid;
         IJK::GRID_NRRD_IN<NUM_TYPE,AXIS_SIZE_TYPE> nrrd_in_gradient;
-        
+
         nrrd_in_gradient.ReadVectorGrid
         (gradient_filename, gradient_grid, error);
-        
+
         if (!check_gradient_grid(gradient_grid, error))
         { throw error; };
-        
+
         if (!check_input_grids(scalar_grid, gradient_grid, error))
         { throw error; }
-        
+
         if (cube_coord.size() > 0) {
             if (!check_cube_coord(scalar_grid, cube_coord, error))
             { throw error; }
-            
+
             cube_index = scalar_grid.ComputeVertexIndex(cube_coord);
         }
-        
+
         NUM_TYPE num_gradients = 0;
         std::vector<COORD_TYPE> point_coord;
         std::vector<GRADIENT_COORD_TYPE> gradient_coord;
         std::vector<SCALAR_TYPE> scalar;
-        
+
         if (flag_list_gradients || flag_isovalue_set || flag_location_set) {
-            
+
             get_gradients
             (scalar_grid, gradient_grid, cube_index, max_small_mag,
              point_coord, gradient_coord, scalar, num_gradients);
-            
+
             if (flag_list_gradients) {
                 output_gradients
                 (cout, point_coord, gradient_coord, scalar, num_gradients);
                 cout << endl;
             }
-            
+
             if (flag_isovalue_set) {
-                
+
                 COORD_TYPE sharp_coord[DIM3];
                 EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
                 NUM_TYPE num_large_eigenvalues(0);
-                
+
                 output_cube_coordinates(cout, scalar_grid, cube_index);
                 cout << endl << endl;
-                
+
                 compute_iso_vertex_using_svd
                 (scalar_grid, gradient_grid, cube_index, isovalue,
                  max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
                  num_large_eigenvalues, svd_info);
-                
+
                 output_svd_results
                 (cout, sharp_coord, eigenvalues, num_large_eigenvalues,
                  max_small_eigenvalue, svd_info);
                 cout << endl;
-                
+
                 if (flag_list_subgrid) {
                     GRID_COORD_TYPE cube_coord[DIM3];
-                    
+
                     scalar_grid.ComputeCoord(cube_index, cube_coord);
                     output_cube_subgrid_scalar_errors
                     (cout, point_coord, gradient_coord, scalar, num_gradients,
                      cube_coord, isovalue, subgrid_axis_size);
                     cout << endl;
                 }
-                
+
                 SCALAR_TYPE scalar_stdev;
                 SCALAR_TYPE max_abs_scalar_error;
                 compute_iso_vertex_using_subgrid
                 (scalar_grid, gradient_grid, cube_index, isovalue,
                  max_small_mag, subgrid_axis_size,
                  sharp_coord, scalar_stdev, max_abs_scalar_error);
-                
+
                 output_subgrid_results
                 (cout, sharp_coord, scalar_stdev, max_abs_scalar_error);
                 cout << endl;
             }
-            
-            
+
+
             if (flag_location_set) {
                 output_gradient_based_scalars
                 (cout, point_coord, gradient_coord, scalar, num_gradients,
                  location);
             }
-            
+
         }
-        
+
         if (flag_list_eigen) {
             output_cube_eigenvalues
             (cout, scalar_grid, gradient_grid, isovalue,
@@ -279,7 +279,7 @@ int main(int argc, char **argv)
         cerr << "Unknown error." << endl;
         exit(50);
     };
-    
+
 }
 
 // **************************************************
@@ -298,7 +298,7 @@ void get_gradients
 {
     if (use_selected_gradients) {
         OFFSET_CUBE_111 cube_111(cube_offset);
-        
+
         if (use_only_cube_gradients) {
             select_cube_gradients
             (scalar_grid, gradient_grid, cube_index, max_small_mag, isovalue,
@@ -311,7 +311,7 @@ void get_gradients
         }
     }
     else {
-        
+
         if (use_only_cube_gradients) {
             get_large_cube_gradients
             (scalar_grid, gradient_grid, cube_index, max_small_mag,
@@ -323,7 +323,7 @@ void get_gradients
              point_coord, gradient_coord, scalar, num_gradients);
         }
     }
-    
+
 }
 
 // **************************************************
@@ -348,7 +348,7 @@ void compute_iso_vertex_using_svd
          sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
     }
     else if (flag_svd_edges_cmplx) {
-        
+
         svd_compute_sharp_vertex_in_cube_edge_based_cmplx
         (scalar_grid, gradient_grid, cube_index, isovalue,
          max_small_mag, max_small_eigenvalue, cube_offset2, sharp_coord, eigenvalues,
@@ -357,7 +357,7 @@ void compute_iso_vertex_using_svd
     else {
         if (use_selected_gradients) {
             OFFSET_CUBE_111 cube_111(cube_offset);
-            
+
             if (use_only_cube_gradients) {
                 svd_compute_sharp_vertex_in_cube_S
                 (scalar_grid, gradient_grid, cube_index, isovalue,
@@ -365,9 +365,6 @@ void compute_iso_vertex_using_svd
                  num_large_eigenvalues, svd_info, cube_111);
             }
             else {
-                //debug 
-                using namespace std;
-                cout <<" cube index "<< cube_index<<endl;
                 svd_compute_sharp_vertex_neighborhood_S
                 (scalar_grid, gradient_grid, cube_index, isovalue,
                  max_small_mag, max_small_eigenvalue, cube_offset2, sharp_coord, eigenvalues,
@@ -389,7 +386,7 @@ void compute_iso_vertex_using_svd
             }
         }
     }
-    
+
 }
 
 void compute_iso_vertex_using_subgrid
@@ -400,12 +397,12 @@ void compute_iso_vertex_using_subgrid
  const GRADIENT_COORD_TYPE max_small_mag,
  const NUM_TYPE subgrid_axis_size,
  COORD_TYPE sharp_coord[DIM3],
- SCALAR_TYPE & scalar_stdev, 
+ SCALAR_TYPE & scalar_stdev,
  SCALAR_TYPE & max_abs_scalar_error)
 {
     if (use_selected_gradients) {
         OFFSET_CUBE_111 cube_111(cube_offset);
-        
+
         if (use_only_cube_gradients) {
             subgrid_compute_sharp_vertex_in_cube_S
             (scalar_grid, gradient_grid, cube_index, isovalue,
@@ -433,7 +430,7 @@ void compute_iso_vertex_using_subgrid
              sharp_coord, scalar_stdev, max_abs_scalar_error);
         }
     }
-    
+
 }
 
 
@@ -447,9 +444,8 @@ void output_cube_coordinates
  const VERTEX_INDEX icube)
 {
     GRID_COORD_TYPE coord[DIM3];
-    
     scalar_grid.ComputeCoord(icube, coord);
-    
+
     output << "Cube " << icube << ".";
     output << "  Coordinates: ";
     IJK::ijkgrid_output_coord(output, DIM3, coord);
@@ -464,7 +460,7 @@ void output_gradients
  const NUM_TYPE num_points)
 {
     using namespace std;
-    
+
     for (NUM_TYPE i = 0; i < num_points; i++) {
         output << "Point " << i << " ";
         IJK::ijkgrid_output_coord(output, DIM3, point_coord + i*DIM3);
@@ -487,7 +483,7 @@ void output_gradients
 {
     output_gradients(output, &(point_coord[0]), &(gradient_coord[0]),
                      &(scalar[0]), num_points);
-    
+
 }
 
 void output_svd_results
@@ -499,15 +495,15 @@ void output_svd_results
  SVD_INFO & svd_info)
 {
   output << "SVD: Sharp coordinates ";
-  if (svd_info.location == LOC_SVD) 
+  if (svd_info.location == LOC_SVD)
     { output << "(svd): "; }
-  else if (svd_info.location == CENTROID) 
+  else if (svd_info.location == CENTROID)
     { output << "(centroid): "; }
-  else if (svd_info.location == CUBE_CENTER) 
+  else if (svd_info.location == CUBE_CENTER)
     { output << "(cube center): "; }
-  else 
+  else
     { output << "(unknown): "; }
-    
+
     IJK::ijkgrid_output_coord(output, DIM3, sharp_coord);
     output << endl;
     output << "Eigenvalues: ";
@@ -516,7 +512,7 @@ void output_svd_results
     output << "Number of large eigenvalues (>= " << eigenvalue_tolerance
     << "): "
     << num_large_eigenvalues << endl;
-    
+
     if(num_large_eigenvalues == 2) {
         output << "ray direction " << svd_info.ray_direction[0] << " "
         << svd_info.ray_direction[1] << " "
@@ -528,7 +524,7 @@ void output_svd_results
         output << "ray intersected cube? "
         << svd_info.ray_intersect_cube << endl;
     }
-    
+
 }
 
 void output_subgrid_results
@@ -556,33 +552,33 @@ void output_cube_subgrid_scalar_errors
     COORD_TYPE center_coord[DIM3];
     COORD_TYPE vdiff[DIM3];
     IJK::PROCEDURE_ERROR error("output_cube_subgrid_scalar_errors");
-    
+
     if (subgrid_axis_size < 1) {
         error.AddMessage
         ("Programming error. Subgrid axis size must be at least 1.");
         error.AddMessage("  Subgrid axis size = ", subgrid_axis_size, ".");
         throw error;
     }
-    
+
     // Compute center coordinate
     for (NUM_TYPE d = 0; d < DIM3; d++)
     { center_coord[d] = cube_coord[d] + 0.5; }
-    
+
     const COORD_TYPE h = 1.0/(subgrid_axis_size+1);
-    
+
     for (NUM_TYPE ix = 0; ix < subgrid_axis_size; ix++) {
         coord[0] = cube_coord[0] + (ix+1)*h;
         for (NUM_TYPE iy = 0; iy < subgrid_axis_size; iy++) {
             coord[1] = cube_coord[1] + (iy+1)*h;
             for (NUM_TYPE iz = 0; iz < subgrid_axis_size; iz++) {
-                
+
                 coord[2] = cube_coord[2] + (iz+1)*h;
                 SCALAR_TYPE s, stdev_squared, max_abs_error;
-                
+
                 compute_gradient_based_scalar_diff
                 (coord, isovalue, point_coord, gradient_coord, scalar, num_points,
                  stdev_squared, max_abs_error);
-                
+
                 output << "Coord: ";
                 IJK::ijkgrid_output_coord(cerr, DIM3, coord);
                 output << "  stdev: " << std::sqrt(stdev_squared);
@@ -593,7 +589,7 @@ void output_cube_subgrid_scalar_errors
             }
         }
     }
-    
+
 }
 
 void output_cube_subgrid_scalar_errors
@@ -619,7 +615,7 @@ void output_gradient_based_scalars
     output << "Location: ";
     IJK::ijkgrid_output_coord(output, DIM3, location);
     output << endl;
-    
+
     for (int i = 0; i < num_points; i++) {
         output << "  Point ";
         IJK::ijkgrid_output_coord(output, DIM3, point_coord+i*DIM3);
@@ -627,11 +623,11 @@ void output_gradient_based_scalars
         output << ".  Gradient ";
         IJK::ijkgrid_output_coord(output, DIM3, gradient_coord+i*DIM3);
         output << ".";
-        
+
         SCALAR_TYPE s =
         compute_gradient_based_scalar
         (location, point_coord+i*DIM3, gradient_coord+i*DIM3, scalar[i]);
-        
+
         output << "  Location scalar: " << s << "." << endl;
     }
 }
@@ -660,17 +656,17 @@ void output_cube_eigenvalues
     EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
     NUM_TYPE num_large_eigenvalues(0);
     SVD_INFO svd_info;
-    
+
     IJK_FOR_EACH_GRID_CUBE(icube, scalar_grid, VERTEX_INDEX) {
-        
+
         svd_compute_sharp_vertex_in_cube
         (scalar_grid, gradient_grid, icube, isovalue,
          max_zero_mag, eigenvalue_tolerance, cube_offset2, sharp_coord,
          eigenvalues, num_large_eigenvalues,
          svd_info);
-        
+
         output_cube_coordinates(output, scalar_grid, icube);
-        
+
         output << " Num eigen: " << num_large_eigenvalues
         << " Eigen: ";
         IJK::ijkgrid_output_coord(output, DIM3, eigenvalues);
@@ -688,7 +684,7 @@ bool check_input_grids
 {
     if (!check_gradient_grid(gradient_grid, error))
     { return(false); }
-    
+
     IJK::ERROR size_error;
     if (!gradient_grid.Check
         (scalar_grid, "Gradient grid", "Scalar grid", size_error)) {
@@ -697,10 +693,10 @@ bool check_input_grids
          ") and gradient grid (file ", gradient_filename, ") do not match.");
         for (int i = 0; i < size_error.NumMessages(); i++)
         { error.AddMessage(size_error.Message(i)); }
-        
+
         return(false);
     }
-    
+
     return(true);
 }
 
@@ -716,10 +712,10 @@ bool check_gradient_grid
         ("  Volume dimension = ", gradient_grid.Dimension(), ".");
         error.AddMessage
         ("  Vector length = ", gradient_grid.VectorLength(), ".");
-        
+
         return(false);
     }
-    
+
     return(true);
 }
 
@@ -734,19 +730,19 @@ bool check_cube_coord
                          " coordinates.");
         return(false);
     }
-    
+
     for (int d = 0; d < scalar_grid.Dimension(); d++) {
         if (cube_coord[d] < 0) {
             error.AddMessage("Error: Illegal negative coordinate following -cc.");
             return(false);
         }
-        
+
         if (cube_coord[d]+1 >= scalar_grid.AxisSize(d)) {
             error.AddMessage("Error: Coordinate following -cc is not a valid cube coordinate.");
             return(false);
         }
     }
-    
+
     return(true);
 }
 
@@ -765,7 +761,7 @@ void usage_error()
     cerr << "Usage: sharpinfo [OPTIONS] <scalar filename> <gradient filename>"
     << endl;
     cerr << "OPTIONS:" << endl;
-    cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\"" 
+    cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\""
     << endl;
     cerr << "  [-gradC | -gradN | -gradCS | -gradNS ]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
@@ -781,9 +777,9 @@ void parse_command_line(int argc, char **argv)
     int iarg = 1;
     bool flag_none = false;
     while (iarg < argc && argv[iarg][0] == '-') {
-        
+
         std::string s = argv[iarg];
-        
+
         if (s == "-cube") {
             iarg++;
             if (iarg >= argc) { usage_error(); };
@@ -858,53 +854,53 @@ void parse_command_line(int argc, char **argv)
             cerr << endl;
             usage_error();
         }
-        
+
         iarg++;
     }
-    
+
     if (iarg >= argc) {
         cerr << "Error. Missing scalar and gradient file names." << endl;
         usage_error();
     }
-    
+
     if (iarg + 1 >= argc) {
         cerr << "Error. Missing gradient file name." << endl;
         usage_error();
     }
-    
+
     if (iarg + 2 < argc) {
         cerr << "Error. Command line has more than two input file names." << endl;
         usage_error();
     }
-    
+
     scalar_filename = argv[iarg];
     gradient_filename = argv[iarg+1];
-    
+
     if (!flag_isovalue_set && !flag_location_set && !flag_list_gradients) {
         cerr << "Error.  Option  -isovalue or -coord or -listg must be specified."
         << endl;
         usage_error();
         exit(15);
     }
-    
+
     if (!flag_isovalue_set && flag_list_subgrid) {
         cerr << "Error.  Option -list_subgrid cannot be used without -isovalue."
         << endl;
         exit(15);
     }
-    
+
     if (!flag_isovalue_set && flag_list_gradients && use_selected_gradients) {
         cerr << "Error. Option -isovalue required when listing selected gradients."
         << endl;
         exit(15);
     }
-    
+
     if (!flag_isovalue_set && flag_location_set && use_selected_gradients) {
         cerr << "Error. Option -isovalue required when using selected gradients."
         << endl;
         exit(15);
     }
-    
+
     if (cube_offset <= -1 || cube_offset > 1) {
         cerr << "Error in option -cube_offset." << endl;
         cerr << "  Cube offset must be greater than -1 and at most 1." << endl;
@@ -927,7 +923,7 @@ void help()
     cerr << "  -gradN:  Use gradients from cube and neighboring cubes." << endl;
     cerr << "  -gradCS: Use selected cube gradients." << endl;
     cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
-    cerr << "  -gradNS: Use selected gradients from cube and neighboring cubes." 
+    cerr << "  -gradNS: Use selected gradients from cube and neighboring cubes."
     << endl;
     cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
     cerr << "  -neighbor <cube_index>:  Use gradients from cube and" << endl

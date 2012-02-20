@@ -21,11 +21,15 @@
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifndef _ANISOGRAD_
+#define _ANISOGRAD_
+
 #include "isodual3D_datastruct.h"
 #include "ijkscalar_grid.txx"
 
 const float EPSILON = 0.001;
 const int DIM3 = 3;
+const int DIM9 = 9;
 
 
 void compute_gradient_central_difference
@@ -38,6 +42,7 @@ void anisotropic_diff
  const float mu,
  const float lambda,
  const int num_iter,
+ const int flag_aniso,
   ISODUAL3D::GRADIENT_GRID & gradient_grid);
 
 
@@ -47,3 +52,6 @@ void compute_anisotropic_gradient_filtering
 
 // Normalize the vectors.
 void normalize (float *vec, const int num_elements);
+// Calculate vector magnitude.
+void vector_magnitude (const float * vec, const int num_elements, float & mag);
+#endif

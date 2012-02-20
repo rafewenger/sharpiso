@@ -23,6 +23,7 @@
 
 
 #include <iostream>
+#include <vector>
 
 #include "ijkNrrd.h"
 #include "ijkgrid_nrrd.txx"
@@ -39,11 +40,13 @@ char * gradient_filename = NULL;
 bool report_time_flag = false;
 bool flag_gzip = false;
 bool flag_cdiff = false;
-float mu(0.0);
-float lambda(0.0);
-int num_iter = 1;
+bool flag_iso = false;
 
-bool debug = true;
+float mu(0.1);
+float lambda(0.1);
+int num_iter = 15;
+
+bool debug = false;
 
 using namespace std;
 
@@ -60,6 +63,8 @@ int main(int argc, char **argv)
 {
     time_t start_time;
     time(&start_time);
+    
+    vector<GRADIENT_TYPE> mag_list;
     
     IJK::ERROR error;
     
@@ -89,16 +94,62 @@ int main(int argc, char **argv)
         }
         else
         {
-            
+            // compute the central gradients first 
             compute_gradient_central_difference(full_scalar_grid, gradient_grid);
-            // Normalize the gradients
+            
+            // Normalize the gradients and also 
+            // store the magnitudes so that they can be later added back
             for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
             {
                 GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
-                normalize (N, DIM3);
+                GRADIENT_TYPE   mag = 0.0;
+                vector_magnitude (N, DIM3, mag);
+                if (mag > 0.0001)
+                {
+                    mag_list.push_back(mag);
+                    normalize (N, DIM3);
+                    gradient_grid.Set(iv, N);
+                }
+                else 
+                {
+                    mag_list.push_back(0.0);
+                }
             }
-            // Calculate the anisotropic diff of the gradients.
-            anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, gradient_grid);
+            if (flag_iso) {
+                // Calculate the anisotropic diff of the gradients.
+                cout << "isotropic diffusion"<<endl;
+                anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, 0, gradient_grid);
+            }
+            else
+            {
+                // Calculate the anisotropic diff of the gradients.
+                // anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, 1, gradient_grid);
+            }
+            
+            
+            // debug
+            // reset the gradients to be normalized
+            for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
+            {
+                GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
+                GRADIENT_TYPE   mag = 0.0;
+                if (mag > 0.0001)
+                {
+                    normalize (N, DIM3);
+                    gradient_grid.Set(iv, N);
+                }
+            }
+            
+            
+            //reset the magnitudes of the gradients
+            for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
+            {
+                GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
+                for (int i=0; i<DIM3; i++) {
+                    N[i] = N[i]*mag_list[iv];
+                }
+                gradient_grid.Set(iv, N);
+            }    
         }
         if (flag_gzip) {
             write_vector_grid_nrrd_gzip(gradient_filename, gradient_grid);
@@ -156,6 +207,8 @@ void parse_command_line(int argc, char **argv)
         { flag_gzip = true; }
         else if (string(argv[iarg]) == "-cdiff")
         { flag_cdiff = true; }
+        else if (string(argv[iarg]) == "-iso")
+        { flag_iso = true; }
         else if (string(argv[iarg]) == "-mu")
         {
             iarg++;
@@ -187,8 +240,14 @@ void parse_command_line(int argc, char **argv)
 
 void usage_msg()
 {
-    cerr << "Usage: anisograd [-gzip] [-time] [-mu] [-lambda] {scalar nrrd file} {gradient nrrd file}"
-    << endl;
+    cerr <<"Usage: anisograd [options]  {scalar nrrd file} {gradient nrrd file}"<<endl;
+    cerr <<"                 [-gzip] [-time]"<<endl;
+    cerr <<"                 [-cdiff]    central difference"<<endl;
+    cerr <<"                 [-iso]      isotropic diffusion "<<endl;
+    cerr <<"                 [-mu]       extent of anisotropic diffusion"<< endl; 
+    cerr <<"                 [-lambda]   extent of diffusion in each iteration " <<endl; 
+    cerr <<"                 [-num_iter] number of iterations "<<endl;
+    cerr << endl;
 }
 
 void usage_error()
