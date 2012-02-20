@@ -41,6 +41,7 @@ bool report_time_flag = false;
 bool flag_gzip = false;
 bool flag_cdiff = false;
 bool flag_iso = false;
+float large_magnitude = 2.0;
 
 float mu(0.1);
 float lambda(0.1);
@@ -106,6 +107,7 @@ int main(int argc, char **argv)
                 GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
                 GRADIENT_TYPE   mag = 0.0;
                 vector_magnitude (N, DIM3, mag);
+
                 if (mag > 0.0001)
                 {
                     mag_list.push_back(mag);
@@ -138,8 +140,23 @@ int main(int argc, char **argv)
             // reset the gradients to be normalized
             for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
             {
+                GRID_COORD_TYPE coord[DIM3];
+
                 GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
                 GRADIENT_TYPE   mag = 0.0;
+                vector_magnitude (N, DIM3, mag);
+
+                if (mag > large_magnitude || isnan(mag)) {
+                  full_scalar_grid.ComputeCoord(iv, coord);
+                  cout << "Vertex " << iv << " ";
+                  ijkgrid_output_coord(cout, DIM3, coord);
+                  cout << " Gradient: ";
+                  ijkgrid_output_coord(cout, DIM3, gradient_grid.VectorPtr(iv));
+                  cout << " Magnitude: ";
+                  cout << gradient_grid.ComputeMagnitude(iv);
+                  cout << endl;
+                }
+
                 if (mag > 0.0001)
                 {
                     normalize (N, DIM3);

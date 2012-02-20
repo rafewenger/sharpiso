@@ -454,7 +454,12 @@ void anisotropic_diff_per_vert
     for (int i=0; i<DIM3; i++) {
         w[i] = w[i] - wN*Normals[i];
     }
-    
+
+    // *** DEBUG ***
+    if (iv1 == icube) {
+      cout <<" w: "<< w[0]<<" "<< w[1]<<" "<< w[2] <<endl;
+    }
+
     for (int i=0; i<DIM3; i++) {
         Normals[i] = Normals[i]  + lambda *w[i];
     }
