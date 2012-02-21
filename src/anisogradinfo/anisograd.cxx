@@ -187,7 +187,6 @@ void compute_grad_H_d
     // This generates a  3X3 matrix
     const int dimension = scalar_grid.Dimension();
     for (int index_coord=0; index_coord<dimension; index_coord++) {
-
         compute_grad_H_d (scalar_grid, gradient_grid, iv1, d, index_coord, gradient + 3*index_coord);
     }
 }
@@ -235,11 +234,8 @@ void compute_central_difference_d
     const int dimension = scalar_grid.Dimension();
     VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
     VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
-
     const GRADIENT_TYPE * vertex_gradient_coord0 = gradient_grid.VectorPtrConst(iv0);
-
     const GRADIENT_TYPE * vertex_gradient_coord2 = gradient_grid.VectorPtrConst(iv2);
-
     cntrl_diff_d = (vertex_gradient_coord2[index_coord] - vertex_gradient_coord0[index_coord])/2.0;
 }
 
@@ -390,44 +386,31 @@ void anisotropic_diff_per_vert
      SCALAR_TYPE gKprev[DIM3]={0.0};
 
      for (int d=0; d<DIM3; d++) {
-
      // compute gradHN_d
      GRADIENT_TYPE   gradHN_d[DIM9]={0.0};
      compute_gradH_d_normals (gradient_grid, iv1, d,gradHN_d);
      // compute C_d
      GRADIENT_TYPE c[DIM3]={0.0};
      compute_c_d(scalar_grid, gradient_grid, iv1, d, c);
-
      SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
-
      vector_sum_of_squares(gradHN_d, DIM9, sum_gradHNd);
-
-
      vector_dot_pdt(c, c, DIM3, c_square);
-
      K[d] = sum_gradHNd  - c_square;
-
      compute_g_x(mu, K[d], flag_aniso, gK[d]);
      }
 
 
      for (int d=0; d<DIM3; d++) {
-
      // compute gradHN_d
      GRADIENT_TYPE   gradHN_d[DIM9]={0.0};
      compute_gradH_d_normals (gradient_grid, prev_vert[d], d,gradHN_d);
      // compute C_d
      GRADIENT_TYPE c[DIM3]={0.0};
      compute_c_d(scalar_grid, gradient_grid, prev_vert[d], d, c);
-
      SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
-
      vector_sum_of_squares(gradHN_d, DIM9, sum_gradHNd);
-
      vector_dot_pdt(c, c, DIM3, c_square);
-
      K[d] = sum_gradHNd  - c_square;
-
      compute_g_x(mu, K[d],flag_aniso, gKprev[d]);
      }
 
