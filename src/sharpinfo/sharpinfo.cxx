@@ -4,7 +4,7 @@
 
 /*
  IJK: Isosurface Jeneration Kode
- Copyright (C) 2011 Rephael Wenger
+ Copyright (C) 2011,2012 Rephael Wenger
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public License
@@ -42,7 +42,6 @@ using namespace std;
 char * scalar_filename = NULL;
 char * gradient_filename = NULL;
 SCALAR_TYPE isovalue(0);
-SCALAR_TYPE cube_offset2 = 0.3;
 GRADIENT_COORD_TYPE max_small_mag(0.0);
 EIGENVALUE_TYPE max_small_eigenvalue(0.1);
 VERTEX_INDEX cube_index(0);
@@ -60,7 +59,8 @@ bool flag_list_eigen(false);
 bool flag_svd_gradients(true); //default
 bool flag_svd_edges_simple(false);
 bool flag_svd_edges_cmplx(false);
-COORD_TYPE cube_offset(0);
+SIGNED_COORD_TYPE grad_selection_cube_offset(0);
+SIGNED_COORD_TYPE ray_intersection_cube_offset(0.3);
 
 // get gradients
 void get_gradients
@@ -297,7 +297,7 @@ void get_gradients
  NUM_TYPE & num_gradients)
 {
     if (use_selected_gradients) {
-        OFFSET_CUBE_111 cube_111(cube_offset);
+        OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
 
         if (use_only_cube_gradients) {
             select_cube_gradients
@@ -341,51 +341,56 @@ void compute_iso_vertex_using_svd
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info)
 {
-    if (flag_svd_edges_simple) {
-        svd_compute_sharp_vertex_in_cube_edge_based_simple
-        (scalar_grid, gradient_grid, cube_index, isovalue,
-         max_small_mag, max_small_eigenvalue, cube_offset2,
-         sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
-    }
-    else if (flag_svd_edges_cmplx) {
+  if (flag_svd_edges_simple) {
+    svd_compute_sharp_vertex_in_cube_edge_based_simple
+      (scalar_grid, gradient_grid, cube_index, isovalue,
+       max_small_mag, max_small_eigenvalue, ray_intersection_cube_offset,
+       sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+  }
+  else if (flag_svd_edges_cmplx) {
 
-        svd_compute_sharp_vertex_in_cube_edge_based_cmplx
-        (scalar_grid, gradient_grid, cube_index, isovalue,
-         max_small_mag, max_small_eigenvalue, cube_offset2, sharp_coord, eigenvalues,
-         num_large_eigenvalues, svd_info);
+    svd_compute_sharp_vertex_in_cube_edge_based_cmplx
+      (scalar_grid, gradient_grid, cube_index, isovalue,
+       max_small_mag, max_small_eigenvalue, ray_intersection_cube_offset,
+       sharp_coord, eigenvalues,
+       num_large_eigenvalues, svd_info);
+  }
+  else {
+    if (use_selected_gradients) {
+      OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+
+      if (use_only_cube_gradients) {
+        svd_compute_sharp_vertex_in_cube_S
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           max_small_mag, max_small_eigenvalue, ray_intersection_cube_offset,
+           sharp_coord, eigenvalues,
+           num_large_eigenvalues, svd_info, cube_111);
+      }
+      else {
+        svd_compute_sharp_vertex_neighborhood_S
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           max_small_mag, max_small_eigenvalue, ray_intersection_cube_offset,
+           sharp_coord, eigenvalues,
+           num_large_eigenvalues, svd_info, cube_111);
+      }
     }
     else {
-        if (use_selected_gradients) {
-            OFFSET_CUBE_111 cube_111(cube_offset);
-
-            if (use_only_cube_gradients) {
-                svd_compute_sharp_vertex_in_cube_S
-                (scalar_grid, gradient_grid, cube_index, isovalue,
-                 max_small_mag, max_small_eigenvalue, cube_offset2, sharp_coord, eigenvalues,
-                 num_large_eigenvalues, svd_info, cube_111);
-            }
-            else {
-                svd_compute_sharp_vertex_neighborhood_S
-                (scalar_grid, gradient_grid, cube_index, isovalue,
-                 max_small_mag, max_small_eigenvalue, cube_offset2, sharp_coord, eigenvalues,
-                 num_large_eigenvalues, svd_info, cube_111);
-            }
-        }
-        else {
-            if (use_only_cube_gradients) {
-                svd_compute_sharp_vertex_in_cube
-                (scalar_grid, gradient_grid, cube_index, isovalue,
-                 max_small_mag, max_small_eigenvalue, cube_offset2, sharp_coord, eigenvalues,
-                 num_large_eigenvalues, svd_info);
-            }
-            else {
-                svd_compute_sharp_vertex_neighborhood
-                (scalar_grid, gradient_grid, cube_index, isovalue,
-                 max_small_mag, max_small_eigenvalue, cube_offset2, sharp_coord, eigenvalues,
-                 num_large_eigenvalues, svd_info);
-            }
-        }
+      if (use_only_cube_gradients) {
+        svd_compute_sharp_vertex_in_cube
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           max_small_mag, max_small_eigenvalue, ray_intersection_cube_offset,
+           sharp_coord, eigenvalues,
+           num_large_eigenvalues, svd_info);
+      }
+      else {
+        svd_compute_sharp_vertex_neighborhood
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           max_small_mag, max_small_eigenvalue, ray_intersection_cube_offset,
+           sharp_coord, eigenvalues,
+           num_large_eigenvalues, svd_info);
+      }
     }
+  }
 
 }
 
@@ -401,18 +406,18 @@ void compute_iso_vertex_using_subgrid
  SCALAR_TYPE & max_abs_scalar_error)
 {
     if (use_selected_gradients) {
-        OFFSET_CUBE_111 cube_111(cube_offset);
+        OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
 
         if (use_only_cube_gradients) {
             subgrid_compute_sharp_vertex_in_cube_S
             (scalar_grid, gradient_grid, cube_index, isovalue,
-             max_small_mag, cube_offset2, subgrid_axis_size,
+             max_small_mag, ray_intersection_cube_offset, subgrid_axis_size,
              sharp_coord, scalar_stdev, max_abs_scalar_error, cube_111);
         }
         else {
             subgrid_compute_sharp_vertex_neighborhood_S
             (scalar_grid, gradient_grid, cube_index, isovalue,
-             max_small_mag, cube_offset2, subgrid_axis_size,
+             max_small_mag, ray_intersection_cube_offset, subgrid_axis_size,
              sharp_coord, scalar_stdev, max_abs_scalar_error, cube_111);
         }
     }
@@ -420,13 +425,13 @@ void compute_iso_vertex_using_subgrid
         if (use_only_cube_gradients) {
             subgrid_compute_sharp_vertex_in_cube
             (scalar_grid, gradient_grid, cube_index, isovalue,
-             max_small_mag, cube_offset2, subgrid_axis_size,
+             max_small_mag, ray_intersection_cube_offset, subgrid_axis_size,
              sharp_coord, scalar_stdev, max_abs_scalar_error);
         }
         else {
             subgrid_compute_sharp_vertex_neighborhood
             (scalar_grid, gradient_grid, cube_index, isovalue,
-             max_small_mag,cube_offset2, subgrid_axis_size,
+             max_small_mag,ray_intersection_cube_offset, subgrid_axis_size,
              sharp_coord, scalar_stdev, max_abs_scalar_error);
         }
     }
@@ -661,8 +666,8 @@ void output_cube_eigenvalues
 
         svd_compute_sharp_vertex_in_cube
         (scalar_grid, gradient_grid, icube, isovalue,
-         max_zero_mag, eigenvalue_tolerance, cube_offset2, sharp_coord,
-         eigenvalues, num_large_eigenvalues,
+         max_zero_mag, eigenvalue_tolerance, ray_intersection_cube_offset, 
+         sharp_coord, eigenvalues, num_large_eigenvalues,
          svd_info);
 
         output_cube_coordinates(output, scalar_grid, icube);
@@ -766,8 +771,8 @@ void usage_error()
     cerr << "  [-gradC | -gradN | -gradCS | -gradNS ]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -svd_grad | -svd_edge_simple | -svd_edge_cmplx"<<endl;
-    cerr << "  -cube_offset2 <offsetvalue>" <<endl;
-    cerr << "  -max_eigen <value>" << endl;
+    cerr << "  -max_eigen <value> | -gradS_offset <value> -rayI_offset <value>"
+         << endl;
     cerr << "  -listg | -list_subgrid" << endl;
     exit(10);
 }
@@ -810,6 +815,8 @@ float get_float(const int iarg, const int argc, char **argv)
 
 void parse_command_line(int argc, char **argv)
 {
+  if (argc == 1) { usage_error(); }
+
   int iarg = 1;
   bool flag_none = false;
   while (iarg < argc && argv[iarg][0] == '-') {
@@ -870,12 +877,12 @@ void parse_command_line(int argc, char **argv)
       use_only_cube_gradients = false;
       use_selected_gradients = true;
     }
-    else if (s == "-offset") {
-      cube_offset = get_float(iarg, argc, argv);
+    else if (s == "-gradS_offset") {
+      grad_selection_cube_offset = get_float(iarg, argc, argv);
       iarg++;
     }
-    else if (s == "-cube_offset2") {
-      cube_offset2 = get_float(iarg, argc, argv);
+    else if (s == "-rayI_offset") {
+      ray_intersection_cube_offset = get_float(iarg, argc, argv);
       iarg++;
     }
     else if (s == "-max_eigen") {
@@ -937,9 +944,15 @@ void parse_command_line(int argc, char **argv)
     exit(15);
   }
 
-  if (cube_offset <= -1 || cube_offset > 1) {
-    cerr << "Error in option -cube_offset." << endl;
-    cerr << "  Cube offset must be greater than -1 and at most 1." << endl;
+  if (grad_selection_cube_offset <= -1) {
+    cerr << "Error in option -gradS_offset." << endl;
+    cerr << "  Grad selection cube offset must be at least -1." << endl;
+    exit(15);
+  }
+
+  if (grad_selection_cube_offset > 1) {
+    cerr << "Error in option -gradS_offset." << endl;
+    cerr << "  Grad selection cube offset must be at most 1." << endl;
     exit(15);
   }
 }
