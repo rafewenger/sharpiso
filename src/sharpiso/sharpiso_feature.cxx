@@ -462,6 +462,8 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
       IJK::copy_coord_3D(coord, svd_info.ray_initial_point);
       isIntersect = calculate_point_intersect_complex
         (cube_coord, coord, ray_direction, ray_selection_cube_offset, coord);
+
+      IJK::round16_coord(DIM3, coord, coord);  // Round to nearest 16'th
     }
 
   if (!isIntersect && num_large_eigenvalues == 2)
@@ -480,6 +482,8 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
     
   if (num_large_eigenvalues == 3)
     {
+      IJK::round16_coord(DIM3, coord, coord);  // Round to nearest 16'th
+
       //check if the coord is inside the threshold
       is_coord_inside_offset
         ( coord, cube_center, allowable_dist, is_inside);
@@ -497,13 +501,13 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
     
   // check if the coord is within the cube 
   if ( !flag_use_centroid && scalar_grid.ContainsPoint(coord) ) {
-      
+
     // check if NOT in  present cube.
     // Note : does not use a offset to check for on the boundary
         
     if(!scalar_grid.CubeContainsPoint(cube_index, coord)){
       COORD_TYPE new_index_coord[DIM3];
-           
+
       // find which cube does it belong to ?
       for (int d=0; d<DIM3; d++) {
         new_index_coord[d]  = floor(coord[d]);
@@ -531,6 +535,8 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
       compute_isosurface_grid_edge_centroid
         (scalar_grid, isovalue, cube_index, coord);
       svd_info.location = CENTROID;
+
+      IJK::round16_coord(DIM3, coord, coord);  // Round to nearest 16'th
     }
     
   if (num_large_eigenvalues == 0 )

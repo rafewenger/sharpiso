@@ -27,6 +27,7 @@
 #include "ijkcoord.txx"
 #include "ijkgrid_macros.h"
 #include "ijkgrid_nrrd.txx"
+#include "ijkprint.txx"
 #include "ijkstring.txx"
 
 #include "sharpiso_feature.h"
@@ -35,6 +36,7 @@
 #include "sharpiso_scalar.txx"
 
 using namespace SHARPISO;
+using namespace IJK;
 
 using namespace std;
 
@@ -509,26 +511,25 @@ void output_svd_results
   else
     { output << "(unknown): "; }
 
-    IJK::ijkgrid_output_coord(output, DIM3, sharp_coord);
-    output << endl;
-    output << "Eigenvalues: ";
-    IJK::ijkgrid_output_coord(output, DIM3, eigenvalues);
-    output << endl;
-    output << "Number of large eigenvalues (>= " << eigenvalue_tolerance
-    << "): "
-    << num_large_eigenvalues << endl;
+  IJK::ijkgrid_output_coord(output, DIM3, sharp_coord);
+  output << endl;
+  output << "Eigenvalues: ";
+  IJK::ijkgrid_output_coord(output, DIM3, eigenvalues);
+  output << endl;
+  output << "Number of large eigenvalues (>= " << eigenvalue_tolerance
+         << "): "
+         << num_large_eigenvalues << endl;
 
-    if(num_large_eigenvalues == 2) {
-        output << "ray direction " << svd_info.ray_direction[0] << " "
-        << svd_info.ray_direction[1] << " "
-        << svd_info.ray_direction[2] << endl;
-        output << "ray initial point "
-        << svd_info.ray_initial_point[0] << " "
-        << svd_info.ray_initial_point[1] << " "
-        << svd_info.ray_initial_point[2] << endl;
-        output << "ray intersected cube? "
-        << svd_info.ray_intersect_cube << endl;
-    }
+  if(num_large_eigenvalues == 2) {
+    output << "Ray: ";
+    print_coord3D(output, svd_info.ray_initial_point);
+    output << " + t";
+    print_coord3D(output, svd_info.ray_direction);
+    if (svd_info.ray_intersect_cube) 
+      { output << " intersects cube." << endl; }
+    else 
+      { output << " does not intersect cube." << endl; }
+  }
 
 }
 
