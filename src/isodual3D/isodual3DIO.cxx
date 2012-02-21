@@ -1163,9 +1163,9 @@ void ISODUAL3D::OUTPUT_INFO::Init()
 
 namespace {
 
+  /// split string at last occurrence of character c into prefix and suffix
   void split_string(const string & s, const char c,
                     string & prefix, string & suffix)
-    // split string at last occurrence of character c into prefix and suffix
   {
   string::size_type i = s.rfind(c);
   if (i == string::npos) {
@@ -1325,6 +1325,22 @@ void ISODUAL3D::set_color_alternating
     color_ptr += 4;
   }
 
+}
+
+// **************************************************
+// NRRD INFORMATION
+// **************************************************
+
+/// Construct gradient filename from scalar filename.
+void ISODUAL3D::construct_gradient_filename
+(const char * scalar_filename, std::string & gradient_filename)
+{
+  std::string prefix;
+  std::string suffix;
+
+  split_string(scalar_filename, '.', prefix, suffix);
+
+  gradient_filename = prefix + ".grad." + suffix;
 }
 
 // **************************************************

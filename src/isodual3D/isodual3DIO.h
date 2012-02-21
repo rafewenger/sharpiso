@@ -328,6 +328,14 @@ namespace ISODUAL3D {
      COLOR_TYPE * color);
 
 // **************************************************
+// CONSTRUCT FILENAME
+// **************************************************
+
+  /// Construct gradient filename from scalar filename.
+  void construct_gradient_filename
+  (const char * scalar_filename, std::string & gradient_filename);
+
+// **************************************************
 // REPORT SCALAR FIELD OR ISOSURFACE INFORMATION
 // **************************************************
 
