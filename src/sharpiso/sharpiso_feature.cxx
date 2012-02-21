@@ -514,11 +514,12 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
       }
     
       // compute the new vertex index
-      VERTEX_INDEX new_icube = scalar_grid.ComputeVertexIndex(coord);
-            
+      VERTEX_INDEX new_icube = 
+        scalar_grid.ComputeVertexIndex(new_index_coord);
+
       // check if the isosurface intersects the new vertex index
       bool does_cube_intersect_isosurface = false;
-          
+
       does_cube_intersect_isosurface = 
         IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue);
       if (does_cube_intersect_isosurface) {
