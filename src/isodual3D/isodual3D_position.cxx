@@ -250,7 +250,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
   EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
 
   VERTEX_INDEX num_large_eigenvalues;
-    
+
   if (use_selected_gradients) {
         
     OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);

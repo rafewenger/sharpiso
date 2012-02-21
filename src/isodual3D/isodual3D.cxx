@@ -59,8 +59,8 @@ void ISODUAL3D::dual_contouring
       || isodual_data.VertexPositionMethod() == EDGE_SIMPLE
       || isodual_data.VertexPositionMethod() == EDGE_COMPLEX) {
     dual_contouring
-      (isodual_data, isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
-       isovalue, 
+      (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
+       isovalue, isodual_data, 
        dual_isosurface.isopoly_vert, dual_isosurface.vertex_coord,
        merge_data, isodual_info);
   }
@@ -211,10 +211,10 @@ void ISODUAL3D::dual_contouring
 }
 
 void ISODUAL3D::dual_contouring
-(const ISODUAL_PARAM & isodual_param,
- const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
+ const ISODUAL_PARAM & isodual_param,
  std::vector<VERTEX_INDEX> & isopoly_vert,
  std::vector<COORD_TYPE> & vertex_coord,
  MERGE_DATA & merge_data,

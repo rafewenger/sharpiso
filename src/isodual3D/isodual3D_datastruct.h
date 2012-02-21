@@ -105,7 +105,7 @@ namespace ISODUAL3D {
   // DUAL CONTOURING INPUT DATA AND DATA STRUCTURES
   // **************************************************
 
-  /// dual contouring paramaters
+  /// dual contouring parameters
   class ISODUAL_PARAM {
 
   protected:

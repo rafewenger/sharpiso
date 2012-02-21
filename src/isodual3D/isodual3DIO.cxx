@@ -48,14 +48,14 @@ namespace {
   typedef enum
     {SUBSAMPLE_PARAM, SUPERSAMPLE_PARAM,
      GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM,
-     MAX_EIGEN_PARAM,
+     MAX_EIGEN_PARAM, GRAD_S_OFFSET_PARAM, RAY_I_OFFSET_PARAM,
      HELP_PARAM, OFF_PARAM, IV_PARAM,
      OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
      NOWRITE_PARAM, SILENT_PARAM, TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
     {"-subsample", "-supersample",
      "-gradient", "-position", "-trimesh",
-     "-max_eigen",
+     "-max_eigen", "-gradS_offset", "-rayI_offset",
      "-help", "-off", "-iv",
      "-o", "-stdout",
      "-nowrite", "-s", "-time", "-unknown"};
@@ -221,6 +221,16 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 
     case MAX_EIGEN_PARAM:
       io_info.max_small_eigenvalue = get_float(iarg, argc, argv);
+      iarg++;
+      break;
+
+    case GRAD_S_OFFSET_PARAM:
+      io_info.grad_selection_cube_offset = get_float(iarg, argc, argv);
+      iarg++;
+      break;
+
+    case RAY_I_OFFSET_PARAM:
+      io_info.ray_intersection_cube_offset = get_float(iarg, argc, argv);
       iarg++;
       break;
 
@@ -1219,7 +1229,8 @@ void ISODUAL3D::set_isodual_data
   PROCEDURE_ERROR error("set_isodual_data");
 
   if (!isodual_data.IsScalarGridSet()) {
-    error.AddMessage("Programming error. Scalar field must be set before set_isodual_data is called.");
+    error.AddMessage
+      ("Programming error. Scalar field must be set before set_isodual_data is called.");
     throw error;
   }
 
@@ -1228,6 +1239,10 @@ void ISODUAL3D::set_isodual_data
   isodual_data.SetUseSelectedGradients(io_info.use_selected_gradients);
   isodual_data.SetUseOnlyCubeGradients(io_info.use_only_cube_gradients);
   isodual_data.max_small_eigenvalue = io_info.max_small_eigenvalue;
+  isodual_data.grad_selection_cube_offset = 
+    io_info.grad_selection_cube_offset;
+  isodual_data.ray_intersection_cube_offset = 
+    io_info.ray_intersection_cube_offset;
 }
 
 void ISODUAL3D::set_io_info
