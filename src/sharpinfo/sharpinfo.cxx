@@ -531,6 +531,11 @@ void output_svd_results
       { output << " does not intersect cube." << endl; }
   }
 
+  if (svd_info.is_svd_point_in_cube) 
+    { output << "Cube contains SVD point." << endl; }
+  else
+    { output << "Cube does not contain SVD point." << endl; }
+
 }
 
 void output_subgrid_results

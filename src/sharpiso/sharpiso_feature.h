@@ -45,10 +45,11 @@ namespace SHARPISO {
 
   class SVD_INFO {
   public:
-    GRADIENT_COORD_TYPE  ray_direction[DIM3];     //ray direction
-    SCALAR_TYPE   ray_initial_point[DIM3]; //ray initial point
-    LOC_TYPE location; //defined in sharpiso_types typedef enum
-    bool ray_intersect_cube;
+    GRADIENT_COORD_TYPE ray_direction[DIM3]; // ray direction
+    SCALAR_TYPE ray_initial_point[DIM3];     // point on ray
+    LOC_TYPE location;                       // location type
+    bool ray_intersect_cube;                 // true if ray intersects cube
+    bool is_svd_point_in_cube;               // true if svd point is in cube
 	};
 
   // **************************************************

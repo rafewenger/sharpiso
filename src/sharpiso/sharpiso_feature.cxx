@@ -56,6 +56,10 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
     std::vector<COORD_TYPE> point_coord;
     std::vector<GRADIENT_COORD_TYPE> gradient_coord;
     std::vector<SCALAR_TYPE> scalar;
+
+    // Initialize svd_info
+    svd_info.ray_intersect_cube = false;
+    svd_info.is_svd_point_in_cube = false;
     
     get_large_cube_gradients
     (scalar_grid, gradient_grid, cube_index, max_small_mag,
@@ -68,8 +72,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
     (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
      num_gradients, isovalue, max_small_eigenvalue,
      num_large_eigenvalues, eigenvalues, coord, ray_direction);
-    
-    
+
     if (num_large_eigenvalues == 2) {
         bool isIntersect = false;
         
@@ -81,15 +84,14 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
         scalar_grid.ComputeCoord(cube_index, cube_coord);
         
         isIntersect = calculate_point_intersect_complex
-        (cube_coord, coord, ray_direction, cube_offset2, coord);
-        svd_info.ray_intersect_cube = true;
+          (cube_coord, coord, ray_direction, cube_offset2, coord);
+        svd_info.ray_intersect_cube = isIntersect;
         svd_info.location = LOC_SVD;
-        
+
         if (!isIntersect) {
-            svd_info.ray_intersect_cube = false;
-            compute_isosurface_grid_edge_centroid
+          compute_isosurface_grid_edge_centroid
             (scalar_grid, isovalue, cube_index, coord);
-            svd_info.location = CENTROID;
+          svd_info.location = CENTROID;
         }
     }
     else if (num_large_eigenvalues < 2) {
@@ -419,6 +421,10 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
   std::vector<COORD_TYPE> point_coord;
   std::vector<GRADIENT_COORD_TYPE> gradient_coord;
   std::vector<SCALAR_TYPE> scalar;
+
+  // Initialize svd_info
+  svd_info.ray_intersect_cube = false;
+  svd_info.is_svd_point_in_cube = false;
     
   //coord of the cube index
   COORD_TYPE cube_coord[DIM3];
@@ -458,27 +464,21 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
 
   if (num_large_eigenvalues == 2) 
     {
+      svd_info.location = LOC_SVD;
+
       IJK::copy_coord_3D(ray_direction, svd_info.ray_direction);
       IJK::copy_coord_3D(coord, svd_info.ray_initial_point);
       isIntersect = calculate_point_intersect_complex
         (cube_coord, coord, ray_direction, ray_selection_cube_offset, coord);
+      svd_info.ray_intersect_cube = isIntersect;
 
       IJK::round16_coord(DIM3, coord, coord);  // Round to nearest 16'th
-    }
 
-  if (!isIntersect && num_large_eigenvalues == 2)
-    {
-      svd_info.ray_intersect_cube = false;
-      flag_use_centroid = true;
-      svd_info.location = CENTROID;    
+      if (!isIntersect) {
+        flag_use_centroid = true;
+        svd_info.location = CENTROID;    
+      }
     }
-    
-  if (isIntersect && num_large_eigenvalues == 2) 
-    {
-      svd_info.ray_intersect_cube = true;
-      svd_info.location = LOC_SVD;
-    }
-    
     
   if (num_large_eigenvalues == 3)
     {
@@ -525,6 +525,9 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
         flag_use_centroid = true;  
         svd_info.location = CENTROID; 
       }   
+    }
+    else {  
+      svd_info.is_svd_point_in_cube = true;
     }
   }
     
