@@ -80,7 +80,8 @@ namespace ISODUAL3D {
   ///                    of the edge isosurface intersections.
   /// GRADIENT_POSITIONING: Position using gradients.
   typedef enum { CUBECENTER, CENTROID_EDGE_ISO,
-                 GRADIENT_POSITIONING, EDGE_SIMPLE, EDGE_COMPLEX} VERTEX_POSITION_METHOD;
+                 GRADIENT_POSITIONING, EDGE_SIMPLE, EDGE_COMPLEX} 
+  VERTEX_POSITION_METHOD;
 
 // **************************************************
 // CLASSES

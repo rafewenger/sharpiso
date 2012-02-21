@@ -127,6 +127,35 @@ namespace ISODUAL3D {
   public:
     ISODUAL_PARAM() { Init(); };
     ~ISODUAL_PARAM() { Init(); };
+
+    // Set functions
+    void SetInterpolationType       /// Set type of interpolation.
+      (const INTERPOLATION_TYPE interpolation_type);
+    void SetVertexPositionMethod    /// Set isosurface vertex position method.
+      (const VERTEX_POSITION_METHOD vertex_position_method);
+    void SetUseSelectedGradients    /// Set flag for using selected gradients.
+      (const bool flag);
+    void SetUseOnlyCubeGradients    /// Set flag for using only cube gradients.
+      (const bool flag);
+
+    /// Return interpolation type.
+    INTERPOLATION_TYPE InterpolationType() const
+      { return(interpolation_type); };
+
+    /// Return isosurface vertex position method.
+    VERTEX_POSITION_METHOD VertexPositionMethod() const
+      { return(vertex_position_method); };
+
+    /// Return flag to use only selected gradients.
+    bool UseSelectedGradients() const
+    { return(use_selected_gradients); }
+
+    /// Return flag to use only cube gradients
+    bool UseOnlyCubeGradients() const
+    { return(use_only_cube_gradients); }
+
+    /// Return true if gradient data required.
+    bool GradientsRequired() const;
   };
 
   /// Input data to Dual Contouring and related algorithms
@@ -158,14 +187,6 @@ namespace ISODUAL3D {
     void SupersampleScalarGrid      /// Supersample scalar_grid.
       (const ISODUAL_SCALAR_GRID_BASE & scalar_grid2, 
        const int supersample_resolution);
-    void SetInterpolationType       /// Set type of interpolation.
-      (const INTERPOLATION_TYPE interpolation_type);
-    void SetVertexPositionMethod    /// Set isosurface vertex position method.
-      (const VERTEX_POSITION_METHOD vertex_position_method);
-    void SetUseSelectedGradients    /// Set flag for using selected gradients.
-      (const bool flag);
-    void SetUseOnlyCubeGradients    /// Set flag for using only cube gradients.
-      (const bool flag);
 
     /// Copy, subsample or supersample scalar grid.
     /// Precondition: flag_subsample and flag_supersample are not both true.
@@ -191,22 +212,6 @@ namespace ISODUAL3D {
       { return(scalar_grid); };
     const GRADIENT_GRID_BASE & GradientGrid() const     /// Return gradient_grid
       { return(gradient_grid); };
-
-    /// Return interpolation type.
-    INTERPOLATION_TYPE InterpolationType() const
-      { return(interpolation_type); };
-
-    /// Return isosurface vertex position method.
-    VERTEX_POSITION_METHOD VertexPositionMethod() const
-      { return(vertex_position_method); };
-
-    /// Return flag to use only selected gradients.
-    bool UseSelectedGradients() const
-    { return(use_selected_gradients); }
-
-    /// Return flag to use only cube gradients
-    bool UseOnlyCubeGradients() const
-    { return(use_only_cube_gradients); }
 
     /// Check data structure
     bool Check(IJK::ERROR & error) const;

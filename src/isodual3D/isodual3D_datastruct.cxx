@@ -61,6 +61,45 @@ void ISODUAL_PARAM::Init()
   max_small_eigenvalue = 0.1;
 }
 
+/// Set type of interpolation
+void ISODUAL_PARAM::SetInterpolationType
+(const INTERPOLATION_TYPE interpolation_type)
+{
+  this->interpolation_type = interpolation_type;
+}
+
+/// Set isosurface vertex position method.
+void ISODUAL_PARAM::SetVertexPositionMethod    
+(const VERTEX_POSITION_METHOD vertex_position_method)
+{
+  this->vertex_position_method = vertex_position_method;
+}
+
+/// Set flag for using selected gradients
+void ISODUAL_PARAM::SetUseSelectedGradients
+(const bool flag)
+{
+  this->use_selected_gradients = flag;
+}
+
+/// Set flag for using only cube gradients.
+void ISODUAL_PARAM::SetUseOnlyCubeGradients
+(const bool flag)
+{
+  this->use_only_cube_gradients = flag;
+}
+
+/// Return true if gradient data required.
+bool ISODUAL_PARAM::GradientsRequired() const
+{
+  if (VertexPositionMethod() == GRADIENT_POSITIONING ||
+      VertexPositionMethod() == EDGE_SIMPLE ||
+      VertexPositionMethod() == EDGE_COMPLEX) 
+    { return(true); }
+  else
+    { return(false); }
+}
+
 // **************************************************
 // CLASS ISODUAL_DATA
 // **************************************************
@@ -164,34 +203,6 @@ void ISODUAL_DATA::SetGrids
     CopyGradientGrid(full_gradient_grid);
   };
 
-}
-
-/// Set type of interpolation
-void ISODUAL_DATA::SetInterpolationType
-(const INTERPOLATION_TYPE interpolation_type)
-{
-  this->interpolation_type = interpolation_type;
-}
-
-/// Set isosurface vertex position method.
-void ISODUAL_DATA::SetVertexPositionMethod    
-(const VERTEX_POSITION_METHOD vertex_position_method)
-{
-  this->vertex_position_method = vertex_position_method;
-}
-
-/// Set flag for using selected gradients
-void ISODUAL_DATA::SetUseSelectedGradients
-(const bool flag)
-{
-  this->use_selected_gradients = flag;
-}
-
-/// Set flag for using only cube gradients.
-void ISODUAL_DATA::SetUseOnlyCubeGradients
-(const bool flag)
-{
-  this->use_only_cube_gradients = flag;
 }
 
 /// Check data structure
