@@ -22,7 +22,7 @@
  */
 
 #include "anisograd_operators.h"
- using namespace std;
+using namespace std;
 
 // LOCAL FUNCTION DEFINITIONS 
 void compute_forward_difference_d_normals_per_index
@@ -96,7 +96,7 @@ void compute_forward_difference_d_normals
  GRADIENT_TYPE fwd_diff_d_normals[DIM3]) //[3 terms in it]
 {
     const int dimension = gradient_grid.Dimension();
-        
+    
     for (int index=0; index<dimension; index++) 
         compute_forward_difference_d_normals_per_index
         (gradient_grid, iv1, d, index, fwd_diff_d_normals[index]);
@@ -138,11 +138,11 @@ void compute_gradH_d_normals
 // for the scalar grid
 void compute_gradH_d_scalar_grid
 (
-const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
+ const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
  const VERTEX_INDEX iv1,
  const DIRECTION d,
  GRADIENT_TYPE gradientH_d_scalar_grid[DIM3]
-)
+ )
 {
     for (int i=0; i <DIM3; i++) {
         if (i==d) {
@@ -168,14 +168,14 @@ const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
 
 void compute_c_d
 (
-const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
+ const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
  const DIRECTION d,
  GRADIENT_TYPE c[DIM3]
-)
+ )
 {
-   
+    
     // compute the gradient of the Normal vector
     GRADIENT_TYPE gradientN_d[DIM9]={0.0};
     compute_gradH_d_normals(gradient_grid, iv1, d, gradientN_d);
@@ -186,7 +186,7 @@ const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
     compute_gradH_d_scalar_grid(scalar_grid, iv1, d, gradientS_d);
     
     divide_by_vec_sumof_sqaures(DIM3, gradientS_d);
-   
+    
     for (int i=0; i<DIM3; i++) {
         vector_dot_pdt(&gradientN_d[3*i], gradientS_d, DIM3, c[i]);
     }
@@ -199,10 +199,11 @@ void compute_m_d
 (
  const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
+ const int icube,
  const VERTEX_INDEX iv1,
  const int d,
  GRADIENT_TYPE m[DIM3]
-)
+ )
 {
     GRADIENT_TYPE   c[DIM3] = {0.0};
     GRADIENT_TYPE   fwd_diff_d_normals[DIM3] = {0.0};
@@ -264,12 +265,12 @@ void compute_central_difference_d_normals_per_index
  )
 {
     COORD_TYPE coord1[DIM3]={0.0};
-       COORD_TYPE coord2[DIM3]={0.0};
+    COORD_TYPE coord2[DIM3]={0.0};
     VERTEX_INDEX next_vert = gradient_grid.NextVertex(iv1, direction);
     VERTEX_INDEX prev_vert = gradient_grid.PrevVertex(iv1, direction);
     gradient_grid.ComputeCoord(next_vert, coord1);
-        gradient_grid.ComputeCoord(prev_vert, coord2);
-  
+    gradient_grid.ComputeCoord(prev_vert, coord2);
+    
     const GRADIENT_TYPE * vertex_grad_prev_vert = gradient_grid.VectorPtrConst (prev_vert);
     const GRADIENT_TYPE * vertex_grad_next_vert = gradient_grid.VectorPtrConst (next_vert);
     
@@ -286,7 +287,7 @@ void compute_gradH_d_normals_per_index
  const int index,
  const VERTEX_INDEX iv1,
  GRADIENT_TYPE  gradientH_d_Normals_per_index[DIM3]
-)
+ )
 {
     for (int i=0; i<DIM3; i++) {
         if(i==direction)

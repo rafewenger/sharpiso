@@ -27,6 +27,7 @@
 #include "isodual3D_datastruct.h"
 #include "ijkscalar_grid.txx"
 
+
 const float EPSILON = 0.001;
 const int DIM3 = 3;
 const int DIM9 = 9;
@@ -34,6 +35,7 @@ const int DIM9 = 9;
 
 void compute_gradient_central_difference
 (const ISODUAL3D::ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const int icube,
  ISODUAL3D::GRADIENT_GRID & gradient_grid);
 
 // Calculate the anisotropic diff of the gradients.
@@ -43,7 +45,8 @@ void anisotropic_diff
  const float lambda,
  const int num_iter,
  const int flag_aniso,
-  ISODUAL3D::GRADIENT_GRID & gradient_grid);
+ const int icube,
+ ISODUAL3D::GRADIENT_GRID & gradient_grid);
 
 
 void compute_anisotropic_gradient_filtering
