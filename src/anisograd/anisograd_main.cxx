@@ -41,12 +41,14 @@ bool report_time_flag = false;
 bool flag_gzip = false;
 bool flag_cdiff = false;
 bool flag_iso = false;
+float large_magnitude = 2.0;
 
 float mu(0.1);
 float lambda(0.1);
 int num_iter = 15;
+VERTEX_INDEX icube = 0;
 
-bool debug = false;
+bool debug = true;
 
 using namespace std;
 
@@ -88,14 +90,15 @@ int main(int argc, char **argv)
             cout <<" lambda " << lambda <<endl;
             cout <<" mu " << mu <<endl;
             cout <<" num_iter " << num_iter << endl;
+            cout <<" icube "<<icube<<endl;
         }
         if (flag_cdiff) {
-            compute_gradient_central_difference(full_scalar_grid, gradient_grid);
+            compute_gradient_central_difference(full_scalar_grid, icube, gradient_grid);
         }
         else
         {
             // compute the central gradients first 
-            compute_gradient_central_difference(full_scalar_grid, gradient_grid);
+            compute_gradient_central_difference(full_scalar_grid, icube, gradient_grid);
             
             // Normalize the gradients and also 
             // store the magnitudes so that they can be later added back
@@ -104,6 +107,7 @@ int main(int argc, char **argv)
                 GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
                 GRADIENT_TYPE   mag = 0.0;
                 vector_magnitude (N, DIM3, mag);
+                
                 if (mag > 0.0001)
                 {
                     mag_list.push_back(mag);
@@ -115,15 +119,19 @@ int main(int argc, char **argv)
                     mag_list.push_back(0.0);
                 }
             }
+            
+            
+            
             if (flag_iso) {
                 // Calculate the anisotropic diff of the gradients.
                 cout << "isotropic diffusion called "<<endl;
-                anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, 0, gradient_grid);
+                
+                anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, 0, icube, gradient_grid);
             }
             else
             {
                 // Calculate the anisotropic diff of the gradients.
-                 anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, 1, gradient_grid);
+                anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, 1, icube, gradient_grid);
             }
             
             
@@ -131,8 +139,12 @@ int main(int argc, char **argv)
             // reset the gradients to be normalized
             for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
             {
+                GRID_COORD_TYPE coord[DIM3];
+                
                 GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
                 GRADIENT_TYPE   mag = 0.0;
+                vector_magnitude (N, DIM3, mag);
+                
                 if (mag > 0.0001)
                 {
                     normalize (N, DIM3);
@@ -227,6 +239,12 @@ void parse_command_line(int argc, char **argv)
             if (iarg >= argc) { usage_error(); };
             sscanf(argv[iarg], "%d", &num_iter);
         }
+        else if (string(argv[iarg]) == "-icube")
+        {
+            iarg++;
+            if (iarg >= argc) { usage_error(); };
+            sscanf(argv[iarg], "%d", &icube);
+        }
         else 
         { usage_error(); }
         iarg++;
@@ -242,6 +260,7 @@ void usage_msg()
 {
     cerr <<"Usage: anisograd [options]  {scalar nrrd file} {gradient nrrd file}"<<endl;
     cerr <<"                 [-gzip] [-time]"<<endl;
+    cerr <<"                 [-icube]    cube  index "<<endl; 
     cerr <<"                 [-cdiff]    central difference"<<endl;
     cerr <<"                 [-iso]      isotropic diffusion "<<endl;
     cerr <<"                 [-mu]       extent of anisotropic diffusion"<< endl; 
