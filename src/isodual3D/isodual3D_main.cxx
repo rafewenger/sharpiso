@@ -70,13 +70,17 @@ int main(int argc, char **argv)
 
     if (io_info.GradientsRequired()) {
 
+      string gradient_filename;
+
       if (io_info.gradient_filename == NULL) {
-        error.AddMessage
-          ("Usage error: Option \"-gradient <filename>\" required to position isosurface vertices.");
-        throw error;
+        construct_gradient_filename
+          (io_info.scalar_filename, gradient_filename);
+      }
+      else {
+        gradient_filename = string(io_info.gradient_filename);
       }
 
-      read_nrrd_file(io_info.gradient_filename, full_gradient_grid,
+      read_nrrd_file(gradient_filename.c_str(), full_gradient_grid,
                      nrrd_gradient_info);
       flag_gradient = true;
 
