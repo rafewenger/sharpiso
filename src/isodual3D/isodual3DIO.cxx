@@ -1,5 +1,5 @@
-  /// \file isodual3DIO.cxx
-  /// IO routines for isodual3D
+/// \file isodual3DIO.cxx
+/// IO routines for isodual3D
 
 /*
  IJK: Isosurface Jeneration Kode
@@ -18,7 +18,7 @@
  You should have received a copy of the GNU Lesser General Public
  License along with this library; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+*/
 
 #include <assert.h>
 #include <time.h>
@@ -31,122 +31,60 @@
 #include "isodual3DIO.h"
 #include "ijkIO.txx"
 #include "ijkmesh.txx"
+#include "ijkstring.txx"
 
 using namespace IJK;
 using namespace ISODUAL3D;
 
 using namespace std;
 
-  // **************************************************
-  // PARSE COMMAND LINE
-  // **************************************************
+// **************************************************
+// PARSE COMMAND LINE
+// **************************************************
 
-  // local namespace
+// local namespace
 namespace {
 
   typedef enum
     {SUBSAMPLE_PARAM, SUPERSAMPLE_PARAM,
      GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM,
+     MAX_EIGEN_PARAM,
      HELP_PARAM, OFF_PARAM, IV_PARAM,
      OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
      NOWRITE_PARAM, SILENT_PARAM, TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
     {"-subsample", "-supersample",
      "-gradient", "-position", "-trimesh",
+     "-max_eigen",
      "-help", "-off", "-iv",
      "-o", "-stdout",
      "-nowrite", "-s", "-time", "-unknown"};
 
   PARAMETER get_parameter_token(char * s)
-    // convert string s into parameter token
+  // convert string s into parameter token
   {
-  for (int i = 0; i < int(UNKNOWN_PARAM); i++)
-    if (strcmp(parameter_string[i], s) == 0)
-      return(PARAMETER(i));
-  return(UNKNOWN_PARAM);
-  }
-
-  void get_box(const char * s, IJK::BOX<GRID_COORD_TYPE> & box)
-  {
-  istringstream coord_string;
-  vector<GRID_COORD_TYPE> coord;
-
-  string s2 = s;
-    // remove trailing blanks from s2
-  size_t pos = 0;
-  for (size_t i = 0; i < s2.length(); i++) {
-    if (!isspace(s2[i])) { pos = i+1; }
-  }
-  if (pos < s2.length()) { s2.erase(pos); };
-
-  coord_string.str(s2);
-  while (coord_string.good()) {
-    GRID_COORD_TYPE c;
-    coord_string >> c;
-    coord.push_back(c);
-  }
-
-  if (coord_string.fail() && !coord_string.eof()) {
-    cerr << "Error reading -highres coordinates: "
-    << "\"" << s << "\"" << endl;
-    cerr << "  Non-numeric character in coordinate string." << endl;
-    exit(600);
-  }
-
-  if (coord.size() == 1) {
-    cerr << "Error in -highres coordinates: "
-    << "\"" << s << "\"" << endl;
-    cerr << "  Coordinate list must be contained in quotation marks." << endl;
-    cerr << "  Number of coordinates must be at least two." << endl;
-    exit(605);
-  }
-
-  if (coord.size()%2 == 1) {
-    cerr << "Error in -highres coordinates: "
-    << "\"" << s << "\"" << endl;
-    cerr << "  Number of coordinates must be even." << endl;
-    exit(610);
-  }
-
-  int box_dim = coord.size()/2;
-  box.SetDimension(box_dim);
-  for (int d = 0; d < box_dim; d++) {
-    GRID_COORD_TYPE minc = coord[d];
-    GRID_COORD_TYPE maxc = coord[d+box_dim];
-    if (minc > maxc) {
-      cerr << "Error in -highres coordinates: "
-      << "\"" << s << "\"" << endl;
-      cerr << "  Minimum coordinate " << minc
-      << " (position " << d << ")"
-      << " is greater than maximum coordinate " << maxc
-      << " (position " << d+box_dim << ")." << endl;
-      cerr << "  List all minimum coordinates before maximum coordinates."
-      << endl;
-      exit(620);
-    }
-
-    box.SetMinCoord(d, coord[d]);
-    box.SetMaxCoord(d, coord[d+box_dim]);
-  }
-
+    for (int i = 0; i < int(UNKNOWN_PARAM); i++)
+      if (strcmp(parameter_string[i], s) == 0)
+        return(PARAMETER(i));
+    return(UNKNOWN_PARAM);
   }
 
   INTERPOLATION_TYPE get_interpolation_type(char * s)
-    // convert string s into parameter token
+  // convert string s into parameter token
   {
-  INTERPOLATION_TYPE type = LINEAR_INTERPOLATION;
+    INTERPOLATION_TYPE type = LINEAR_INTERPOLATION;
 
-  if (strcmp(s, "linear") == 0)
-    { type = LINEAR_INTERPOLATION; }
-  else if (strcmp(s, "multilinear") == 0)
-    { type = MULTILINEAR_INTERPOLATION; }
-  else {
-    cerr << "Error in input parameter -interpolate.  Illegal interpolation type: "
-    << s << "." << endl;
-    exit(1030);
-  }
+    if (strcmp(s, "linear") == 0)
+      { type = LINEAR_INTERPOLATION; }
+    else if (strcmp(s, "multilinear") == 0)
+      { type = MULTILINEAR_INTERPOLATION; }
+    else {
+      cerr << "Error in input parameter -interpolate.  Illegal interpolation type: "
+           << s << "." << endl;
+      exit(1030);
+    }
 
-  return(type);
+    return(type);
   }
 
   // Set vertex position method and flags.
@@ -198,12 +136,48 @@ namespace {
     }
   }
 
+  int get_int(const int iarg, const int argc, char **argv)
+  {
+    if (iarg+1 >= argc) { 
+      cerr << "Usage error. Missing argument for option " 
+           << argv[iarg] << " and missing file name." << endl;
+      usage_error(); 
+    }
+
+    int x;
+    if (!IJK::string2val(argv[iarg+1], x)) {
+      cerr << "Error in argument for option: " << argv[iarg] << endl;
+      cerr << "Non-integer character in string: " << argv[iarg+1] << endl;
+      exit(50);
+    }
+
+    return(x);
+  }
+
+  float get_float(const int iarg, const int argc, char **argv)
+  {
+    if (iarg+1 >= argc) { 
+      cerr << "Usage error. Missing argument for option " 
+           << argv[iarg] << " and missing file name." << endl;
+      usage_error(); 
+    }
+
+    float x;
+    if (!IJK::string2val(argv[iarg+1], x)) {
+      cerr << "Error in argument for option: " << argv[iarg] << endl;
+      cerr << "Non-numeric character in string: " << argv[iarg+1] << endl;
+      exit(50);
+    }
+
+    return(x);
+  }
+
 }
 
 void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
-  // parse command line
-  // control parameters, followed by one or more isovalues,
-  // followed by input file name
+// parse command line
+// control parameters, followed by one or more isovalues,
+// followed by input file name
 {
   if (argc == 1) { usage_error(); };
 
@@ -215,83 +189,86 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 
     switch(param) {
 
-      case SUBSAMPLE_PARAM:
-        iarg++;
-        if (iarg >= argc) usage_error();
-        sscanf(argv[iarg], "%d", &io_info.subsample_resolution);
-        io_info.flag_subsample = true;
-        break;
+    case SUBSAMPLE_PARAM:
+      io_info.subsample_resolution = get_int(iarg, argc, argv);
+      iarg++;
+      io_info.flag_subsample = true;
+      break;
 
-      case SUPERSAMPLE_PARAM:
-        iarg++;
-        if (iarg >= argc) usage_error();
-        sscanf(argv[iarg], "%d", &io_info.supersample_resolution);
-        io_info.flag_supersample = true;
-        break;
+    case SUPERSAMPLE_PARAM:
+      io_info.supersample_resolution = get_int(iarg, argc, argv);
+      iarg++;
+      io_info.flag_supersample = true;
+      break;
 
-      case GRADIENT_PARAM:
-        iarg++;
-        if (iarg >= argc) usage_error();
-        io_info.gradient_filename = argv[iarg];
-        break;
+    case GRADIENT_PARAM:
+      iarg++;
+      if (iarg >= argc) usage_error();
+      io_info.gradient_filename = argv[iarg];
+      break;
 
-      case POSITION_PARAM:
-        iarg++;
-        if (iarg >= argc) usage_error();
-        set_vertex_position_method(argv[iarg], io_info);
+    case POSITION_PARAM:
+      iarg++;
+      if (iarg >= argc) usage_error();
+      set_vertex_position_method(argv[iarg], io_info);
 
-        is_vertex_position_method_set = true;
-        break;
+      is_vertex_position_method_set = true;
+      break;
 
-      case TRIMESH_PARAM:
-        io_info.flag_output_tri_mesh = true;
-        break;
+    case TRIMESH_PARAM:
+      io_info.flag_output_tri_mesh = true;
+      break;
 
-      case OFF_PARAM:
-        io_info.output_format = OFF;
-        break;
+    case MAX_EIGEN_PARAM:
+      io_info.max_small_eigenvalue = get_float(iarg, argc, argv);
+      iarg++;
+      break;
 
-      case IV_PARAM:
-        io_info.output_format = IV;
-        break;
+    case OFF_PARAM:
+      io_info.output_format = OFF;
+      break;
 
-      case OUTPUT_FILENAME_PARAM:
-        iarg++;
-        if (iarg >= argc) usage_error();
-        io_info.output_filename = argv[iarg];
-        break;
+    case IV_PARAM:
+      io_info.output_format = IV;
+      break;
 
-      case STDOUT_PARAM:
-        io_info.use_stdout = true;
-        break;
+    case OUTPUT_FILENAME_PARAM:
+      iarg++;
+      if (iarg >= argc) usage_error();
+      io_info.output_filename = argv[iarg];
+      break;
 
-      case NOWRITE_PARAM:
-        io_info.nowrite_flag = true;
-        break;
+    case STDOUT_PARAM:
+      io_info.use_stdout = true;
+      break;
 
-      case SILENT_PARAM:
-        io_info.flag_silent = true;
-        break;
+    case NOWRITE_PARAM:
+      io_info.nowrite_flag = true;
+      break;
 
-      case TIME_PARAM:
-        io_info.report_time_flag = true;
-        break;
+    case SILENT_PARAM:
+      io_info.flag_silent = true;
+      break;
 
-      case HELP_PARAM:
-        help();
-        break;
+    case TIME_PARAM:
+      io_info.report_time_flag = true;
+      break;
+
+    case HELP_PARAM:
+      help();
+      break;
     };
 
     iarg++;
   };
 
-    // remaining parameters should be list of isovalues followed
-    // by input file name
+  // remaining parameters should be list of isovalues followed
+  // by input file name
 
-    // check for more parameter tokens
+  // check for more parameter tokens
   for (int j = iarg; j < argc; j++) {
     if (get_parameter_token(argv[j]) != UNKNOWN_PARAM) {
-        // argv[iarg] is not an isovalue
+      // argv[iarg] is not an isovalue
       cerr << "Error. Illegal parameter: " << argv[iarg] << endl;
       usage_error();
     }
@@ -302,7 +279,7 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
     usage_error();
   };
 
-    // store isovalues
+  // store isovalues
   for (int j = iarg; j+1 < argc; j++) {
     io_info.isovalue_string.push_back(argv[j]);
     SCALAR_TYPE value;
@@ -312,7 +289,7 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 
     if (input_string.fail()) {
       cerr << "Error. \"" << argv[j] << "\" is not a valid input isovalue."
-      << endl;
+           << endl;
       usage_error();
     };
 
@@ -327,48 +304,48 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 
   if (io_info.flag_subsample && io_info.subsample_resolution <= 1) {
     cerr << "Error.  Subsample resolution must be an integer greater than 1."
-    << endl;
+         << endl;
     exit(230);
   };
 
   if (io_info.output_filename != NULL && io_info.use_stdout) {
     cerr << "Error.  Can't use both -o and -stdout parameters."
-    << endl;
+         << endl;
     exit(230);
   };
 
   if (io_info.flag_subsample && io_info.flag_supersample) {
     cerr << "Error.  Can't use both -subsample and -supersample parameters."
-    << endl;
+         << endl;
     exit(555);
   }
 }
 
-  // Check input information/flags.
+// Check input information/flags.
 bool ISODUAL3D::check_input
 (const IO_INFO & io_info,
  const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  IJK::ERROR & error)
 {
-    // Construct isosurface
+  // Construct isosurface
   if (io_info.isovalue.size() > 1 && io_info.use_stdout) {
     error.AddMessage
-    ("Error.  Cannot use stdout for more than one isovalue.");
+      ("Error.  Cannot use stdout for more than one isovalue.");
     return(false);
   }
 
   if (io_info.isovalue.size() > 1 && io_info.output_filename != NULL) {
     error.AddMessage
-    ("Error.  Cannot specify output file for more than one isovalue.");
+      ("Error.  Cannot specify output file for more than one isovalue.");
     return(false);
   }
 
   return(true);
 }
 
-  // **************************************************
-  // READ NEARLY RAW RASTER DATA (nrrd) FILE
-  // **************************************************
+// **************************************************
+// READ NEARLY RAW RASTER DATA (nrrd) FILE
+// **************************************************
 
 void ISODUAL3D::read_nrrd_file
 (const char * input_filename, ISODUAL_SCALAR_GRID & scalar_grid,
@@ -1150,6 +1127,7 @@ void ISODUAL3D::IO_INFO::Init()
   flag_color_alternating = false;  // color simplices in alternating cubes
   region_length = 1;
   flag_output_tri_mesh = false;
+  max_small_eigenvalue = 0.1;
 }
 
   // **************************************************
@@ -1245,10 +1223,11 @@ void ISODUAL3D::set_isodual_data
     throw error;
   }
 
-    // Set data structures in isodual_data
+  // Set data structures in isodual_data
   isodual_data.SetVertexPositionMethod(io_info.vertex_position_method);
   isodual_data.SetUseSelectedGradients(io_info.use_selected_gradients);
   isodual_data.SetUseOnlyCubeGradients(io_info.use_only_cube_gradients);
+  isodual_data.max_small_eigenvalue = io_info.max_small_eigenvalue;
 }
 
 void ISODUAL3D::set_io_info
@@ -1333,9 +1312,9 @@ void ISODUAL3D::set_color_alternating
 
 }
 
-  // **************************************************
-  // NRRD INFORMATION
-  // **************************************************
+// **************************************************
+// NRRD INFORMATION
+// **************************************************
 
 NRRD_INFO::NRRD_INFO()
 {

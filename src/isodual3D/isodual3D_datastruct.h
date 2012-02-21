@@ -30,6 +30,8 @@
 #include "ijkvector_grid.txx"
 #include "ijkmerge.txx"
 
+#include "sharpiso_eigen.h"
+
 
 #include "isodual3D_types.h"
 
@@ -117,6 +119,10 @@ namespace ISODUAL3D {
     bool use_selected_gradients;
     SIGNED_COORD_TYPE grad_selection_cube_offset;
     SIGNED_COORD_TYPE ray_intersection_cube_offset;
+
+    /// Normalized eigenvalues with value less than max_small_eigenvalue
+    ///   are set to zero.
+    EIGENVALUE_TYPE max_small_eigenvalue;
 
   public:
     ISODUAL_PARAM() { Init(); };

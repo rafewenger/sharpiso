@@ -258,11 +258,8 @@ void ISODUAL3D::dual_contouring
   clock_t t2 = clock();
 
   if (vertex_position_method == GRADIENT_POSITIONING) {
-   
     position_dual_isovertices_using_gradients
-      (scalar_grid, gradient_grid, isovalue, 
-       use_selected_gradients, use_only_cube_gradients, 
-       grad_selection_cube_offset, ray_intersection_cube_offset,
+      (scalar_grid, gradient_grid, isovalue, isodual_param,
        iso_vlist, vertex_coord);
   }
   else if (vertex_position_method == EDGE_SIMPLE) {

@@ -29,6 +29,7 @@
 #include "ijk.txx"
 #include "isodual3D_types.h"
 #include "isodual3D_datastruct.h"
+#include "sharpiso_eigen.h"
 #include "ijkNrrd.h"
 
 namespace ISODUAL3D {

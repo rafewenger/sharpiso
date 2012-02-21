@@ -274,6 +274,7 @@ void is_coord_inside_offset
 
 
 
+
 /////  THIS  CODE WILL BE REMOVED IN THE NEXT ITERATION
 // Compute sharp isosurface vertex using singular valued decomposition.
 // Use selected gradients from cube and neighboring cubes.
@@ -301,10 +302,7 @@ void is_coord_inside_offset
  SVD_INFO & svd_info,
  const OFFSET_CUBE_111 & cube_111)
  {
- ////
  SCALAR_TYPE allowable_dist = 1.0/sqrt(2);
- cout <<"cube_offset2  " <<cube_offset2<<endl;
- 
  
  NUM_TYPE num_gradients = 0;
  std::vector<COORD_TYPE> point_coord;
@@ -451,8 +449,6 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
      num_gradients, isovalue, max_small_eigenvalue,
      num_large_eigenvalues, eigenvalues, coord, ray_direction);
     
-    
-    
     // keeps track of ray cube intersection 
     bool isIntersect = false;
     
@@ -507,11 +503,6 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
    
     
     // check if the coord is within the cube 
-    cout.setf(ios::fixed);
-    cout.precision(9);
-    
-    //debug
-    
     if ( scalar_grid.ContainsPoint(coord) ) {
       
         // check if NOT in  present cube.
@@ -535,8 +526,6 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
             does_cube_intersect_isosurface = 
             IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue);
             if (does_cube_intersect_isosurface) {
-                
-                cout <<" trying to put point in a cube which has its own sharp point"<<endl;
                 flag_use_centroid = true;  
                 svd_info.location = CENTROID; 
             }   

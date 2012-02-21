@@ -767,7 +767,7 @@ void usage_error()
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -svd_grad | -svd_edge_simple | -svd_edge_cmplx"<<endl;
     cerr << "  -cube_offset2 <offsetvalue>" <<endl;
-    cerr << "  -max_small_eigenvalue <value>" << endl;
+    cerr << "  -max_eigen <value>" << endl;
     cerr << "  -listg | -list_subgrid" << endl;
     exit(10);
 }
@@ -878,7 +878,7 @@ void parse_command_line(int argc, char **argv)
       cube_offset2 = get_float(iarg, argc, argv);
       iarg++;
     }
-    else if (s == "-max_small_eigenvalue") {
+    else if (s == "-max_eigen") {
       max_small_eigenvalue = get_float(iarg, argc, argv);
       iarg++;
     }
@@ -973,7 +973,7 @@ void help()
        << "           using gradient assignment and apply svd." << endl;
   cerr << "  -coord \"point_coord\":  Compute scalar values at coordinate point_coord." << endl;
   cerr << "  -cube_offset2: Cube offset for intersection calculations. Initial value set to 0.3." << endl;
-  cerr << "  -max_small_eigenvalue <V>: Normalized eigenvalues below V are set to zero." << endl;
+  cerr << "  -max_eigen <V>: Normalized eigenvalues below V are set to zero." << endl;
   cerr << "  -listg: List gradients." << endl;
   cerr << "  -list_subgrid:  List all scalar values at vertices of subgrid." << endl;
   exit(15);
