@@ -31,6 +31,13 @@ RowVectorXf compute_B
 MatrixXf compute_A_inverse
 (const MatrixXf A, const EIGENVALUE_TYPE  err_tolerance,
  MatrixXf &singularValues, NUM_TYPE & num_singular_vals );
+
+// Compute A inverse using svd
+MatrixXf compute_A_inverse_top_2
+(const MatrixXf A, const EIGENVALUE_TYPE  err_tolerance,
+ MatrixXf &singularValues, NUM_TYPE & num_singular_vals );
+
+
 // Compute X as Ainverse times B
 RowVectorXf compute_X(const MatrixXf Inv_A, RowVectorXf B);
 // FUNCTION compute w
@@ -144,6 +151,77 @@ void svd_calculate_sharpiso_vertex
     
 }
 
+// SVD calculate the sharp vertex using only top 2 singular values 
+void svd_calculate_sharpiso_vertex_2_svals
+(const COORD_TYPE * vert_coords,
+ const GRADIENT_COORD_TYPE * vert_grads,
+ const SCALAR_TYPE * vert_scalars,
+ const NUM_TYPE  num_vert,
+ const SCALAR_TYPE isovalue,
+ const EIGENVALUE_TYPE err_tolerance,
+ NUM_TYPE & num_singular_vals,
+ EIGENVALUE_TYPE singular_vals[DIM3],
+ COORD_TYPE * isoVertcoords,
+ GRADIENT_COORD_TYPE * ray_direction)
+{
+    
+    if (num_vert == 0)
+        return;
+    
+    // Initialize variables
+    for (int i=0; i<DIM3; i++)
+    { 
+        singular_vals[i] = 0.0;   // set the default singular values to zero.
+        isoVertcoords[i] = 0.5;   // set the default value to cube center. 
+    }
+    
+    /// Find point x (3 coordinates) such that:
+    /// (g_i) cdot (x - p_i) + s_i = isovalue
+    // singular values
+    MatrixXf singular_values;
+    
+    //Compute A where A is g_i's
+    MatrixXf A = compute_A(vert_grads, num_vert);
+    
+    //Compute B where B is isovalue - s_i + g_i*p_i;
+    RowVectorXf B =  compute_B(vert_coords, vert_grads, vert_scalars, num_vert, isovalue);
+    
+    //Compute A inverse using svd
+    MatrixXf inA = compute_A_inverse_top_2(A, err_tolerance, singular_values, num_singular_vals);
+    
+    //set up singular values. convert from eigen data type to floating type.
+    for (int i=0; i<num_singular_vals; i++)
+    { singular_vals[i]  = singular_values(i); }
+    
+    //Compute X as Ainverse times B
+    RowVectorXf X = compute_X(inA, B);
+    
+    //copy X to isoVertcoords
+    for (int i=0; i<3; i++)
+    { isoVertcoords[i] = X(i); }
+    
+    //if num of singular values is 2 then it must return a direction.
+    if(num_singular_vals == 2){
+        
+        RowVectorXf dir;
+        MatrixXf I(3,3);
+        I<< 1,0,0, 0,1,0, 0,0,1;
+        
+        //Obtaining all solutions of a linear system
+        //x = A_pseudo_inv b + [I - A_pseudo_inv A ]w
+        
+        //Calculate w
+        RowVectorXf w = calculate_w (inA, A, I);
+        //Calculate [I - A_pseudo_inv A ]w
+        dir = ( I - inA * A ) * w.transpose();
+        
+        ray_direction[0] = dir[0];
+        ray_direction[1] = dir[1];
+        ray_direction[2] = dir[2];
+        normalize(ray_direction, ray_direction);
+    }
+    
+}
 
 //FUNCTION Compute A, where A is g_i's
 
@@ -221,6 +299,45 @@ MatrixXf compute_A_pseudoinverse
     return svd.matrixV()*sigma.transpose()*svd.matrixU().transpose();
 }
 
+// FUNCTION compute the pseudo inverse of A using the TOP 2 singular values.
+// helper function to compute_A_inverse.
+// it calcualates the sigma interms of the given tolerance
+
+MatrixXf compute_A_pseudoinverse_top_2
+(const MatrixXf A,
+ MatrixXf &singular_values,
+ const float  err_tolerance,
+ int &num_singular_vals)
+{
+    JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
+    //compute the singular values for the matrix
+    singular_values  = svd.singularValues();
+    //Compute the sigma interms of the tolerance
+    MatrixXf sigma(3,3);
+    sigma << 0,0,0,0,0,0,0,0,0;
+    
+    num_singular_vals = 0;
+    int max_num_svals = 2; // find the top 2 singular value based solution 
+    
+    // maximum of the singular values 
+    float max = singular_values.maxCoeff();
+    float max_times_err_tol = err_tolerance*max;
+    // Compute for the top 2 singular values.
+    for (int i=0; i<max_num_svals; i++) {
+        if(max > 0.0 )
+            if ( singular_values(i) > max_times_err_tol ) {
+                //increment the number of singular values of A
+                num_singular_vals++;
+                //sigma(i,i) is updated to 1 / the singular value,
+                //only if it is more than the error tolerance
+                sigma(i,i) = 1.0/singular_values(i);
+            }
+    }
+    return svd.matrixV()*sigma.transpose()*svd.matrixU().transpose();
+}
+
+
+
 // FUNCTION compute the inverse of A,
 // accepts as input the matrix A , it calculates the singular values and the number of singular
 // values above the user set tolerance
@@ -229,6 +346,19 @@ MatrixXf compute_A_inverse(const MatrixXf A, const EIGENVALUE_TYPE  err_toleranc
                            MatrixXf &singularValues, NUM_TYPE & num_singular_vals )
 {
     MatrixXf pseudoInverseA = compute_A_pseudoinverse(A, singularValues, err_tolerance,
+                                                      num_singular_vals);
+    return pseudoInverseA;
+}
+
+
+// FUNCTION compute the inverse of A,
+// accepts as input the matrix A , it calculates the singular values and the number of singular
+// values above the user set tolerance
+
+MatrixXf compute_A_inverse_top_2(const MatrixXf A, const EIGENVALUE_TYPE  err_tolerance,
+                           MatrixXf &singularValues, NUM_TYPE & num_singular_vals )
+{
+    MatrixXf pseudoInverseA = compute_A_pseudoinverse_top_2(A, singularValues, err_tolerance,
                                                       num_singular_vals);
     return pseudoInverseA;
 }
