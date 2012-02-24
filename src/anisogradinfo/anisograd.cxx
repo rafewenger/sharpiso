@@ -472,11 +472,12 @@ void anisotropic_diff
     boundary_grid.SetSize(scalar_grid);
     compute_boundary_grid(boundary_grid);
 
+    // create a temporary grid for each iteration
+    GRADIENT_GRID temp_gradient_grid;
+    temp_gradient_grid.SetSize(scalar_grid, dimension);
     for (int k=0; k<num_iter; k++)
     {
-        // create a temporary grid for each iteration
-        GRADIENT_GRID temp_gradient_grid;
-        temp_gradient_grid.SetSize(scalar_grid, dimension);
+        
 
         for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++)
         {

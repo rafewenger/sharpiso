@@ -29,7 +29,21 @@ using namespace SHARPISO;
 
 
 void svd_calculate_sharpiso_vertex
+(const COORD_TYPE * vert_coords,
+ const GRADIENT_COORD_TYPE * vert_grads,
+ const SCALAR_TYPE * vert_scalars,
+ const NUM_TYPE  num_vert,
+ const SCALAR_TYPE isovalue,
+ const EIGENVALUE_TYPE err_tolerance,
+ NUM_TYPE & num_singular_vals,
+ EIGENVALUE_TYPE singular_vals[DIM3],
+ COORD_TYPE * isoVertcoords,
+ GRADIENT_COORD_TYPE *ray_direction);
 
+
+
+// Calculat the svd based sharp isovertex but force it to have 2 singular values.
+void svd_calculate_sharpiso_vertex_2_svals
 (const COORD_TYPE * vert_coords,
  const GRADIENT_COORD_TYPE * vert_grads,
  const SCALAR_TYPE * vert_scalars,
