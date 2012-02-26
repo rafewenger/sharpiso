@@ -21,8 +21,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _SHARPISO_FEATURES_
-#define _SHARPISO_FEATURES_
+#ifndef _SHARPISO_FEATURE_
+#define _SHARPISO_FEATURE_
 
 #include "sharpiso_cubes.h"
 #include "sharpiso_eigen.h"
@@ -43,6 +43,26 @@ namespace SHARPISO {
 
   class OFFSET_CUBE_111;
 
+  /// Parameters for computing sharp isosurface vertices using svd.
+  class SHARP_ISOVERT_PARAM {
+  protected:
+    void Init();
+
+  public:
+    bool use_only_cube_gradients;
+    bool use_selected_gradients;
+    SIGNED_COORD_TYPE grad_selection_cube_offset;
+    SIGNED_COORD_TYPE ray_intersection_cube_offset;
+
+    /// Normalized eigenvalues with value less than max_small_eigenvalue
+    ///   are set to zero.
+    EIGENVALUE_TYPE max_small_eigenvalue;
+
+    /// Constructor
+    SHARP_ISOVERT_PARAM() { Init(); };
+  };
+
+  /// Information returned from svd calculations.
   class SVD_INFO {
   public:
     GRADIENT_COORD_TYPE ray_direction[DIM3]; // ray direction

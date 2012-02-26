@@ -38,11 +38,7 @@ namespace ISODUAL3D {
 // SCALAR TYPES
 // **************************************************
 
-  //typedef float SCALAR_TYPE;     ///< Scalar value type.
-  //typedef float COORD_TYPE;      ///< Isosurface vertex coordinate type.
-  //typedef int VERTEX_INDEX;      ///< Grid vertex index type.
   typedef float GRADIENT_TYPE;   ///< Gradient coordinate type.
-  //typedef int GRID_COORD_TYPE;   ///< Grid vertex coordinate type.
   typedef int AXIS_SIZE_TYPE;    ///< Axis size type.
   typedef int LENGTH_TYPE;       ///< Vector length type.
   typedef int ISO_VERTEX_INDEX;  ///< Isosurface vertex index type.

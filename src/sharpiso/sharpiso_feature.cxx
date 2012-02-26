@@ -1137,7 +1137,7 @@ void SHARPISO::get_selected_cube_neighbor_gradients
 // OFFSET_CUBE_111
 // **************************************************
 
-OFFSET_CUBE_111::OFFSET_CUBE_111
+SHARPISO::OFFSET_CUBE_111::OFFSET_CUBE_111
 (const COORD_TYPE offset)
 {
     IJK::PROCEDURE_ERROR error("OFFSET_CUBE_111 constructor");
@@ -1162,4 +1162,18 @@ OFFSET_CUBE_111::OFFSET_CUBE_111
     SHARPISO_CUBE::SetVertexCoord(v0_coord.Ptr(), 1+2*offset);
     
     this->offset = offset;
+}
+
+// **************************************************
+// SHARP_ISOVERT_PARAM
+// **************************************************
+
+/// Constructor
+void SHARPISO::SHARP_ISOVERT_PARAM::Init()
+{
+  use_only_cube_gradients = false;
+  use_selected_gradients = true;
+  grad_selection_cube_offset = 0;
+  ray_intersection_cube_offset = 0;
+  max_small_eigenvalue = 0.1;
 }

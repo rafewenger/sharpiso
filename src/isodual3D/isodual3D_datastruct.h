@@ -31,7 +31,8 @@
 #include "ijkmerge.txx"
 
 #include "sharpiso_eigen.h"
-
+#include "sharpiso_grids.h"
+#include "sharpiso_feature.h"
 
 #include "isodual3D_types.h"
 
@@ -44,19 +45,9 @@ namespace ISODUAL3D {
   // GRID DATA STRUCTURES
   // **************************************************
 
-  typedef IJK::GRID_PLUS<int, AXIS_SIZE_TYPE, VERTEX_INDEX, VERTEX_INDEX> 
-    ISODUAL_GRID;                  ///< Marching Cubes grid.
-
-  typedef IJK::SCALAR_GRID_BASE<ISODUAL_GRID, SCALAR_TYPE> 
-    ISODUAL_SCALAR_GRID_BASE;      ///< isodual base scalar grid.
-  typedef IJK::SCALAR_GRID_WRAPPER<ISODUAL_GRID, SCALAR_TYPE>
-    ISODUAL_SCALAR_GRID_WRAPPER;   ///< isodual scalar grid wrapper.
-  typedef IJK::SCALAR_GRID<ISODUAL_GRID, SCALAR_TYPE> 
-    ISODUAL_SCALAR_GRID;           ///< Marching Cubes scalar grid.
-  typedef IJK::VECTOR_GRID_BASE<ISODUAL_GRID, LENGTH_TYPE, GRADIENT_TYPE> 
-    GRADIENT_GRID_BASE;            ///< isodual base gradient grid
-  typedef IJK::VECTOR_GRID<ISODUAL_GRID, LENGTH_TYPE, GRADIENT_TYPE> 
-    GRADIENT_GRID;                 ///< isodual gradient grid
+  typedef SHARPISO_GRID ISODUAL_GRID;
+  typedef SHARPISO_SCALAR_GRID_BASE ISODUAL_SCALAR_GRID_BASE;
+  typedef SHARPISO_SCALAR_GRID ISODUAL_SCALAR_GRID;
 
   // **************************************************
   // ARRAY DATA STRUCTURES
@@ -106,7 +97,7 @@ namespace ISODUAL3D {
   // **************************************************
 
   /// dual contouring parameters
-  class ISODUAL_PARAM {
+  class ISODUAL_PARAM:public SHARPISO::SHARP_ISOVERT_PARAM {
 
   protected:
     void Init();
@@ -115,6 +106,8 @@ namespace ISODUAL3D {
     // control parameters
     INTERPOLATION_TYPE interpolation_type;
     VERTEX_POSITION_METHOD vertex_position_method;
+
+    /* OBSOLETE
     bool use_only_cube_gradients;
     bool use_selected_gradients;
     SIGNED_COORD_TYPE grad_selection_cube_offset;
@@ -123,6 +116,7 @@ namespace ISODUAL3D {
     /// Normalized eigenvalues with value less than max_small_eigenvalue
     ///   are set to zero.
     EIGENVALUE_TYPE max_small_eigenvalue;
+    */
 
   public:
     ISODUAL_PARAM() { Init(); };
@@ -146,6 +140,7 @@ namespace ISODUAL3D {
     VERTEX_POSITION_METHOD VertexPositionMethod() const
       { return(vertex_position_method); };
 
+    /* OBSOLETE
     /// Return flag to use only selected gradients.
     bool UseSelectedGradients() const
     { return(use_selected_gradients); }
@@ -153,6 +148,7 @@ namespace ISODUAL3D {
     /// Return flag to use only cube gradients
     bool UseOnlyCubeGradients() const
     { return(use_only_cube_gradients); }
+    */
 
     /// Return true if gradient data required.
     bool GradientsRequired() const;
