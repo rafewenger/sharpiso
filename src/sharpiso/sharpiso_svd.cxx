@@ -266,7 +266,7 @@ RowVectorXf compute_B
 
 // FUNCTION compute the pseudo inverse of A
 // helper function to compute_A_inverse.
-// it calcualates the sigma interms of the given tolerance
+// it calculates the sigma interms of the given tolerance
 // debug change this to error type.
 MatrixXf compute_A_pseudoinverse
 (const MatrixXf A,
@@ -301,7 +301,7 @@ MatrixXf compute_A_pseudoinverse
 
 // FUNCTION compute the pseudo inverse of A using the TOP 2 singular values.
 // helper function to compute_A_inverse.
-// it calcualates the sigma interms of the given tolerance
+// it calculates the sigma interms of the given tolerance
 
 MatrixXf compute_A_pseudoinverse_top_2
 (const MatrixXf A,
