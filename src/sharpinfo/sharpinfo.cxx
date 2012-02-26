@@ -54,6 +54,7 @@ bool flag_list_subgrid(false);
 std::vector<COORD_TYPE> location;
 bool flag_location_set(false);
 bool flag_isovalue_set(false);
+bool flag_centroid(false);
 bool use_only_cube_gradients(true);
 bool use_selected_gradients(true);
 bool flag_list_eigen(false);
@@ -145,6 +146,8 @@ void output_cube_eigenvalues
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_zero_mag,
  const EIGENVALUE_TYPE eigenvalue_tolerance);
+void output_centroid_results
+(std::ostream & output, const COORD_TYPE coord[DIM3]);
 
 
 
@@ -222,15 +225,25 @@ int main(int argc, char **argv)
                 output_cube_coordinates(cout, scalar_grid, cube_index);
                 cout << endl << endl;
 
-                compute_iso_vertex_using_svd
-                (scalar_grid, gradient_grid, cube_index, isovalue,
-                 max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
-                 num_large_eigenvalues, svd_info);
+                if (flag_centroid) {
+                  COORD_TYPE coord[DIM3];
+                  compute_isosurface_grid_edge_centroid
+                    (scalar_grid, isovalue, cube_index, coord);
 
-                output_svd_results
-                (cout, sharp_coord, eigenvalues, num_large_eigenvalues,
-                 max_small_eigenvalue, svd_info);
-                cout << endl;
+                  output_centroid_results(cout, coord);
+                  cout << endl;
+                }
+                else {
+                  compute_iso_vertex_using_svd
+                    (scalar_grid, gradient_grid, cube_index, isovalue,
+                     max_small_mag, max_small_eigenvalue, sharp_coord, eigenvalues,
+                     num_large_eigenvalues, svd_info);
+
+                  output_svd_results
+                    (cout, sharp_coord, eigenvalues, num_large_eigenvalues,
+                     max_small_eigenvalue, svd_info);
+                  cout << endl;
+                }
 
                 if (flag_list_subgrid) {
                     GRID_COORD_TYPE cube_coord[DIM3];
@@ -531,11 +544,21 @@ void output_svd_results
       { output << " does not intersect cube." << endl; }
   }
 
-  if (svd_info.is_svd_point_in_cube) 
-    { output << "Cube contains SVD point." << endl; }
-  else
-    { output << "Cube does not contain SVD point." << endl; }
+  if (!use_only_cube_gradients && use_selected_gradients) {
+    if (svd_info.is_svd_point_in_cube) 
+      { output << "Cube contains SVD point." << endl; }
+    else
+      { output << "Cube does not contain SVD point." << endl; }
+  }
 
+}
+
+void output_centroid_results
+(std::ostream & output, const COORD_TYPE coord[DIM3])
+{
+  output << "Centroid: coordinates ";
+  print_coord3D(output, coord);
+  output << endl;
 }
 
 void output_subgrid_results
@@ -774,7 +797,7 @@ void usage_error()
     cerr << "OPTIONS:" << endl;
     cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\""
     << endl;
-    cerr << "  [-gradC | -gradN | -gradCS | -gradNS ]" << endl;
+    cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS ]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -svd_grad | -svd_edge_simple | -svd_edge_cmplx"<<endl;
     cerr << "  -max_eigen <value> | -gradS_offset <value> -rayI_offset <value>"
@@ -866,6 +889,9 @@ void parse_command_line(int argc, char **argv)
     }
     else if(s == "-svd_edge_cmplx") {
       flag_svd_edges_cmplx = true;
+    }
+    else if (s == "-centroid") {
+      flag_centroid = true;
     }
     else if (s == "-gradC") {
       use_only_cube_gradients = true;
@@ -974,6 +1000,8 @@ void help()
   cerr << "  -cc \"cube coordinates\":  Compute isosurface vertex for cube"
        << endl
        << "           at given coordinates." << endl;
+  cerr << "  -centroid:  Return centroid of isosurface-edge intersections."
+       << endl;
   cerr << "  -gradC:  Use only cube gradients." << endl;
   cerr << "  -gradN:  Use gradients from cube and neighboring cubes." << endl;
   cerr << "  -gradCS: Use selected cube gradients." << endl;
