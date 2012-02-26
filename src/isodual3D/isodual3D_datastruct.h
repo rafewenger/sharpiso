@@ -107,17 +107,6 @@ namespace ISODUAL3D {
     INTERPOLATION_TYPE interpolation_type;
     VERTEX_POSITION_METHOD vertex_position_method;
 
-    /* OBSOLETE
-    bool use_only_cube_gradients;
-    bool use_selected_gradients;
-    SIGNED_COORD_TYPE grad_selection_cube_offset;
-    SIGNED_COORD_TYPE ray_intersection_cube_offset;
-
-    /// Normalized eigenvalues with value less than max_small_eigenvalue
-    ///   are set to zero.
-    EIGENVALUE_TYPE max_small_eigenvalue;
-    */
-
   public:
     ISODUAL_PARAM() { Init(); };
     ~ISODUAL_PARAM() { Init(); };
@@ -139,16 +128,6 @@ namespace ISODUAL3D {
     /// Return isosurface vertex position method.
     VERTEX_POSITION_METHOD VertexPositionMethod() const
       { return(vertex_position_method); };
-
-    /* OBSOLETE
-    /// Return flag to use only selected gradients.
-    bool UseSelectedGradients() const
-    { return(use_selected_gradients); }
-
-    /// Return flag to use only cube gradients
-    bool UseOnlyCubeGradients() const
-    { return(use_only_cube_gradients); }
-    */
 
     /// Return true if gradient data required.
     bool GradientsRequired() const;
