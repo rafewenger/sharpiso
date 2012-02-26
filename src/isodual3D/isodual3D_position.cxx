@@ -137,6 +137,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
     }
 }
 
+/* OBSOLETE
 /// Position dual isosurface vertices using gradients
 void ISODUAL3D::position_dual_isovertices_using_gradients
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
@@ -219,6 +220,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
   }
     
 }
+*/
 
 
 /// Position dual isosurface vertices using gradients
@@ -340,6 +342,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
     (scalar_grid, gradient_grid, isovalue, cube_offset2, vlist, &(coord.front()));
 }
 
+/* OBSOLETE
 /// Position dual isosurface vertices using gradients
 void ISODUAL3D::position_dual_isovertices_using_gradients
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
@@ -360,6 +363,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
      use_selected_gradients, use_only_cube_gradients, cube_offset, cube_offset2,
      vlist, &(coord.front()));
 }
+*/
 
 /// Position dual isosurface vertices using gradients
 void ISODUAL3D::position_dual_isovertices_using_gradients
