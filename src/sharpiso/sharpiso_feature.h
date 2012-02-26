@@ -391,11 +391,16 @@ namespace SHARPISO {
   /// Information returned from svd calculations.
   class SVD_INFO {
   public:
-    GRADIENT_COORD_TYPE ray_direction[DIM3]; // ray direction
-    SCALAR_TYPE ray_initial_point[DIM3];     // point on ray
     LOC_TYPE location;                       // location type
+    GRADIENT_COORD_TYPE ray_direction[DIM3]; // ray direction
+    COORD_TYPE ray_initial_point[DIM3];     // point on ray
     bool ray_intersect_cube;                 // true if ray intersects cube
     bool is_svd_point_in_cube;               // true if svd point is in cube
+
+    /// Set ray information.
+    void SetRayInfo
+      (const COORD_TYPE origin[DIM3], const COORD_TYPE direction[DIM3],
+       const bool flag_intersects_cube);
 	};
 
 

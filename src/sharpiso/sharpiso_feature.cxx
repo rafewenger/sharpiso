@@ -92,17 +92,16 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
     
   if (num_large_eigenvalues == 2) 
     {
-      svd_info.location = LOC_SVD;
-
-      IJK::copy_coord_3D(ray_direction, svd_info.ray_direction);
-      IJK::copy_coord_3D(coord, svd_info.ray_initial_point);
       isIntersect = calculate_point_intersect_complex
         (cube_coord, coord, ray_direction, ray_intersection_cube_offset, coord);
-      svd_info.ray_intersect_cube = isIntersect;
+      svd_info.SetRayInfo(coord, ray_direction, isIntersect);
         
-      if (!isIntersect) {
-        flag_use_centroid = true;
+      if (isIntersect) {
+        svd_info.location = LOC_SVD;
+      }
+      else {
         svd_info.location = CENTROID;    
+        flag_use_centroid = true;
       }
     }
 
@@ -124,7 +123,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
     
   // check if the coord is within the cube 
   if ( !flag_use_centroid && scalar_grid.ContainsPoint(coord) ) {
-        
+
     // check if NOT in  present cube
         
     if(!scalar_grid.CubeContainsPoint(cube_index, coord)){
@@ -154,22 +153,24 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
            num_large_eigenvalues, eigenvalues, coord, ray_direction);
                 
         if (num_large_eigenvalues == 2) {
-          svd_info.location = LOC_SVD;
-                    
-          IJK::copy_coord_3D(ray_direction, svd_info.ray_direction);
-          IJK::copy_coord_3D(coord, svd_info.ray_initial_point);
-          isIntersect = false; //reinitialize to false
           isIntersect = calculate_point_intersect_complex
             (cube_coord, coord, ray_direction, ray_intersection_cube_offset, 
              coord);
-          svd_info.ray_intersect_cube = isIntersect;
+          svd_info.SetRayInfo(coord, ray_direction, isIntersect);
                     
           IJK::round16_coord(DIM3, coord, coord);  // Round to nearest 16'th
+
+          if (isIntersect) {
+            svd_info.location = LOC_SVD;
+          }
+          else {
+            svd_info.location = CENTROID;
+            flag_use_centroid = true;
+          }
         }
-                
-        if (num_large_eigenvalues < 2 || !isIntersect) {
-          flag_use_centroid = true;
+        else {
           svd_info.location = CENTROID;
+          flag_use_centroid = true;
         }
       }   
     }
@@ -420,6 +421,9 @@ bool is_dist_to_cube_le
 
   return(true);
 }
+
+/// Return cube containing point.
+/// @pre Assumes coord is within grid.
 
 // Compute sharp vertex.
 // Edge based using simple interpolation.
@@ -1198,4 +1202,16 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   max_small_eigenvalue = 0.1;
 }
 
+// **************************************************
+// SVD_INFO
+// **************************************************
 
+/// Set ray information.
+void SVD_INFO::SetRayInfo
+(const COORD_TYPE origin[DIM3], const COORD_TYPE direction[DIM3],
+ const bool flag_intersects_cube)
+{
+  IJK::copy_coord_3D(origin, ray_initial_point);
+  IJK::copy_coord_3D(direction, ray_direction);
+  ray_intersect_cube = flag_intersects_cube;
+}
