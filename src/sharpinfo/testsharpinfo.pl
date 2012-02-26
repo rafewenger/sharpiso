@@ -13,8 +13,10 @@ my $temp1 = "temp1.out";
 parse_command_line(@ARGV);
 
 compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -isovalue 3.2");
+compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradCS -isovalue 3.2");
 compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradNS -isovalue 3.2");
-compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradNS -isovalue 3.2");
+compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -svd_edge_simple -isovalue 3.2");
+compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -svd_edge_cmplx -isovalue 3.2");
 
 # *********************************************
 

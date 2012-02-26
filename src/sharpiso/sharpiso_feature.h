@@ -249,10 +249,10 @@ namespace SHARPISO {
    GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3],
    SCALAR_TYPE scalar[NUM_CUBE_VERTICES3D]);
 
-  /// Get cube gradients.  
+  /// Get gradients in cube and neighboring cubes.
   /// @param sharp_isovert_param Parameters to determine 
   ///   which gradients are selected.
-  void get_cube_gradients
+  void get_gradients
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,

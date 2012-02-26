@@ -44,7 +44,7 @@ void is_coord_inside_offset
 // **************************************************
 
 /// Compute sharp isosurface vertex using singular valued decomposition.
-void svd_compute_sharp_vertex_for_cube
+void SHARPISO::svd_compute_sharp_vertex_for_cube
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
@@ -65,10 +65,6 @@ void svd_compute_sharp_vertex_for_cube
   std::vector<GRADIENT_COORD_TYPE> gradient_coord;
   std::vector<SCALAR_TYPE> scalar;
 
-  // *** DEBUG ****
-  using namespace std;
-  cerr << "Called svd_compute_sharp_vertex_for_cube." << endl;
-    
   // Initialize svd_info
   svd_info.ray_intersect_cube = false;
   svd_info.is_svd_point_in_cube = false;
@@ -90,7 +86,7 @@ void svd_compute_sharp_vertex_for_cube
   // Compute coordinates of the cube center.
   IJK::add_coord_3D(offset, cube_coord, cube_center); 
 
-  get_cube_gradients
+  get_gradients
     (scalar_grid, gradient_grid, cube_index, isovalue, 
      sharp_isovert_param, cube_111,
      point_coord, gradient_coord, scalar, num_gradients);
@@ -1134,10 +1130,10 @@ void SHARPISO::get_cube_gradients
     }
 }
 
-/// Get cube gradients.  
+/// Get gradients.
 /// @param sharp_isovert_param Parameters to determine 
 ///   which gradients are selected.
-void SHARPISO::get_cube_gradients
+void SHARPISO::get_gradients
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
@@ -1151,10 +1147,6 @@ void SHARPISO::get_cube_gradients
 {
   const GRADIENT_COORD_TYPE max_small_magnitude = 
     sharp_isovert_param.max_small_magnitude;
-
-  // *** DEBUG ****
-  using namespace std;
-  cerr << "Called new get_cube_gradients." << endl;
 
   if (sharp_isovert_param.use_only_cube_gradients) {
     if (sharp_isovert_param.use_selected_gradients) {
