@@ -407,6 +407,7 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood_S
                 (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
                  num_gradients, isovalue, max_small_eigenvalue,
                  num_large_eigenvalues, eigenvalues, coord, ray_direction);
+
                 
                 if (num_large_eigenvalues == 2) {
                     svd_info.location = LOC_SVD;
