@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Code
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011,2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -21,8 +21,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _SHARPISO_FEATURES_
-#define _SHARPISO_FEATURES_
+#ifndef _SHARPISO_FEATURE_
+#define _SHARPISO_FEATURE_
 
 #include "sharpiso_cubes.h"
 #include "sharpiso_eigen.h"
@@ -42,19 +42,24 @@ namespace SHARPISO {
   // **************************************************
 
   class OFFSET_CUBE_111;
-
-  class SVD_INFO {
-  public:
-    GRADIENT_COORD_TYPE ray_direction[DIM3]; // ray direction
-    SCALAR_TYPE ray_initial_point[DIM3];     // point on ray
-    LOC_TYPE location;                       // location type
-    bool ray_intersect_cube;                 // true if ray intersects cube
-    bool is_svd_point_in_cube;               // true if svd point is in cube
-	};
+  class SHARP_ISOVERT_PARAM;
+  class SVD_INFO;
 
   // **************************************************
   // SVD ROUTINES TO COMPUTE SHARP VERTEX/EDGE
   // **************************************************
+
+  /// Compute sharp isosurface vertex using singular valued decomposition.
+  void svd_compute_sharp_vertex_for_cube
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+   const OFFSET_CUBE_111 & cube_111,
+   COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
+   NUM_TYPE & num_large_eigenvalues,
+   SVD_INFO & svd_info);
 
   /// Compute sharp isosurface vertex using singular valued decomposition.
   /// Use only cube vertex gradients.
@@ -67,7 +72,7 @@ namespace SHARPISO {
    const EIGENVALUE_TYPE eigenvalue_tolerance,
    const SCALAR_TYPE cube_offset2,
    COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
-   NUM_TYPE & num_nonzero_eigenvalues,
+   NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
 
   /// Compute sharp isosurface vertex using singular valued decomposition.
@@ -81,7 +86,7 @@ namespace SHARPISO {
    const EIGENVALUE_TYPE eigenvalue_tolerance,
    const SCALAR_TYPE cube_offset2,
    COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
-   NUM_TYPE & num_nonzero_eigenvalues,
+   NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info,
    const OFFSET_CUBE_111 & cube_111);
 
@@ -97,7 +102,7 @@ namespace SHARPISO {
    const EIGENVALUE_TYPE eigenvalue_tolerance,
    const SCALAR_TYPE cube_offset2,
    COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
-   NUM_TYPE & num_nonzero_eigenvalues,
+   NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
 
   /// Compute sharp isosurface vertex using singular valued decomposition.
@@ -112,7 +117,7 @@ namespace SHARPISO {
    const EIGENVALUE_TYPE eigenvalue_tolerance,
    const SCALAR_TYPE cube_offset2,
    COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
-   NUM_TYPE & num_nonzero_eigenvalues,
+   NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info,
    const OFFSET_CUBE_111 & cube_111);
 
@@ -235,7 +240,7 @@ namespace SHARPISO {
   // ROUTINES TO GET GRADIENTS
   // **************************************************
 
-  // Get all 8 cube gradients
+  /// Get all 8 cube gradients
   void get_cube_gradients
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -243,6 +248,21 @@ namespace SHARPISO {
    std::vector<COORD_TYPE> & point_coord,
    GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3],
    SCALAR_TYPE scalar[NUM_CUBE_VERTICES3D]);
+
+  /// Get gradients in cube and neighboring cubes.
+  /// @param sharp_isovert_param Parameters to determine 
+  ///   which gradients are selected.
+  void get_gradients
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+   const OFFSET_CUBE_111 & cube_111,
+   std::vector<COORD_TYPE> & point_coord,
+   std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+   std::vector<SCALAR_TYPE> & scalar,
+   NUM_TYPE & num_gradients);
 
   /// Get large gradients at cube vertices.
   void get_large_cube_gradients
@@ -316,7 +336,7 @@ namespace SHARPISO {
     COORD_TYPE offset;
 
   public:
-    OFFSET_CUBE_111(const COORD_TYPE offset);
+    OFFSET_CUBE_111(const SIGNED_COORD_TYPE offset);
 
     // get functions
 
@@ -325,11 +345,64 @@ namespace SHARPISO {
 
     // set functions
 
+    /// Set cube edge offset.
+    void SetOffset(const SIGNED_COORD_TYPE offset);
+
     /// Undefine SetVertexCoord
     template <typename CTYPE2, typename LTYPE2>
     void SetVertexCoord             ///< Set cube vertex coordinates.
     (const CTYPE2 * vertex0_coord, const LTYPE2 edge_length);
   };
+
+  // **************************************************
+  // SHARP_ISOVERT_PARAM
+  // **************************************************
+
+  /// Parameters for computing sharp isosurface vertices using svd.
+  class SHARP_ISOVERT_PARAM {
+  protected:
+    void Init();
+
+  public:
+    bool use_only_cube_gradients;
+    bool use_selected_gradients;
+    SIGNED_COORD_TYPE grad_selection_cube_offset;
+    SIGNED_COORD_TYPE ray_intersection_cube_offset;
+
+    /// Maximum (Linf) distance from cube to isosurface vertex
+    SIGNED_COORD_TYPE max_dist;
+
+    /// Gradients with magnitude less than max_small_magnitude 
+    ///   are treated as zero gradients.
+    GRADIENT_COORD_TYPE max_small_magnitude;
+
+    /// Normalized eigenvalues with value less than max_small_eigenvalue
+    ///   are set to zero.
+    EIGENVALUE_TYPE max_small_eigenvalue;
+
+    /// Constructor
+    SHARP_ISOVERT_PARAM() { Init(); };
+  };
+
+  // **************************************************
+  // SVD_INFO
+  // **************************************************
+
+  /// Information returned from svd calculations.
+  class SVD_INFO {
+  public:
+    LOC_TYPE location;                       // location type
+    GRADIENT_COORD_TYPE ray_direction[DIM3]; // ray direction
+    COORD_TYPE ray_initial_point[DIM3];     // point on ray
+    bool ray_intersect_cube;                 // true if ray intersects cube
+    bool is_svd_point_in_cube;               // true if svd point is in cube
+
+    /// Set ray information.
+    void SetRayInfo
+      (const COORD_TYPE origin[DIM3], const COORD_TYPE direction[DIM3],
+       const bool flag_intersects_cube);
+	};
+
 
 };
 
