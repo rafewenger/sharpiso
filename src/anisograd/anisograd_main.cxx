@@ -44,8 +44,8 @@ bool flag_iso = false;
 float large_magnitude = 2.0;
 
 float mu(0.1);
-float lambda(0.1);
-int num_iter = 15;
+float lambda(1.0);
+int num_iter = 10;
 VERTEX_INDEX icube = 0;
 
 bool debug = true;

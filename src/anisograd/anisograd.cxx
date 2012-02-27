@@ -490,6 +490,29 @@ void anisotropic_diff
             {
                  compute_boundary_gradient(scalar_grid, iv, temp_gradient_grid.VectorPtr(iv));
             }
+            using namespace std;
+            cout.width(20);
+            //debug
+            COORD_TYPE coord[DIM3];
+            scalar_grid.ComputeCoord(icube, coord);
+            if(iv == icube && flag_aniso == 0 )
+            {
+                GRADIENT_TYPE * grad = gradient_grid.VectorPtr(icube);
+                cout <<" iso grad at the vertex "<<icube <<" ("<<coord[0]
+                <<" "<<coord[1]<<" "<<coord[2]<<") num iter "<< k<<" [";
+                cout <<grad[0]<<" "<<grad[1]<<" "<<grad[2]<<"] "
+                << "(Magnitude " << gradient_grid.ComputeMagnitude(icube)
+                << ")"<<endl;
+            }
+            
+            if(iv == icube && flag_aniso != 0 )
+            {
+                cout.precision (5);
+                GRADIENT_TYPE * grad = gradient_grid.VectorPtr(icube);
+                cout <<" aniso grad at the vertex "<<icube <<" ("<<coord[0]
+                <<" "<<coord[1]<<" "<<coord[2]<<") num iter "<< k<<" [";
+                cout <<grad[0]<<" "<<grad[1]<<" "<<grad[2]<<"] "<<endl;
+            }
         }
         //copy over the grid
         for (int l=0; l<scalar_grid.NumVertices(); l++) {
