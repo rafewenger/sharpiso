@@ -32,10 +32,12 @@
 #include "ijkinterpolate.txx"
 #include "sharpiso_scalar.txx"
 
-/// Return true if (Linf) distance from coord to cube is at most
+// Local functions.
 bool is_dist_to_cube_le
 (const COORD_TYPE * coord, const COORD_TYPE * cube_coord,
  const SCALAR_TYPE max_dist);
+VERTEX_INDEX get_cube_containing_point
+(const SHARPISO_GRID & grid, const COORD_TYPE * coord);
 
 
 // **************************************************
@@ -121,31 +123,16 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
     }
     
     
-  // check if the coord is within the cube 
-  if ( !flag_use_centroid && scalar_grid.ContainsPoint(coord) ) {
+  // check if the coord is within the scalar grid
+  if (!flag_use_centroid && scalar_grid.ContainsPoint(coord)) {
 
-    // check if NOT in  present cube
-        
-    if(!scalar_grid.CubeContainsPoint(cube_index, coord)){
-      COORD_TYPE new_index_coord[DIM3];
-            
-      // find which cube does it belong to ?
-      for (int d=0; d<DIM3; d++) {
-        new_index_coord[d]  = floor(coord[d]);
-      }
-            
-      // compute the new vertex index
-      VERTEX_INDEX new_icube = 
-        scalar_grid.ComputeVertexIndex(new_index_coord);
-            
-      // check if the isosurface intersects the new vertex index
-      bool does_cube_intersect_isosurface = false;
-            
-      does_cube_intersect_isosurface = 
-        IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue);
-      if (does_cube_intersect_isosurface) {
-        // re initialize 
-        num_large_eigenvalues = 0;
+    // check if the coord is within the cube
+    if (!scalar_grid.CubeContainsPoint(cube_index, coord)){
+
+      VERTEX_INDEX new_icube = get_cube_containing_point(scalar_grid, coord);
+
+      if (IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue)) {
+
         // calculate again, this time we force it to use 2 svals or lower.
         svd_calculate_sharpiso_vertex_2_svals
           (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
@@ -408,19 +395,6 @@ void is_coord_inside_offset
   }
 }
 */
-
-/// Return true if (Linf) distance from coord to cube is at most
-bool is_dist_to_cube_le
-(const COORD_TYPE * coord, const COORD_TYPE * cube_coord,
- const SCALAR_TYPE max_dist)
-{
-  for (int d=0; d<DIM3; d++) {
-    if (coord[d]+max_dist < cube_coord[d]) { return(false); }
-    if (coord[d] > cube_coord[d]+1+max_dist) { return(false); }
-  }
-
-  return(true);
-}
 
 /// Return cube containing point.
 /// @pre Assumes coord is within grid.
@@ -1149,6 +1123,42 @@ void SHARPISO::get_selected_cube_neighbor_gradients
 }
 
 
+// **************************************************
+// MISC ROUTINES
+// **************************************************
+
+/// Return true if (Linf) distance from coord to cube is at most
+bool is_dist_to_cube_le
+(const COORD_TYPE * coord, const COORD_TYPE * cube_coord,
+ const SCALAR_TYPE max_dist)
+{
+  for (int d=0; d<DIM3; d++) {
+    if (coord[d]+max_dist < cube_coord[d]) { return(false); }
+    if (coord[d] > cube_coord[d]+1+max_dist) { return(false); }
+  }
+
+  return(true);
+}
+
+/// Return index of cube containing point.
+/// @pre Point is contained in grid.
+/// @pre grid.AxisSize(d) > 0 for every axis d.
+VERTEX_INDEX get_cube_containing_point
+(const SHARPISO_GRID & grid, const COORD_TYPE * coord)
+{
+  COORD_TYPE coord2[DIM3];
+  VERTEX_INDEX cube_index;
+
+  for (int d = 0; d < DIM3; d++) {
+    coord2[d] = floor(coord[d]);
+    if (coord2[d] >= grid.AxisSize(d))
+      { coord2[d] = grid.AxisSize(d)-1; }
+  }
+
+  cube_index = grid.ComputeVertexIndex(coord2);
+
+  return(cube_index);
+}
 
 // **************************************************
 // OFFSET_CUBE_111
