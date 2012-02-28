@@ -326,7 +326,7 @@ void anisotropic_diff_per_vert
  const VERTEX_INDEX iv1,
  const int flag_aniso,
  const int icube,
- GRADIENT_GRID & gradient_grid,
+ const GRADIENT_GRID & gradient_grid,
  GRADIENT_GRID & temp_gradient_grid)
 {
     GRADIENT_TYPE mX[DIM3]={0.0};
@@ -389,20 +389,23 @@ void anisotropic_diff_per_vert
      vector_dot_pdt(c, c, DIM3, c_square);
      
      K[d] = sum_gradHNd  - c_square;
-         // *** DEBUG ***
-         /*
-         if (iv1 == icube){
-             cout <<" gradHNd "<<endl;
-             for (int u=0; u<9; u++) {
-                 cout<<" "<<gradHN_d[u];
-             }
-             cout <<"\nd "<<d<<" sum_gradHNd " << sum_gradHNd <<" csq "<<c_square<<endl;	
-         }
-         */
+
+     // *** DEBUG ***
+     /*
+     if (iv1 == icube){
+       cout << "c: ";
+       IJK::ijkgrid_output_coord(cout, DIM3, c);
+       cout <<" gradHNd ";
+       IJK::ijkgrid_output_coord(cout, 9, gradHN_d);
+       cout << endl;
+       cout <<"\nd "<<d<<" sum_gradHNd " << sum_gradHNd 
+            <<" csq "<<c_square<<endl;	
+     }
+     */
+
      compute_g_x(mu, K[d], flag_aniso, gK[d]);
      }
-     //debug
-    //
+
     // *** DEBUG ***
     /*
     if (iv1 == icube) {
@@ -417,8 +420,8 @@ void anisotropic_diff_per_vert
         }
         cout <<endl;
     }
-    //
-     */
+    */
+
     for (int d=0; d<DIM3; d++) 
     {
         
@@ -442,7 +445,6 @@ void anisotropic_diff_per_vert
     //debug
     //
     // *** DEBUG ***
-    /*
     if (iv1 == icube) {
         cout <<"gkprev ";
         for (int q=0; q<3; q++) {
@@ -455,7 +457,7 @@ void anisotropic_diff_per_vert
         }
         cout <<endl;
     }
-    */
+
     GRADIENT_TYPE    w[DIM3]={0.0};
     /*
     for (int i =0; i<DIM3; i++) {
@@ -473,7 +475,7 @@ void anisotropic_diff_per_vert
     
     GRADIENT_TYPE  wN = 0.0;
     
-    GRADIENT_TYPE *Normals = gradient_grid.VectorPtr(iv1);
+    const GRADIENT_TYPE * Normals = gradient_grid.VectorPtrConst(iv1);
     for (int i=0; i<DIM3; i++) {
         wN = wN + Normals[i]*w[i];
     }
@@ -483,7 +485,8 @@ void anisotropic_diff_per_vert
     }
     
     // *** DEBUG ***
-   /* if (iv1 == icube) {
+    /*
+    if (iv1 == icube) {
         cout <<" wN "<< wN<<" No "<<Normals[0]<<" "<<Normals[1]<<" "<<Normals[2]<<endl;;
         cout <<" w: "<< w[0]<<" "<< w[1]<<" "<< w[2] <<endl;
         for(int h=0;h<3;h++){
@@ -509,14 +512,22 @@ void anisotropic_diff_per_vert
             cout <<" "<<K[q];
         }
         cout <<endl;
-    }*/
+    }
+    */
+
+    // *** DEBUG ***
+    /* 
     if (iv1 == icube)
     cout <<" w: "<< w[0]<<" "<< w[1]<<" "<< w[2] <<endl;
+    */
+
+    GRADIENT_TYPE Normals2[DIM3];
     for (int i=0; i<DIM3; i++) {
-        Normals[i] = Normals[i]  + lambda *w[i];
+        Normals2[i] = Normals[i]  + lambda *w[i];
     }
+
     // update the temporary gradient grid
-    temp_gradient_grid.Set(iv1, Normals);
+    temp_gradient_grid.Set(iv1, Normals2);
 }
 
 
@@ -544,9 +555,10 @@ void anisotropic_diff
         // create a temporary grid for each iteration 
         GRADIENT_GRID temp_gradient_grid;
         temp_gradient_grid.SetSize(scalar_grid, dimension);
-        
+
         for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++)
         {
+
             if(!boundary_grid.Scalar(iv))
             {
                // cout <<"v "<<iv<<" k "<<k<<endl;
@@ -566,28 +578,21 @@ void anisotropic_diff
             if(iv == icube && flag_aniso == 0 )
             {
                 GRADIENT_TYPE * grad = gradient_grid.VectorPtr(icube);
-                cout <<" iso grad at the vertex "<<icube <<" ("<<coord[0]
-                <<" "<<coord[1]<<" "<<coord[2]<<") num iter "<< k<<" [";
-                cout <<grad[0]<<" "<<grad[1]<<" "<<grad[2]<<"] "
-                << "(Magnitude " << gradient_grid.ComputeMagnitude(icube)
-                << ")"<<endl;
             }
             
             if(iv == icube && flag_aniso != 0 )
             {
-                cout.precision (5);
                 GRADIENT_TYPE * grad = gradient_grid.VectorPtr(icube);
-                cout <<" aniso grad at the vertex "<<icube <<" ("<<coord[0]
-                <<" "<<coord[1]<<" "<<coord[2]<<") num iter "<< k<<" [";
-                cout <<grad[0]<<" "<<grad[1]<<" "<<grad[2]<<"] "<<endl;
             }
         }
-        //copy over the grid
+
+        // Copy temp_gradient_grid to gradient_grid.
         for (int l=0; l<scalar_grid.NumVertices(); l++) {
             GRADIENT_TYPE * grad = temp_gradient_grid.VectorPtr(l);
             gradient_grid.Set(l, grad);
         }
-        //
+
+        // Normalize gradient grid vectors.
         for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++)
         {
             GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
@@ -601,7 +606,7 @@ void anisotropic_diff
                 gradient_grid.Set(iv, N);
             }
         }
-        //
+
     }
 };
 

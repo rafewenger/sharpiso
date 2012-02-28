@@ -90,7 +90,6 @@ int main(int argc, char **argv)
             cout <<" lambda " << lambda <<endl;
             cout <<" mu " << mu <<endl;
             cout <<" num_iter " << num_iter << endl;
-            cout <<" icube "<<icube<<endl;
         }
         if (flag_cdiff) {
             compute_gradient_central_difference(full_scalar_grid, icube, gradient_grid);
