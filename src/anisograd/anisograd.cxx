@@ -558,11 +558,26 @@ void anisotropic_diff
 
         for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++)
         {
+          GRID_COORD_TYPE coord[DIM3];
+          scalar_grid.ComputeCoord(iv, coord);
 
+          if (2 <= coord[0] && coord[0]+2 <= scalar_grid.AxisSize(0) &&
+              2 <= coord[1] && coord[1]+2 <= scalar_grid.AxisSize(1) &&
+              2 <= coord[2] && coord[2]+2 <= scalar_grid.AxisSize(2)) {
+
+            // Store new gradient values in temp_gradient_grid
+            anisotropic_diff_per_vert
+              (scalar_grid, mu, lambda, iv, flag_aniso, icube, gradient_grid, temp_gradient_grid );
+          }
+          else {
+            compute_boundary_gradient(scalar_grid, iv, temp_gradient_grid.VectorPtr(iv));
+          }
+
+
+          /* DEBUG
             if(!boundary_grid.Scalar(iv))
             {
-               // cout <<"v "<<iv<<" k "<<k<<endl;
-                // send in 2 seperate grids
+                // Store new gradient values in temp_gradient_grid
                 anisotropic_diff_per_vert
                 (scalar_grid, mu, lambda, iv, flag_aniso, icube, gradient_grid, temp_gradient_grid );
             }
@@ -570,20 +585,7 @@ void anisotropic_diff
             {
                  compute_boundary_gradient(scalar_grid, iv, temp_gradient_grid.VectorPtr(iv));
             }
-            using namespace std;
-            
-            //debug
-            COORD_TYPE coord[DIM3];
-            scalar_grid.ComputeCoord(icube, coord);
-            if(iv == icube && flag_aniso == 0 )
-            {
-                GRADIENT_TYPE * grad = gradient_grid.VectorPtr(icube);
-            }
-            
-            if(iv == icube && flag_aniso != 0 )
-            {
-                GRADIENT_TYPE * grad = gradient_grid.VectorPtr(icube);
-            }
+          */
         }
 
         // Copy temp_gradient_grid to gradient_grid.
@@ -593,6 +595,7 @@ void anisotropic_diff
         }
 
         // Normalize gradient grid vectors.
+        /*
         for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++)
         {
             GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
@@ -606,6 +609,7 @@ void anisotropic_diff
                 gradient_grid.Set(iv, N);
             }
         }
+        */
 
     }
 };
