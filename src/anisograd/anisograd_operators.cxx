@@ -250,6 +250,13 @@ void compute_forward_difference_d_normals_per_index
     const GRADIENT_TYPE * vertex_grad_next_vert = gradient_grid.VectorPtrConst (next_vert);
     
     fwd_diff_d_normals_index =  vertex_grad_next_vert[index] - vertex_grad_iv1[index];
+   /* if (iv1== 557) {
+        cout <<"iv1 grad                 ("<<  vertex_grad_iv1[0]<<" "<< vertex_grad_iv1[1]<<" "<< vertex_grad_iv1[2]<<")"<<endl;
+        cout <<"next vert "<<next_vert<<"("<<vertex_grad_next_vert[0]<<" "<<vertex_grad_next_vert[1]<<" "<<vertex_grad_next_vert[2]<<endl;
+        cout <<"fwd_diff_d_normals_index "<<fwd_diff_d_normals_index <<endl;
+    }
+    */
+    
 };
 
 // Calculates the central  difference in th 'd' direction 
@@ -270,11 +277,22 @@ void compute_central_difference_d_normals_per_index
     VERTEX_INDEX prev_vert = gradient_grid.PrevVertex(iv1, direction);
     gradient_grid.ComputeCoord(next_vert, coord1);
     gradient_grid.ComputeCoord(prev_vert, coord2);
-    
+    //check if the vertex exits.
+    if(gradient_grid.ContainsPoint(coord1) && gradient_grid.ContainsPoint(coord2)){
     const GRADIENT_TYPE * vertex_grad_prev_vert = gradient_grid.VectorPtrConst (prev_vert);
     const GRADIENT_TYPE * vertex_grad_next_vert = gradient_grid.VectorPtrConst (next_vert);
-    
+        /* 
+        if (iv1 == 557) {
+              cout <<" d "<<direction;
+              cout <<"prev "<<prev_vert<<" ("<<gradient_grid.PrevVertex(iv1, direction)<<") "<<vertex_grad_prev_vert[0] <<" "<<vertex_grad_prev_vert[1] <<" "<<vertex_grad_prev_vert[2] <<endl;
+              cout <<"next "<<next_vert<<" "<<vertex_grad_next_vert[0] <<" "<<vertex_grad_next_vert[1] <<" "<<vertex_grad_next_vert[2] <<endl;
+        }
+         */
     cntrl_diff_d_normals_index = 0.5*(vertex_grad_next_vert[index] - vertex_grad_prev_vert[index]);
+    }
+    else{
+       cntrl_diff_d_normals_index =0.0;
+    }
     
 }
 
@@ -298,7 +316,7 @@ void compute_gradH_d_normals_per_index
         }
         else
         {
-            GRADIENT_TYPE    temp1, temp2;
+            GRADIENT_TYPE    temp1=0.0, temp2=0.0;
             compute_central_difference_d_normals_per_index  
             (gradient_grid, iv1, i, index, temp1);
             
@@ -308,11 +326,21 @@ void compute_gradH_d_normals_per_index
             (gradient_grid, nextvert, i, index, temp2);
             
             gradientH_d_Normals_per_index[i] = 0.5*(temp1 + temp2);
+//             if (iv1 == 557)
+//                 cout <<"temp1 "<<temp1<<" temp2 "<<temp2<< gradientH_d_Normals_per_index[i]<<endl;
         }
     }
-    
-    COORD_TYPE coord[DIM3]={0.0};
-    gradient_grid.ComputeCoord(iv1,coord);
+//    if (iv1 == 557) {
+//        cout <<"compute_gradH_d_normals_per_index d  "<<direction<<" index "<<index<<endl;
+//        for (int u=0; u<3; u++) {
+//            if(u == direction)
+//                cout <<" * "<<gradientH_d_Normals_per_index[u];
+//            else
+//                cout <<"  "<<gradientH_d_Normals_per_index[u];
+//            
+//        }
+//        cout <<"\n";
+//    }
 };
 
 

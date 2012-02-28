@@ -22,11 +22,25 @@ const int DIM(3);
 // Compute A where A is g_i's
 MatrixXf compute_A
 (const GRADIENT_COORD_TYPE * vert_grads, const int num_vert);
+
+// Compute A where A is g_i's
+MatrixXf compute_A_normalize
+(const GRADIENT_COORD_TYPE * vert_grads, const int num_vert);
+
 // Compute B where B is isovalue - s_i;
 RowVectorXf compute_B
-(const COORD_TYPE *vert_cooords, const GRADIENT_COORD_TYPE *vert_grads,
+(const COORD_TYPE *vert_cooords, 
+ const GRADIENT_COORD_TYPE *vert_grads,
  const  SCALAR_TYPE *vert_scalars, const int num_vert,
  const SCALAR_TYPE isovalue);
+
+// Compute B where B is isovalue - s_i;
+RowVectorXf compute_B_normalize
+(const COORD_TYPE *vert_cooords, 
+ const GRADIENT_COORD_TYPE *vert_grads,
+ const  SCALAR_TYPE *vert_scalars, const int num_vert,
+ const SCALAR_TYPE isovalue);
+
 // Compute A inverse using svd
 MatrixXf compute_A_inverse
 (const MatrixXf A, const EIGENVALUE_TYPE  err_tolerance,
@@ -48,10 +62,10 @@ RowVectorXf calculate_w
 
 // Normalize a vector
 
-void normalize(GRADIENT_COORD_TYPE *intial,GRADIENT_COORD_TYPE  *normalized)
+void normalize(const GRADIENT_COORD_TYPE *intial,GRADIENT_COORD_TYPE  *normalized)
 {
     double sum(0.0),mag(0.0);
-	for (int i=0; i<3; i++) {
+	for (int i=0; i<DIM3; i++) {
         sum = sum + intial[i]*intial[i];
     }
     if (sum>0) {
@@ -78,7 +92,7 @@ void normalize(GRADIENT_COORD_TYPE *intial,GRADIENT_COORD_TYPE  *normalized)
  if the number of singular values is 2 , it also calculates the direction of the ray.
  It does NOT compute the final vertex, which is computed under
  'svd_compute_sharp_vertex_neighborhood_S'
-*/
+ */
 
 void svd_calculate_sharpiso_vertex
 (const COORD_TYPE * vert_coords,
@@ -102,52 +116,126 @@ void svd_calculate_sharpiso_vertex
         singular_vals[i] = 0.0;   // set the default singular values to zero.
         isoVertcoords[i] = 0.5;   // set the default value to cube center. 
     }
+    
+    /// Find point x (3 coordinates) such that:
+    /// (g_i) cdot (x - p_i) + s_i = isovalue
+    // singular values
+    MatrixXf singular_values;
+    
+    //Compute A where A is g_i's
+    MatrixXf A = compute_A(vert_grads, num_vert);
+    
+    //Compute B where B is isovalue - s_i + g_i*p_i;
+    RowVectorXf B =  compute_B(vert_coords, vert_grads, vert_scalars, num_vert, isovalue);
+    
+    //Compute A inverse using svd
+    MatrixXf inA = compute_A_inverse(A, err_tolerance, singular_values, num_singular_vals);
+    
+    //set up singular values. convert from eigen data type to floating type.
+    for (int i=0; i<num_singular_vals; i++)
+    { singular_vals[i]  = singular_values(i); }
+    
+    //Compute X as Ainverse times B
+    RowVectorXf X = compute_X(inA, B);
+    
+    //copy X to isoVertcoords
+    for (int i=0; i<3; i++)
+    { isoVertcoords[i] = X(i); }
+    
+    //if num of singular values is 2 then it must return a direction.
+    if(num_singular_vals == 2){
         
-        /// Find point x (3 coordinates) such that:
-        /// (g_i) cdot (x - p_i) + s_i = isovalue
-        // singular values
-        MatrixXf singular_values;
+        RowVectorXf dir;
+        MatrixXf I(3,3);
+        I<< 1,0,0, 0,1,0, 0,0,1;
         
-        //Compute A where A is g_i's
-        MatrixXf A = compute_A(vert_grads, num_vert);
+        //Obtaining all solutions of a linear system
+        //x = A_pseudo_inv b + [I - A_pseudo_inv A ]w
         
-        //Compute B where B is isovalue - s_i + g_i*p_i;
-        RowVectorXf B =  compute_B(vert_coords, vert_grads, vert_scalars, num_vert, isovalue);
+        //Calculate w
+        RowVectorXf w = calculate_w (inA, A, I);
+        //Calculate [I - A_pseudo_inv A ]w
+        dir = ( I - inA * A ) * w.transpose();
         
-        //Compute A inverse using svd
-        MatrixXf inA = compute_A_inverse(A, err_tolerance, singular_values, num_singular_vals);
+        ray_direction[0] = dir[0];
+        ray_direction[1] = dir[1];
+        ray_direction[2] = dir[2];
+        normalize(ray_direction, ray_direction);
+    }
+    
+}
+
+
+// calculate the sharp iso vertex using SVD, but normalize the 
+// gradients
+void svd_calculate_sharpiso_vertex_unit_normals
+(const COORD_TYPE * vert_coords,
+ const GRADIENT_COORD_TYPE * vert_grads,
+ const SCALAR_TYPE * vert_scalars,
+ const NUM_TYPE  num_vert,
+ const SCALAR_TYPE isovalue,
+ const EIGENVALUE_TYPE err_tolerance,
+ NUM_TYPE & num_singular_vals,
+ EIGENVALUE_TYPE singular_vals[DIM3],
+ COORD_TYPE * isoVertcoords,
+ GRADIENT_COORD_TYPE * ray_direction)
+{
+    if (num_vert == 0)
+        return;
+    
+    // Initialize variables
+    for (int i=0; i<DIM3; i++)
+    { 
+        singular_vals[i] = 0.0;   // set the default singular values to zero.
+        isoVertcoords[i] = 0.5;   // set the default value to cube center. 
+    }
+    
+    /// Find point x (3 coordinates) such that:
+    /// (g_i) cdot (x - p_i) + s_i = isovalue
+    // singular values
+    MatrixXf singular_values;
+    
+    //Compute A where A is g_i's
+    //call the version which normalizes the gradients 
+    MatrixXf A = compute_A_normalize(vert_grads, num_vert);
+    
+    //Compute B where B is isovalue - s_i + g_i*p_i;
+    RowVectorXf B =  compute_B_normalize(vert_coords, vert_grads, vert_scalars, num_vert, isovalue);
+    
+    //Compute A inverse using svd
+    MatrixXf inA = compute_A_inverse(A, err_tolerance, singular_values, num_singular_vals);
+    
+    //set up singular values. convert from eigen data type to floating type.
+    for (int i=0; i<num_singular_vals; i++)
+    { singular_vals[i]  = singular_values(i); }
+    
+    //Compute X as Ainverse times B
+    RowVectorXf X = compute_X(inA, B);
+    
+    //copy X to isoVertcoords
+    for (int i=0; i<3; i++)
+    { isoVertcoords[i] = X(i); }
+    
+    //if num of singular values is 2 then it must return a direction.
+    if(num_singular_vals == 2){
         
-        //set up singular values. convert from eigen data type to floating type.
-        for (int i=0; i<num_singular_vals; i++)
-        { singular_vals[i]  = singular_values(i); }
+        RowVectorXf dir;
+        MatrixXf I(3,3);
+        I<< 1,0,0, 0,1,0, 0,0,1;
         
-        //Compute X as Ainverse times B
-        RowVectorXf X = compute_X(inA, B);
+        //Obtaining all solutions of a linear system
+        //x = A_pseudo_inv b + [I - A_pseudo_inv A ]w
         
-        //copy X to isoVertcoords
-        for (int i=0; i<3; i++)
-        { isoVertcoords[i] = X(i); }
+        //Calculate w
+        RowVectorXf w = calculate_w (inA, A, I);
+        //Calculate [I - A_pseudo_inv A ]w
+        dir = ( I - inA * A ) * w.transpose();
         
-        //if num of singular values is 2 then it must return a direction.
-        if(num_singular_vals == 2){
-            
-            RowVectorXf dir;
-            MatrixXf I(3,3);
-            I<< 1,0,0, 0,1,0, 0,0,1;
-            
-            //Obtaining all solutions of a linear system
-            //x = A_pseudo_inv b + [I - A_pseudo_inv A ]w
-            
-            //Calculate w
-            RowVectorXf w = calculate_w (inA, A, I);
-            //Calculate [I - A_pseudo_inv A ]w
-            dir = ( I - inA * A ) * w.transpose();
-            
-            ray_direction[0] = dir[0];
-            ray_direction[1] = dir[1];
-            ray_direction[2] = dir[2];
-            normalize(ray_direction, ray_direction);
-        }
+        ray_direction[0] = dir[0];
+        ray_direction[1] = dir[1];
+        ray_direction[2] = dir[2];
+        normalize(ray_direction, ray_direction);
+    }
     
 }
 
@@ -223,6 +311,79 @@ void svd_calculate_sharpiso_vertex_2_svals
     
 }
 
+
+// normalized version 
+// SVD calculate the sharp vertex using only top 2 singular values 
+void svd_calculate_sharpiso_vertex_2_svals_unit_normals
+(const COORD_TYPE * vert_coords,
+ const GRADIENT_COORD_TYPE * vert_grads,
+ const SCALAR_TYPE * vert_scalars,
+ const NUM_TYPE  num_vert,
+ const SCALAR_TYPE isovalue,
+ const EIGENVALUE_TYPE err_tolerance,
+ NUM_TYPE & num_singular_vals,
+ EIGENVALUE_TYPE singular_vals[DIM3],
+ COORD_TYPE * isoVertcoords,
+ GRADIENT_COORD_TYPE * ray_direction)
+{
+    
+    if (num_vert == 0)
+        return;
+    
+    // Initialize variables
+    for (int i=0; i<DIM3; i++)
+    { 
+        singular_vals[i] = 0.0;   // set the default singular values to zero.
+        isoVertcoords[i] = 0.5;   // set the default value to cube center. 
+    }
+    
+    /// Find point x (3 coordinates) such that:
+    /// (g_i) cdot (x - p_i) + s_i = isovalue
+    // singular values
+    MatrixXf singular_values;
+    
+    //Compute A where A is g_i's
+    MatrixXf A = compute_A_normalize(vert_grads, num_vert);
+    //Compute B where B is isovalue - s_i + g_i*p_i;
+    RowVectorXf B =  compute_B_normalize(vert_coords, vert_grads, vert_scalars, num_vert, isovalue);
+    
+    //Compute A inverse using svd
+    MatrixXf inA = compute_A_inverse_top_2(A, err_tolerance, singular_values, num_singular_vals);
+    
+    //set up singular values. convert from eigen data type to floating type.
+    for (int i=0; i<num_singular_vals; i++)
+    { singular_vals[i]  = singular_values(i); }
+    
+    //Compute X as Ainverse times B
+    RowVectorXf X = compute_X(inA, B);
+    
+    //copy X to isoVertcoords
+    for (int i=0; i<3; i++)
+    { isoVertcoords[i] = X(i); }
+    
+    //if num of singular values is 2 then it must return a direction.
+    if(num_singular_vals == 2){
+        
+        RowVectorXf dir;
+        MatrixXf I(3,3);
+        I<< 1,0,0, 0,1,0, 0,0,1;
+        
+        //Obtaining all solutions of a linear system
+        //x = A_pseudo_inv b + [I - A_pseudo_inv A ]w
+        
+        //Calculate w
+        RowVectorXf w = calculate_w (inA, A, I);
+        //Calculate [I - A_pseudo_inv A ]w
+        dir = ( I - inA * A ) * w.transpose();
+        
+        ray_direction[0] = dir[0];
+        ray_direction[1] = dir[1];
+        ray_direction[2] = dir[2];
+        normalize(ray_direction, ray_direction);
+    }
+    
+}
+//
 //FUNCTION Compute A, where A is g_i's
 
 MatrixXf compute_A(const GRADIENT_COORD_TYPE * vert_grads, const int num_vert){
@@ -233,6 +394,23 @@ MatrixXf compute_A(const GRADIENT_COORD_TYPE * vert_grads, const int num_vert){
         for (int j=0; j<DIM; j++) {
             int k = DIM*i + j;
             A(i,j) = vert_grads[k];
+        }
+    }
+    return A;
+};
+
+//FUNCTION Compute A, where A is g_i's
+// normalize the gradients
+
+MatrixXf compute_A_normalize(const GRADIENT_COORD_TYPE * vert_grads, const int num_vert){
+    // declare the A matrix;
+    MatrixXf A(num_vert, DIM);
+    GRADIENT_COORD_TYPE vert_grads_normalized[DIM3]={0.0};
+    for (int i=0; i<num_vert; i++) {
+        normalize(&(vert_grads[DIM*i]), vert_grads_normalized);
+        for (int j=0; j<DIM; j++) {
+            int k = DIM*i + j;
+            A(i,j) = vert_grads_normalized[j];
         }
     }
     return A;
@@ -250,6 +428,8 @@ GRADIENT_COORD_TYPE compute_dot_pdt
     return sum;
 }
 
+
+
 // FUNCTION to compute B where B is given as isovalue - c_i + g_i*p_i
 RowVectorXf compute_B
 (const COORD_TYPE *vert_cooords, const GRADIENT_COORD_TYPE *vert_grads,
@@ -260,6 +440,23 @@ RowVectorXf compute_B
         
         B(i) = isovalue - vert_scalars[i]
         + compute_dot_pdt(&(vert_grads[DIM*i]), &(vert_cooords[DIM*i]), DIM );
+    }
+    return B;
+}
+
+// FUNCTION to compute B where B is given as isovalue - c_i + g_i*p_i
+// Normalize the gradients 
+
+RowVectorXf compute_B_normalize
+(const COORD_TYPE *vert_cooords, const GRADIENT_COORD_TYPE *vert_grads,
+ const  SCALAR_TYPE *vert_scalars, const int num_vert, const SCALAR_TYPE isovalue)
+{
+    RowVectorXf B(num_vert);    
+    GRADIENT_COORD_TYPE vert_grads_normalized[DIM3]={0.0};
+    for (int i=0; i<num_vert; i++) {
+         normalize(&(vert_grads[DIM*i]), vert_grads_normalized);
+        B(i) = isovalue - vert_scalars[i]
+        + compute_dot_pdt(vert_grads_normalized, &(vert_cooords[DIM*i]), DIM );
     }
     return B;
 }
@@ -288,7 +485,7 @@ MatrixXf compute_A_pseudoinverse
     float max_times_err_tol = err_tolerance*max;
     for (int i=0; i<DIM; i++) {
         if(max > 0.0)
-                if ( singular_values(i) > max_times_err_tol ) {
+            if ( singular_values(i) > max_times_err_tol ) {
                 //increment the number of singular values of A
                 num_singular_vals++;
                 //sigma(i,i) is updated to 1 / the singular value,
@@ -356,10 +553,10 @@ MatrixXf compute_A_inverse(const MatrixXf A, const EIGENVALUE_TYPE  err_toleranc
 // values above the user set tolerance
 
 MatrixXf compute_A_inverse_top_2(const MatrixXf A, const EIGENVALUE_TYPE  err_tolerance,
-                           MatrixXf &singularValues, NUM_TYPE & num_singular_vals )
+                                 MatrixXf &singularValues, NUM_TYPE & num_singular_vals )
 {
     MatrixXf pseudoInverseA = compute_A_pseudoinverse_top_2(A, singularValues, err_tolerance,
-                                                      num_singular_vals);
+                                                            num_singular_vals);
     return pseudoInverseA;
 }
 

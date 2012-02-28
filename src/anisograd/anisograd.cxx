@@ -389,31 +389,73 @@ void anisotropic_diff_per_vert
      vector_dot_pdt(c, c, DIM3, c_square);
      
      K[d] = sum_gradHNd  - c_square;
-     
+         // *** DEBUG ***
+         /*
+         if (iv1 == icube){
+             cout <<" gradHNd "<<endl;
+             for (int u=0; u<9; u++) {
+                 cout<<" "<<gradHN_d[u];
+             }
+             cout <<"\nd "<<d<<" sum_gradHNd " << sum_gradHNd <<" csq "<<c_square<<endl;	
+         }
+         */
      compute_g_x(mu, K[d], flag_aniso, gK[d]);
      }
-     
-     
-     for (int d=0; d<DIM3; d++) {
-     
-     // compute gradHN_d
-     GRADIENT_TYPE   gradHN_d[DIM9]={0.0};
-     compute_gradH_d_normals (gradient_grid, prev_vert[d], d,gradHN_d);
-     // compute C_d
-     GRADIENT_TYPE c[DIM3]={0.0};
-     compute_c_d(scalar_grid, gradient_grid, prev_vert[d], d, c);
-     
-     SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
-     
-     vector_sum_of_squares(gradHN_d, DIM9, sum_gradHNd);
-     
-     vector_dot_pdt(c, c, DIM3, c_square); 
-     
-     K[d] = sum_gradHNd  - c_square;
-     
-     compute_g_x(mu, K[d],flag_aniso, gKprev[d]);
-     }
-    
+     //debug
+    //
+    // *** DEBUG ***
+    /*
+    if (iv1 == icube) {
+        cout <<"gk ";
+        for (int q=0; q<3; q++) {
+            cout <<" "<<gK[q];
+        }
+        cout <<endl;
+        cout <<"K ";
+        for (int q=0; q<3; q++) {
+            cout <<" "<<K[q];
+        }
+        cout <<endl;
+    }
+    //
+     */
+    for (int d=0; d<DIM3; d++) 
+    {
+        
+        // compute gradHN_d
+        GRADIENT_TYPE   gradHN_d[DIM9]={0.0};
+        compute_gradH_d_normals (gradient_grid, prev_vert[d], d,gradHN_d);
+        // compute C_d
+        GRADIENT_TYPE c[DIM3]={0.0};
+        compute_c_d(scalar_grid, gradient_grid, prev_vert[d], d, c);
+        
+        SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
+        
+        vector_sum_of_squares(gradHN_d, DIM9, sum_gradHNd);
+        
+        vector_dot_pdt(c, c, DIM3, c_square); 
+        
+        K[d] = sum_gradHNd  - c_square;
+        
+        compute_g_x(mu, K[d],flag_aniso, gKprev[d]);
+    }
+    //debug
+    //
+    // *** DEBUG ***
+    /*
+    if (iv1 == icube) {
+        cout <<"gkprev ";
+        for (int q=0; q<3; q++) {
+            cout <<" "<<gKprev[q];
+        }
+        cout <<endl;
+        cout <<"K ";
+        for (int q=0; q<3; q++) {
+            cout <<" "<<K[q];
+        }
+        cout <<endl;
+    }
+    */
     GRADIENT_TYPE    w[DIM3]={0.0};
     /*
     for (int i =0; i<DIM3; i++) {
@@ -441,10 +483,35 @@ void anisotropic_diff_per_vert
     }
     
     // *** DEBUG ***
-    if (iv1 == icube) {
+   /* if (iv1 == icube) {
+        cout <<" wN "<< wN<<" No "<<Normals[0]<<" "<<Normals[1]<<" "<<Normals[2]<<endl;;
         cout <<" w: "<< w[0]<<" "<< w[1]<<" "<< w[2] <<endl;
-    }
-    
+        for(int h=0;h<3;h++){
+        cout <<"gK[i]*mX[i]                 "<<h<<" "<< gK[h]*mX[h]<<endl;
+        cout <<"gKprev[h]*mX_prev_vert_X[h] "<<h<<" "<<gKprev[h]*mX_prev_vert_X[h]<<endl;
+        cout <<"gK[i]*mY[i]                 "<<h<<" "<< gK[h]*mY[h]<<endl ;  
+        cout <<"gKprev[i]*mY_prev_vert_Y[i] "<<h<<" "<< gKprev[h]*mY_prev_vert_Y[h]<<endl ; 
+        cout <<"gK[i]*mZ[i]                 "<<h<<" "<< gK[h]*mZ[h] <<endl;
+        cout <<"gKprev[i]*mZ_prev_vert_Z[i] "<<h<<" "<< gKprev[h]*mZ_prev_vert_Z[h]<<endl ;  
+           double  w_test =  gK[h]*mX[h] - gKprev[h]*mX_prev_vert_X[h] +
+            gK[h]*mY[h] - gKprev[h]*mY_prev_vert_Y[h] +
+            gK[h]*mZ[h] - gKprev[h]*mZ_prev_vert_Z[h] ;  
+            cout<<"wh                           "<<h<<" "<<w_test<<endl;
+
+        }
+        cout <<"gk ";
+        for (int q=0; q<3; q++) {
+            cout <<" "<<gK[q];
+        }
+        cout <<endl;
+        cout <<"K ";
+        for (int q=0; q<3; q++) {
+            cout <<" "<<K[q];
+        }
+        cout <<endl;
+    }*/
+    if (iv1 == icube)
+    cout <<" w: "<< w[0]<<" "<< w[1]<<" "<< w[2] <<endl;
     for (int i=0; i<DIM3; i++) {
         Normals[i] = Normals[i]  + lambda *w[i];
     }
@@ -482,6 +549,7 @@ void anisotropic_diff
         {
             if(!boundary_grid.Scalar(iv))
             {
+               // cout <<"v "<<iv<<" k "<<k<<endl;
                 // send in 2 seperate grids
                 anisotropic_diff_per_vert
                 (scalar_grid, mu, lambda, iv, flag_aniso, icube, gradient_grid, temp_gradient_grid );
@@ -491,7 +559,7 @@ void anisotropic_diff
                  compute_boundary_gradient(scalar_grid, iv, temp_gradient_grid.VectorPtr(iv));
             }
             using namespace std;
-            cout.width(20);
+            
             //debug
             COORD_TYPE coord[DIM3];
             scalar_grid.ComputeCoord(icube, coord);
@@ -519,6 +587,21 @@ void anisotropic_diff
             GRADIENT_TYPE * grad = temp_gradient_grid.VectorPtr(l);
             gradient_grid.Set(l, grad);
         }
+        //
+        for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++)
+        {
+            GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
+            GRADIENT_TYPE   mag = 0.0;
+            vector_magnitude (N, DIM3, mag);
+            
+            if (mag > 0.0001)
+            {
+               
+                normalize (N, DIM3);
+                gradient_grid.Set(iv, N);
+            }
+        }
+        //
     }
 };
 

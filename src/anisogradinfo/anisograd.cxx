@@ -477,7 +477,7 @@ void anisotropic_diff
     temp_gradient_grid.SetSize(scalar_grid, dimension);
     for (int k=0; k<num_iter; k++)
     {
-        
+
 
         for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++)
         {
