@@ -45,7 +45,9 @@ char * scalar_filename = NULL;
 char * gradient_filename = NULL;
 SCALAR_TYPE isovalue(0);
 VERTEX_INDEX cube_index(0);
+VERTEX_INDEX vertex_index(0);
 std::vector<GRID_COORD_TYPE> cube_coord;
+std::vector<GRID_COORD_TYPE> vertex_coord;
 AXIS_SIZE_TYPE subgrid_axis_size(3);
 bool flag_list_gradients(false);
 bool flag_list_subgrid(false);
@@ -58,6 +60,9 @@ bool flag_list_eigen(false);
 bool flag_svd_gradients(true); //default
 bool flag_svd_edges_simple(false);
 bool flag_svd_edges_cmplx(false);
+bool flag_dist2vert(false);
+bool flag_cube_set(false);
+bool flag_vertex_set(false);
 
 // compute isosurface vertices
 void compute_iso_vertex_using_svd
@@ -88,6 +93,9 @@ bool check_input_grids
 bool check_cube_coord
 (const SHARPISO_SCALAR_GRID & scalar_grid,
  const std::vector<GRID_COORD_TYPE> & cube_coord, IJK::ERROR & error);
+bool check_vertex_coord
+(const SHARPISO_SCALAR_GRID & scalar_grid,
+ const std::vector<GRID_COORD_TYPE> & vertex_coord, IJK::ERROR & error);
 
 // output routines
 void output_cube_coordinates
@@ -129,8 +137,11 @@ void output_cube_eigenvalues
  const EIGENVALUE_TYPE eigenvalue_tolerance);
 void output_centroid_results
 (std::ostream & output, const COORD_TYPE coord[DIM3]);
-
-
+void output_dist2vert
+(std::ostream & output,
+ const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1);
 
 // local subroutines
 void memory_exhaustion();
@@ -178,6 +189,13 @@ int main(int argc, char **argv)
         { throw error; }
 
       cube_index = scalar_grid.ComputeVertexIndex(cube_coord);
+    }
+
+    if (vertex_coord.size() > 0) {
+      if (!check_vertex_coord(scalar_grid, vertex_coord, error))
+        { throw error; }
+
+      vertex_index = scalar_grid.ComputeVertexIndex(vertex_coord);
     }
 
     NUM_TYPE num_gradients = 0;
@@ -276,6 +294,11 @@ int main(int argc, char **argv)
         (cout, scalar_grid, gradient_grid, isovalue,
          max_small_mag, max_small_eigenvalue);
     }
+
+    if (flag_dist2vert) {
+      output_dist2vert(cout, scalar_grid, gradient_grid, vertex_index);
+    }
+
   }
   catch (IJK::ERROR error) {
     if (error.NumMessages() == 0) {
@@ -620,6 +643,76 @@ void output_gradient_based_scalars
      num_points, &(location[0]));
 }
 
+/// Output distance from vert to plane defined by gradient field at neighbors.
+void output_dist2vert
+(std::ostream & output, const GRADIENT_COORD_TYPE gfield_gradient[DIM3],
+ const GRID_COORD_TYPE gfield_point[DIM3], 
+ const SCALAR_TYPE gfield_point_scalar,
+ const GRID_COORD_TYPE point[DIM3],
+ const SCALAR_TYPE plane_scalar)
+{
+  GRADIENT_COORD_TYPE distance;
+  GRADIENT_COORD_TYPE gradient_magnitude;
+
+  IJK::compute_magnitude(DIM3, gfield_gradient, gradient_magnitude);
+
+  // Skip zero magnitude gradients.
+  if (gradient_magnitude <= 0) { return; }
+
+  compute_distance_to_gfield_plane
+    (gfield_gradient, gfield_point, gfield_point_scalar, point, plane_scalar,
+     distance);
+
+  output << "  Point ";
+  IJK::ijkgrid_output_coord(output, DIM3, gfield_point);
+  output << ".  Scalar " << gfield_point_scalar;
+  output << ".  Gradient ";
+  IJK::ijkgrid_output_coord(output, DIM3, gfield_gradient);
+  output << ".";
+
+  output << "  Distance plane to vertex: " << distance << "." << endl;
+}
+
+/// Output distance from vert to plane defined by gradient field at neighbors.
+void output_dist2vert
+(std::ostream & output,
+ const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1)
+{
+  const SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
+  GRID_COORD_TYPE coord0[DIM3], coord1[DIM3], coord2[DIM3];
+
+  scalar_grid.ComputeCoord(iv1, coord1);
+
+  output << "Vertex " << iv1 << " coordinates: ";
+  IJK::ijkgrid_output_coord(output, DIM3, coord1);
+  output << ".  Scalar " << s1 << "." << endl;
+
+  for (int d = 0; d < DIM3; d++) {
+
+    if (coord1[d] > 0) {
+      VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
+      scalar_grid.ComputeCoord(iv0, coord0);
+
+      output_dist2vert(output, gradient_grid.VectorPtrConst(iv0),
+                       coord0, scalar_grid.Scalar(iv0),
+                       coord1, s1);
+    }
+
+    if (coord1[d] + 1 < scalar_grid.AxisSize(d)) {
+      VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
+      scalar_grid.ComputeCoord(iv2, coord2);
+
+      output_dist2vert(output, gradient_grid.VectorPtrConst(iv2),
+                       coord2, scalar_grid.Scalar(iv2),
+                       coord1, s1);
+    }
+
+  }
+}
+
+
 void output_cube_eigenvalues
 (std::ostream & output,
  const SHARPISO_SCALAR_GRID & scalar_grid,
@@ -725,6 +818,33 @@ bool check_cube_coord
     return(true);
 }
 
+bool check_vertex_coord
+(const SHARPISO_SCALAR_GRID & scalar_grid,
+ const std::vector<GRID_COORD_TYPE> & vertex_coord, IJK::ERROR & error)
+{
+    if (scalar_grid.Dimension() != vertex_coord.size()) {
+        error.AddMessage("Error: Option -vc followed by incorrect number of coordinates.");
+        error.AddMessage("  Option -vc followed by ", vertex_coord.size(), " coordinates.");
+        error.AddMessage("  Option -vc should be followed by ", scalar_grid.Dimension(),
+                         " coordinates.");
+        return(false);
+    }
+
+    for (int d = 0; d < scalar_grid.Dimension(); d++) {
+        if (vertex_coord[d] < 0) {
+            error.AddMessage("Error: Illegal negative coordinate following -vc.");
+            return(false);
+        }
+
+        if (vertex_coord[d] >= scalar_grid.AxisSize(d)) {
+            error.AddMessage("Error: Coordinate following -vc is not a valid vertex coordinate.");
+            return(false);
+        }
+    }
+
+    return(true);
+}
+
 // **************************************************
 // MISCELLANEOUS ROUTINES
 // **************************************************
@@ -744,6 +864,7 @@ void usage_error()
     << endl;
     cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS ]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
+    cerr << "  -dist2vert | -vertex <vertex_index> | -vc \"vertex coordinates\"" << endl;
     cerr << "  -svd_grad | -svd_edge_simple | -svd_edge_cmplx"<<endl;
     cerr << "  -max_eigen <value> | -gradS_offset <value> -rayI_offset <value>"
          << endl;
@@ -805,11 +926,25 @@ void parse_command_line(int argc, char **argv)
     if (s == "-cube") {
       cube_index = get_int(iarg, argc, argv);
       iarg++;
+      flag_cube_set = true;
+    }
+    else if (s == "-dist2vert") {
+      flag_dist2vert = true;
+    }
+    else if (s == "-vertex") {
+      vertex_index = get_int(iarg, argc, argv);
+      iarg++;
+      flag_vertex_set = true;
     }
     else if (s == "-cc") {
       iarg++;
       if (iarg >= argc) { usage_error(); };
       IJK::string2vector(argv[iarg], cube_coord);
+    }
+    else if (s == "-vc") {
+      iarg++;
+      if (iarg >= argc) { usage_error(); };
+      IJK::string2vector(argv[iarg], vertex_coord);
     }
     else if (s == "-isovalue") {
       isovalue = get_float(iarg, argc, argv);
@@ -901,8 +1036,9 @@ void parse_command_line(int argc, char **argv)
   scalar_filename = argv[iarg];
   gradient_filename = argv[iarg+1];
 
-  if (!flag_isovalue_set && !flag_location_set && !flag_list_gradients) {
-    cerr << "Error.  Option  -isovalue or -coord or -listg must be specified."
+  if (!flag_isovalue_set && !flag_location_set && !flag_list_gradients &&
+      !flag_dist2vert) {
+    cerr << "Error.  Option  -isovalue or -coord or -listg or -dist2vert must be specified."
          << endl;
     usage_error();
     exit(15);
@@ -916,6 +1052,12 @@ void parse_command_line(int argc, char **argv)
 
   if (!flag_isovalue_set && flag_list_gradients && use_selected_gradients) {
     cerr << "Error. Option -isovalue required when listing selected gradients."
+         << endl;
+    exit(15);
+  }
+
+  if (flag_dist2vert && (!flag_vertex_set && vertex_coord.size() == 0)) {
+    cerr << "Error. Options -vertex or -vc required when using -dist2vert."
          << endl;
     exit(15);
   }
@@ -978,5 +1120,10 @@ void help()
   cerr << "  -max_eigen <V>: Normalized eigenvalues below V are set to zero." << endl;
   cerr << "  -listg: List gradients." << endl;
   cerr << "  -list_subgrid:  List all scalar values at vertices of subgrid." << endl;
+  cerr << "  -dist2vert: Distance from vertex to planes defined by" << endl
+       << "              gradients at neighboring vertices." << endl;
+  cerr << "  -vertex <vertex_index>:  Set vertex." << endl;
+  cerr << "  -vc \"vertex coordinates\":  Vertex coordinates."
+       << endl;
   exit(15);
 }
