@@ -391,7 +391,6 @@ void anisotropic_diff_per_vert
      K[d] = sum_gradHNd  - c_square;
 
      // *** DEBUG ***
-     /*
      if (iv1 == icube){
        cout << "c: ";
        IJK::ijkgrid_output_coord(cout, DIM3, c);
@@ -401,13 +400,11 @@ void anisotropic_diff_per_vert
        cout <<"\nd "<<d<<" sum_gradHNd " << sum_gradHNd 
             <<" csq "<<c_square<<endl;	
      }
-     */
 
      compute_g_x(mu, K[d], flag_aniso, gK[d]);
      }
 
     // *** DEBUG ***
-    /*
     if (iv1 == icube) {
         cout <<"gk ";
         for (int q=0; q<3; q++) {
@@ -420,7 +417,6 @@ void anisotropic_diff_per_vert
         }
         cout <<endl;
     }
-    */
 
     for (int d=0; d<DIM3; d++) 
     {
@@ -442,8 +438,7 @@ void anisotropic_diff_per_vert
         
         compute_g_x(mu, K[d],flag_aniso, gKprev[d]);
     }
-    //debug
-    //
+
     // *** DEBUG ***
     if (iv1 == icube) {
         cout <<"gkprev ";
@@ -488,7 +483,6 @@ void anisotropic_diff_per_vert
     }
     
     // *** DEBUG ***
-    /*
     if (iv1 == icube) {
         cout <<" wN "<< wN<<" No "<<Normals[0]<<" "<<Normals[1]<<" "<<Normals[2]<<endl;;
         cout <<" w: "<< w[0]<<" "<< w[1]<<" "<< w[2] <<endl;
@@ -516,13 +510,10 @@ void anisotropic_diff_per_vert
         }
         cout <<endl;
     }
-    */
 
     // *** DEBUG ***
-    /* 
     if (iv1 == icube)
     cout <<" w: "<< w[0]<<" "<< w[1]<<" "<< w[2] <<endl;
-    */
 
     GRADIENT_TYPE Normals2[DIM3];
     for (int i=0; i<DIM3; i++) {
