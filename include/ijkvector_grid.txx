@@ -42,26 +42,29 @@ namespace IJK {
   /// Note: VECTOR_GRID_BASE does not provide any way to allocate memory
   ///    for vector or set vector to point to existing memory.
   /// @tparam GRID_CLASS Base grid class.
-  /// @tparam STYPE Scalar type. Vector coordinates are of type STYPE.
+  /// @tparam VCTYPE Scalar type. Vector coordinates are of type VCTYPE.
   /// @tparam LTYPE Length type.
-  template <typename GRID_CLASS, typename LTYPE, typename STYPE>
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
   class VECTOR_GRID_BASE:public GRID_CLASS {
 
   protected:
     LTYPE vector_length;   ///< Length of each vector.
-    STYPE * vec;
+    VCTYPE * vec;
     // Coordinate c of vector(x0,x1,x2,...) equals
     //     vec[c + vector_length*(x0 + x1*axis_size[0] + 
     //                            x2*axis_size[0]*axis_size[1] + ...)]
 
     typedef typename GRID_CLASS::DIMENSION_TYPE DTYPE;
     typedef typename GRID_CLASS::AXIS_SIZE_TYPE ATYPE;
-    typedef typename GRID_CLASS::VERTEX_INDEX_TYPE VTYPE;
+    typedef typename GRID_CLASS::VERTEX_INDEX_TYPE VITYPE;
     typedef typename GRID_CLASS::NUMBER_TYPE NTYPE;
 
   public:
-    typedef STYPE SCALAR_TYPE;
     typedef LTYPE LENGTH_TYPE;
+    typedef VCTYPE VECTOR_COORD_TYPE;
+
+    // *** DEPRECATED ***
+    typedef VCTYPE SCALAR_TYPE;
     
   public:
     VECTOR_GRID_BASE() { vec = NULL; }; ///< Constructor
@@ -78,49 +81,49 @@ namespace IJK {
     const VECTOR_GRID_BASE & operator = (const VECTOR_GRID_BASE & right);
 
     // set functions
-    template <typename VTYPE2, typename LTYPE2>
+    template <typename VITYPE2, typename LTYPE2>
     void Set               ///< Set value of vertex \a iv, coord \a ic, to \a s.
-    (const VTYPE2 iv, const LTYPE2 ic, const STYPE s) 
+    (const VITYPE2 iv, const LTYPE2 ic, const VCTYPE s) 
     { vec[iv*vector_length+ic] = s; };
-    template <typename VTYPE2>
-    void Set               ///< Set vector value of vertex \a iv to \a sv
-    (const VTYPE2 iv, const STYPE * v);
-    void SetAll(const STYPE s);    ///< Set all vector coord values to \a s.
-    void SetAll(const STYPE * v);  ///< Set all vector values to \a v.
+    template <typename VITYPE2>
+    void Set               ///< Set vector value of vector at \a iv to \a v[].
+    (const VITYPE2 iv, const VCTYPE * v);
+    void SetAll(const VCTYPE s);    ///< Set all vector coord values to \a s.
+    void SetAll(const VCTYPE * v);  ///< Set all vector values to \a v.
     void CopyVector        ///< Copy vector values from \a vector_grid.
-    (const VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE> & vector_grid);
+    (const VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE> & vector_grid);
     template <typename DTYPE2, typename ATYPE2, typename LTYPE2>
     void SetSize     ///< Set dimensions, axis sizes and vector length
     (const DTYPE2 dimension, const ATYPE2 * axis_size, 
      const LTYPE2 vector_length);
 
     /// Set vector values of vertices in subsampled grid to s.
-    void SetSubsample(const ATYPE scale, const STYPE s);
+    void SetSubsample(const ATYPE scale, const VCTYPE s);
 
     /// Set vector values of vertices in region to \a s.
     template <typename GTYPE>
     void SetRegion(const IJK::BOX<GTYPE> & box, 
-                   const ATYPE scale, const STYPE s);
+                   const ATYPE scale, const VCTYPE s);
 
     /// Set vector values of vertices in list of regions to \a s.
     template <typename GTYPE>
     void SetRegion(const std::vector< IJK::BOX<GTYPE> > & box_list, 
-                   const ATYPE scale, const STYPE s);
+                   const ATYPE scale, const VCTYPE s);
 
     // get functions
     LTYPE VectorLength() const { return(vector_length); };
-    STYPE * VectorPtr() { return(vec); };
-    STYPE * VectorPtr(const VTYPE iv) 
+    VCTYPE * VectorPtr() { return(vec); };
+    VCTYPE * VectorPtr(const VITYPE iv) 
     { return(vec+iv*vector_length); };
-    const STYPE * VectorPtrConst() const { return(vec); };
-    const STYPE * VectorPtrConst(const VTYPE iv) const 
+    const VCTYPE * VectorPtrConst() const { return(vec); };
+    const VCTYPE * VectorPtrConst(const VITYPE iv) const 
     { return(vec+iv*vector_length); };
-    const STYPE * End() const 
+    const VCTYPE * End() const 
     { return(vec+vector_length*this->NumVertices()); };
-    STYPE Vector(const VTYPE iv, const LTYPE ic) const 
+    VCTYPE Vector(const VITYPE iv, const LTYPE ic) const 
     { return(vec[ic+iv*vector_length]); };
-    STYPE ComputeMagnitudeSquared(const VTYPE iv) const;
-    STYPE ComputeMagnitude(const VTYPE iv) const;
+    VCTYPE ComputeMagnitudeSquared(const VITYPE iv) const;
+    VCTYPE ComputeMagnitude(const VITYPE iv) const;
   };
 
   // **************************************************
@@ -135,10 +138,10 @@ namespace IJK {
   protected:
     typedef typename VECTOR_GRID_BASE_CLASS::DIMENSION_TYPE DTYPE;
     typedef typename VECTOR_GRID_BASE_CLASS::AXIS_SIZE_TYPE ATYPE;
-    typedef typename VECTOR_GRID_BASE_CLASS::VERTEX_INDEX_TYPE VTYPE;
+    typedef typename VECTOR_GRID_BASE_CLASS::VERTEX_INDEX_TYPE VITYPE;
     typedef typename VECTOR_GRID_BASE_CLASS::NUMBER_TYPE NTYPE;
-    typedef typename VECTOR_GRID_BASE_CLASS::SCALAR_TYPE STYPE;
     typedef typename VECTOR_GRID_BASE_CLASS::LENGTH_TYPE LTYPE;
+    typedef typename VECTOR_GRID_BASE_CLASS::VECTOR_COORD_TYPE VCTYPE;
 
     void FreeAll();
 
@@ -172,14 +175,14 @@ namespace IJK {
     void SetSize     ///< Set dimensions, axis sizes and vector length
     (const DTYPE2 dimension, const ATYPE2 * axis_size, 
      const LTYPE2 vector_length);
-    template <typename DTYPE2, typename ATYPE2, typename VTYPE2, 
+    template <typename DTYPE2, typename ATYPE2, typename VITYPE2, 
               typename NTYPE2, typename LTYPE2>
     void SetSize       ///< Set dimensions, axis size and vector length
-    (const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2, 
+    (const GRID<DTYPE2,ATYPE2,VITYPE2,NTYPE2> & grid2, 
      const LTYPE2 vector_length);
-    template <typename GTYPE, typename LTYPE2, typename STYPE2>
+    template <typename GTYPE, typename LTYPE2, typename VCTYPE2>
     void SetSize       ///< Set dimensions, axis size and vector length
-    (const VECTOR_GRID_BASE<GTYPE,LTYPE2,STYPE2> & grid2);
+    (const VECTOR_GRID_BASE<GTYPE,LTYPE2,VCTYPE2> & grid2);
 
 
     /// Subsample \a vector_grid2. Resizes current grid.
@@ -200,12 +203,12 @@ namespace IJK {
 
   /// Class storing vector grid information
   /// Default class using VECTOR_GRID_BASE
-  template <typename GRID_CLASS, typename LTYPE, typename STYPE>
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
   class VECTOR_GRID:
-    public VECTOR_GRID_ALLOC< VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE> >
+    public VECTOR_GRID_ALLOC< VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE> >
   {
   protected:
-    typedef VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE> BCLASS;
+    typedef VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE> BCLASS;
     typedef typename BCLASS::DIMENSION_TYPE DTYPE;
     typedef typename BCLASS::AXIS_SIZE_TYPE ATYPE;
 
@@ -224,19 +227,19 @@ namespace IJK {
 
   /// vector grid wrapper for vector array
   /// Does not allocate or destroy any vector information
-  template <typename GRID_CLASS, typename LTYPE, typename STYPE>
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
   class VECTOR_GRID_WRAPPER:
-    public VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE> {
+    public VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE> {
 
   protected:
     typedef typename GRID_CLASS::DIMENSION_TYPE DTYPE;
     typedef typename GRID_CLASS::AXIS_SIZE_TYPE ATYPE;
-    typedef typename GRID_CLASS::VERTEX_INDEX_TYPE VTYPE;
+    typedef typename GRID_CLASS::VERTEX_INDEX_TYPE VITYPE;
     typedef typename GRID_CLASS::NUMBER_TYPE NTYPE;
 
   public:
     VECTOR_GRID_WRAPPER(const DTYPE dimension, const ATYPE * axis_size,
-                        const LTYPE vector_length, STYPE * v);
+                        const LTYPE vector_length, VCTYPE * v);
     ~VECTOR_GRID_WRAPPER() { this->vec = NULL; };
     // Note: constructor and destructor do not allocate or free vector memory
   };
@@ -246,8 +249,8 @@ namespace IJK {
   // **************************************************
 
   /// Constructor
-  template <typename GRID_CLASS, typename LTYPE, typename STYPE>
-  VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE>::
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
+  VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::
   VECTOR_GRID_BASE(const DTYPE dimension, const ATYPE * axis_size,
                    const LTYPE vector_length):
     GRID_CLASS(dimension,axis_size)
@@ -256,9 +259,9 @@ namespace IJK {
     this->vector_length = vector_length; 
   };
 
-  template <typename GRID_CLASS, typename LTYPE, typename STYPE>
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
   template <typename DTYPE2, typename ATYPE2, typename LTYPE2>
-  void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE>::
+  void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::
   SetSize(const DTYPE2 dimension, const ATYPE2 * axis_size,
           const LTYPE2 vector_length)
   {
@@ -267,34 +270,34 @@ namespace IJK {
   }
 
   /// Set vector value to v
-  template <typename GRID_CLASS, typename LTYPE, typename STYPE>
-  template <typename VTYPE2>
-  void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE>::
-  Set(const VTYPE2 iv, const STYPE * v)
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
+  template <typename VITYPE2>
+  void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::
+  Set(const VITYPE2 iv, const VCTYPE * v)
   {
-    STYPE * vec_iv = vec+iv*VectorLength();
+    VCTYPE * vec_iv = vec+iv*VectorLength();
     for (LTYPE ic = 0; ic < VectorLength(); ic++) 
       { vec_iv[ic] = v[ic]; }
   }
 
   /// Set all scalar values to s.
-  template <typename GRID_CLASS, typename LTYPE, typename STYPE>
-  void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE>::
-  SetAll(const STYPE s)
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
+  void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::
+  SetAll(const VCTYPE s)
   {
-    for (STYPE * ptr = vec; ptr != End(); ptr++)
+    for (VCTYPE * ptr = vec; ptr != End(); ptr++)
       { *ptr = s; }
   }
 
   /// Set all vectors to v
-  template <typename GRID_CLASS, typename LTYPE, typename STYPE>
-  void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE>::
-  SetAll(const STYPE * v)
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
+  void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::
+  SetAll(const VCTYPE * v)
   {
     const LTYPE vector_length = VectorLength();
     LTYPE j = 0;
     
-    for (VTYPE i = 0; i < vector_length*this->NumVertices(); i++) {
+    for (VITYPE i = 0; i < vector_length*this->NumVertices(); i++) {
       vec[i] = v[j];
       j = (j+1)%vector_length;
     }
@@ -302,22 +305,22 @@ namespace IJK {
 
   /// Copy vector values of scalar_grid to current grid.
   /// Precondition: vector_grid has same axis_size as current grid.
-  template <typename GRID_CLASS, typename LTYPE, typename STYPE>
-  void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE>::CopyVector
-  (const VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE> & vector_grid)
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
+  void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::CopyVector
+  (const VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE> & vector_grid)
   {
     std::copy(vector_grid.VectorPtrConst(), vector_grid.End(),this->vec);
   }
 
   /// Compute vector magnitude squared
-  template <typename GRID_CLASS, typename LTYPE, typename STYPE>
-  STYPE VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE>::
-  ComputeMagnitudeSquared(const VTYPE iv) const
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
+  VCTYPE VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::
+  ComputeMagnitudeSquared(const VITYPE iv) const
   {
-    STYPE magnitude_squared = 0;
-    const STYPE * v_ptr = VectorPtrConst(iv);
+    VCTYPE magnitude_squared = 0;
+    const VCTYPE * v_ptr = VectorPtrConst(iv);
     for (DTYPE d = 0; d < this->VectorLength(); d++) {
-      STYPE s = *v_ptr;
+      VCTYPE s = *v_ptr;
       magnitude_squared += s*s;
       v_ptr++;
     }
@@ -327,11 +330,11 @@ namespace IJK {
 
 
   /// Compute vector magnitude
-  template <typename GRID_CLASS, typename LTYPE, typename STYPE>
-  STYPE VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE>::
-  ComputeMagnitude(const VTYPE iv) const
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
+  VCTYPE VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::
+  ComputeMagnitude(const VITYPE iv) const
   {
-    STYPE magnitude = ComputeMagnitudeSquared(iv);
+    VCTYPE magnitude = ComputeMagnitudeSquared(iv);
     if (magnitude > 0.0) 
       { magnitude = std::sqrt(magnitude); }
 
@@ -356,7 +359,7 @@ namespace IJK {
     VECTOR_GRID_BASE_CLASS(dimension, axis_size, vector_length)
     // constructor
   {
-    this->vec = new STYPE[this->NumVertices()*this->VectorLength()];
+    this->vec = new VCTYPE[this->NumVertices()*this->VectorLength()];
   }
 
   template <typename BASE_CLASS>
@@ -380,24 +383,24 @@ namespace IJK {
       if (this->vec == NULL || numv != this->NumVertices() ||
           vlength != this->VectorLength()) {
         if (this->vec != NULL) { delete [] this->vec; };
-        this->vec = new STYPE[this->NumVertices()*this->VectorLength()];
+        this->vec = new VCTYPE[this->NumVertices()*this->VectorLength()];
       }
     }
   }
 
   template <typename BASE_CLASS>
-  template <typename DTYPE2, typename ATYPE2, typename VTYPE2, 
+  template <typename DTYPE2, typename ATYPE2, typename VITYPE2, 
             typename NTYPE2, typename LTYPE2>
   void VECTOR_GRID_ALLOC<BASE_CLASS>::SetSize
-  (const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2, const LTYPE2 vector_length)
+  (const GRID<DTYPE2,ATYPE2,VITYPE2,NTYPE2> & grid2, const LTYPE2 vector_length)
   {
     SetSize(grid2.Dimension(), grid2.AxisSize(), vector_length);
   }
 
   template <typename BASE_CLASS>
-  template <typename GTYPE, typename LTYPE2, typename STYPE2>
+  template <typename GTYPE, typename LTYPE2, typename VCTYPE2>
   void VECTOR_GRID_ALLOC<BASE_CLASS>::SetSize
-  (const VECTOR_GRID_BASE<GTYPE,LTYPE2,STYPE2> & grid2)
+  (const VECTOR_GRID_BASE<GTYPE,LTYPE2,VCTYPE2> & grid2)
   {
     SetSize(grid2.Dimension(), grid2.AxisSize(), grid2.VectorLength());
   }
@@ -428,8 +431,8 @@ namespace IJK {
   (const GCLASS & vector_grid, const PTYPE subsample_period)
   {
     const DTYPE dimension = vector_grid.Dimension();
-    IJK::ARRAY<VTYPE> axis_increment(dimension);
-    IJK::ARRAY<VTYPE> vprimary(dimension);
+    IJK::ARRAY<VITYPE> axis_increment(dimension);
+    IJK::ARRAY<VITYPE> vprimary(dimension);
     IJK::ARRAY<ATYPE> subsampled_axis_size(dimension);
     IJK::PROCEDURE_ERROR error("VECTOR_GRID::Subsample");
 
@@ -448,9 +451,9 @@ namespace IJK {
 
     for (DTYPE d = 0; d < dimension; d++) { vprimary[d] = 0; };
 
-    VTYPE iv = 0;
+    VITYPE iv = 0;
     while (vprimary[0] < vector_grid.NumVertices()) {
-      VTYPE jv = vprimary[0];
+      VITYPE jv = vprimary[0];
       this->Set(iv, vector_grid.VectorPtrConst(jv));
       iv++;
 
@@ -515,8 +518,8 @@ namespace IJK {
       (vector_grid2, 0, numv0);
 
 
-    IJK::ARRAY<VTYPE> vlist0(numv0);
-    IJK::ARRAY<VTYPE> vlist1(numv0);
+    IJK::ARRAY<VITYPE> vlist0(numv0);
+    IJK::ARRAY<VITYPE> vlist1(numv0);
   
     get_vertices_in_grid_facet0(vector_grid2, vlist0.Ptr());
 
@@ -527,12 +530,12 @@ namespace IJK {
     subsample_subgrid_vertices
       (*this, 0, subgrid_axis_size.PtrConst(), period, vlist1.Ptr());
 
-    for (VTYPE x0 = 0; x0 < vector_grid2.AxisSize(0); x0++) {
-      VTYPE x1 = x0*supersample_period;
-      for (VTYPE i = 0; i < numv0; i++) {
-        VTYPE v0 = vlist0[i]+x0;
-        VTYPE v1 = vlist1[i]+x1;
-        STYPE s = STYPE(vector_grid2.Scalar(v0));
+    for (VITYPE x0 = 0; x0 < vector_grid2.AxisSize(0); x0++) {
+      VITYPE x1 = x0*supersample_period;
+      for (VITYPE i = 0; i < numv0; i++) {
+        VITYPE v0 = vlist0[i]+x0;
+        VITYPE v1 = vlist1[i]+x1;
+        VCTYPE s = VCTYPE(vector_grid2.Scalar(v0));
         this->vec[v1] = s;
       }
     }
@@ -547,7 +550,7 @@ namespace IJK {
     const DTYPE dimension = this->Dimension();
     IJK::ARRAY<ATYPE> subgrid_axis_size(dimension);
     IJK::ARRAY<ATYPE> subsample_period(dimension);
-    IJK::ARRAY<VTYPE> axis_increment(dimension);
+    IJK::ARRAY<VITYPE> axis_increment(dimension);
 
     compute_increment(*this, axis_increment.Ptr());
 
@@ -564,24 +567,24 @@ namespace IJK {
         (this->Dimension(), subgrid_axis_size.PtrConst(), 
          subsample_period.PtrConst(), numv);
 
-      IJK::ARRAY<VTYPE> vlist(numv);
+      IJK::ARRAY<VITYPE> vlist(numv);
       subsample_subgrid_vertices
         (*this, 0, subgrid_axis_size.PtrConst(), 
          subsample_period.PtrConst(), vlist.Ptr());
 
-      for (VTYPE x = 0; x+1 < this->AxisSize(d); x += supersample_period) {
+      for (VITYPE x = 0; x+1 < this->AxisSize(d); x += supersample_period) {
 
-        VTYPE inc0 = x*axis_increment[d];
-        VTYPE inc1 = inc0 + supersample_period*axis_increment[d];
-        for (VTYPE i = 0; i < numv; i++) {
-          VTYPE v0 = vlist[i] + inc0;
-          VTYPE v1 = vlist[i] + inc1;
+        VITYPE inc0 = x*axis_increment[d];
+        VITYPE inc1 = inc0 + supersample_period*axis_increment[d];
+        for (VITYPE i = 0; i < numv; i++) {
+          VITYPE v0 = vlist[i] + inc0;
+          VITYPE v1 = vlist[i] + inc1;
 
-          VTYPE v2 = v0;
-          for (VTYPE j = 1; j < supersample_period; j++) {
+          VITYPE v2 = v0;
+          for (VITYPE j = 1; j < supersample_period; j++) {
             v2 += axis_increment[d];
-            STYPE s0 = this->vec[v0];
-            STYPE s1 = this->vec[v1];
+            VCTYPE s0 = this->vec[v0];
+            VCTYPE s1 = this->vec[v1];
             this->vec[v2] = 
               linear_interpolate(s0, 0, s1, supersample_period, j);
           }
@@ -594,12 +597,12 @@ namespace IJK {
   // TEMPLATE CLASS VECTOR_GRID_WRAPPER MEMBER FUNCTIONS
   // ******************************************************
 
-  template <typename GRID_CLASS, typename LTYPE, typename STYPE>
-  VECTOR_GRID_WRAPPER<GRID_CLASS,LTYPE,STYPE>::
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
+  VECTOR_GRID_WRAPPER<GRID_CLASS,LTYPE,VCTYPE>::
   VECTOR_GRID_WRAPPER
   (const DTYPE dimension, const ATYPE * axis_size, 
-   const LTYPE vector_length, STYPE * v):
-    VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE>
+   const LTYPE vector_length, VCTYPE * v):
+    VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>
   (dimension, axis_size, vector_length)
   { this->vec = v; }
 
@@ -608,8 +611,8 @@ namespace IJK {
   // **************************************************
 
   /// Output vector coord.  Template specialization for bool and char classes.
-  template <class STYPE>
-  inline void output_vector_coord(std::ostream & out, const STYPE s)
+  template <class VCTYPE>
+  inline void output_vector_coord(std::ostream & out, const VCTYPE s)
   { out << s; }
 
   /// Output vector coord.  Template specialization for bool class.
@@ -628,9 +631,9 @@ namespace IJK {
   { out << int(s); }
 
   /// Output vector.
-  template <typename LTYPE, typename STYPE>
+  template <typename LTYPE, typename VCTYPE>
   inline void output_vector
-  (std::ostream & out, const LTYPE vector_length, const STYPE * v)
+  (std::ostream & out, const LTYPE vector_length, const VCTYPE * v)
   {
     out << "(";
     for (LTYPE i = 0; i < vector_length; i++) {
@@ -641,14 +644,14 @@ namespace IJK {
   }
 
   /// Output vector grid (for debugging purposes)
-  template <typename GRID_CLASS, typename LTYPE, typename STYPE>
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
   void output_vector_grid
   (std::ostream & out, 
-   const VECTOR_GRID_BASE<GRID_CLASS,LTYPE,STYPE> & vector_grid)
+   const VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE> & vector_grid)
   {
     typedef typename GRID_CLASS::DIMENSION_TYPE DTYPE;
     typedef typename GRID_CLASS::AXIS_SIZE_TYPE ATYPE;
-    typedef typename GRID_CLASS::VERTEX_INDEX_TYPE VTYPE;
+    typedef typename GRID_CLASS::VERTEX_INDEX_TYPE VITYPE;
     typedef typename GRID_CLASS::NUMBER_TYPE NTYPE;
 
     const DTYPE dimension = vector_grid.Dimension();
@@ -671,11 +674,11 @@ namespace IJK {
       NTYPE num_vertices_in_ridge;
       compute_num_vertices_in_grid_ridge
         (dimension, axis_size, 0, 1, num_vertices_in_ridge);
-      IJK::ARRAY<VTYPE> vlist(num_vertices_in_ridge);
+      IJK::ARRAY<VITYPE> vlist(num_vertices_in_ridge);
       get_vertices_in_grid_ridge(dimension, axis_size, 0, 1, vlist.Ptr());
 
       for (NTYPE i = 0; i < num_vertices_in_ridge; i++) {
-        VTYPE iv = vlist[i];
+        VITYPE iv = vlist[i];
         for (ATYPE j1 = 0; j1 < axis_size[1]; j1++) {
           output_vector(out, vector_length, vector_grid.VectorPtrConst(iv));
           ++iv;
