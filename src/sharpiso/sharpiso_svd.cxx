@@ -399,18 +399,40 @@ MatrixXf compute_A(const GRADIENT_COORD_TYPE * vert_grads, const int num_vert){
     return A;
 };
 
+//Compute magnitude of a vector of dimension 'dim'
+
+void calculate_magnitude 
+(const GRADIENT_COORD_TYPE *vec, const int dim, GRADIENT_COORD_TYPE & result)
+{
+    GRADIENT_COORD_TYPE mag = 0.0;
+    for (int i=0; i<dim; i++) {
+        mag = mag + vec[i]*vec[i];
+    }
+    result = sqrt(mag);
+}
 //FUNCTION Compute A, where A is g_i's
 // normalize the gradients
 
-MatrixXf compute_A_normalize(const GRADIENT_COORD_TYPE * vert_grads, const int num_vert){
-    // declare the A matrix;
+MatrixXf compute_A_normalize
+(const GRADIENT_COORD_TYPE * vert_grads,
+ const int num_vert)
+{
+    //Declare the A matrix;
     MatrixXf A(num_vert, DIM);
     GRADIENT_COORD_TYPE vert_grads_normalized[DIM3]={0.0};
-    for (int i=0; i<num_vert; i++) {
-        normalize(&(vert_grads[DIM*i]), vert_grads_normalized);
-        for (int j=0; j<DIM; j++) {
+    GRADIENT_COORD_TYPE magnitude = 0.0;
+    for (int i=0; i<num_vert; i++)
+    {
+        //compute magnitude of the gradients
+        calculate_magnitude (&(vert_grads[DIM*i]), DIM3, magnitude);
+        //normalize(&(vert_grads[DIM*i]), vert_grads_normalized);
+        for (int j=0; j<DIM; j++)
+        {
             int k = DIM*i + j;
-            A(i,j) = vert_grads_normalized[j];
+            if (magnitude > TOLERANCE)
+                A(i,j) = vert_grads[k] / magnitude;
+            else
+                A(i,j) = 0.0;
         }
     }
     return A;
@@ -450,7 +472,7 @@ RowVectorXf compute_B
 RowVectorXf compute_B_normalize
 (const COORD_TYPE *vert_cooords, const GRADIENT_COORD_TYPE *vert_grads,
  const  SCALAR_TYPE *vert_scalars, const int num_vert, const SCALAR_TYPE isovalue)
-{
+{ /*
     RowVectorXf B(num_vert);    
     GRADIENT_COORD_TYPE vert_grads_normalized[DIM3]={0.0};
     for (int i=0; i<num_vert; i++) {
@@ -458,6 +480,22 @@ RowVectorXf compute_B_normalize
         B(i) = isovalue - vert_scalars[i]
         + compute_dot_pdt(vert_grads_normalized, &(vert_cooords[DIM*i]), DIM );
     }
+   */
+    RowVectorXf B(num_vert);    
+    GRADIENT_COORD_TYPE vert_grads_normalized[DIM3]={0.0};
+    GRADIENT_COORD_TYPE magnitude=0.0;
+    for (int i=0; i<num_vert; i++) 
+    {
+        //compute magnitude of the gradients
+        calculate_magnitude (&(vert_grads[DIM*i]), DIM3, magnitude);
+        B(i) = isovalue - vert_scalars[i] +
+        compute_dot_pdt(&(vert_grads[DIM*i]), &(vert_cooords[DIM*i]), DIM );
+        if (magnitude > TOLERANCE)
+            B(i) = B(i) / magnitude;
+        else
+            B(i) = 0.0;
+    }
+    
     return B;
 }
 
@@ -570,7 +608,7 @@ RowVectorXf compute_X(const MatrixXf Inv_A, RowVectorXf B)
     
 }
 
-// Calculate the magnitude
+// Calculate the magnitude 
 SCALAR_TYPE calculate_mag(const RowVectorXf &res)
 {
     SCALAR_TYPE sum=0.0;

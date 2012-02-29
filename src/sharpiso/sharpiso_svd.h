@@ -16,6 +16,9 @@ using namespace std;
 using namespace Eigen;
 using namespace SHARPISO;
 
+
+const double TOLERANCE = 0.0001;
+
 //FUNCTION DEFINITION
 /*
  * inputs:

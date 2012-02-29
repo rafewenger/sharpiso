@@ -18,7 +18,7 @@
 using namespace std;
 using namespace SHARPISO;
 
-const double TOLERANCE = 0.0001;
+//const double TOLERANCE = 0.0001;
 namespace sh_cube {
     //point
     class POINT 

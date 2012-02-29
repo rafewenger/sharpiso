@@ -465,13 +465,14 @@ void anisotropic_diff_per_vert
         mY[i] - mY_prev_vert_Y[i] +
         mZ[i] - mZ_prev_vert_Z[i] ;
     }
-     */
+    */
     
-     for (int i =0; i<DIM3; i++) {
-     w[i] =  gK[i]*mX[i] - gKprev[i]*mX_prev_vert_X[i] +
-     gK[i]*mY[i] - gKprev[i]*mY_prev_vert_Y[i] +
-     gK[i]*mZ[i] - gKprev[i]*mZ_prev_vert_Z[i] ;
-     }
+    for (int i  =0; i<DIM3; i++) 
+    {
+        w[i] =  gK[i]*mX[i] - gKprev[i]*mX_prev_vert_X[i] +
+        gK[i]*mY[i] - gKprev[i]*mY_prev_vert_Y[i] +
+        gK[i]*mZ[i] - gKprev[i]*mZ_prev_vert_Z[i] ;
+    }
     
     GRADIENT_TYPE  wN = 0.0;
     
@@ -480,8 +481,10 @@ void anisotropic_diff_per_vert
         wN = wN + Normals[i]*w[i];
     }
     
+    
+    GRADIENT_TYPE w_dash[DIM3] ={0.0};
     for (int i=0; i<DIM3; i++) {
-        w[i] = w[i] - wN*Normals[i];
+        w_dash[i] = w[i] - wN*Normals[i];
     }
     
     // *** DEBUG ***
@@ -523,7 +526,7 @@ void anisotropic_diff_per_vert
 
     GRADIENT_TYPE Normals2[DIM3];
     for (int i=0; i<DIM3; i++) {
-        Normals2[i] = Normals[i]  + lambda *w[i];
+        Normals2[i] = Normals[i]  + lambda *w_dash[i];
     }
 
     // update the temporary gradient grid
@@ -561,9 +564,9 @@ void anisotropic_diff
           GRID_COORD_TYPE coord[DIM3];
           scalar_grid.ComputeCoord(iv, coord);
 
-          if (2 <= coord[0] && coord[0]+2 <= scalar_grid.AxisSize(0) &&
-              2 <= coord[1] && coord[1]+2 <= scalar_grid.AxisSize(1) &&
-              2 <= coord[2] && coord[2]+2 <= scalar_grid.AxisSize(2)) {
+          if (2 <= coord[0] && coord[0]+2 < scalar_grid.AxisSize(0) &&
+              2 <= coord[1] && coord[1]+2 < scalar_grid.AxisSize(1) &&
+              2 <= coord[2] && coord[2]+2 < scalar_grid.AxisSize(2)) {
 
             // Store new gradient values in temp_gradient_grid
             anisotropic_diff_per_vert
