@@ -45,7 +45,7 @@ namespace IJK {
   protected:
     STYPE * scalar;
     // point (x0,x1,x2,...) has scalar value
-    //     scalar_grid[x0 + x1*axis_size[0] + 
+    //     scalar_grid[x0 + x1*axis_size[0] +
     //                   x2*axis_size[0]*axis_size[1] + ...]
 
     typedef typename GRID_CLASS::DIMENSION_TYPE DTYPE;
@@ -55,7 +55,7 @@ namespace IJK {
 
   public:
     typedef STYPE SCALAR_TYPE;
-    
+
   public:
     SCALAR_GRID_BASE() { scalar = NULL; };
     SCALAR_GRID_BASE(const DTYPE dimension, const ATYPE * axis_size):
@@ -64,7 +64,7 @@ namespace IJK {
     ~SCALAR_GRID_BASE() {};
 
     // copy constructor and assignment: NOT IMPLEMENTED
-    SCALAR_GRID_BASE(const SCALAR_GRID_BASE & scalar_grid); 
+    SCALAR_GRID_BASE(const SCALAR_GRID_BASE & scalar_grid);
     const SCALAR_GRID_BASE & operator = (const SCALAR_GRID_BASE & right);
 
     // set functions
@@ -74,7 +74,7 @@ namespace IJK {
     void CopyScalar        ///< Copy scalar values from \a scalar_grid.
     (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid);
     void SetCorners        ///< Set scalar values at grid corners to \a s.
-    (const STYPE s); 
+    (const STYPE s);
 
     /// Set scalar values of vertices in subsampled grid to s.
     void SetSubsample(const ATYPE scale, const STYPE s);
@@ -82,12 +82,12 @@ namespace IJK {
 
     /// Set scalar values of vertices in region to \a s.
     template <class GTYPE>
-    void SetRegion(const IJK::BOX<GTYPE> & box, 
+    void SetRegion(const IJK::BOX<GTYPE> & box,
                    const ATYPE scale, const STYPE s);
 
     /// Set scalar values of vertices in list of regions to \a s.
     template <class GTYPE>
-    void SetRegion(const std::vector< IJK::BOX<GTYPE> > & box_list, 
+    void SetRegion(const std::vector< IJK::BOX<GTYPE> > & box_list,
                    const ATYPE scale, const STYPE s);
 
     /// Replace region from \a iv0 to \a iv1 with values from \a scalar_grid2.
@@ -123,7 +123,7 @@ namespace IJK {
     // compute/find functions
     STYPE FindMinScalar() const;
     STYPE FindMaxScalar() const;
-    NTYPE CountScalar(const STYPE s) const; 
+    NTYPE CountScalar(const STYPE s) const;
   };
 
   // **************************************************
@@ -145,8 +145,8 @@ namespace IJK {
     void Allocate(const DTYPE dimension, const ATYPE * axis_size);
     void FreeAll();
 
-    /// Copy (x0,x1,...,xd) in scalar_grid to p*(x0,x1,...,xd) in current grid 
-    ///   where p is supersample_period. 
+    /// Copy (x0,x1,...,xd) in scalar_grid to p*(x0,x1,...,xd) in current grid
+    ///   where p is supersample_period.
     template <class GTYPE, class PTYPE>
     void SupersampleCopy
     (const GTYPE & scalar_grid, const PTYPE supersample_period);
@@ -163,7 +163,7 @@ namespace IJK {
 
     /// Copy scalar grid
     template <class GTYPE>
-    void Copy(const GTYPE & scalar_grid); 
+    void Copy(const GTYPE & scalar_grid);
     SCALAR_GRID_ALLOC(const SCALAR_GRID_BASE_CLASS & scalar_grid2) ///< Copy SCALAR_GRID
     { Copy(scalar_grid2); }
     const SCALAR_GRID_ALLOC & operator =                ///< Copy SCALAR_GRID
@@ -180,7 +180,7 @@ namespace IJK {
 
     /// Subsample \a scalar_grid2. Resizes current grid.
     template <class GTYPE, class PTYPE>
-    void Subsample   
+    void Subsample
     (const GTYPE & scalar_grid2, const PTYPE subsample_period);
 
     /// Supersample \a scalar_grid2.  Resizes current grid.
@@ -314,7 +314,7 @@ namespace IJK {
     ~MINMAX_BASE(){ FreeAll(); };       ///< Destructor.
 
     // copy constructor and assignment: NOT IMPLEMENTED
-    MINMAX_BASE(const MINMAX_BASE & minmax_grid); 
+    MINMAX_BASE(const MINMAX_BASE & minmax_grid);
     const MINMAX_BASE & operator = (const MINMAX_BASE & right);
 
     // set functions
@@ -356,7 +356,7 @@ namespace IJK {
     ~MINMAX_GRID(){};
 
     // copy constructor and assignment: NOT IMPLEMENTED
-    MINMAX_GRID(const MINMAX_GRID & minmax_grid); 
+    MINMAX_GRID(const MINMAX_GRID & minmax_grid);
     const MINMAX_GRID & operator = (const MINMAX_GRID & right);
 
     /// Compute min and max of each region and store in primary vertices
@@ -369,7 +369,7 @@ namespace IJK {
     /// Compute min and max of projection
     void ProjectMinMax
     (const DTYPE dimension, const ATYPE * axis_size, const STYPE * scalar,
-     const ATYPE num_region_edges, const ATYPE facet_index, 
+     const ATYPE num_region_edges, const ATYPE facet_index,
      const ATYPE axis_increment);
 
     void ProjectMinMax
@@ -379,7 +379,7 @@ namespace IJK {
 
     void ProjectMinMax
     (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid,
-     const ATYPE num_region_edges, const ATYPE facet_index, 
+     const ATYPE num_region_edges, const ATYPE facet_index,
      const ATYPE axis_increment);
   };
 
@@ -407,12 +407,12 @@ namespace IJK {
     ~MINMAX_REGIONS();
 
     // copy constructor and assignment: NOT IMPLEMENTED
-    MINMAX_REGIONS(const MINMAX_REGIONS & minmax_regions); 
+    MINMAX_REGIONS(const MINMAX_REGIONS & minmax_regions);
     const MINMAX_REGIONS & operator = (const MINMAX_REGIONS & right);
 
     // get functions
     ATYPE RegionEdgeLength() const { return(region_edge_length); };
-    NTYPE NumRegions() const 
+    NTYPE NumRegions() const
     { return(MINMAX_BASE<GRID_CLASS,STYPE>::NumVertices()); };
 
     NTYPE NumVertices() const;
@@ -429,18 +429,18 @@ namespace IJK {
      const ATYPE offset_edge_length);
 
     void ComputeMinMax
-    (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid, 
+    (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid,
      const ATYPE region_edge_length);
 
     void ComputeMinMax
-    (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid, 
+    (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid,
      const ATYPE region_edge_length, const ATYPE offset_edge_length);
   };
 
   // **************************************************
   // LINEAR INTERPOLATION
   // **************************************************
-  
+
   /// Linear interpolate.
   template <class STYPE, class CTYPE0, class CTYPE1, class CTYPE2>
   inline STYPE linear_interpolate
@@ -450,7 +450,7 @@ namespace IJK {
     CTYPE2 w0, w1;
     CTYPE2 x_diff = STYPE(x1 - x0);
     const double EPSILON = 0.00001;
-    if (x_diff > EPSILON || x_diff < -EPSILON) { 
+    if (x_diff > EPSILON || x_diff < -EPSILON) {
       w0 = (x1-x2) / x_diff;
       w1 = (x2-x0) / x_diff;
     }
@@ -569,7 +569,7 @@ namespace IJK {
     // region_edge_length = number of grid edges per region edge
     // region_min[j] = min scalar value of region j
     // region_max[j] = max scalar value of region j
-    //   Precondition: region_min[] and region_max[] are preallocated to size 
+    //   Precondition: region_min[] and region_max[] are preallocated to size
     //                 at least number of regions
   {
     IJK::PROCEDURE_ERROR error("compute_region_minmax");
@@ -591,10 +591,10 @@ namespace IJK {
 
     region_min[0] = scalar[0];
     region_max[0] = scalar[0];
-    
+
     if (dimension < 1) { return;  };
 
-    MINMAX_GRID< GRID<DTYPE,ATYPE,GRID_SIZE_TYPE,GRID_SIZE_TYPE>,STYPE> 
+    MINMAX_GRID< GRID<DTYPE,ATYPE,GRID_SIZE_TYPE,GRID_SIZE_TYPE>,STYPE>
       minmax_grid(dimension-1, axis_size);
 
     compute_increment(dimension, axis_size, axis_increment.Ptr());
@@ -604,7 +604,7 @@ namespace IJK {
     compute_num_vertices_in_grid_facet
       (dimension, axis_size, d_last, num_facet_vertices);
 
-    ATYPE num_regions_along_axis = 
+    ATYPE num_regions_along_axis =
       compute_num_regions_along_axis(axis_size[d_last], region_edge_length);
     GRID_SIZE_TYPE num_regions_in_facet;
     compute_num_regions
@@ -621,7 +621,7 @@ namespace IJK {
         minmax_grid.OverwriteWithMinMax(region_edge_length);
 
         GRID_SIZE_TYPE facet_increment = (j*region_edge_length)*axis_increment[d_last];
-        for (DTYPE d = 0; d < dimension; d++) 
+        for (DTYPE d = 0; d < dimension; d++)
           { vprimary[d] = facet_increment; }
 
         for (int jregion = 0; jregion < num_regions_in_facet; jregion++) {
@@ -633,7 +633,7 @@ namespace IJK {
           iregion++;
 
           DTYPE d = 0;
-          while (d+1 < dimension && 
+          while (d+1 < dimension &&
                  (vprimary[d] + (region_edge_length+1)*axis_increment[d] >=
                   vprimary[d+1] + axis_increment[d+1])) {
             d++;
@@ -642,7 +642,7 @@ namespace IJK {
           // go to next subspace of dimension d
           vprimary[d] = vprimary[d] + region_edge_length*axis_increment[d];
 
-          for (DTYPE d2 = 0; d2 < d; d2++) 
+          for (DTYPE d2 = 0; d2 < d; d2++)
             { vprimary[d2] = vprimary[d]; };
         }
       }
@@ -678,7 +678,7 @@ namespace IJK {
     // offset_edge_length = offset edge length
     // region_min[j] = min scalar value of region j
     // region_max[j] = max scalar value of region j
-    //   Precondition: region_min[] and region_max[] are preallocated to size 
+    //   Precondition: region_min[] and region_max[] are preallocated to size
     //                 at least number of regions
   {
     IJK::PROCEDURE_ERROR error("compute_region_minmax");
@@ -703,10 +703,10 @@ namespace IJK {
 
     region_min[0] = scalar[0];
     region_max[0] = scalar[0];
-    
+
     if (dimension < 1) { return;  };
 
-    MINMAX_GRID< GRID<DTYPE,ATYPE,GRID_SIZE_TYPE,GRID_SIZE_TYPE>,STYPE> 
+    MINMAX_GRID< GRID<DTYPE,ATYPE,GRID_SIZE_TYPE,GRID_SIZE_TYPE>,STYPE>
       minmax_grid(dimension-1, axis_size);
 
     compute_increment(dimension, axis_size, axis_increment.Ptr());
@@ -715,7 +715,7 @@ namespace IJK {
     GRID_SIZE_TYPE num_facet_vertices;
     compute_num_vertices_in_grid_facet(dimension, axis_size, d_last, num_facet_vertices);
 
-    ATYPE num_regions_along_axis = 
+    ATYPE num_regions_along_axis =
       compute_num_regions_along_axis(axis_size[d_last], region_edge_length);
     GRID_SIZE_TYPE num_regions_in_facet;
     compute_num_regions
@@ -737,7 +737,7 @@ namespace IJK {
         minmax_grid.OverwriteWithMinMax(region_edge_length, offset_edge_length);
 
         GRID_SIZE_TYPE facet_increment = (j*region_edge_length)*axis_increment[d_last];
-        for (DTYPE d = 0; d < dimension; d++) 
+        for (DTYPE d = 0; d < dimension; d++)
           { vprimary[d] = facet_increment; }
 
         for (int jregion = 0; jregion < num_regions_in_facet; jregion++) {
@@ -749,7 +749,7 @@ namespace IJK {
           iregion++;
 
           DTYPE d = 0;
-          while (d+1 < dimension && 
+          while (d+1 < dimension &&
                  (vprimary[d] + (region_edge_length+1)*axis_increment[d] >=
                   vprimary[d+1] + axis_increment[d+1])) {
             d++;
@@ -758,7 +758,7 @@ namespace IJK {
           // go to next subspace of dimension d
           vprimary[d] = vprimary[d] + region_edge_length*axis_increment[d];
 
-          for (DTYPE d2 = 0; d2 < d; d2++) 
+          for (DTYPE d2 = 0; d2 < d; d2++)
             { vprimary[d2] = vprimary[d]; };
         }
       }
@@ -870,8 +870,8 @@ namespace IJK {
         iv = iv - coord[d] * axis_increment[d];
         coord[d] = 0;
         d++;
-        if (d < dimension) { 
-          coord[d] = coord[d] + scale; 
+        if (d < dimension) {
+          coord[d] = coord[d] + scale;
           iv = iv + scale*axis_increment[d];
         }
         else {
@@ -946,8 +946,8 @@ namespace IJK {
         iv = iv - (coord[d]-start_coord[d]) * axis_increment[d];
         coord[d] = start_coord[d];
         d++;
-        if (d < dimension) { 
-          coord[d] = coord[d]+scale2; 
+        if (d < dimension) {
+          coord[d] = coord[d]+scale2;
           iv = iv + scale2*axis_increment[d];
         }
         else {
@@ -966,7 +966,7 @@ namespace IJK {
             const ATYPE scale, const STYPE s)
     // scale = subsample region vertices at given scale
   {
-    for (NTYPE i = 0; i < NTYPE(box_list.size()); i++) 
+    for (NTYPE i = 0; i < NTYPE(box_list.size()); i++)
       { SetRegion(box_list[i], scale, s); }
   }
 
@@ -976,7 +976,7 @@ namespace IJK {
   //   and axis_size as the current scalar grid.
   template <class GRID_CLASS, class STYPE>
   void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::Replace
-  (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid2, 
+  (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid2,
    const VTYPE iv0, const VTYPE iv1)
   {
     const DTYPE dimension = this->dimension;
@@ -992,10 +992,10 @@ namespace IJK {
     ATYPE c0 = iv0%(this->AxisSize(0));
     ATYPE c1 = iv1%(this->AxisSize(0));
 
-    // iv2 is the projection of iv1 onto the hyperplane orthogonal 
+    // iv2 is the projection of iv1 onto the hyperplane orthogonal
     // to axis 0 through iv0
     VTYPE iv2 = iv1 - c1 + c0;
-  
+
     GRID_SIZE_TYPE num_slice_vertices;
     compute_num_grid_vertices(dimension, axis_size, iv0, iv2,
                               num_slice_vertices);
@@ -1011,7 +1011,7 @@ namespace IJK {
       }
 
       // go to next slice
-      for (VTYPE j = 0; j < num_slice_vertices; j++) 
+      for (VTYPE j = 0; j < num_slice_vertices; j++)
         { vlist[j]++; }
     }
 
@@ -1032,7 +1032,7 @@ namespace IJK {
         (from_grid, "To grid", "From grid", error))
       { throw error; }
 
-    if (!CheckContainsRegion(to_v0, region_axis_size, error)) 
+    if (!CheckContainsRegion(to_v0, region_axis_size, error))
       { throw error; }
 
     if (!from_grid.CheckContainsRegion
@@ -1050,14 +1050,14 @@ namespace IJK {
     compute_num_grid_vertices
       (dimension, region_facet_axis_size.PtrConst(), vlist_length);
 
-    if (vlist_length < 1) { 
+    if (vlist_length < 1) {
       // Nothing to copy
       return;
     }
 
     IJK::ARRAY<VTYPE> to_vlist(vlist_length);
     get_subgrid_vertices
-      (dimension, this->AxisSize(), to_v0, 
+      (dimension, this->AxisSize(), to_v0,
        region_facet_axis_size.PtrConst(), to_vlist.Ptr());
 
     IJK::ARRAY<VTYPE> from_vlist(vlist_length);
@@ -1066,7 +1066,7 @@ namespace IJK {
        region_facet_axis_size.PtrConst(), from_vlist.Ptr());
 
     ATYPE region_axis_size0 = 1;
-    if (dimension > 0) 
+    if (dimension > 0)
       { region_axis_size0 = region_axis_size[0]; }
 
     for (VTYPE i = 0; i < vlist_length; i++) {
@@ -1091,11 +1091,11 @@ namespace IJK {
     IJK::ARRAY<ATYPE> region_axis_size(dimension);
 
     for (DTYPE d = 0; d < dimension; d++) {
-      region_axis_size[d] = 
+      region_axis_size[d] =
         from_region.MaxCoord(d)-from_region.MinCoord(d)+1;
     }
 
-    VTYPE from_v0 = 
+    VTYPE from_v0 =
       from_grid.ComputeVertexIndex(from_region.MinCoord());
 
     CopyRegion
@@ -1167,7 +1167,7 @@ namespace IJK {
   SetSize(const DTYPE2 dimension, const ATYPE2 * axis_size)
   {
     GRID_SIZE_TYPE numv = this->NumVertices();
-    if (this->scalar == NULL || !CompareSize(dimension, axis_size)) {
+    if (this->scalar == NULL || !this->CompareSize(dimension, axis_size)) {
       BASE_CLASS::SetSize(dimension, axis_size);
       if (this->scalar == NULL || numv != this->NumVertices()) {
         if (this->scalar != NULL) { delete [] this->scalar; };
@@ -1194,10 +1194,10 @@ namespace IJK {
   }
 
   template <class BASE_CLASS>
-  const SCALAR_GRID_ALLOC<BASE_CLASS> & 
-  SCALAR_GRID_ALLOC<BASE_CLASS>::operator = 
+  const SCALAR_GRID_ALLOC<BASE_CLASS> &
+  SCALAR_GRID_ALLOC<BASE_CLASS>::operator =
   (const BASE_CLASS & right)
-    // copy assignment	
+    // copy assignment
   {
     if (&right != this) {         // avoid self-assignment
       Copy(right);
@@ -1216,7 +1216,7 @@ namespace IJK {
     IJK::PROCEDURE_ERROR error("SCALAR_GRID::Subsample");
 
     for (DTYPE d = 0; d < dimension; d++) {
-      subsampled_axis_size[d] = 
+      subsampled_axis_size[d] =
         compute_subsample_size(scalar_grid.AxisSize(d), subsample_period);
     }
 
@@ -1224,7 +1224,7 @@ namespace IJK {
 
     if (this->NumVertices() < 1) { return; };
 
-    compute_increment(dimension, scalar_grid.AxisSize(), 
+    compute_increment(dimension, scalar_grid.AxisSize(),
                       axis_increment.Ptr());
 
     for (DTYPE d = 0; d < dimension; d++) { vprimary[d] = 0; };
@@ -1236,7 +1236,7 @@ namespace IJK {
       iv++;
 
       DTYPE d = 0;
-      while (d+1 < dimension && 
+      while (d+1 < dimension &&
              (vprimary[d] + subsample_period*axis_increment[d] >=
               vprimary[d+1] + axis_increment[d+1])) {
         d++;
@@ -1245,12 +1245,12 @@ namespace IJK {
       // go to next subspace of dimension d
       vprimary[d] = vprimary[d] + subsample_period*axis_increment[d];
 
-      for (DTYPE d2 = 0; d2 < d; d2++) 
+      for (DTYPE d2 = 0; d2 < d; d2++)
         { vprimary[d2] = vprimary[d]; };
     }
 
     if (iv != this->NumVertices()) {
-      error.AddMessage("Programming error.  Subsampled ", iv, 
+      error.AddMessage("Programming error.  Subsampled ", iv,
                        " grid vertices.");
       error.AddMessage("Subsampled grid should have ", this->NumVertices(),
                        " vertices.");
@@ -1270,7 +1270,7 @@ namespace IJK {
     IJK::PROCEDURE_ERROR error("SUPERSAMPLE_GRID::Supersample");
 
     for (DTYPE d = 0; d < dimension; d++) {
-      supersampled_axis_size[d] = 
+      supersampled_axis_size[d] =
         compute_supersample_size(scalar_grid2.AxisSize(d), supersample_period);
     }
 
@@ -1298,10 +1298,10 @@ namespace IJK {
 
     IJK::ARRAY<VTYPE> vlist0(numv0);
     IJK::ARRAY<VTYPE> vlist1(numv0);
-  
+
     get_vertices_in_grid_facet0(scalar_grid2, vlist0.Ptr());
 
-    std::copy(this->AxisSize(), this->AxisSize()+this->Dimension(), 
+    std::copy(this->AxisSize(), this->AxisSize()+this->Dimension(),
               subgrid_axis_size.Ptr());
     subgrid_axis_size[0] = 1;
 
@@ -1334,20 +1334,20 @@ namespace IJK {
 
     for (DTYPE d = 0; d < this->Dimension(); d++) {
       for (DTYPE j = 0; j < d; j++) { subsample_period[j] = 1; };
-      for (DTYPE j = d; j < this->Dimension(); j++) 
+      for (DTYPE j = d; j < this->Dimension(); j++)
         { subsample_period[j] = supersample_period; };
-      for (DTYPE j = 0; j < this->Dimension(); j++) 
+      for (DTYPE j = 0; j < this->Dimension(); j++)
         { subgrid_axis_size[j] = AxisSize(j); };
       subgrid_axis_size[d] = 1;
 
       NTYPE numv;
       compute_subsample_size
-        (this->Dimension(), subgrid_axis_size.PtrConst(), 
+        (this->Dimension(), subgrid_axis_size.PtrConst(),
          subsample_period.PtrConst(), numv);
 
       IJK::ARRAY<VTYPE> vlist(numv);
       subsample_subgrid_vertices
-        (*this, 0, subgrid_axis_size.PtrConst(), 
+        (*this, 0, subgrid_axis_size.PtrConst(),
          subsample_period.PtrConst(), vlist.Ptr());
 
       for (VTYPE x = 0; x+1 < this->AxisSize(d); x += supersample_period) {
@@ -1363,7 +1363,7 @@ namespace IJK {
             v2 += axis_increment[d];
             STYPE s0 = this->scalar[v0];
             STYPE s1 = this->scalar[v1];
-            this->scalar[v2] = 
+            this->scalar[v2] =
               linear_interpolate(s0, 0, s1, supersample_period, j);
           }
         }
@@ -1389,7 +1389,7 @@ namespace IJK {
   /// Form logical "and" of grid2 and current grid.
   /// @param grid2 Boolean grid.
   /// @pre grid2 has same grid dimensions as current grid.
-  template <class GRID_CLASS> 
+  template <class GRID_CLASS>
   template <class GRID_CLASS2>
   void BOOL_GRID_BASE<GRID_CLASS>::
   And(const BOOL_GRID_BASE<GRID_CLASS2> & grid2)
@@ -1403,7 +1403,7 @@ namespace IJK {
   /// Form logical "and" of current grid with negation of grid2.
   /// @param grid2 Boolean grid.
   /// @pre grid2 has same grid dimensions as current grid.
-  template <class GRID_CLASS> 
+  template <class GRID_CLASS>
   template <class GRID_CLASS2>
   void BOOL_GRID_BASE<GRID_CLASS>::
   AndNot(const BOOL_GRID_BASE<GRID_CLASS2> & grid2)
@@ -1454,7 +1454,7 @@ namespace IJK {
   SetSize(const DTYPE2 dimension, const ATYPE2 * axis_size)
   {
     GRID_SIZE_TYPE numv = this->NumVertices();
-    if (this->scalar_min == NULL || !CompareSize(dimension, axis_size)) {
+    if (this->scalar_min == NULL || !this->CompareSize(dimension, axis_size)) {
       GRID_CLASS::SetSize(dimension, axis_size);
       if (this->scalar_min == NULL || numv != this->NumVertices()) {
         if (this->scalar_min != NULL) { delete [] this->scalar_min; };
@@ -1465,7 +1465,7 @@ namespace IJK {
     }
   }
 
-  template <class GRID_CLASS, class STYPE> 
+  template <class GRID_CLASS, class STYPE>
   template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
   void MINMAX_BASE<GRID_CLASS,STYPE>::SetSize
   (const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2)
@@ -1635,7 +1635,7 @@ namespace IJK {
   void MINMAX_GRID<GRID_CLASS,STYPE>::
   ProjectMinMax
   (const DTYPE dimension, const ATYPE * axis_size, const STYPE * scalar,
-   const ATYPE region_edge_length, const ATYPE facet_index, 
+   const ATYPE region_edge_length, const ATYPE facet_index,
    const ATYPE axis_increment)
     // region_edge_length = number of grid edges per region edge
     // facet_index = index of facet.  Range [0..axis_size-1]
@@ -1711,7 +1711,7 @@ namespace IJK {
   void MINMAX_GRID<GRID_CLASS,STYPE>::
   ProjectMinMax
   (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid,
-   const ATYPE region_edge_length, const ATYPE facet_index, 
+   const ATYPE region_edge_length, const ATYPE facet_index,
    const ATYPE axis_increment)
   {
     ProjectMinMax(scalar_grid.Dimension(), scalar_grid.AxisSize(),
@@ -1736,7 +1736,7 @@ namespace IJK {
   template <class GRID_CLASS, class STYPE>
   MINMAX_REGIONS<GRID_CLASS,STYPE>::
   MINMAX_REGIONS
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const ATYPE region_edge_length) :
     MINMAX_BASE<GRID_CLASS,STYPE>(dimension, axis_size)
     // constructor
@@ -1744,7 +1744,7 @@ namespace IJK {
     this->region_edge_length = region_edge_length;
   }
 
-  template <class GRID_CLASS, class STYPE> 
+  template <class GRID_CLASS, class STYPE>
   MINMAX_REGIONS<GRID_CLASS,STYPE>::~MINMAX_REGIONS()
     // destructor
   {
@@ -1766,14 +1766,14 @@ namespace IJK {
     this->region_edge_length = region_edge_length;
 
     for (DTYPE d = 0; d < dimension; d++) {
-      num_regions_along_axis[d] = 
+      num_regions_along_axis[d] =
         compute_num_regions_along_axis(axis_size[d], region_edge_length);
     }
 
     SetSize(dimension, num_regions_along_axis.PtrConst());
 
     compute_region_minmax
-      (dimension, axis_size, scalar, region_edge_length, 
+      (dimension, axis_size, scalar, region_edge_length,
        this->scalar_min, this->scalar_max);
   }
 
@@ -1789,7 +1789,7 @@ namespace IJK {
     this->region_edge_length = region_edge_length;
 
     for (DTYPE d = 0; d < dimension; d++) {
-      num_regions_along_axis[d] = 
+      num_regions_along_axis[d] =
         compute_num_regions_along_axis(axis_size[d], region_edge_length);
     }
 
@@ -1802,7 +1802,7 @@ namespace IJK {
 
   template <class GRID_CLASS, class STYPE>
   void MINMAX_REGIONS<GRID_CLASS,STYPE>::ComputeMinMax
-  (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid, 
+  (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid,
    const ATYPE region_edge_length)
   {
     ComputeMinMax(scalar_grid.Dimension(), scalar_grid.AxisSize(),
@@ -1811,7 +1811,7 @@ namespace IJK {
 
   template <class GRID_CLASS, class STYPE>
   void MINMAX_REGIONS<GRID_CLASS,STYPE>::ComputeMinMax
-  (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid, 
+  (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid,
    const ATYPE region_edge_length, const ATYPE offset_edge_length)
   {
     ComputeMinMax(scalar_grid.Dimension(), scalar_grid.AxisSize(),
@@ -1843,14 +1843,14 @@ namespace IJK {
     if (scalar_grid.Scalar(iv0) < s) {
       for (NTYPE k = 1; k < scalar_grid.NumCubeVertices(); k++) {
         VTYPE iv1 = scalar_grid.CubeVertex(icube, k);
-        if (scalar_grid.Scalar(iv1) >= s) 
+        if (scalar_grid.Scalar(iv1) >= s)
           { return(true); }
       }
     }
     else {
       for (NTYPE k = 1; k < scalar_grid.NumCubeVertices(); k++) {
         VTYPE iv1 = scalar_grid.CubeVertex(icube, k);
-        if (scalar_grid.Scalar(iv1) < s) 
+        if (scalar_grid.Scalar(iv1) < s)
           { return(true); }
       }
     }
@@ -1886,7 +1886,7 @@ namespace IJK {
   // *** SHOULD PROVIDE VERSION WHICH SETS OUTPUT WIDTH ***
   template <class GRID_CLASS, class STYPE>
   void output_scalar_grid
-  (std::ostream & out, 
+  (std::ostream & out,
    const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid)
   {
     typedef typename GRID_CLASS::DIMENSION_TYPE DTYPE;
@@ -1898,7 +1898,7 @@ namespace IJK {
     const ATYPE * axis_size = scalar_grid.AxisSize();
 
     using namespace std;
-    
+
     if (scalar_grid.NumVertices() < 1) { return; };
 
     if (scalar_grid.Dimension() <= 1) {

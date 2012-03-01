@@ -739,6 +739,12 @@ namespace IJK {
     return(integer_divide(axis_size+subsample_period-1, subsample_period));
   }
 
+/// Forward Definition
+/// Throw subsample period error.
+  template <class STRING_TYPE, class PTYPE>
+  void throw_subsample_period_error
+  (const STRING_TYPE proc_name, const PTYPE subsample_period);
+
   /// Return number of vertices in subsampled grid or grid subspace.
   template <class DTYPE, class ATYPE, class PTYPE, class FTYPE, class NTYPE>
   void compute_num_subsampled_vertices

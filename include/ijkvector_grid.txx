@@ -378,7 +378,7 @@ namespace IJK {
   {
     NTYPE numv = this->NumVertices();
     LTYPE vlength = this->VectorLength();
-    if (this->vec == NULL || !CompareSize(dimension, axis_size)) {
+    if (this->vec == NULL || !this->CompareSize(dimension, axis_size)) {
       BASE_CLASS::SetSize(dimension, axis_size, vector_length);
       if (this->vec == NULL || numv != this->NumVertices() ||
           vlength != this->VectorLength()) {

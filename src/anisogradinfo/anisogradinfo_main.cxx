@@ -25,6 +25,8 @@
 #include <iostream>
 #include <vector>
 
+
+
 #include "ijkNrrd.h"
 #include "ijkgrid_nrrd.txx"
 
@@ -157,8 +159,6 @@ int main(int argc, char **argv)
             // reset the gradients to be normalized
             for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
             {
-                GRID_COORD_TYPE coord[DIM3];
-                
                 GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
                 GRADIENT_TYPE   mag = 0.0;
                 vector_magnitude (N, DIM3, mag);
