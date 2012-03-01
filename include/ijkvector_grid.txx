@@ -51,7 +51,7 @@ namespace IJK {
     LTYPE vector_length;   ///< Length of each vector.
     VCTYPE * vec;
     // Coordinate c of vector(x0,x1,x2,...) equals
-    //     vec[c + vector_length*(x0 + x1*axis_size[0] + 
+    //     vec[c + vector_length*(x0 + x1*axis_size[0] +
     //                            x2*axis_size[0]*axis_size[1] + ...)]
 
     typedef typename GRID_CLASS::DIMENSION_TYPE DTYPE;
@@ -65,7 +65,7 @@ namespace IJK {
 
     // *** DEPRECATED ***
     typedef VCTYPE SCALAR_TYPE;
-    
+
   public:
     VECTOR_GRID_BASE() { vec = NULL; }; ///< Constructor
     /// Constructor
@@ -77,13 +77,13 @@ namespace IJK {
     ~VECTOR_GRID_BASE() {};
 
     // copy constructor and assignment: NOT IMPLEMENTED
-    VECTOR_GRID_BASE(const VECTOR_GRID_BASE & vector_grid); 
+    VECTOR_GRID_BASE(const VECTOR_GRID_BASE & vector_grid);
     const VECTOR_GRID_BASE & operator = (const VECTOR_GRID_BASE & right);
 
     // set functions
     template <typename VITYPE2, typename LTYPE2>
     void Set               ///< Set value of vertex \a iv, coord \a ic, to \a s.
-    (const VITYPE2 iv, const LTYPE2 ic, const VCTYPE s) 
+    (const VITYPE2 iv, const LTYPE2 ic, const VCTYPE s)
     { vec[iv*vector_length+ic] = s; };
     template <typename VITYPE2>
     void Set               ///< Set vector value of vector at \a iv to \a v[].
@@ -94,7 +94,7 @@ namespace IJK {
     (const VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE> & vector_grid);
     template <typename DTYPE2, typename ATYPE2, typename LTYPE2>
     void SetSize     ///< Set dimensions, axis sizes and vector length
-    (const DTYPE2 dimension, const ATYPE2 * axis_size, 
+    (const DTYPE2 dimension, const ATYPE2 * axis_size,
      const LTYPE2 vector_length);
 
     /// Set vector values of vertices in subsampled grid to s.
@@ -102,25 +102,25 @@ namespace IJK {
 
     /// Set vector values of vertices in region to \a s.
     template <typename GTYPE>
-    void SetRegion(const IJK::BOX<GTYPE> & box, 
+    void SetRegion(const IJK::BOX<GTYPE> & box,
                    const ATYPE scale, const VCTYPE s);
 
     /// Set vector values of vertices in list of regions to \a s.
     template <typename GTYPE>
-    void SetRegion(const std::vector< IJK::BOX<GTYPE> > & box_list, 
+    void SetRegion(const std::vector< IJK::BOX<GTYPE> > & box_list,
                    const ATYPE scale, const VCTYPE s);
 
     // get functions
     LTYPE VectorLength() const { return(vector_length); };
     VCTYPE * VectorPtr() { return(vec); };
-    VCTYPE * VectorPtr(const VITYPE iv) 
+    VCTYPE * VectorPtr(const VITYPE iv)
     { return(vec+iv*vector_length); };
     const VCTYPE * VectorPtrConst() const { return(vec); };
-    const VCTYPE * VectorPtrConst(const VITYPE iv) const 
+    const VCTYPE * VectorPtrConst(const VITYPE iv) const
     { return(vec+iv*vector_length); };
-    const VCTYPE * End() const 
+    const VCTYPE * End() const
     { return(vec+vector_length*this->NumVertices()); };
-    VCTYPE Vector(const VITYPE iv, const LTYPE ic) const 
+    VCTYPE Vector(const VITYPE iv, const LTYPE ic) const
     { return(vec[ic+iv*vector_length]); };
     VCTYPE ComputeMagnitudeSquared(const VITYPE iv) const;
     VCTYPE ComputeMagnitude(const VITYPE iv) const;
@@ -145,8 +145,8 @@ namespace IJK {
 
     void FreeAll();
 
-    /// Copy (x0,x1,...,xd) in vector_grid to p*(x0,x1,...,xd) 
-    ///   in current grid where p is supersample_period. 
+    /// Copy (x0,x1,...,xd) in vector_grid to p*(x0,x1,...,xd)
+    ///   in current grid where p is supersample_period.
     template <class GTYPE, class PTYPE>
     void SupersampleCopy
     (const GTYPE & vector_grid, const PTYPE supersample_period);
@@ -163,7 +163,7 @@ namespace IJK {
 
     /// Copy vector grid
     template <typename GTYPE>
-    void Copy(const GTYPE & vector_grid); 
+    void Copy(const GTYPE & vector_grid);
     VECTOR_GRID_ALLOC                                   ///< Copy VECTOR_GRID
     (const VECTOR_GRID_BASE_CLASS & vector_grid2)
     { Copy(vector_grid2); }
@@ -173,12 +173,12 @@ namespace IJK {
     // set functions
     template <typename DTYPE2, typename ATYPE2, typename LTYPE2>
     void SetSize     ///< Set dimensions, axis sizes and vector length
-    (const DTYPE2 dimension, const ATYPE2 * axis_size, 
+    (const DTYPE2 dimension, const ATYPE2 * axis_size,
      const LTYPE2 vector_length);
-    template <typename DTYPE2, typename ATYPE2, typename VITYPE2, 
+    template <typename DTYPE2, typename ATYPE2, typename VITYPE2,
               typename NTYPE2, typename LTYPE2>
     void SetSize       ///< Set dimensions, axis size and vector length
-    (const GRID<DTYPE2,ATYPE2,VITYPE2,NTYPE2> & grid2, 
+    (const GRID<DTYPE2,ATYPE2,VITYPE2,NTYPE2> & grid2,
      const LTYPE2 vector_length);
     template <typename GTYPE, typename LTYPE2, typename VCTYPE2>
     void SetSize       ///< Set dimensions, axis size and vector length
@@ -187,7 +187,7 @@ namespace IJK {
 
     /// Subsample \a vector_grid2. Resizes current grid.
     template <typename GTYPE, typename PTYPE>
-    void Subsample   
+    void Subsample
     (const GTYPE & vector_grid2, const PTYPE subsample_period);
 
     /// Supersample \a vector_grid2.  Resizes current grid.
@@ -254,9 +254,9 @@ namespace IJK {
   VECTOR_GRID_BASE(const DTYPE dimension, const ATYPE * axis_size,
                    const LTYPE vector_length):
     GRID_CLASS(dimension,axis_size)
-  { 
-    vec = NULL; 
-    this->vector_length = vector_length; 
+  {
+    vec = NULL;
+    this->vector_length = vector_length;
   };
 
   template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
@@ -276,7 +276,7 @@ namespace IJK {
   Set(const VITYPE2 iv, const VCTYPE * v)
   {
     VCTYPE * vec_iv = vec+iv*VectorLength();
-    for (LTYPE ic = 0; ic < VectorLength(); ic++) 
+    for (LTYPE ic = 0; ic < VectorLength(); ic++)
       { vec_iv[ic] = v[ic]; }
   }
 
@@ -296,7 +296,7 @@ namespace IJK {
   {
     const LTYPE vector_length = VectorLength();
     LTYPE j = 0;
-    
+
     for (VITYPE i = 0; i < vector_length*this->NumVertices(); i++) {
       vec[i] = v[j];
       j = (j+1)%vector_length;
@@ -335,7 +335,7 @@ namespace IJK {
   ComputeMagnitude(const VITYPE iv) const
   {
     VCTYPE magnitude = ComputeMagnitudeSquared(iv);
-    if (magnitude > 0.0) 
+    if (magnitude > 0.0)
       { magnitude = std::sqrt(magnitude); }
 
     return(magnitude);
@@ -354,7 +354,7 @@ namespace IJK {
 
   template <typename VECTOR_GRID_BASE_CLASS>
   VECTOR_GRID_ALLOC<VECTOR_GRID_BASE_CLASS>::
-  VECTOR_GRID_ALLOC(const DTYPE dimension, const ATYPE * axis_size, 
+  VECTOR_GRID_ALLOC(const DTYPE dimension, const ATYPE * axis_size,
                     const LTYPE vector_length) :
     VECTOR_GRID_BASE_CLASS(dimension, axis_size, vector_length)
     // constructor
@@ -389,7 +389,7 @@ namespace IJK {
   }
 
   template <typename BASE_CLASS>
-  template <typename DTYPE2, typename ATYPE2, typename VITYPE2, 
+  template <typename DTYPE2, typename ATYPE2, typename VITYPE2,
             typename NTYPE2, typename LTYPE2>
   void VECTOR_GRID_ALLOC<BASE_CLASS>::SetSize
   (const GRID<DTYPE2,ATYPE2,VITYPE2,NTYPE2> & grid2, const LTYPE2 vector_length)
@@ -415,10 +415,10 @@ namespace IJK {
   }
 
   template <typename BASE_CLASS>
-  const VECTOR_GRID_ALLOC<BASE_CLASS> & 
-  VECTOR_GRID_ALLOC<BASE_CLASS>::operator = 
+  const VECTOR_GRID_ALLOC<BASE_CLASS> &
+  VECTOR_GRID_ALLOC<BASE_CLASS>::operator =
   (const BASE_CLASS & right)
-    // copy assignment	
+    // copy assignment
   {
     if (&right != this) {         // avoid self-assignment
       Copy(right);
@@ -437,7 +437,7 @@ namespace IJK {
     IJK::PROCEDURE_ERROR error("VECTOR_GRID::Subsample");
 
     for (DTYPE d = 0; d < dimension; d++) {
-      subsampled_axis_size[d] = 
+      subsampled_axis_size[d] =
         compute_subsample_size(vector_grid.AxisSize(d), subsample_period);
     }
 
@@ -446,7 +446,7 @@ namespace IJK {
 
     if (this->NumVertices() < 1) { return; };
 
-    compute_increment(dimension, vector_grid.AxisSize(), 
+    compute_increment(dimension, vector_grid.AxisSize(),
                       axis_increment.Ptr());
 
     for (DTYPE d = 0; d < dimension; d++) { vprimary[d] = 0; };
@@ -458,7 +458,7 @@ namespace IJK {
       iv++;
 
       DTYPE d = 0;
-      while (d+1 < dimension && 
+      while (d+1 < dimension &&
              (vprimary[d] + subsample_period*axis_increment[d] >=
               vprimary[d+1] + axis_increment[d+1])) {
         d++;
@@ -467,12 +467,12 @@ namespace IJK {
       // go to next subspace of dimension d
       vprimary[d] = vprimary[d] + subsample_period*axis_increment[d];
 
-      for (DTYPE d2 = 0; d2 < d; d2++) 
+      for (DTYPE d2 = 0; d2 < d; d2++)
         { vprimary[d2] = vprimary[d]; };
     }
 
     if (iv != this->NumVertices()) {
-      error.AddMessage("Programming error.  Subsampled ", iv, 
+      error.AddMessage("Programming error.  Subsampled ", iv,
                        " grid vertices.");
       error.AddMessage("Subsampled grid should have ", this->NumVertices(),
                        " vertices.");
@@ -492,7 +492,7 @@ namespace IJK {
     IJK::PROCEDURE_ERROR error("SUPERSAMPLE_GRID::Supersample");
 
     for (DTYPE d = 0; d < dimension; d++) {
-      supersampled_axis_size[d] = 
+      supersampled_axis_size[d] =
         compute_supersample_size(vector_grid2.AxisSize(d), supersample_period);
     }
 
@@ -520,10 +520,10 @@ namespace IJK {
 
     IJK::ARRAY<VITYPE> vlist0(numv0);
     IJK::ARRAY<VITYPE> vlist1(numv0);
-  
+
     get_vertices_in_grid_facet0(vector_grid2, vlist0.Ptr());
 
-    std::copy(this->AxisSize(), this->AxisSize()+this->Dimension(), 
+    std::copy(this->AxisSize(), this->AxisSize()+this->Dimension(),
               subgrid_axis_size.Ptr());
     subgrid_axis_size[0] = 1;
 
@@ -556,20 +556,20 @@ namespace IJK {
 
     for (DTYPE d = 0; d < this->Dimension(); d++) {
       for (DTYPE j = 0; j < d; j++) { subsample_period[j] = 1; };
-      for (DTYPE j = d; j < this->Dimension(); j++) 
+      for (DTYPE j = d; j < this->Dimension(); j++)
         { subsample_period[j] = supersample_period; };
-      for (DTYPE j = 0; j < this->Dimension(); j++) 
+      for (DTYPE j = 0; j < this->Dimension(); j++)
         { subgrid_axis_size[j] = AxisSize(j); };
       subgrid_axis_size[d] = 1;
 
       NTYPE numv;
       compute_subsample_size
-        (this->Dimension(), subgrid_axis_size.PtrConst(), 
+        (this->Dimension(), subgrid_axis_size.PtrConst(),
          subsample_period.PtrConst(), numv);
 
       IJK::ARRAY<VITYPE> vlist(numv);
       subsample_subgrid_vertices
-        (*this, 0, subgrid_axis_size.PtrConst(), 
+        (*this, 0, subgrid_axis_size.PtrConst(),
          subsample_period.PtrConst(), vlist.Ptr());
 
       for (VITYPE x = 0; x+1 < this->AxisSize(d); x += supersample_period) {
@@ -585,7 +585,7 @@ namespace IJK {
             v2 += axis_increment[d];
             VCTYPE s0 = this->vec[v0];
             VCTYPE s1 = this->vec[v1];
-            this->vec[v2] = 
+            this->vec[v2] =
               linear_interpolate(s0, 0, s1, supersample_period, j);
           }
         }
@@ -600,7 +600,7 @@ namespace IJK {
   template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
   VECTOR_GRID_WRAPPER<GRID_CLASS,LTYPE,VCTYPE>::
   VECTOR_GRID_WRAPPER
-  (const DTYPE dimension, const ATYPE * axis_size, 
+  (const DTYPE dimension, const ATYPE * axis_size,
    const LTYPE vector_length, VCTYPE * v):
     VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>
   (dimension, axis_size, vector_length)
@@ -646,7 +646,7 @@ namespace IJK {
   /// Output vector grid (for debugging purposes)
   template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
   void output_vector_grid
-  (std::ostream & out, 
+  (std::ostream & out,
    const VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE> & vector_grid)
   {
     typedef typename GRID_CLASS::DIMENSION_TYPE DTYPE;
@@ -659,7 +659,7 @@ namespace IJK {
     const LTYPE vector_length = vector_grid.VectorLength();
 
     using namespace std;
-    
+
     if (vector_grid.NumVertices() < 1) { return; };
 
     if (vector_grid.Dimension() <= 1) {
