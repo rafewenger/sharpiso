@@ -31,10 +31,10 @@
 #include "ijkgrid_nrrd.txx"
 
 #include "anisograd.h"
-#include "isodual3D_datastruct.h"
+#include "sharpiso_types.h"
 
 using namespace IJK;
-using namespace ISODUAL3D;
+
 
 // global variables
 char * scalar_filename = NULL;
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
     time_t start_time;
     time(&start_time);
     
-    vector<GRADIENT_TYPE> mag_list;
+    vector<GRADIENT_COORD_TYPE> mag_list;
     
     IJK::ERROR error;
     
@@ -86,7 +86,9 @@ int main(int argc, char **argv)
         
         parse_command_line(argc, argv);
         
-        ISODUAL_SCALAR_GRID full_scalar_grid;
+        // debug
+        //ISODUAL_SCALAR_GRID full_scalar_grid;
+        SHARPISO_SCALAR_GRID full_scalar_grid;
         GRID_NRRD_IN<int,int> nrrd_in;
         NRRD_DATA<int,int> nrrd_header;
         
@@ -96,8 +98,7 @@ int main(int argc, char **argv)
         if (nrrd_in.ReadFailed()) { throw error; }
         
         GRADIENT_GRID gradient_grid;
-        
-        ANISO_INFO_TYPE aniso_info;
+       
         if(false)
         {
             cout <<" lambda " << lambda <<endl;
@@ -123,8 +124,8 @@ int main(int argc, char **argv)
             // store the magnitudes so that they can be later added back
             for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
             {
-                GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
-                GRADIENT_TYPE   mag = 0.0;
+                GRADIENT_COORD_TYPE  * N = gradient_grid.VectorPtr(iv);
+                GRADIENT_COORD_TYPE   mag = 0.0;
                 vector_magnitude (N, DIM3, mag);
                 
                 if (mag > 0.0001)
@@ -145,22 +146,22 @@ int main(int argc, char **argv)
                 // Calculate the anisotropic diff of the gradients.
                 cout << "Isotropic diffusion called "<<endl;
                 
-                anisotropic_diff_debug 
-                (full_scalar_grid,  mu, lambda, num_iter, 0, icube, gradient_grid, aniso_info);
+                anisotropic_diff
+                (full_scalar_grid,  mu, lambda, num_iter, 0, icube, gradient_grid);
             }
             else
             {
                 cout << "Anisostropic gradients called."<<endl;
                 // Calculate the anisotropic diff of the gradients.
-                anisotropic_diff_debug
-                (full_scalar_grid,  mu, lambda, num_iter, 1, icube, gradient_grid, aniso_info);
+                anisotropic_diff
+                (full_scalar_grid,  mu, lambda, num_iter, 1, icube, gradient_grid);
             }
             
             // reset the gradients to be normalized
             for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
             {
-                GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
-                GRADIENT_TYPE   mag = 0.0;
+                GRADIENT_COORD_TYPE  * N = gradient_grid.VectorPtr(iv);
+                GRADIENT_COORD_TYPE   mag = 0.0;
                 vector_magnitude (N, DIM3, mag);
                 
                 if (mag > 0.0001)
@@ -174,7 +175,7 @@ int main(int argc, char **argv)
             //reset the magnitudes of the gradients
             for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
             {
-                GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
+                GRADIENT_COORD_TYPE  * N = gradient_grid.VectorPtr(iv);
                 for (int i=0; i<DIM3; i++) {
                     N[i] = N[i]*mag_list[iv];
                 }
@@ -313,110 +314,3 @@ void usage_error()
     usage_msg();
     exit(100);
 }
-
-/*******************/
-//DEBUG
-void debug_print(ANISO_INFO_TYPE & aniso_info)
-{
-    cout.precision(5);
-    cout << " vertex " << aniso_info.iv;
-    cout << " num iteration " << aniso_info.num_iter<<endl;
-    
-    if(flag_norm_before){
-    cout << " norm before  (";
-    
-    cout <<aniso_info.Normals[0]<<" " << aniso_info.Normals[1]<<" " <<aniso_info.Normals[2]<<") "<<endl;
-    }
-    if(flag_norm_after)
-    {
-        cout << " norm after  (";
-        cout <<aniso_info.Normals2[0] <<" "<< aniso_info.Normals2[1]<<" " <<aniso_info.Normals2[2]<<") "<<endl;
-
-    }
-    if(flag_m)
-    {
-        cout << " mX (";
-        cout <<aniso_info.mX[0] <<" "<< aniso_info.mX[1]<<" " <<aniso_info.mX[2]<<") "<<endl;
-        cout << " mY (";
-        cout <<aniso_info.mY[0] <<" "<< aniso_info.mY[1]<<" " <<aniso_info.mY[2]<<") "<<endl;
-        cout << " mZ (";
-        cout <<aniso_info.mZ[0] <<" "<< aniso_info.mZ[1]<<" " <<aniso_info.mZ[2]<<") "<<endl;
-    }
-    if(flag_mprev)
-    {
-        cout << " mX prev vert "<<aniso_info.prev_vert[0]<<" (";
-        cout <<aniso_info.mX_prev_vert_X[0] <<" "<< aniso_info.mX_prev_vert_X[1]<<" "<<aniso_info.mX_prev_vert_X[2]<<") "<<endl;
-        cout << " mY prev vert "<<aniso_info.prev_vert[1]<<" (";
-        cout <<aniso_info.mY_prev_vert_Y[0] <<" "<< aniso_info.mY_prev_vert_Y[1]<<" " <<aniso_info.mY_prev_vert_Y[2]<<") "<<endl;
-        cout << " mZ prev vert "<<aniso_info.prev_vert[2]<<" (";
-        cout <<aniso_info.mZ_prev_vert_Z[0] <<" "<< aniso_info.mZ_prev_vert_Z[1]<<" " <<aniso_info.mZ_prev_vert_Z[2]<<") "<<endl;
-    }
-    if(flag_k)
-    {
-        cout << " k  (";
-        cout <<aniso_info.K[0] <<" "<< aniso_info.K[1]<<" " <<aniso_info.K[2]<<") "<<endl;
-
-        cout << " k prev {"<< aniso_info.prev_vert[0]<<" "<< aniso_info.prev_vert[1]<<" "<<aniso_info.prev_vert[2]<<"} (";
-        cout <<aniso_info.K[0] <<" "<< aniso_info.K[1]<<" " <<aniso_info.K[2]<<") "<<endl;
-
-    }
-    if (flag_c) {
-        cout <<" c \n";
-        for (int i=0; i<DIM3; i++) {
-            cout <<aniso_info.c[DIM3*i + 0]<<","<<aniso_info.c[DIM3*i + 1]<<","<<aniso_info.c[DIM3*i + 2]<<"\n";
-        }
-        cout <<"\n";
-        cout <<" c prev\n";
-        for (int i=0; i<DIM3; i++) {
-            cout <<aniso_info.c_prev[DIM3*i + 0]<<","<<aniso_info.c_prev[DIM3*i + 1]<<","<<aniso_info.c_prev[DIM3*i + 2]<<"\n";
-        }
-        cout <<"\n";
-    }
-    
-    if(flag_w)
-    {
-        cout <<" w \n ("<<aniso_info.w[0]<<" "<<aniso_info.w[1]<<" "<<aniso_info.w[2]<<")"<<endl;
-       
-        cout <<" w' \n ("<<aniso_info.w_dash[0]<<" "<<aniso_info.w_dash[1]<<" "<<aniso_info.w_dash[2]<<")"<<endl;
-    }
-}
-/*
- class ANISO_INFO_TYPE{
- public :
- VERTEX_INDEX iv;
- int num_iter;
- GRADIENT_TYPE Normals[DIM3];
- GRADIENT_TYPE Normals2[DIM3];
- GRADIENT_TYPE mX[DIM3];
- GRADIENT_TYPE mX_prev_vert_X[DIM3];
- 
- GRADIENT_TYPE mY[DIM3];
- GRADIENT_TYPE mY_prev_vert_Y[DIM3];
- 
- GRADIENT_TYPE mZ[DIM3];
- GRADIENT_TYPE mZ_prev_vert_Z[DIM3];
- VERTEX_INDEX prev_vert[DIM3];
- 
- SCALAR_TYPE K[DIM3];
- SCALAR_TYPE gK[DIM3];
- 
- SCALAR_TYPE Kprev[DIM3];
- SCALAR_TYPE gKprev[DIM3];
- 
- GRADIENT_TYPE   gradHNd[DIM9*DIM3];
- GRADIENT_TYPE   gradHNd_prev[DIM9*DIM3];
- GRADIENT_TYPE   c[DIM3*DIM3];
- GRADIENT_TYPE   c_prev[DIM3*DIM3];
- GRADIENT_TYPE   w[DIM3];
- GRADIENT_TYPE   wN ;
- GRADIENT_TYPE   w_dash[DIM3];
- void mycopy(const GRADIENT_TYPE temp[], GRADIENT_TYPE temp1[],int  n)
- {
- for(int i=0;i<n;i++)
- {
- temp1[i] = temp[i];
- }
- };
- 
- };
- */

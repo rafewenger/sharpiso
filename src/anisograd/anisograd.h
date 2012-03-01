@@ -24,34 +24,31 @@
 #ifndef _ANISOGRAD_
 #define _ANISOGRAD_
 
-#include "isodual3D_datastruct.h"
-#include "ijkscalar_grid.txx"
 
+
+#include "ijkscalar_grid.txx"
+#include "sharpiso_grids.h"
 
 const float EPSILON = 0.001;
-const int DIM3 = 3;
 const int DIM9 = 9;
 
+using namespace SHARPISO;
 
 void compute_gradient_central_difference
-(const ISODUAL3D::ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const int icube,
- ISODUAL3D::GRADIENT_GRID & gradient_grid);
+ GRADIENT_GRID & gradient_grid);
 
 // Calculate the anisotropic diff of the gradients.
 void anisotropic_diff
-(const ISODUAL3D::ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const float mu,
  const float lambda,
  const int num_iter,
  const int flag_aniso,
  const int icube,
- ISODUAL3D::GRADIENT_GRID & gradient_grid);
+ GRADIENT_GRID & gradient_grid);
 
-
-void compute_anisotropic_gradient_filtering
-(const ISODUAL3D::ISODUAL_SCALAR_GRID_BASE & scalar_grid,
- ISODUAL3D::GRADIENT_GRID & gradient_grid);
 
 // Normalize the vectors.
 void normalize (float *vec, const int num_elements);

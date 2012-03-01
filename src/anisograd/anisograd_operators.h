@@ -26,10 +26,7 @@
 #define _ANISOGRAD_OPERATORS_
 
 #include "anisograd.h"
-#include "ijkscalar_grid.txx"
-#include "isodual3D_datastruct.h"
 
-using namespace ISODUAL3D;
 
 ///
 /// FORWARD DIFFERENCE CALCUALTORS 
@@ -38,20 +35,20 @@ using namespace ISODUAL3D;
 // Calculate the FORWARD difference in the 'd' direction
 // Calculates for the scalar_grid
 void compute_forward_difference_d
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const VERTEX_INDEX iv1,
- const DIRECTION d,
- GRADIENT_TYPE &fwd_diff_d);
+ const int d,
+ GRADIENT_COORD_TYPE &fwd_diff_d);
 
 // Calculates the forward difference in the 'd' direction 
 // Calculates for the Normals[index_coord]
 void compute_forward_difference_d
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
- const DIRECTION d,
+ const int d,
  const int index_coord,
- GRADIENT_TYPE &fwd_diff_d);
+ GRADIENT_COORD_TYPE &fwd_diff_d);
 
 
 
@@ -61,8 +58,8 @@ void compute_forward_difference_d
 void compute_forward_difference_d_normals
 ( const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
- const DIRECTION d,
- GRADIENT_TYPE &fwd_diff_d_normals); 
+ const int d,
+ GRADIENT_COORD_TYPE &fwd_diff_d_normals); 
 
 
 ///
@@ -72,20 +69,20 @@ void compute_forward_difference_d_normals
 // Calculate the BACKWARD difference in the 'd' direction
 // Calculates for the scalar_grid
 void compute_backward_difference_d
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const VERTEX_INDEX iv1,
- const DIRECTION d, 
- GRADIENT_TYPE &bkwd_diff_d);
+ const int d, 
+ GRADIENT_COORD_TYPE &bkwd_diff_d);
 
 // Calculates the BACKWARD difference in the 'd' direction 
 // Calculates for the Normals[index_coord]
 void compute_backward_difference_d
-( const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+( const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
- const DIRECTION d,
+ const int d,
  const int index_coord,
- GRADIENT_TYPE &bkwd_diff_d);
+ GRADIENT_COORD_TYPE &bkwd_diff_d);
 
 
 // Compute operator gradH for the direction 'd'
@@ -93,39 +90,39 @@ void compute_backward_difference_d
 void compute_gradH_d_normals
 ( const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
- const DIRECTION d,
- GRADIENT_TYPE  gradientH_d_Normals[DIM9]
+ const int d,
+ GRADIENT_COORD_TYPE  gradientH_d_Normals[DIM9]
  );
 
 
 // Central difference operators
 // compute central difference in the 'd' direction
 void compute_central_difference_d
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const VERTEX_INDEX iv1, 
- const DIRECTION d,
- GRADIENT_TYPE &cntrl_diff_d);
+ const int d,
+ GRADIENT_COORD_TYPE &cntrl_diff_d);
 
 
 // Compute M d for dierection 'd' for  vertex iv1
 // 
 void compute_m_d
 (
- const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const int icube,
  const VERTEX_INDEX iv1,
  const int d,
- GRADIENT_TYPE m[DIM3]
+ GRADIENT_COORD_TYPE m[DIM3]
  );
 
 void compute_c_d
 (
- const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
+ const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
- const DIRECTION d,
- GRADIENT_TYPE c[DIM3]
+ const int d,
+ GRADIENT_COORD_TYPE c[DIM3]
  );
 
 ///// other functions
