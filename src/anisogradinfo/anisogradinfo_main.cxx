@@ -32,8 +32,10 @@
 
 #include "anisograd.h"
 #include "sharpiso_types.h"
+#include "anisogradinfo.h"
 
 using namespace IJK;
+
 
 
 // global variables
@@ -52,7 +54,8 @@ bool flag_mprev = false;
 bool flag_k =false;
 bool flag_c = false;
 bool flag_w = false;
-
+bool flag_print_curvature = false;
+bool flag_icube = false;
 float mu(0.1);
 float lambda(1.0);
 int num_iter = 10;
@@ -66,6 +69,8 @@ using namespace std;
 void memory_exhaustion();
 void usage_error();
 void parse_command_line(int argc, char **argv);
+
+ANISOINFO_TYPE aniso_info;
 
 // **************************************************
 // MAIN
@@ -98,95 +103,55 @@ int main(int argc, char **argv)
         if (nrrd_in.ReadFailed()) { throw error; }
         
         GRADIENT_GRID gradient_grid;
-       
-        if(false)
-        {
-            cout <<" lambda " << lambda <<endl;
-            cout <<" mu " << mu <<endl;
-            cout <<" num_iter " << num_iter << endl;
-        }
+        
         if (flag_cdiff) 
         {
-            cout <<"num of iteration " << num_iter <<endl;
             compute_gradient_central_difference
             (full_scalar_grid, icube, gradient_grid);
         }
         else
         {
-            cout <<" lambda (" << lambda<<")" <<endl;
-            cout <<" mu " << mu <<")"<<endl;
-            cout <<" num of iteration " << num_iter << endl;
-            cout <<" Computing central gradients ..."<<endl;
             // compute the central gradients first 
             compute_gradient_central_difference(full_scalar_grid, icube, gradient_grid);
             
-            // Normalize the gradients and also 
-            // store the magnitudes so that they can be later added back
-            for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
+            normalize_and_store_gradient_magnitudes(full_scalar_grid, gradient_grid, mag_list);
+            
+            if (flag_iso) 
             {
-                GRADIENT_COORD_TYPE  * N = gradient_grid.VectorPtr(iv);
-                GRADIENT_COORD_TYPE   mag = 0.0;
-                vector_magnitude (N, DIM3, mag);
-                
-                if (mag > 0.0001)
-                {
-                    mag_list.push_back(mag);
-                    normalize (N, DIM3);
-                    gradient_grid.Set(iv, N);
-                }
-                else 
-                {
-                    mag_list.push_back(0.0);
-                }
-            }
-            
-            
-            
-            if (flag_iso) {
                 // Calculate the anisotropic diff of the gradients.
-                cout << "Isotropic diffusion called "<<endl;
-                
-                anisotropic_diff
-                (full_scalar_grid,  mu, lambda, num_iter, 0, icube, gradient_grid);
+                const int dimension = full_scalar_grid.Dimension();
+                gradient_grid.SetSize(full_scalar_grid, dimension);
+                for (int k=0; k<num_iter; k++) 
+                {
+                    aniso_info.iter=k;
+                    if(flag_icube){
+                        aniso_info.flag_aniso = 0;
+                        compute_curvature(full_scalar_grid, gradient_grid, mu, lambda, icube, aniso_info);
+                        debug_print(aniso_info);
+                    }
+                    
+                    anisotropic_diff_iter_k
+                    (full_scalar_grid, mu, lambda, k, 0, icube, dimension, gradient_grid);
+                }            
             }
             else
             {
                 cout << "Anisostropic gradients called."<<endl;
-                // Calculate the anisotropic diff of the gradients.
-                anisotropic_diff
-                (full_scalar_grid,  mu, lambda, num_iter, 1, icube, gradient_grid);
-            }
-            
-            // reset the gradients to be normalized
-            for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
-            {
-                GRADIENT_COORD_TYPE  * N = gradient_grid.VectorPtr(iv);
-                GRADIENT_COORD_TYPE   mag = 0.0;
-                vector_magnitude (N, DIM3, mag);
-                
-                if (mag > 0.0001)
+                const int dimension = full_scalar_grid.Dimension();
+                gradient_grid.SetSize(full_scalar_grid, dimension);
+                for (int k=0; k<num_iter; k++) 
                 {
-                    normalize (N, DIM3);
-                    gradient_grid.Set(iv, N);
+                    aniso_info.iter=k;
+                    if(flag_icube)
+                    {
+                        aniso_info.flag_aniso = 1;
+                        compute_curvature(full_scalar_grid, gradient_grid, mu, lambda, icube, aniso_info);
+                        debug_print(aniso_info);
+                    }
+                    anisotropic_diff_iter_k
+                    (full_scalar_grid, mu, lambda, k, 1, icube, dimension, gradient_grid);
                 }
             }
-            
-            
-            //reset the magnitudes of the gradients
-            for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
-            {
-                GRADIENT_COORD_TYPE  * N = gradient_grid.VectorPtr(iv);
-                for (int i=0; i<DIM3; i++) {
-                    N[i] = N[i]*mag_list[iv];
-                }
-                gradient_grid.Set(iv, N);
-            }    
-        }
-        if (flag_gzip) {
-            write_vector_grid_nrrd_gzip(gradient_filename, gradient_grid);
-        }
-        else {
-            write_vector_grid_nrrd(gradient_filename, gradient_grid);
         }
         
         if (report_time_flag) {
@@ -240,20 +205,10 @@ void parse_command_line(int argc, char **argv)
         { flag_cdiff = true; }
         else if (string(argv[iarg]) == "-iso")
         { flag_iso = true; }
-        else if (string(argv[iarg]) == "-norm_before")
-        { flag_norm_before = true; }
-        else if (string(argv[iarg]) == "-norm_after")
-        { flag_norm_after = true; }
-        else if (string(argv[iarg]) == "-m")
-        { flag_m = true; }
-        else if (string(argv[iarg]) == "-mprev")
-        { flag_mprev = true; }
         else if (string(argv[iarg]) == "-k")
         { flag_k = true; }
-        else if (string(argv[iarg]) == "-c")
-        { flag_c = true; }
-        else if (string(argv[iarg]) == "-w")
-        { flag_w = true; }
+        else if (string(argv[iarg]) == "-m")
+        { aniso_info.flag_m = true; }
         else if (string(argv[iarg]) == "-mu")
         {
             iarg++;
@@ -275,6 +230,7 @@ void parse_command_line(int argc, char **argv)
         else if (string(argv[iarg]) == "-icube")
         {
             iarg++;
+            flag_icube = true;
             if (iarg >= argc) { usage_error(); };
             sscanf(argv[iarg], "%d", &icube);
         }
@@ -283,15 +239,14 @@ void parse_command_line(int argc, char **argv)
         iarg++;
     }
     
-    if (iarg+2 != argc) { usage_error(); };
+    if (iarg+1 != argc) { usage_error(); };
     
     scalar_filename = argv[iarg];
-    gradient_filename = argv[iarg+1];
 }
 
 void usage_msg()
 {
-    cerr <<"Usage: anisogradinfo [options]  {scalar nrrd file} {gradient nrrd file}"<<endl;
+    cerr <<"Usage: anisogradinfo [options]  {scalar nrrd file}"<<endl;
     cerr <<"                 [-gzip] [-time]"<<endl;
     cerr <<"                 [-icube]    cube  index "<<endl; 
     cerr <<"                 [-cdiff]    central difference"<<endl;
@@ -299,13 +254,7 @@ void usage_msg()
     cerr <<"                 [-mu]       extent of anisotropic diffusion"<< endl; 
     cerr <<"                 [-lambda]   extent of diffusion in each iteration " <<endl; 
     cerr <<"                 [-num_iter] number of iterations "<<endl;
-    cerr <<"                 -norm_before"<<endl;
-    cerr <<"                 -norm_after"<<endl;
-    cerr <<"                 -m"<<endl;
-    cerr <<"                 -mprev"<<endl;
-    cerr <<"                 -k"<<endl;
-    cerr <<"                 -c"<<endl;
-    cerr <<"                 -w"<<endl;
+    cerr <<"                  -m prints the m  values for the vertex"<<endl;
     cerr << endl;
 }
 
@@ -314,3 +263,8 @@ void usage_error()
     usage_msg();
     exit(100);
 }
+
+
+
+
+

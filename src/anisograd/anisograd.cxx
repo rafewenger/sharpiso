@@ -26,10 +26,6 @@
 
 // local type definition
 namespace {
-    /*
-    typedef IJK::BOOL_GRID_BASE<ISODUAL_GRID> BOOL_GRID_BASE;
-    typedef IJK::BOOL_GRID<ISODUAL_GRID> BOOL_GRID;
-    */
     typedef IJK::BOOL_GRID_BASE<SHARPISO_GRID> BOOL_GRID_BASE;
     typedef IJK::BOOL_GRID<SHARPISO_GRID> BOOL_GRID;
     
@@ -40,8 +36,6 @@ namespace {
 
 // Normalize the vectors.
 void normalize (float *vec, const int num_elements);
-
-
 
 // local routines
 // Compute gradient for each vertex
@@ -58,9 +52,6 @@ void compute_central_difference_d
  GRADIENT_COORD_TYPE &cntrl_diff_d);
 
 
-
-
-
 // Computes the central difference in the d th dim 
 // this is for the normals
 void compute_central_difference_d
@@ -70,9 +61,6 @@ void compute_central_difference_d
  const int d,
  const int index_coord,
  GRADIENT_COORD_TYPE &cntrl_diff_d);
-
-
-
 
 
 void compute_boundary_gradient
@@ -109,11 +97,6 @@ void compute_gradient_central_difference
         }
     }
 }
-
-
-
-// Compute anisotropic filtering of gradients main function 
-using namespace std;
 
 // Compute Gd
 void compute_grad_H_d
@@ -196,12 +179,6 @@ void compute_gradient_central_difference
     }
 }
 
-
-
-
-
-
-
 // Computes the backward diff in the d th dim
 void compute_backward_difference_d
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -209,7 +186,6 @@ void compute_backward_difference_d
  const int d, 
  GRADIENT_COORD_TYPE &bkwd_diff_d)
 {
-    const int dimension = scalar_grid.Dimension();
     VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
     bkwd_diff_d = scalar_grid.Scalar(iv1) - scalar_grid.Scalar(iv0);
 };
@@ -223,7 +199,7 @@ void compute_central_difference_d
  const int index_coord,
  GRADIENT_COORD_TYPE &cntrl_diff_d)
 {
-    const int dimension = scalar_grid.Dimension();
+  
     VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
     VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
     
@@ -246,7 +222,7 @@ void compute_backward_difference_d
  const int index_coord,
  GRADIENT_COORD_TYPE &bkwd_diff_d)
 {
-    const int dimension = scalar_grid.Dimension();
+   
     VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
     bkwd_diff_d = scalar_grid.Scalar(iv1) - scalar_grid.Scalar(iv0);
 };
@@ -284,28 +260,7 @@ void compute_boundary_gradient
 }
 
 
-// Compute C for eacn dimension
 
-void compute_C_d 
-(GRADIENT_COORD_TYPE * GNd,
- GRADIENT_COORD_TYPE * Gd,
- const int dimension,
- GRADIENT_COORD_TYPE * Cd)
-{
-    //normalize the Gd
-    normalize(Gd, dimension);
-    // dot pdt
-    for (int i=0; i<dimension; i++)
-    {
-        GRADIENT_COORD_TYPE  temp[3]={0.0};
-        
-        for (int j=0; j<dimension; j++) 
-        {
-            temp[i] = GNd[3*j+i];
-        }
-        vector_dot_pdt (temp, Gd, dimension, Cd[i]);
-    }
-};
 
 // Compute gx as e^(-x/2*mu^2)
 void compute_g_x(const float mu, const float param, const int flag_aniso, float & result )
@@ -354,6 +309,7 @@ void anisotropic_diff_per_vert
     prev_vert[1] = scalar_grid.PrevVertex(iv1, 1);
     prev_vert[2] = scalar_grid.PrevVertex(iv1, 2);
     
+    // Compute m_d for the previous vertices.
     compute_m_d
     ( scalar_grid, gradient_grid, icube, prev_vert[0], 0, mX_prev_vert_X);
     
@@ -366,61 +322,23 @@ void anisotropic_diff_per_vert
     // Compute 'k' for each dimensions , 
     // used for anisotropic gradients
     
-     SCALAR_TYPE K[DIM3]={0.0};
-     SCALAR_TYPE gK[DIM3]={0.0};
-     
-     SCALAR_TYPE Kprev[DIM3]={0.0};
-     SCALAR_TYPE gKprev[DIM3]={0.0};
-     
-     for (int d=0; d<DIM3; d++) {
-     
-     // compute gradHN_d
-     GRADIENT_COORD_TYPE   gradHN_d[DIM9]={0.0};
-     compute_gradH_d_normals (gradient_grid, iv1, d,gradHN_d);
-     // compute C_d
-     GRADIENT_COORD_TYPE c[DIM3]={0.0};
-     compute_c_d(scalar_grid, gradient_grid, iv1, d, c);
-     
-     SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
-     
-     vector_sum_of_squares(gradHN_d, DIM9, sum_gradHNd);
-     
-     
-     vector_dot_pdt(c, c, DIM3, c_square);
-     
-     K[d] = sum_gradHNd  - c_square;
-
-     // *** DEBUG ***
-     if (iv1 == icube){
-       cout << "c: ";
-       IJK::ijkgrid_output_coord(cout, DIM3, c);
-       cout <<" gradHNd ";
-       IJK::ijkgrid_output_coord(cout, 9, gradHN_d);
-       cout << endl;
-       cout <<"\nd "<<d<<" sum_gradHNd " << sum_gradHNd 
-            <<" csq "<<c_square<<endl;	
-     }
-
-     compute_g_x(mu, K[d], flag_aniso, gK[d]);
-     }
-
-    // *** DEBUG ***
-    if (iv1 == icube) {
-        cout <<"gk ";
-        for (int q=0; q<3; q++) {
-            cout <<" "<<gK[q];
-        }
-        cout <<endl;
-        cout <<"K ";
-        for (int q=0; q<3; q++) {
-            cout <<" "<<K[q];
-        }
-        cout <<endl;
-    }
-
+    SCALAR_TYPE K[DIM3]={0.0};
+    SCALAR_TYPE gK[DIM3]={0.0};
+    
+    SCALAR_TYPE gKprev[DIM3]={0.0};
+    
+    GRADIENT_COORD_TYPE   mag=0.0;
+    
+    // compute_curvature for the present vertex
+    compute_curvature_iv(scalar_grid, gradient_grid, iv1, K);
+    
+    // compute the gx
+    for (int d=0; d<DIM3; d++)
+    compute_g_x(mu, K[d], flag_aniso, gK[d]);    
+    
+    // compute k _d and gkd for the previous vertices
     for (int d=0; d<DIM3; d++) 
     {
-        
         // compute gradHN_d
         GRADIENT_COORD_TYPE   gradHN_d[DIM9]={0.0};
         compute_gradH_d_normals (gradient_grid, prev_vert[d], d,gradHN_d);
@@ -433,36 +351,23 @@ void anisotropic_diff_per_vert
         vector_sum_of_squares(gradHN_d, DIM9, sum_gradHNd);
         
         vector_dot_pdt(c, c, DIM3, c_square); 
+    
+        GRADIENT_COORD_TYPE gr[DIM3];
+      
+        compute_grad_H_d
+        ( scalar_grid, prev_vert[d], d, gr);
+        vector_magnitude (gr, DIM3,mag);
         
-        K[d] = sum_gradHNd  - c_square;
+        
+        K[d] = sum_gradHNd  - c_square*mag;
         
         compute_g_x(mu, K[d],flag_aniso, gKprev[d]);
     }
-
-    // *** DEBUG ***
-    if (iv1 == icube) {
-        cout <<"gkprev ";
-        for (int q=0; q<3; q++) {
-            cout <<" "<<gKprev[q];
-        }
-        cout <<endl;
-        cout <<"K ";
-        for (int q=0; q<3; q++) {
-            cout <<" "<<K[q];
-        }
-        cout <<endl;
-    }
-
-    GRADIENT_COORD_TYPE    w[DIM3]={0.0};
-    /*
-    for (int i =0; i<DIM3; i++) {
-        w[i] =  mX[i] - mX_prev_vert_X[i] +
-        mY[i] - mY_prev_vert_Y[i] +
-        mZ[i] - mZ_prev_vert_Z[i] ;
-    }
-    */
     
-    for (int i  =0; i<DIM3; i++) 
+    
+    GRADIENT_COORD_TYPE    w[DIM3]={0.0};
+    
+    for (int i=0; i<DIM3; i++) 
     {
         w[i] =  gK[i]*mX[i] - gKprev[i]*mX_prev_vert_X[i] +
         gK[i]*mY[i] - gKprev[i]*mY_prev_vert_Y[i] +
@@ -481,61 +386,93 @@ void anisotropic_diff_per_vert
     for (int i=0; i<DIM3; i++) {
         w_dash[i] = w[i] - wN*Normals[i];
     }
-    
-    // *** DEBUG ***
-    if (iv1 == icube) {
-        cout <<" wN "<< wN<<" No "<<Normals[0]<<" "<<Normals[1]<<" "<<Normals[2]<<endl;;
-        cout <<" w: "<< w[0]<<" "<< w[1]<<" "<< w[2] <<endl;
-        for(int h=0;h<3;h++){
-        cout <<"gK[i]*mX[i]                 "<<h<<" "<< gK[h]*mX[h]<<endl;
-        cout <<"gKprev[h]*mX_prev_vert_X[h] "<<h<<" "<<gKprev[h]*mX_prev_vert_X[h]<<endl;
-        cout <<"gK[i]*mY[i]                 "<<h<<" "<< gK[h]*mY[h]<<endl ;  
-        cout <<"gKprev[i]*mY_prev_vert_Y[i] "<<h<<" "<< gKprev[h]*mY_prev_vert_Y[h]<<endl ; 
-        cout <<"gK[i]*mZ[i]                 "<<h<<" "<< gK[h]*mZ[h] <<endl;
-        cout <<"gKprev[i]*mZ_prev_vert_Z[i] "<<h<<" "<< gKprev[h]*mZ_prev_vert_Z[h]<<endl ;  
-           double  w_test =  gK[h]*mX[h] - gKprev[h]*mX_prev_vert_X[h] +
-            gK[h]*mY[h] - gKprev[h]*mY_prev_vert_Y[h] +
-            gK[h]*mZ[h] - gKprev[h]*mZ_prev_vert_Z[h] ;  
-            cout<<"wh                           "<<h<<" "<<w_test<<endl;
-
-        }
-        cout <<"gk ";
-        for (int q=0; q<3; q++) {
-            cout <<" "<<gK[q];
-        }
-        cout <<endl;
-        cout <<"K ";
-        for (int q=0; q<3; q++) {
-            cout <<" "<<K[q];
-        }
-        cout <<endl;
-    }
-
-    // *** DEBUG ***
-    if (iv1 == icube)
-    cout <<" w: "<< w[0]<<" "<< w[1]<<" "<< w[2] <<endl;
-
     GRADIENT_COORD_TYPE Normals2[DIM3];
     for (int i=0; i<DIM3; i++) {
         Normals2[i] = Normals[i]  + lambda *w_dash[i];
     }
-
+    
     // update the temporary gradient grid
     temp_gradient_grid.Set(iv1, Normals2);
 }
 
-/*DEBUG
-// Calculate the anisotropic diff of the gradients.
-void anisotropic_diff
-(const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const float mu,
- const float lambda,
- const int num_iter,
- const int flag_aniso,
- const int icube,
- GRADIENT_GRID & gradient_grid)
 
-*/
+// compute the curvature k for a vertex iv1
+void compute_curvature_iv 
+(
+ const SHARPISO_SCALAR_GRID_BASE &scalar_grid,
+ const GRADIENT_GRID & gradient_grid,
+ const VERTEX_INDEX iv1,
+ GRADIENT_COORD_TYPE K[DIM3]
+ )
+{
+    GRADIENT_COORD_TYPE mag=0.0;
+    for (int d=0; d<DIM3; d++) 
+    {
+        // compute gradHN_d
+        GRADIENT_COORD_TYPE   gradHN_d[DIM9]={0.0};
+        compute_gradH_d_normals(gradient_grid, iv1, d,gradHN_d);
+        
+        // compute C_d
+        GRADIENT_COORD_TYPE c[DIM3]={0.0};
+        compute_c_d(scalar_grid, gradient_grid, iv1, d, c);
+        
+        SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
+        
+        vector_sum_of_squares(gradHN_d, DIM9, sum_gradHNd);
+        
+        vector_dot_pdt(c, c, DIM3, c_square);
+        
+        GRADIENT_COORD_TYPE gr[DIM3];
+        compute_grad_H_d
+        ( scalar_grid, iv1, d, gr);
+        
+        vector_magnitude (gr, DIM3,mag);
+        
+        K[d] = sum_gradHNd  - c_square*mag;
+    }
+}
+//
+
+/// calculate the anisotropic diff of the gradients per iteration 
+void anisotropic_diff_iter_k(
+const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+const float mu,
+const float lambda,
+const int iter_k,
+const int flag_aniso,
+const int icube,
+const int dimension,
+GRADIENT_GRID & gradient_grid)
+{
+    // create a temporary grid for each iteration 
+    GRADIENT_GRID temp_gradient_grid;
+    temp_gradient_grid.SetSize(scalar_grid, dimension);
+    
+    for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++)
+    {
+        GRID_COORD_TYPE coord[DIM3];
+        scalar_grid.ComputeCoord(iv, coord);
+        
+        if (2 <= coord[0] && coord[0]+2 < scalar_grid.AxisSize(0) &&
+            2 <= coord[1] && coord[1]+2 < scalar_grid.AxisSize(1) &&
+            2 <= coord[2] && coord[2]+2 < scalar_grid.AxisSize(2)) {
+            
+            // Store new gradient values in temp_gradient_grid
+            anisotropic_diff_per_vert
+            (scalar_grid, mu, lambda, iv, flag_aniso, icube, gradient_grid, temp_gradient_grid );
+        }
+        else {
+            compute_boundary_gradient(scalar_grid, iv, temp_gradient_grid.VectorPtr(iv));
+        }
+    }
+    
+    // Copy temp_gradient_grid to gradient_grid.
+    for (int l=0; l<scalar_grid.NumVertices(); l++) {
+        GRADIENT_COORD_TYPE * grad = temp_gradient_grid.VectorPtr(l);
+        gradient_grid.Set(l, grad);
+    }
+}
+
 // Calculate the anisotropic diff of the gradients.
 void anisotropic_diff
 //(const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -549,77 +486,78 @@ void anisotropic_diff
 {
     
     const int dimension = scalar_grid.Dimension();
-    
     gradient_grid.SetSize(scalar_grid, dimension);
-    
-    BOOL_GRID boundary_grid;
-    boundary_grid.SetSize(scalar_grid);
-    compute_boundary_grid(boundary_grid);
-    
     for (int k=0; k<num_iter; k++) 
     {
-        // create a temporary grid for each iteration 
-        GRADIENT_GRID temp_gradient_grid;
-        temp_gradient_grid.SetSize(scalar_grid, dimension);
-
-        for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++)
-        {
-          GRID_COORD_TYPE coord[DIM3];
-          scalar_grid.ComputeCoord(iv, coord);
-
-          if (2 <= coord[0] && coord[0]+2 < scalar_grid.AxisSize(0) &&
-              2 <= coord[1] && coord[1]+2 < scalar_grid.AxisSize(1) &&
-              2 <= coord[2] && coord[2]+2 < scalar_grid.AxisSize(2)) {
-
-            // Store new gradient values in temp_gradient_grid
-            anisotropic_diff_per_vert
-              (scalar_grid, mu, lambda, iv, flag_aniso, icube, gradient_grid, temp_gradient_grid );
-          }
-          else {
-            compute_boundary_gradient(scalar_grid, iv, temp_gradient_grid.VectorPtr(iv));
-          }
-
-
-          /* DEBUG
-            if(!boundary_grid.Scalar(iv))
-            {
-                // Store new gradient values in temp_gradient_grid
-                anisotropic_diff_per_vert
-                (scalar_grid, mu, lambda, iv, flag_aniso, icube, gradient_grid, temp_gradient_grid );
-            }
-            else
-            {
-                 compute_boundary_gradient(scalar_grid, iv, temp_gradient_grid.VectorPtr(iv));
-            }
-          */
-        }
-
-        // Copy temp_gradient_grid to gradient_grid.
-        for (int l=0; l<scalar_grid.NumVertices(); l++) {
-            GRADIENT_COORD_TYPE * grad = temp_gradient_grid.VectorPtr(l);
-            gradient_grid.Set(l, grad);
-        }
-
-        // Normalize gradient grid vectors.
-        /*
-        for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++)
-        {
-            GRADIENT_COORD_TYPE  * N = gradient_grid.VectorPtr(iv);
-            GRADIENT_COORD_TYPE   mag = 0.0;
-            vector_magnitude (N, DIM3, mag);
-            
-            if (mag > 0.0001)
-            {
-               
-                normalize (N, DIM3);
-                gradient_grid.Set(iv, N);
-            }
-        }
-        */
-
+        anisotropic_diff_iter_k
+        (scalar_grid, mu, lambda, k, flag_aniso, icube, dimension, gradient_grid);
     }
 };
 
+
+// Normalize the gradients, and store the magnitudes
+// before calling anisotropic diff
+void normalize_and_store_gradient_magnitudes
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ GRADIENT_GRID & gradient_grid,
+ vector<GRADIENT_COORD_TYPE> &mag_list)
+// mag_list has the magnitudes of the original gradients.
+{
+    // Normalize the gradients and 
+    // store the magnitudes so that they can be later added back
+    for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++)
+    {
+        GRADIENT_COORD_TYPE  * N = gradient_grid.VectorPtr(iv);
+        GRADIENT_COORD_TYPE   mag = 0.0;
+        vector_magnitude (N, DIM3, mag);
+        
+        if (mag>EPSILON)
+        {
+            mag_list.push_back(mag);
+            normalize (N, DIM3);
+            gradient_grid.Set(iv, N);
+        }
+        else 
+        {
+            mag_list.push_back(0.0);
+        }
+    }
+};
+
+// Re Normalize the gradients and reset the magnitudes.
+// after computing the anisotropic diffusion
+void reset_gradient_magnitudes
+(
+const SHARPISO_SCALAR_GRID_BASE & full_scalar_grid,
+GRADIENT_GRID & gradient_grid,
+const vector<GRADIENT_COORD_TYPE> mag_list
+)
+{
+    // reset the gradients to be normalized
+    for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
+    {
+        GRID_COORD_TYPE coord[DIM3];
+        
+        GRADIENT_COORD_TYPE  * N = gradient_grid.VectorPtr(iv);
+        GRADIENT_COORD_TYPE   mag = 0.0;
+        vector_magnitude (N, DIM3, mag);
+        
+        if (mag > 0.0001)
+        {
+            normalize (N, DIM3);
+            gradient_grid.Set(iv, N);
+        }
+    }
+    //reset the magnitudes of the gradients
+    for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
+    {
+        GRADIENT_COORD_TYPE  * N = gradient_grid.VectorPtr(iv);
+        for (int i=0; i<DIM3; i++) {
+            N[i] = N[i]*mag_list[iv];
+        }
+        gradient_grid.Set(iv, N);
+    } 
+}
 
 // helper routines 
 

@@ -34,21 +34,6 @@ void divide_by_vec_sumof_sqaures(const int num_elements,GRADIENT_COORD_TYPE * ve
 
 
 
-
-
-// Compute the gradient of the normal vector[index] in the 
-// 'd' direction
-void compute_gradH_d_normals_per_index
-(
- const GRADIENT_GRID_BASE & gradient_grid,
- const int direction,
- const int index,
- const VERTEX_INDEX iv1,
- GRADIENT_COORD_TYPE  gradientH_d_Normals_per_index[DIM3]
- );
-
-
-
 // Calculate the FORWARD difference in the 'd' direction
 // Calculates for the scalar_grid
 void compute_forward_difference_d
@@ -57,7 +42,6 @@ void compute_forward_difference_d
  const int d,
  GRADIENT_COORD_TYPE &fwd_diff_d)
 {
-    const int dimension = scalar_grid.Dimension();
     VERTEX_INDEX iv0 = scalar_grid.NextVertex(iv1, d);
     fwd_diff_d = scalar_grid.Scalar(iv0) - scalar_grid.Scalar(iv1);
 };
@@ -73,7 +57,7 @@ void compute_forward_difference_d
  const int index_coord,
  GRADIENT_COORD_TYPE &fwd_diff_d)
 {
-    const int dimension = scalar_grid.Dimension();
+
     VERTEX_INDEX iv0 = scalar_grid.NextVertex(iv1, d);
     
     const GRADIENT_COORD_TYPE * vertex_gradient_coord0 =
@@ -111,7 +95,6 @@ void compute_central_difference_d
  const int d,
  GRADIENT_COORD_TYPE &cntrl_diff_d)
 {
-    const int dimension = scalar_grid.Dimension();
     VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
     VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
     cntrl_diff_d = 0.5*(scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0));
@@ -329,9 +312,9 @@ void divide_by_vec_sumof_sqaures(const int num_elements,GRADIENT_COORD_TYPE * ve
     GRADIENT_COORD_TYPE sum=0.0;
     vector_sum_of_squares(vec, num_elements, sum );
     
-    if (sum > 0)
+    if (sum > 0.00)
     {
-        float one_by_sum = 1/sum;
+        float one_by_sum = 1.0/sum;
         for (int i=0; i<num_elements; i++)
         {
             vec[i] = vec[i]*one_by_sum;

@@ -503,14 +503,14 @@ void output_svd_results
     print_coord3D(output, svd_info.ray_initial_point);
     output << " + t";
     print_coord3D(output, svd_info.ray_direction);
-    if (svd_info.ray_intersect_cube) 
+    if (svd_info.ray_intersect_cube)
       { output << " intersects cube." << endl; }
-    else 
+    else
       { output << " does not intersect cube." << endl; }
   }
 
   if (!use_only_cube_gradients && use_selected_gradients) {
-    if (svd_info.is_svd_point_in_cube) 
+    if (svd_info.is_svd_point_in_cube)
       { output << "Cube contains SVD point." << endl; }
     else
       { output << "Cube does not contain SVD point." << endl; }
@@ -646,7 +646,7 @@ void output_gradient_based_scalars
 /// Output distance from vert to plane defined by gradient field at neighbors.
 void output_dist2vert
 (std::ostream & output, const GRADIENT_COORD_TYPE gfield_gradient[DIM3],
- const GRID_COORD_TYPE gfield_point[DIM3], 
+ const GRID_COORD_TYPE gfield_point[DIM3],
  const SCALAR_TYPE gfield_point_scalar,
  const GRID_COORD_TYPE point[DIM3],
  const SCALAR_TYPE plane_scalar)
@@ -733,7 +733,7 @@ void output_cube_eigenvalues
 
         svd_compute_sharp_vertex_in_cube
         (scalar_grid, gradient_grid, icube, isovalue,
-         max_zero_mag, eigenvalue_tolerance, ray_intersection_cube_offset, 
+         max_zero_mag, eigenvalue_tolerance, ray_intersection_cube_offset,
          sharp_coord, eigenvalues, num_large_eigenvalues,
          svd_info);
 
@@ -874,10 +874,10 @@ void usage_error()
 
 int get_int(const int iarg, const int argc, char **argv)
 {
-  if (iarg+1 >= argc) { 
-    cerr << "Usage error. Missing argument for option " 
+  if (iarg+1 >= argc) {
+    cerr << "Usage error. Missing argument for option "
          << argv[iarg] << " and missing file name." << endl;
-    usage_error(); 
+    usage_error();
   }
 
   int x;
@@ -892,10 +892,10 @@ int get_int(const int iarg, const int argc, char **argv)
 
 float get_float(const int iarg, const int argc, char **argv)
 {
-  if (iarg+1 >= argc) { 
-    cerr << "Usage error. Missing argument for option " 
+  if (iarg+1 >= argc) {
+    cerr << "Usage error. Missing argument for option "
          << argv[iarg] << " and missing file name." << endl;
-    usage_error(); 
+    usage_error();
   }
 
   float x;

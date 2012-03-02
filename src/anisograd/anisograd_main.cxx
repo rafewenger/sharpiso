@@ -29,10 +29,10 @@
 #include "ijkgrid_nrrd.txx"
 
 #include "anisograd.h"
-#include "isodual3D_datastruct.h"
+
 
 using namespace IJK;
-using namespace ISODUAL3D;
+
 
 // global variables
 char * scalar_filename = NULL;
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     time_t start_time;
     time(&start_time);
     
-    vector<GRADIENT_TYPE> mag_list;
+    vector<GRADIENT_COORD_TYPE> mag_list;
     
     IJK::ERROR error;
     
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
         
         parse_command_line(argc, argv);
         
-        ISODUAL_SCALAR_GRID full_scalar_grid;
+        SHARPISO_SCALAR_GRID full_scalar_grid;
         GRID_NRRD_IN<int,int> nrrd_in;
         NRRD_DATA<int,int> nrrd_header;
         
@@ -98,33 +98,13 @@ int main(int argc, char **argv)
         {
             // compute the central gradients first 
             compute_gradient_central_difference(full_scalar_grid, icube, gradient_grid);
-            
-            // Normalize the gradients and also 
-            // store the magnitudes so that they can be later added back
-            for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
+            //normalize the gradients
+            normalize_and_store_gradient_magnitudes
+            (  full_scalar_grid, gradient_grid, mag_list);
+        
+            if (flag_iso) 
             {
-                GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
-                GRADIENT_TYPE   mag = 0.0;
-                vector_magnitude (N, DIM3, mag);
-                
-                if (mag > 0.0001)
-                {
-                    mag_list.push_back(mag);
-                    normalize (N, DIM3);
-                    gradient_grid.Set(iv, N);
-                }
-                else 
-                {
-                    mag_list.push_back(0.0);
-                }
-            }
-            
-            
-            
-            if (flag_iso) {
-                // Calculate the anisotropic diff of the gradients.
                 cout << "isotropic diffusion called "<<endl;
-                
                 anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, 0, icube, gradient_grid);
             }
             else
@@ -132,35 +112,10 @@ int main(int argc, char **argv)
                 // Calculate the anisotropic diff of the gradients.
                 anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, 1, icube, gradient_grid);
             }
+            //reset the magnitudes
+            reset_gradient_magnitudes
+            (full_scalar_grid, gradient_grid, mag_list);
             
-            
-            // debug
-            // reset the gradients to be normalized
-            for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
-            {
-                GRID_COORD_TYPE coord[DIM3];
-                
-                GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
-                GRADIENT_TYPE   mag = 0.0;
-                vector_magnitude (N, DIM3, mag);
-                
-                if (mag > 0.0001)
-                {
-                    normalize (N, DIM3);
-                    gradient_grid.Set(iv, N);
-                }
-            }
-            
-            
-            //reset the magnitudes of the gradients
-            for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
-            {
-                GRADIENT_TYPE  * N = gradient_grid.VectorPtr(iv);
-                for (int i=0; i<DIM3; i++) {
-                    N[i] = N[i]*mag_list[iv];
-                }
-                gradient_grid.Set(iv, N);
-            }    
         }
         if (flag_gzip) {
             write_vector_grid_nrrd_gzip(gradient_filename, gradient_grid);
