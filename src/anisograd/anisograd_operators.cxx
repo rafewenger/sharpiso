@@ -47,28 +47,7 @@ void compute_forward_difference_d
     fwd_diff_d = scalar_grid.Scalar(iv0) - scalar_grid.Scalar(iv1);
 };
 
-/*
-// Calculates the forward difference in the 'd' direction 
-// Calculates for the Normals[index_coord]
-void compute_forward_difference_d
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
- const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX iv1,
- const int d,
- const int index_coord,
- GRADIENT_COORD_TYPE &fwd_diff_d)
-{
-    VERTEX_INDEX iv0 = scalar_grid.NextVertex(iv1, d);
-    
-    const GRADIENT_COORD_TYPE * vertex_gradient_coord0 =
-    gradient_grid.VectorPtrConst(iv0);
-    
-    const GRADIENT_COORD_TYPE * vertex_gradient_coord1 =
-    gradient_grid.VectorPtrConst(iv1);
-    
-    fwd_diff_d = vertex_gradient_coord0[index_coord] - vertex_gradient_coord1[index_coord];
-};
-*/
+
 ///////
 // Calculates the forward difference in the 'd' direction
 // Calculates for the Normals
@@ -158,34 +137,7 @@ void compute_c_d
  const int d,
  GRADIENT_COORD_TYPE c[DIM3]
  )
-{/*
-    // compute the gradient of the Normal vector
-    GRADIENT_COORD_TYPE gradientN_d[DIM9]={0.0};
-    compute_gradH_d_normals
-    (gradient_grid, iv1, d, gradientN_d);
-    
-    // compute the gradient of the scalar grid 
-    GRADIENT_COORD_TYPE gradientS_d[DIM3]={0.0};
-    compute_gradH_d_scalar_grid
-    (scalar_grid, iv1, d, gradientS_d);
-
-    //divide_by_vec_sumof_sqaures(DIM3, gradientS_d);
-    float mag=0.0;
-    vector_magnitude (gradientS_d, DIM3, mag);
-    float mag_square = mag*mag;
-    
-    for (int i=0; i<DIM3; i++) {
-        if (mag_square > EPSILON) {
-            gradientS_d[i] = gradientS_d[i]/mag_square;    
-        }
-        else
-            gradientS_d[i]=0.0;
-    }
-    
-    for (int i=0; i<DIM3; i++) {
-        vector_dot_pdt(&(gradientN_d[3*i]), gradientS_d, DIM3, c[i]);
-    }
-   */
+{
     // compute the gradient of the Normal vector
     GRADIENT_COORD_TYPE gradientN_d[DIM9]={0.0};
     compute_gradH_d_normals
@@ -203,7 +155,6 @@ void compute_c_d
     GRADIENT_COORD_TYPE mag_gradS_d=0.0;
     
     vector_dot_pdt (gradientS_d, gradientS_d, DIM3, mag_gradS_d);
-    
     
     for (int k=0; k<DIM3; k++) {
         c[k]=c[k]/mag_gradS_d;
