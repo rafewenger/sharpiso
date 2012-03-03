@@ -138,10 +138,10 @@ namespace {
 
   int get_int(const int iarg, const int argc, char **argv)
   {
-    if (iarg+1 >= argc) { 
-      cerr << "Usage error. Missing argument for option " 
+    if (iarg+1 >= argc) {
+      cerr << "Usage error. Missing argument for option "
            << argv[iarg] << " and missing file name." << endl;
-      usage_error(); 
+      usage_error();
     }
 
     int x;
@@ -156,10 +156,10 @@ namespace {
 
   float get_float(const int iarg, const int argc, char **argv)
   {
-    if (iarg+1 >= argc) { 
-      cerr << "Usage error. Missing argument for option " 
+    if (iarg+1 >= argc) {
+      cerr << "Usage error. Missing argument for option "
            << argv[iarg] << " and missing file name." << endl;
-      usage_error(); 
+      usage_error();
     }
 
     float x;
@@ -504,16 +504,16 @@ void ISODUAL3D::output_dual_isosurface
  const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
 {
   if (!output_info.use_stdout && !output_info.flag_silent) {
-    report_iso_info(output_info, isodual_data, 
+    report_iso_info(output_info, isodual_data,
                     vertex_coord, slist, isodual_info);
   }
 
   if (!output_info.nowrite_flag) {
     if (output_info.flag_output_tri_mesh) {
-      write_dual_tri_mesh(output_info, vertex_coord, slist, io_time); 
+      write_dual_tri_mesh(output_info, vertex_coord, slist, io_time);
     }
     else {
-      write_dual_quad_mesh(output_info, vertex_coord, slist, io_time); 
+      write_dual_quad_mesh(output_info, vertex_coord, slist, io_time);
     }
   }
 }
@@ -537,7 +537,7 @@ void ISODUAL3D::output_dual_isosurface_color
  const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
 {
   if (!output_info.use_stdout && !output_info.flag_silent) {
-    report_iso_info(output_info, isodual_data, 
+    report_iso_info(output_info, isodual_data,
                     vertex_coord, slist, isodual_info);
   }
 
@@ -725,7 +725,7 @@ void ISODUAL3D::write_dual_mesh_color
 ///            Lower-Left, Lower-Right, Upper-Left, Upper-Right
 void ISODUAL3D::write_dual_tri_mesh
 (const OUTPUT_INFO & output_info,
- const std::vector<COORD_TYPE> & vertex_coord, 
+ const std::vector<COORD_TYPE> & vertex_coord,
  const std::vector<VERTEX_INDEX> & quad_vert)
 {
   const int NUMV_PER_QUAD = 4;
@@ -745,7 +745,7 @@ void ISODUAL3D::write_dual_tri_mesh
 
   if (numv_per_poly != NUMV_PER_QUAD) {
     error.AddMessage
-      ("Programming error.  Illegal number of vertices per quad: ", 
+      ("Programming error.  Illegal number of vertices per quad: ",
        numv_per_poly, ".");
     error.AddMessage("  Should be ", NUMV_PER_QUAD, " vertices per quad.");
     throw error;
@@ -785,7 +785,7 @@ void ISODUAL3D::write_dual_tri_mesh
 
 void ISODUAL3D::write_dual_tri_mesh
 (const OUTPUT_INFO & output_info,
- const vector<COORD_TYPE> & vertex_coord, 
+ const vector<COORD_TYPE> & vertex_coord,
  const vector<VERTEX_INDEX> & quad_vert,
  IO_TIME & io_time)
 {
@@ -1079,7 +1079,7 @@ void ISODUAL3D::help()
   cout << "                   and singular value decomposition (svd)." << endl;
   cout << "  -position gradN: Position isosurface vertices using svd on"
        << endl;
-  cout << "                   vertex gradients of cube and cube neighbors." 
+  cout << "                   vertex gradients of cube and cube neighbors."
        << endl;
   cout << "  -position gradCS: Position isosurface vertices using selected"
        << endl;
@@ -1239,9 +1239,9 @@ void ISODUAL3D::set_isodual_data
   isodual_data.SetUseSelectedGradients(io_info.use_selected_gradients);
   isodual_data.SetUseOnlyCubeGradients(io_info.use_only_cube_gradients);
   isodual_data.max_small_eigenvalue = io_info.max_small_eigenvalue;
-  isodual_data.grad_selection_cube_offset = 
+  isodual_data.grad_selection_cube_offset =
     io_info.grad_selection_cube_offset;
-  isodual_data.ray_intersection_cube_offset = 
+  isodual_data.ray_intersection_cube_offset =
     io_info.ray_intersection_cube_offset;
 }
 

@@ -36,8 +36,6 @@
 
 using namespace IJK;
 
-
-
 // global variables
 char * scalar_filename = NULL;
 char * gradient_filename = NULL;
@@ -51,7 +49,6 @@ bool flag_norm_after = false;
 bool flag_norm_before = false;
 bool flag_m = false;
 bool flag_mprev = false;
-bool flag_k =false;
 bool flag_c = false;
 bool flag_w = false;
 bool flag_print_curvature = false;
@@ -91,11 +88,10 @@ int main(int argc, char **argv)
         
         parse_command_line(argc, argv);
         
-        // debug
-        //ISODUAL_SCALAR_GRID full_scalar_grid;
         SHARPISO_SCALAR_GRID full_scalar_grid;
         GRID_NRRD_IN<int,int> nrrd_in;
         NRRD_DATA<int,int> nrrd_header;
+     
         
         nrrd_in.ReadScalarGrid
         (scalar_filename, full_scalar_grid, nrrd_header, error);
@@ -127,7 +123,7 @@ int main(int argc, char **argv)
                     if(flag_icube){
                         aniso_info.flag_aniso = 0;
                         compute_curvature(full_scalar_grid, gradient_grid, mu, lambda, icube, aniso_info);
-                        debug_print(aniso_info);
+                        print_info(full_scalar_grid, gradient_grid, aniso_info);
                     }
                     
                     anisotropic_diff_iter_k
@@ -142,11 +138,16 @@ int main(int argc, char **argv)
                 for (int k=0; k<num_iter; k++) 
                 {
                     aniso_info.iter=k;
+                    cout <<"iteration "<<k<<endl;
                     if(flag_icube)
                     {
                         aniso_info.flag_aniso = 1;
-                        compute_curvature(full_scalar_grid, gradient_grid, mu, lambda, icube, aniso_info);
-                        debug_print(aniso_info);
+                        aniso_info.normals = 
+                        gradient_grid.VectorPtr(icube);
+                        compute_curvature
+                        (full_scalar_grid, gradient_grid, mu, lambda, icube, 
+                         aniso_info);
+                        print_info(full_scalar_grid, gradient_grid,aniso_info);
                     }
                     anisotropic_diff_iter_k
                     (full_scalar_grid, mu, lambda, k, 1, icube, dimension, gradient_grid);
@@ -206,9 +207,25 @@ void parse_command_line(int argc, char **argv)
         else if (string(argv[iarg]) == "-iso")
         { flag_iso = true; }
         else if (string(argv[iarg]) == "-k")
-        { flag_k = true; }
+        { aniso_info.flag_k = true; }
         else if (string(argv[iarg]) == "-m")
         { aniso_info.flag_m = true; }
+        else if (string(argv[iarg]) == "-n")
+        { aniso_info.flag_normals = true; }
+        else if (string(argv[iarg]) == "-c")
+        {
+            aniso_info.print_c = true;
+            iarg++;
+            if (iarg >= argc) { usage_error(); };
+            sscanf(argv[iarg], "%d", &aniso_info.dirc);
+        }
+        else if (string(argv[iarg]) == "-gradH_d_Normals")
+        {
+            aniso_info.print_gradientH_d_normals= true;
+            iarg++;
+            if (iarg >= argc) { usage_error(); };
+            sscanf(argv[iarg], "%d", &aniso_info.gradH_d_normals_direc);
+        }
         else if (string(argv[iarg]) == "-mu")
         {
             iarg++;
@@ -242,6 +259,7 @@ void parse_command_line(int argc, char **argv)
     if (iarg+1 != argc) { usage_error(); };
     
     scalar_filename = argv[iarg];
+    
 }
 
 void usage_msg()
@@ -254,7 +272,11 @@ void usage_msg()
     cerr <<"                 [-mu]       extent of anisotropic diffusion"<< endl; 
     cerr <<"                 [-lambda]   extent of diffusion in each iteration " <<endl; 
     cerr <<"                 [-num_iter] number of iterations "<<endl;
+    cerr <<"                  -k prints the curvature"<<endl;
+    cerr <<"                  -n prints normals"<<endl;
     cerr <<"                  -m prints the m  values for the vertex"<<endl;
+    cerr <<"                  -c <d>  d is the direction{0 1 2} prints the c for that direction "<<endl;
+    cerr <<"                  -gradH_d_Normals <d> d is the direction "<<endl;
     cerr << endl;
 }
 

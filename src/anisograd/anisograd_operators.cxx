@@ -25,6 +25,7 @@
 using namespace std;
 
 // LOCAL FUNCTION DEFINITIONS 
+///////////
 void compute_forward_difference_d_normals_per_index
 (const GRADIENT_GRID_BASE & gradient_grid, const VERTEX_INDEX iv1, const int direction, const int index,
  GRADIENT_COORD_TYPE & fwd_diff_d_normals_index);
@@ -33,7 +34,7 @@ void compute_forward_difference_d_normals_per_index
 void divide_by_vec_sumof_sqaures(const int num_elements,GRADIENT_COORD_TYPE * vec);
 
 
-
+///////////
 // Calculate the FORWARD difference in the 'd' direction
 // Calculates for the scalar_grid
 void compute_forward_difference_d
@@ -46,7 +47,7 @@ void compute_forward_difference_d
     fwd_diff_d = scalar_grid.Scalar(iv0) - scalar_grid.Scalar(iv1);
 };
 
-
+/*
 // Calculates the forward difference in the 'd' direction 
 // Calculates for the Normals[index_coord]
 void compute_forward_difference_d
@@ -57,7 +58,6 @@ void compute_forward_difference_d
  const int index_coord,
  GRADIENT_COORD_TYPE &fwd_diff_d)
 {
-
     VERTEX_INDEX iv0 = scalar_grid.NextVertex(iv1, d);
     
     const GRADIENT_COORD_TYPE * vertex_gradient_coord0 =
@@ -68,8 +68,8 @@ void compute_forward_difference_d
     
     fwd_diff_d = vertex_gradient_coord0[index_coord] - vertex_gradient_coord1[index_coord];
 };
-
-
+*/
+///////
 // Calculates the forward difference in the 'd' direction
 // Calculates for the Normals
 // [1X3]
@@ -100,7 +100,7 @@ void compute_central_difference_d
     cntrl_diff_d = 0.5*(scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0));
 };
 
-
+/////////////
 // Compute operator gradH for the direction 'd'
 // for the Normal field
 void compute_gradH_d_normals
@@ -113,10 +113,11 @@ void compute_gradH_d_normals
     const int dimension = gradient_grid.Dimension();
     for (int index=0; index<dimension; index++) {
         // for each index to the normal vector N[0]. N[1]. N[2].
-        compute_gradH_d_normals_per_index(gradient_grid, d, index, iv1, &gradientH_d_Normals[DIM3*index]);
+        compute_gradH_d_normals_per_index
+        (gradient_grid, d, index, iv1, &gradientH_d_Normals[DIM3*index]);
     }
 };
-
+/////////////
 // Compute operator gradH for the direction 'd'
 // for the scalar grid
 void compute_gradH_d_scalar_grid
@@ -157,24 +158,58 @@ void compute_c_d
  const int d,
  GRADIENT_COORD_TYPE c[DIM3]
  )
-{
-    
+{/*
     // compute the gradient of the Normal vector
     GRADIENT_COORD_TYPE gradientN_d[DIM9]={0.0};
-    compute_gradH_d_normals(gradient_grid, iv1, d, gradientN_d);
+    compute_gradH_d_normals
+    (gradient_grid, iv1, d, gradientN_d);
     
     // compute the gradient of the scalar grid 
     GRADIENT_COORD_TYPE gradientS_d[DIM3]={0.0};
-    compute_gradH_d_scalar_grid(scalar_grid, iv1, d, gradientS_d);
+    compute_gradH_d_scalar_grid
+    (scalar_grid, iv1, d, gradientS_d);
 
-    divide_by_vec_sumof_sqaures(DIM3, gradientS_d);
+    //divide_by_vec_sumof_sqaures(DIM3, gradientS_d);
+    float mag=0.0;
+    vector_magnitude (gradientS_d, DIM3, mag);
+    float mag_square = mag*mag;
     
     for (int i=0; i<DIM3; i++) {
-        vector_dot_pdt(&gradientN_d[3*i], gradientS_d, DIM3, c[i]);
+        if (mag_square > EPSILON) {
+            gradientS_d[i] = gradientS_d[i]/mag_square;    
+        }
+        else
+            gradientS_d[i]=0.0;
     }
     
+    for (int i=0; i<DIM3; i++) {
+        vector_dot_pdt(&(gradientN_d[3*i]), gradientS_d, DIM3, c[i]);
+    }
+   */
+    // compute the gradient of the Normal vector
+    GRADIENT_COORD_TYPE gradientN_d[DIM9]={0.0};
+    compute_gradH_d_normals
+    (gradient_grid, iv1, d, gradientN_d);
+    
+    // compute the gradient of the scalar grid 
+    GRADIENT_COORD_TYPE gradientS_d[DIM3]={0.0};
+    compute_gradH_d_scalar_grid
+    (scalar_grid, iv1, d, gradientS_d);
+    
+    
+    for (int i=0; i<DIM3; i++) {
+        vector_dot_pdt(&(gradientN_d[3*i]), gradientS_d, DIM3, c[i]);
+    }
+    GRADIENT_COORD_TYPE mag_gradS_d=0.0;
+    
+    vector_dot_pdt (gradientS_d, gradientS_d, DIM3, mag_gradS_d);
+    
+    
+    for (int k=0; k<DIM3; k++) {
+        c[k]=c[k]/mag_gradS_d;
+    }
 };
-
+/////////
 // Compute M d for dierection 'd' for  vertex iv1
 // 
 void compute_m_d
@@ -194,6 +229,7 @@ void compute_m_d
     // calculate C for direction d
     compute_c_d(scalar_grid, gradient_grid, iv1, d, c);
     
+    //compute forward difference of normals
     compute_forward_difference_d_normals
     ( gradient_grid, iv1, d, fwd_diff_d_normals);
     
@@ -201,7 +237,7 @@ void compute_m_d
     (scalar_grid, iv1, d, fwd_diff_d);
     
     for (int i=0; i<DIM3; i++) {
-        m[i] = fwd_diff_d_normals[i] - fwd_diff_d * c[i];
+        m[i] = fwd_diff_d_normals[i] - (fwd_diff_d * c[i]);
     }
 }
 
@@ -211,7 +247,7 @@ void compute_m_d
 // *************
 // LOCAL FUNCTION 
 // **************
-
+////////////
 // Calculates the forward difference in th 'd' direction 
 // for the Normals[index]
 // [1X1]
@@ -231,7 +267,8 @@ void compute_forward_difference_d_normals_per_index
     const GRADIENT_COORD_TYPE * vertex_grad_iv1 = gradient_grid.VectorPtrConst (iv1);
     const GRADIENT_COORD_TYPE * vertex_grad_next_vert = gradient_grid.VectorPtrConst (next_vert);
     
-    fwd_diff_d_normals_index =  vertex_grad_next_vert[index] - vertex_grad_iv1[index];
+    fwd_diff_d_normals_index = 
+    vertex_grad_next_vert[index] - vertex_grad_iv1[index];
 };
 
 // Calculates the central  difference in th 'd' direction 
@@ -252,14 +289,15 @@ void compute_central_difference_d_normals_per_index
     VERTEX_INDEX next_vert = gradient_grid.NextVertex(iv1, direction);
     VERTEX_INDEX prev_vert = gradient_grid.PrevVertex(iv1, direction);
     cntrl_diff_d_normals_index = 
-      (gradient_grid.Vector(next_vert, direction) - gradient_grid.Vector(prev_vert, direction))/2.0;
+      (gradient_grid.Vector(next_vert, direction) - gradient_grid.Vector(prev_vert, direction))*0.5;
   }
   else {
-    cntrl_diff_d_normals_index =0.0;
+      cout <<"error"<<endl;
+    cntrl_diff_d_normals_index=0.0;
   }
 
 }
-
+////////////
 // Compute the gradient of the normal vector[index] in the 
 // 'd' direction
 void compute_gradH_d_normals_per_index

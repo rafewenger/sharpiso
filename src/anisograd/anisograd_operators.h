@@ -51,7 +51,7 @@ void compute_forward_difference_d
  GRADIENT_COORD_TYPE &fwd_diff_d);
 
 
-
+/*
 // Calculates the forward difference in the 'd' direction
 // Calculates for the Normals
 // [1X3]
@@ -60,12 +60,17 @@ void compute_forward_difference_d_normals
  const VERTEX_INDEX iv1,
  const int d,
  GRADIENT_COORD_TYPE &fwd_diff_d_normals); 
-
+*/
+void compute_forward_difference_d_normals
+(const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1,
+ const int d,
+ GRADIENT_COORD_TYPE fwd_diff_d_normals[DIM3]);
 
 ///
 /// BACKWARD DIFFERNCE CALCULATORS 
 ///
-
+/*
 // Calculate the BACKWARD difference in the 'd' direction
 // Calculates for the scalar_grid
 void compute_backward_difference_d
@@ -84,7 +89,7 @@ void compute_backward_difference_d
  const int index_coord,
  GRADIENT_COORD_TYPE &bkwd_diff_d);
 
-
+*/
 // Compute operator gradH for the direction 'd'
 // for the Normal field
 void compute_gradH_d_normals
@@ -127,6 +132,13 @@ void compute_c_d
 
 ///// other functions
 
+void compute_gradH_d_scalar_grid
+(
+ const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+ const VERTEX_INDEX iv1,
+ const int d,
+ GRADIENT_COORD_TYPE gradientH_d_scalar_grid[DIM3]
+ );
 
 // Calculate the sum of squares of all elements in a vector 'vec'
 // of size 'num_elements' and return the 'sum'

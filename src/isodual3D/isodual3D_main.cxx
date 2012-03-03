@@ -167,9 +167,9 @@ void construct_isosurface
     // *** DEBUG ***
     /*
     using namespace std;
-    cerr << "use_only_cube_gradients: " 
+    cerr << "use_only_cube_gradients: "
          << int(isodual_data.use_only_cube_gradients) << endl;
-    cerr << "use_selected_gradients: " 
+    cerr << "use_selected_gradients: "
          << int(isodual_data.use_selected_gradients) << endl;
     cerr << "grad_selection_cube_offset: "
          << isodual_data.grad_selection_cube_offset << endl;

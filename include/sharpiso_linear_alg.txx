@@ -36,7 +36,7 @@ namespace SHARPISO {
    bool & is_v0_zero, const ZTYPE zero_tolerance_squared)
   {
     CTYPE0 magnitude = 0;
-    for (DTYPE d = 0; d < dimension; d++) 
+    for (DTYPE d = 0; d < dimension; d++)
       { magnitude += v0[d] * v0[d]; }
 
     if (magnitude > zero_tolerance_squared) {
