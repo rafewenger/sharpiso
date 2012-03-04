@@ -252,7 +252,7 @@ void usage_msg()
   cerr << "OPTIONS:" << endl;
   cerr << "  -time | -vertex <iv> | -iso | -mu |-lambda | -num_iter"
        << endl;
-  cerr << "  -k | -n | -m | -hdir <dir> | -c | -gradS | -gradN | -cdiffN" 
+  cerr << "  -k | -n | -m | -hdir <dir> | -c | -gradS | -gradN | -cdiffN | -fdiffN" 
        << endl;
   cerr << "  -help" << endl;
 }
@@ -275,6 +275,8 @@ void help()
   cerr << "  -gradS: Print gradients of scalar function."<<endl;
   cerr << "  -gradN: Print gradients of normals." << endl;
   cerr << "  -cdiffN: Print gradient of normals (central difference)." 
+       << endl;
+  cerr << "  -fdiffN: Print gradient of normals (forward difference)." 
        << endl;
   cerr << endl;
 
