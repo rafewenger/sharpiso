@@ -88,38 +88,41 @@ void print_info
     cout <<" Gk: ";
     aniso_print_coord(cout, aniso_info.gK);
     cout << endl;
-    
-    /* OBSOLETE
-    cout <<" ("<<setw(10)<<aniso_info.gK[0]<<","<<setw(10)<<aniso_info.gK[1]<<","<<setw(10)<<aniso_info.gK[2]<<")"<<endl;
-    */
   }
+
   if (aniso_info.flag_m) {
-    cout <<" m "<<endl;
-    cout <<"x("<<aniso_info.mX[0]<<" "<<aniso_info.mX[1]<<" "<<aniso_info.mX[2]<<")"<<endl;
-    cout <<"y("<<aniso_info.mY[0]<<" "<<aniso_info.mY[1]<<" "<<aniso_info.mY[2]<<")"<<endl;
-    cout <<"z("<<aniso_info.mZ[0]<<" "<<aniso_info.mZ[1]<<" "<<aniso_info.mZ[2]<<")"<<endl;
-        
+    cout << "  m.x: ";
+    aniso_print_coord(cout, aniso_info.mX);
+    cout << endl;
+    cout << "  m.y: ";
+    aniso_print_coord(cout, aniso_info.mY);
+    cout << endl;
+    cout << "  m.z: ";
+    aniso_print_coord(cout, aniso_info.mZ);
+    cout << endl;
   }
     
-  if(aniso_info.print_c) {
-      cout <<"c in the direction "<<aniso_info.dirc <<" is ";
-      cout <<"("<<aniso_info.c[0]<<","<<aniso_info.c[1]<<","<<aniso_info.c[2]<<")"<<endl;
+  if (aniso_info.print_c) {
+    cout <<"  c[" << aniso_info.dirc << "]:  ";
+    aniso_print_coord(cout, aniso_info.c);
+    cout << endl;
   }
 
   if (aniso_info.print_gradientH_d_normals) {
 
-    cout<<"gradientH_d normals in the direction "
-        <<aniso_info.gradH_d_normals_direc<<" is (";
+    cout<<"  gradientH_d normals[" 
+        << aniso_info.gradH_d_normals_direc << "]: ";
     for (int k=0; k<DIM9; k++) {
       if(k%3==0)
-        cout <<"\n";
-      cout<<" "<<aniso_info.gradientH_d_Normals[k];
+        cout << endl;
+      cout<< " " <<aniso_info.gradientH_d_Normals[k];
     }
-    cout <<")\n";
+    cout << ")" << endl;
   }
     
   if(aniso_info.flag_normals){
-    cout <<"("<<aniso_info.normals[0]<<","<<aniso_info.normals[1]<<","<<aniso_info.normals[2]<<")"<<endl;
+    aniso_print_coord(cout, aniso_info.normals);
+    cout << endl;
         
     for (int i=0; i<DIM3; i++) {
       VERTEX_INDEX prev = scalar_grid.PrevVertex(aniso_info.iv1, i);
