@@ -295,11 +295,11 @@ void anisotropic_diff_per_vert
 
   GRADIENT_COORD_TYPE    w[DIM3]={0.0};
 
-  for (int i=0; i<DIM3; i++)
+   for (int i  =0; i<DIM3; i++)
     {
-      w[i] = mX[i] - mX_prev_vert_X[i] +
-        mY[i] - mY_prev_vert_Y[i] +
-        mZ[i] - mZ_prev_vert_Z[i] ;
+        w[i] =  gK[i]*mX[i] - gKprev[i]*mX_prev_vert_X[i] +
+        gK[i]*mY[i] - gKprev[i]*mY_prev_vert_Y[i] +
+        gK[i]*mZ[i] - gKprev[i]*mZ_prev_vert_Z[i] ;
     }
 
   GRADIENT_COORD_TYPE  wN = 0.0;
