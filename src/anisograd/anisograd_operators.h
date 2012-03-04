@@ -93,11 +93,10 @@ void compute_backward_difference_d
 // Compute operator gradH for the direction 'd'
 // for the Normal field
 void compute_gradH_d_normals
-( const GRADIENT_GRID_BASE & gradient_grid,
+(const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
  const int d,
- GRADIENT_COORD_TYPE  gradientH_d_Normals[DIM9]
- );
+ GRADIENT_COORD_TYPE  gradientH_d_Normals[DIM9]);
 
 
 // Central difference operators
@@ -110,35 +109,35 @@ void compute_central_difference_d
 
 
 // Compute M d for dierection 'd' for  vertex iv1
-// 
 void compute_m_d
-(
- const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const int icube,
  const VERTEX_INDEX iv1,
  const int d,
- GRADIENT_COORD_TYPE m[DIM3]
- );
+ GRADIENT_COORD_TYPE m[DIM3]);
 
 void compute_c_d
-(
- const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
  const int d,
- GRADIENT_COORD_TYPE c[DIM3]
- );
+ GRADIENT_COORD_TYPE c[DIM3]);
+
+// Compute gradient of normals using central difference
+// Used for anisogradinfo.
+void compute_gradient_normals
+(const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1,
+ GRADIENT_COORD_TYPE  gradient_normals[DIM9]);
 
 ///// other functions
 
 void compute_gradH_d_scalar_grid
-(
- const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
  const VERTEX_INDEX iv1,
  const int d,
- GRADIENT_COORD_TYPE gradientH_d_scalar_grid[DIM3]
- );
+ GRADIENT_COORD_TYPE gradientH_d_scalar_grid[DIM3]);
 
 // Calculate the sum of squares of all elements in a vector 'vec'
 // of size 'num_elements' and return the 'sum'

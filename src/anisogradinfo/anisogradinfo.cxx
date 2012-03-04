@@ -24,6 +24,8 @@ void compute_curvature
   int icube = iv1;
   aniso_info.iv1 = iv1;
 
+  // Compute the central difference.
+
   // Compute M d for direction 'd' for  vertex iv1
   compute_m_d( scalar_grid, gradient_grid, icube, iv1, 0, aniso_info.mX);
   compute_m_d( scalar_grid, gradient_grid, icube, iv1, 1, aniso_info.mY);
@@ -40,7 +42,7 @@ void compute_curvature
     ( scalar_grid, gradient_grid, iv1, hdir, aniso_info.c);
     
   compute_forward_difference_d_normals
-    ( gradient_grid, iv1, hdir, aniso_info.fwd_diff_d_normals);
+    (gradient_grid, iv1, hdir, aniso_info.fwd_diff_d_normals);
     
   compute_forward_difference_d
     (scalar_grid, iv1, hdir, aniso_info.fwd_diff_d);
@@ -52,8 +54,10 @@ void compute_curvature
   // for the Normal field
   compute_gradH_d_normals 
     (gradient_grid,iv1, hdir, aniso_info.gradientH_d_Normals);
-    
-};
+
+  // Compute gradient of normals using central difference
+  compute_gradient_normals(gradient_grid, iv1, aniso_info.cdiffN);
+}
 
 
 // **************************************************
@@ -117,6 +121,26 @@ void print_info
     cout << endl;
   }
 
+  if (aniso_info.flag_print_cdiffN) {
+    cout << "  normal gradients (central difference):" << endl;
+    cout << "    index 0: ";
+    aniso_print_coord(cout, aniso_info.cdiffN);
+    cout << endl;
+    cout << "    index 1: ";
+    aniso_print_coord(cout, aniso_info.cdiffN+DIM3);
+    cout << endl;
+    cout << "    index 2: ";
+    aniso_print_coord(cout, aniso_info.cdiffN+2*DIM3);
+    cout << endl;
+  }
+
+  if (aniso_info.flag_print_fdiffN) {
+    cout << "  normal gradients (forward difference, direction "
+         << hdir << " ): ";
+    aniso_print_coord(cout, aniso_info.fwd_diff_d_normals);
+    cout << endl;
+  }
+
   if (aniso_info.flag_print_gradN) {
 
     cout << "  gradientH_d normals (direction " 
@@ -131,8 +155,8 @@ void print_info
     aniso_print_coord(cout, aniso_info.gradientH_d_Normals+2*DIM3);
     cout << endl;
   }
-    
-  if(aniso_info.flag_normals){
+
+  if (aniso_info.flag_normals){
     cout << "  Vertex normal: ";
     aniso_print_coord(cout, aniso_info.normals);
     cout << endl;
@@ -168,6 +192,8 @@ void ANISOINFO_TYPE::Init()
   flag_print_c = false;
   flag_print_gradS = false;
   flag_print_gradN = false;
+  flag_print_cdiffN = false;
+  flag_print_fdiffN = false;
   half_edge_direction = 0;
 }
 

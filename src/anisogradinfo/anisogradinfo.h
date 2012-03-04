@@ -27,6 +27,8 @@ class ANISOINFO_TYPE {
   bool flag_print_c;
   bool flag_print_gradS;
   bool flag_print_gradN;
+  bool flag_print_cdiffN;
+  bool flag_print_fdiffN;
   int half_edge_direction;
 
   int iter;
@@ -47,11 +49,11 @@ class ANISOINFO_TYPE {
 
   GRADIENT_COORD_TYPE  gradientH_d_Normals[DIM3*DIM3];
   GRADIENT_COORD_TYPE  gradientS_d[DIM3];
-    
+
+  GRADIENT_COORD_TYPE cdiffN[DIM3*DIM3];
+
   SCALAR_TYPE K[DIM3];
   SCALAR_TYPE gK[DIM3];
-
-  GRADIENT_COORD_TYPE cdiff[DIM3];
 
  public:
   ANISOINFO_TYPE() { Init(); }

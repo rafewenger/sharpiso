@@ -41,8 +41,6 @@ using namespace IJK;
 char * scalar_filename = NULL;
 char * gradient_filename = NULL;
 bool report_time_flag = false;
-bool flag_gzip = false;
-bool flag_cdiff = false;
 bool flag_iso = false;
 float large_magnitude = 2.0;
 
@@ -190,10 +188,6 @@ void parse_command_line(int argc, char **argv)
 
     if (s == "-time") 
       { report_time_flag = true;   }
-    else if (s == "-gzip")
-      { flag_gzip = true; }
-    else if (s == "-cdiff")
-      { flag_cdiff = true; }
     else if (s == "-iso")
       { flag_iso = true; }
     else if (s == "-k")
@@ -213,6 +207,10 @@ void parse_command_line(int argc, char **argv)
       { aniso_info.flag_print_gradS = true; }
     else if (s == "-gradN") 
       { aniso_info.flag_print_gradN = true; }
+    else if (s == "-cdiffN")
+      { aniso_info.flag_print_cdiffN = true; }
+    else if (s == "-fdiffN")
+      { aniso_info.flag_print_fdiffN = true; }
     else if (s == "-mu") {
       iarg++;
       if (iarg >= argc) { usage_error(); };
@@ -252,9 +250,10 @@ void usage_msg()
 {
   cerr <<"Usage: anisogradinfo [OPTIONS]  {scalar nrrd file}"<<endl;
   cerr << "OPTIONS:" << endl;
-  cerr << "  -gzip |-time | -vertex <iv> | -iso | -mu |-lambda | -num_iter"
+  cerr << "  -time | -vertex <iv> | -iso | -mu |-lambda | -num_iter"
        << endl;
-  cerr << "  -k | -n | -m | -hdir <dir> | -c | -gradN | -gradS" << endl;
+  cerr << "  -k | -n | -m | -hdir <dir> | -c | -gradS | -gradN | -cdiffN" 
+       << endl;
   cerr << "  -help" << endl;
 }
 
@@ -262,7 +261,6 @@ void help()
 {
   cerr << "Usage: anisogradinfo [OPTIONS]  {scalar nrrd file}"<<endl;
   cerr << "OPTIONS:" << endl;
-  cerr << "  -gzip: Compress output using gnuzip." << endl;
   cerr << "  -time: Output running time." << endl;
   cerr << "  -vertex <iv>: Set vertex index to <iv>." << endl;
   cerr << "  -iso: Apply isotropic diffusion." << endl;
@@ -274,8 +272,10 @@ void help()
   cerr << "  -m: Prints m vectors." << endl;
   cerr << "  -hdir <d>: Offset point by half edge in direction d." << endl;
   cerr << "  -c: Print c vector." << endl;
-  cerr << "  -gradN: Print gradients of normals." << endl;
   cerr << "  -gradS: Print gradients of scalar function."<<endl;
+  cerr << "  -gradN: Print gradients of normals." << endl;
+  cerr << "  -cdiffN: Print gradient of normals (central difference)." 
+       << endl;
   cerr << endl;
 
   exit(15);
