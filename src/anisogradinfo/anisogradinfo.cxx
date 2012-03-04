@@ -27,7 +27,7 @@ void compute_curvature
   compute_m_d( scalar_grid, gradient_grid, icube, iv1, 0, aniso_info.mX);
   compute_m_d( scalar_grid, gradient_grid, icube, iv1, 1, aniso_info.mY);
   compute_m_d( scalar_grid, gradient_grid, icube, iv1, 2, aniso_info.mZ);
-    
+
   // compute the curvature k for a vertex iv1
   compute_curvature_iv 
     (scalar_grid, gradient_grid, iv1, aniso_info.K);
@@ -123,6 +123,7 @@ void print_info
   }
     
   if(aniso_info.flag_normals){
+    cout << "  Vertex normal: ";
     aniso_print_coord(cout, aniso_info.normals);
     cout << endl;
         
@@ -132,11 +133,13 @@ void print_info
       const GRADIENT_COORD_TYPE *gr_prev;
       const GRADIENT_COORD_TYPE *gr_next;
       gr_prev=gradient_grid.VectorPtrConst(prev);
-      cout <<"prev vert in direction "<<i<<" ";
-      cout <<"("<<gr_prev[0]<<","<<gr_prev[1]<<","<<gr_prev[2]<<")"<<endl;
+      cout << "    Direction " << i << ". ";
+      cout <<"  Prev vert: ";
+      aniso_print_coord(cout, gr_prev);
       gr_next=gradient_grid.VectorPtrConst(next);
-      cout <<"next vert in direction "<<i<<" ";
-      cout <<"("<<gr_next[0]<<","<<gr_next[1]<<","<<gr_next[2]<<")"<<endl;
+      cout <<"  Next vert: ";
+      aniso_print_coord(cout, gr_next);
+      cout << endl;
     }
     
   }

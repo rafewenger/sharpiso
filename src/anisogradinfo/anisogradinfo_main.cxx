@@ -100,51 +100,45 @@ int main(int argc, char **argv)
         
     GRADIENT_GRID gradient_grid;
         
-    if (flag_cdiff) {
-      compute_gradient_central_difference
-        (full_scalar_grid, icube, gradient_grid);
+    // compute the central gradients first 
+    compute_gradient_central_difference(full_scalar_grid, icube, gradient_grid);
+            
+    normalize_and_store_gradient_magnitudes(full_scalar_grid, gradient_grid, mag_list);
+            
+    if (flag_iso) {
+
+      // Calculate the anisotropic diff of the gradients.
+      const int dimension = full_scalar_grid.Dimension();
+      gradient_grid.SetSize(full_scalar_grid, dimension);
+      for (int k=0; k<num_iter; k++) {
+        aniso_info.iter=k;
+        if(flag_icube) {
+          aniso_info.flag_aniso = 0;
+          compute_curvature
+            (full_scalar_grid, gradient_grid, mu, lambda, icube, aniso_info);
+          print_info(full_scalar_grid, gradient_grid, aniso_info);
+        }
+                    
+        anisotropic_diff_iter_k
+          (full_scalar_grid, mu, lambda, k, 0, icube, dimension, gradient_grid);
+      }            
     }
     else {
-      // compute the central gradients first 
-      compute_gradient_central_difference(full_scalar_grid, icube, gradient_grid);
-            
-      normalize_and_store_gradient_magnitudes(full_scalar_grid, gradient_grid, mag_list);
-            
-      if (flag_iso) {
-
-        // Calculate the anisotropic diff of the gradients.
-        const int dimension = full_scalar_grid.Dimension();
-        gradient_grid.SetSize(full_scalar_grid, dimension);
-        for (int k=0; k<num_iter; k++) {
-          aniso_info.iter=k;
-          if(flag_icube) {
-            aniso_info.flag_aniso = 0;
-            compute_curvature
-              (full_scalar_grid, gradient_grid, mu, lambda, icube, aniso_info);
-            print_info(full_scalar_grid, gradient_grid, aniso_info);
-          }
-                    
-          anisotropic_diff_iter_k
-            (full_scalar_grid, mu, lambda, k, 0, icube, dimension, gradient_grid);
-        }            
-      }
-      else {
-        cout << "Anisostropic gradients called."<<endl;
-        const int dimension = full_scalar_grid.Dimension();
-        gradient_grid.SetSize(full_scalar_grid, dimension);
-        for (int k=0; k<num_iter; k++) {
-          aniso_info.iter=k;
-          cout <<"iteration "<<k<<endl;
-          if(flag_icube) {
-            aniso_info.flag_aniso = 1;
-            aniso_info.normals = gradient_grid.VectorPtr(icube);
-            compute_curvature
-              (full_scalar_grid, gradient_grid, mu, lambda, icube, aniso_info);
-            print_info(full_scalar_grid, gradient_grid,aniso_info);
-          }
-          anisotropic_diff_iter_k
-            (full_scalar_grid, mu, lambda, k, 1, icube, dimension, gradient_grid);
+      cout << "Anisostropic gradients called."<<endl;
+      const int dimension = full_scalar_grid.Dimension();
+      gradient_grid.SetSize(full_scalar_grid, dimension);
+      for (int k=0; k<num_iter; k++) {
+        aniso_info.iter=k;
+        cout <<"iteration "<<k<<endl;
+        if(flag_icube) {
+          aniso_info.flag_aniso = 1;
+          aniso_info.normals = gradient_grid.VectorPtr(icube);
+          compute_curvature
+            (full_scalar_grid, gradient_grid, mu, lambda, icube, aniso_info);
+          print_info(full_scalar_grid, gradient_grid,aniso_info);
         }
+        anisotropic_diff_iter_k
+          (full_scalar_grid, mu, lambda, k, 1, icube, dimension, gradient_grid);
       }
     }
         
@@ -158,8 +152,7 @@ int main(int argc, char **argv)
       cout << "Elapsed time = " << total_elapsed_time << " seconds." 
            << endl;
     };
-        
-  } 
+  }
   catch (ERROR error) {
     if (error.NumMessages() == 0) {
       cerr << "Unknown error." << endl;
