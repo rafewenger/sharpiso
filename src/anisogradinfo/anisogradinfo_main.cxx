@@ -115,7 +115,7 @@ int main(int argc, char **argv)
           aniso_info.flag_aniso = 0;
           compute_curvature
             (full_scalar_grid, gradient_grid, mu, lambda, vertex_index, aniso_info);
-          print_info(full_scalar_grid, gradient_grid, aniso_info);
+          print_aniso_info(full_scalar_grid, gradient_grid, aniso_info);
         }
                     
         anisotropic_diff_iter_k
@@ -123,7 +123,11 @@ int main(int argc, char **argv)
       }            
     }
     else {
+      print_gradient_info(full_scalar_grid, vertex_index);
+      cout << endl;
+
       cout << "Anisostropic gradients called."<<endl;
+
       const int dimension = full_scalar_grid.Dimension();
       gradient_grid.SetSize(full_scalar_grid, dimension);
       for (int k=0; k<num_iter; k++) {
@@ -134,7 +138,7 @@ int main(int argc, char **argv)
           aniso_info.normals = gradient_grid.VectorPtr(vertex_index);
           compute_curvature
             (full_scalar_grid, gradient_grid, mu, lambda, vertex_index, aniso_info);
-          print_info(full_scalar_grid, gradient_grid,aniso_info);
+          print_aniso_info(full_scalar_grid, gradient_grid,aniso_info);
         }
         anisotropic_diff_iter_k
           (full_scalar_grid, mu, lambda, k, 1, vertex_index, dimension, gradient_grid);

@@ -220,7 +220,7 @@ void anisotropic_diff_per_vert
     
   GRADIENT_COORD_TYPE mZ[DIM3]={0.0};
   GRADIENT_COORD_TYPE mZ_prev_vert_Z[DIM3]={0.0};
-    
+
   // Compute M d for direction 'd' for  vertex iv1
   compute_m_d
     ( scalar_grid, gradient_grid, icube, iv1, 0, mX);

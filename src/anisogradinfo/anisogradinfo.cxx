@@ -60,6 +60,18 @@ void compute_curvature
 }
 
 
+void compute_gradients
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX iv,
+ GRADIENT_COORD_TYPE cdiff[DIM3],
+ GRADIENT_COORD_TYPE fdiff[DIM3])
+{
+  for (int d = 0; d < DIM3; d++) {
+    compute_central_difference_d(scalar_grid, iv, d, cdiff[d]);
+    compute_forward_difference_d(scalar_grid, iv, d, fdiff[d]);
+  }
+}
+
 // **************************************************
 // PRINT
 // **************************************************
@@ -78,9 +90,8 @@ void aniso_print_coord(std::ostream & out, const CTYPE coord[DIM3])
   out << ")";
 }
 
-void print_info
-(
- const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+void print_aniso_info
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID & gradient_grid,
  const ANISOINFO_TYPE aniso_info)
 {
@@ -122,7 +133,7 @@ void print_info
   }
 
   if (aniso_info.flag_print_cdiffN) {
-    cout << "  normal gradients (central difference):" << endl;
+    cout << "  gradient normals (central difference):" << endl;
     cout << "    index 0: ";
     aniso_print_coord(cout, aniso_info.cdiffN);
     cout << endl;
@@ -135,7 +146,7 @@ void print_info
   }
 
   if (aniso_info.flag_print_fdiffN) {
-    cout << "  normal gradients (forward difference, direction "
+    cout << "  gradient normals (forward difference, direction "
          << hdir << " ): ";
     aniso_print_coord(cout, aniso_info.fwd_diff_d_normals);
     cout << endl;
@@ -180,6 +191,25 @@ void print_info
     
 }
 
+void print_gradient_info
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX iv)
+{
+  GRADIENT_COORD_TYPE cdiff[DIM3];
+  GRADIENT_COORD_TYPE fdiff[DIM3];
+
+  compute_gradients(scalar_grid, iv, cdiff, fdiff);
+
+  cout << "Gradients computed from scalar grid:" << endl;
+  cout << "  central difference: ";
+  aniso_print_coord(cout, cdiff);
+  cout << endl;
+  cout << "  forward difference: ";
+  aniso_print_coord(cout, fdiff);
+  cout << endl;
+}
+
+
 // **************************************************
 // ANISOINFO_TYPE MEMBER FUNCTIONS
 // **************************************************
@@ -196,4 +226,3 @@ void ANISOINFO_TYPE::Init()
   flag_print_fdiffN = false;
   half_edge_direction = 0;
 }
-

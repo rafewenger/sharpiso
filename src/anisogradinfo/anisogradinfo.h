@@ -68,9 +68,13 @@ void compute_curvature
   const VERTEX_INDEX iv,
   ANISOINFO_TYPE &aniso_info);
 
-void print_info
+void print_aniso_info
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID & gradient_grid,
  const ANISOINFO_TYPE aniso_info);
+
+void print_gradient_info
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX iv);
 
 #endif
