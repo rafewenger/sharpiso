@@ -8,44 +8,53 @@
 
 using namespace SHARPISO;
 
-class ANISOINFO_TYPE{
-    
-public:
-    
-    int iv1;
-    int flag_aniso;
-    bool flag_k;
-    bool flag_normals;
-    bool flag_m;
-    bool flag_print_c;
-    int dirc;
-    bool flag_print_gradN;
-    int gradH_d_normals_direc;
+// **************************************************
+// ANISOINFO_TYPE
+// **************************************************
 
-    int iter;
-    GRADIENT_COORD_TYPE *normals;
-    
-    GRADIENT_COORD_TYPE mX[DIM3];
-    GRADIENT_COORD_TYPE mX_prev_vert_X[DIM3];
-    
-    GRADIENT_COORD_TYPE mY[DIM3];
-    GRADIENT_COORD_TYPE mY_prev_vert_Y[DIM3];
-    
-    GRADIENT_COORD_TYPE mZ[DIM3];
-    GRADIENT_COORD_TYPE mZ_prev_vert_Z[DIM3];
-    
-    GRADIENT_COORD_TYPE c[DIM3];
-    GRADIENT_COORD_TYPE gradientS_d[DIM3];
-    GRADIENT_COORD_TYPE   fwd_diff_d_normals[DIM3];
-    GRADIENT_COORD_TYPE fwd_diff_d;
+class ANISOINFO_TYPE {
 
-    GRADIENT_COORD_TYPE  gradientH_d_Normals[DIM3*DIM3];
-    GRADIENT_COORD_TYPE  gradientS[DIM3];
-    
-    SCALAR_TYPE K[DIM3];
-    SCALAR_TYPE gK[DIM3];
+ protected:
+  void Init();
 
-    GRADIENT_COORD_TYPE cdiff[DIM3];
+ public:
+    
+  int iv1;
+  int flag_aniso;
+  bool flag_k;
+  bool flag_normals;
+  bool flag_m;
+  bool flag_print_c;
+  bool flag_print_gradS;
+  bool flag_print_gradN;
+  int half_edge_direction;
+
+  int iter;
+  GRADIENT_COORD_TYPE *normals;
+    
+  GRADIENT_COORD_TYPE mX[DIM3];
+  GRADIENT_COORD_TYPE mX_prev_vert_X[DIM3];
+    
+  GRADIENT_COORD_TYPE mY[DIM3];
+  GRADIENT_COORD_TYPE mY_prev_vert_Y[DIM3];
+    
+  GRADIENT_COORD_TYPE mZ[DIM3];
+  GRADIENT_COORD_TYPE mZ_prev_vert_Z[DIM3];
+    
+  GRADIENT_COORD_TYPE c[DIM3];
+  GRADIENT_COORD_TYPE fwd_diff_d_normals[DIM3];
+  GRADIENT_COORD_TYPE fwd_diff_d;
+
+  GRADIENT_COORD_TYPE  gradientH_d_Normals[DIM3*DIM3];
+  GRADIENT_COORD_TYPE  gradientS_d[DIM3];
+    
+  SCALAR_TYPE K[DIM3];
+  SCALAR_TYPE gK[DIM3];
+
+  GRADIENT_COORD_TYPE cdiff[DIM3];
+
+ public:
+  ANISOINFO_TYPE() { Init(); }
 };
 
 

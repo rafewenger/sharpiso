@@ -20,6 +20,7 @@ void compute_curvature
  const VERTEX_INDEX iv1,
  ANISOINFO_TYPE  &aniso_info)
 {
+  const int hdir = aniso_info.half_edge_direction;
   int icube = iv1;
   aniso_info.iv1 = iv1;
 
@@ -34,24 +35,23 @@ void compute_curvature
     
   for (int d=0; d<DIM3; d++)
     compute_g_x(mu, aniso_info.K[d],aniso_info.flag_aniso, aniso_info.gK[d]);
-    
-  compute_gradH_d_scalar_grid
-    (scalar_grid, iv1, aniso_info.dirc, aniso_info.gradientS_d);
-    
+
   compute_c_d
-    ( scalar_grid, gradient_grid, iv1, aniso_info.dirc, aniso_info.c);
+    ( scalar_grid, gradient_grid, iv1, hdir, aniso_info.c);
     
   compute_forward_difference_d_normals
-    ( gradient_grid, iv1, aniso_info.dirc, aniso_info.fwd_diff_d_normals);
+    ( gradient_grid, iv1, hdir, aniso_info.fwd_diff_d_normals);
     
   compute_forward_difference_d
-    (scalar_grid, iv1, aniso_info.dirc, aniso_info.fwd_diff_d);
+    (scalar_grid, iv1, hdir, aniso_info.fwd_diff_d);
+
+  compute_gradH_d_scalar_grid
+    (scalar_grid, iv1, hdir, aniso_info.gradientS_d);
     
-  // Compute operator gradH for the direction 'd'
+  // Compute operator gradH for the direction dir
   // for the Normal field
   compute_gradH_d_normals 
-    (gradient_grid,iv1, aniso_info.gradH_d_normals_direc, 
-     aniso_info.gradientH_d_Normals);
+    (gradient_grid,iv1, hdir, aniso_info.gradientH_d_Normals);
     
 };
 
@@ -80,6 +80,8 @@ void print_info
  const GRADIENT_GRID & gradient_grid,
  const ANISOINFO_TYPE aniso_info)
 {
+  const int hdir = aniso_info.half_edge_direction;
+
   if (aniso_info.flag_k){
     cout <<"  K: ";
     aniso_print_coord(cout, aniso_info.K);
@@ -102,15 +104,23 @@ void print_info
   }
     
   if (aniso_info.flag_print_c) {
-    cout <<"  c (direction" << aniso_info.dirc << "):  ";
+    cout <<"  c (direction " << hdir << "):  ";
     aniso_print_coord(cout, aniso_info.c);
+    cout << endl;
+  }
+
+  if (aniso_info.flag_print_gradS) {
+
+    cout << "  gradientS normals (direction " 
+         << hdir << "): ";
+    aniso_print_coord(cout, aniso_info.gradientS_d);
     cout << endl;
   }
 
   if (aniso_info.flag_print_gradN) {
 
     cout << "  gradientH_d normals (direction " 
-         << aniso_info.gradH_d_normals_direc << "): " << endl;
+         << hdir << "): " << endl;
     cout << "    index 0: ";
     aniso_print_coord(cout, aniso_info.gradientH_d_Normals);
     cout << endl;
@@ -145,3 +155,19 @@ void print_info
   }
     
 }
+
+// **************************************************
+// ANISOINFO_TYPE MEMBER FUNCTIONS
+// **************************************************
+
+void ANISOINFO_TYPE::Init()
+{
+  flag_k = false;
+  flag_normals = false;
+  flag_m = false;
+  flag_print_c = false;
+  flag_print_gradS = false;
+  flag_print_gradN = false;
+  half_edge_direction = 0;
+}
+

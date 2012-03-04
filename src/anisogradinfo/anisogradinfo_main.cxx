@@ -23,6 +23,7 @@
 
 
 #include <iostream>
+#include <string>
 #include <vector>
 
 
@@ -56,9 +57,6 @@ bool flag_vertex = false;
 float mu(0.1);
 float lambda(1.0);
 int num_iter = 10;
-/* OBSOLETE
-VERTEX_INDEX icube = 0;
-*/
 VERTEX_INDEX vertex_index(0);
 
 bool debug = true;
@@ -187,60 +185,56 @@ void parse_command_line(int argc, char **argv)
   int iarg = 1;
     
   while (iarg < argc && argv[iarg][0] == '-') {
-    if (string(argv[iarg]) == "-time") 
+
+    std::string s = string(argv[iarg]);
+
+    if (s == "-time") 
       { report_time_flag = true;   }
-    else if (string(argv[iarg]) == "-gzip")
+    else if (s == "-gzip")
       { flag_gzip = true; }
-    else if (string(argv[iarg]) == "-cdiff")
+    else if (s == "-cdiff")
       { flag_cdiff = true; }
-    else if (string(argv[iarg]) == "-iso")
+    else if (s == "-iso")
       { flag_iso = true; }
-    else if (string(argv[iarg]) == "-k")
+    else if (s == "-k")
       { aniso_info.flag_k = true; }
-    else if (string(argv[iarg]) == "-m")
+    else if (s == "-m")
       { aniso_info.flag_m = true; }
-    else if (string(argv[iarg]) == "-n")
+    else if (s == "-n")
       { aniso_info.flag_normals = true; }
-    else if (string(argv[iarg]) == "-c")
-      {
-        aniso_info.flag_print_c = true;
-        iarg++;
-        if (iarg >= argc) { usage_error(); };
-        sscanf(argv[iarg], "%d", &aniso_info.dirc);
-      }
-    else if (string(argv[iarg]) == "-gradN")
-      {
-        aniso_info.flag_print_gradN= true;
-        iarg++;
-        if (iarg >= argc) { usage_error(); };
-        sscanf(argv[iarg], "%d", &aniso_info.gradH_d_normals_direc);
-      }
-    else if (string(argv[iarg]) == "-mu")
-      {
-        iarg++;
-        if (iarg >= argc) { usage_error(); };
-        sscanf(argv[iarg], "%f", &mu);
-      }
-    else if (string(argv[iarg]) == "-lambda")
-      {
-        iarg++;
-        if (iarg >= argc) { usage_error(); };
-        sscanf(argv[iarg], "%f", &lambda);
-      }
-    else if (string(argv[iarg]) == "-num_iter")
-      {
-        iarg++;
-        if (iarg >= argc) { usage_error(); };
-        sscanf(argv[iarg], "%d", &num_iter);
-      }
-    else if (string(argv[iarg]) == "-vertex")
-      {
-        iarg++;
-        flag_vertex = true;
-        if (iarg >= argc) { usage_error(); };
-        sscanf(argv[iarg], "%d", &vertex_index);
-      }
-    else if (string(argv[iarg]) == "-help") {
+    else if (s == "-hdir") {
+      iarg++;
+      if (iarg >= argc) { usage_error(); };
+      sscanf(argv[iarg], "%d", &aniso_info.half_edge_direction);
+    }
+    else if (s == "-c") 
+      { aniso_info.flag_print_c = true; }
+    else if (s == "-gradS") 
+      { aniso_info.flag_print_gradS = true; }
+    else if (s == "-gradN") 
+      { aniso_info.flag_print_gradN = true; }
+    else if (s == "-mu") {
+      iarg++;
+      if (iarg >= argc) { usage_error(); };
+      sscanf(argv[iarg], "%f", &mu);
+    }
+    else if (s == "-lambda") {
+      iarg++;
+      if (iarg >= argc) { usage_error(); };
+      sscanf(argv[iarg], "%f", &lambda);
+    }
+    else if (s == "-num_iter") {
+      iarg++;
+      if (iarg >= argc) { usage_error(); };
+      sscanf(argv[iarg], "%d", &num_iter);
+    }
+    else if (s == "-vertex") {
+      iarg++;
+      flag_vertex = true;
+      if (iarg >= argc) { usage_error(); };
+      sscanf(argv[iarg], "%d", &vertex_index);
+    }
+    else if (s == "-help") {
       help();
     }
     else 
@@ -260,7 +254,7 @@ void usage_msg()
   cerr << "OPTIONS:" << endl;
   cerr << "  -gzip |-time | -vertex <iv> | -iso | -mu |-lambda | -num_iter"
        << endl;
-  cerr << "  -k | -n | -m | -c <d> | -gradN <d> | -gradS" << endl;
+  cerr << "  -k | -n | -m | -hdir <dir> | -c | -gradN | -gradS" << endl;
   cerr << "  -help" << endl;
 }
 
@@ -278,10 +272,9 @@ void help()
   cerr << "  -k: Print curvature." << endl;
   cerr << "  -n: Print normal vectors." << endl;
   cerr << "  -m: Prints m vectors." << endl;
-  cerr << "  -c <d>: Print c vector around point shifted half an edge" << endl;
-  cerr << "          in direction <d>." << endl;
-  cerr << "  -gradN <d>: Print gradients of normals around point" << endl;
-  cerr << "              shifted half an edge in direction d."<<endl;
+  cerr << "  -hdir <d>: Offset point by half edge in direction d." << endl;
+  cerr << "  -c: Print c vector." << endl;
+  cerr << "  -gradN: Print gradients of normals." << endl;
   cerr << "  -gradS: Print gradients of scalar function."<<endl;
   cerr << endl;
 
