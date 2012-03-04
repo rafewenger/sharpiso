@@ -196,16 +196,26 @@ void print_gradient_info
  const VERTEX_INDEX iv)
 {
   GRADIENT_COORD_TYPE cdiff[DIM3];
+  GRADIENT_COORD_TYPE normalized_cdiff[DIM3];
   GRADIENT_COORD_TYPE fdiff[DIM3];
+  GRADIENT_COORD_TYPE normalized_fdiff[DIM3];
 
   compute_gradients(scalar_grid, iv, cdiff, fdiff);
+  std::copy(cdiff, cdiff+DIM3, normalized_cdiff);
+  std::copy(fdiff, fdiff+DIM3, normalized_fdiff);
+  normalize(normalized_cdiff, DIM3);
+  normalize(normalized_fdiff, DIM3);
 
   cout << "Gradients computed from scalar grid:" << endl;
   cout << "  central difference: ";
   aniso_print_coord(cout, cdiff);
+  cout << " normalized: ";
+  aniso_print_coord(cout, normalized_cdiff);
   cout << endl;
   cout << "  forward difference: ";
   aniso_print_coord(cout, fdiff);
+  cout << " normalized: ";
+  aniso_print_coord(cout, normalized_fdiff);
   cout << endl;
 }
 
