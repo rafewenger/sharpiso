@@ -27,12 +27,15 @@ using namespace std;
 // LOCAL FUNCTION DEFINITIONS 
 ///////////
 void compute_forward_difference_d_normals_per_index
-(const GRADIENT_GRID_BASE & gradient_grid, const VERTEX_INDEX iv1, const int direction, const int index,
+(const GRADIENT_GRID_BASE & gradient_grid, const VERTEX_INDEX iv1, 
+ const int direction, const int index,
  GRADIENT_COORD_TYPE & fwd_diff_d_normals_index);
-
-
-void divide_by_vec_sumof_sqaures(const int num_elements,GRADIENT_COORD_TYPE * vec);
-
+void compute_central_difference_d_normals_per_index
+(const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1,
+ const int direction,
+ const int index,
+ GRADIENT_COORD_TYPE & cntrl_diff_d_normals_index);
 
 ///////////
 // Calculate the FORWARD difference in the 'd' direction
@@ -183,6 +186,27 @@ void compute_m_d
     { m[i] = fwd_diff_d_normals[i] - (fwd_diff_d * c[i]); }
 }
 
+/////////////
+// Compute gradient of normals using central difference
+// Used for anisogradinfo.
+void compute_gradient_normals
+(const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1,
+ GRADIENT_COORD_TYPE  gradient_normals[DIM9])
+{
+  GRADIENT_COORD_TYPE cdiff;
+
+  // for each index to the normal vector N[0]. N[1]. N[2].
+  for (int i=0; i<DIM3; i++) {
+
+    for (int dir=0; dir<DIM3; dir++) {
+      compute_central_difference_d_normals_per_index
+        (gradient_grid, iv1, dir, i, cdiff);
+      gradient_normals[i*DIM3+dir] = cdiff;
+    }
+  }
+}
+
 // *************
 // LOCAL FUNCTION 
 // **************
@@ -225,8 +249,10 @@ void compute_central_difference_d_normals_per_index
   if (0 < coord[direction] && coord[direction] + 1 < gradient_grid.AxisSize(direction)) {
     VERTEX_INDEX next_vert = gradient_grid.NextVertex(iv1, direction);
     VERTEX_INDEX prev_vert = gradient_grid.PrevVertex(iv1, direction);
+
     cntrl_diff_d_normals_index = 
-      (gradient_grid.Vector(next_vert, direction) - gradient_grid.Vector(prev_vert, direction))*0.5;
+      (gradient_grid.Vector(next_vert, index) - gradient_grid.Vector(prev_vert, index))*0.5;
+
   }
   else {
     cout <<"error"<<endl;
@@ -275,24 +301,6 @@ void vector_sum_of_squares
   for (int i=0; i<num_elements; i++) 
     { sum += vec[i]*vec[i]; }
 }
-
-
-void divide_by_vec_sumof_sqaures(const int num_elements,GRADIENT_COORD_TYPE * vec)
-{
-  GRADIENT_COORD_TYPE sum=0.0;
-  vector_sum_of_squares(vec, num_elements, sum );
-    
-  if (sum > 0.00) {
-    float one_by_sum = 1.0/sum;
-    for (int i=0; i<num_elements; i++)
-        { vec[i] = vec[i]*one_by_sum; }
-    }
-  else {
-    for (int i=0; i<num_elements; i++)
-      { vec[i] = 0.0; }
-  }
-}
-
 
 // vector dot pdt
 void vector_dot_pdt 
