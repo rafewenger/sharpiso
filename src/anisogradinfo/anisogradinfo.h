@@ -17,9 +17,9 @@ public:
     bool flag_k;
     bool flag_normals;
     bool flag_m;
-    bool print_c;
+    bool flag_print_c;
     int dirc;
-    bool print_gradientH_d_normals;
+    bool flag_print_gradN;
     int gradH_d_normals_direc;
 
     int iter;
@@ -39,7 +39,8 @@ public:
     GRADIENT_COORD_TYPE   fwd_diff_d_normals[DIM3];
     GRADIENT_COORD_TYPE fwd_diff_d;
 
-    GRADIENT_COORD_TYPE  gradientH_d_Normals[9];
+    GRADIENT_COORD_TYPE  gradientH_d_Normals[DIM3*DIM3];
+    GRADIENT_COORD_TYPE  gradientS[DIM3];
     
     SCALAR_TYPE K[DIM3];
     SCALAR_TYPE gK[DIM3];

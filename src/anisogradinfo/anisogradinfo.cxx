@@ -101,13 +101,13 @@ void print_info
     cout << endl;
   }
     
-  if (aniso_info.print_c) {
+  if (aniso_info.flag_print_c) {
     cout <<"  c (direction" << aniso_info.dirc << "):  ";
     aniso_print_coord(cout, aniso_info.c);
     cout << endl;
   }
 
-  if (aniso_info.print_gradientH_d_normals) {
+  if (aniso_info.flag_print_gradN) {
 
     cout << "  gradientH_d normals (direction " 
          << aniso_info.gradH_d_normals_direc << "): " << endl;

@@ -226,11 +226,6 @@ void compute_central_difference_d_normals_per_index
     VERTEX_INDEX next_vert = gradient_grid.NextVertex(iv1, direction);
     VERTEX_INDEX prev_vert = gradient_grid.PrevVertex(iv1, direction);
 
-    /* ERROR
-    cntrl_diff_d_normals_index = 
-      (gradient_grid.Vector(next_vert, direction) - gradient_grid.Vector(prev_vert, direction))*0.5;
-    */
-
     cntrl_diff_d_normals_index = 
       (gradient_grid.Vector(next_vert, index) - gradient_grid.Vector(prev_vert, index))*0.5;
 
