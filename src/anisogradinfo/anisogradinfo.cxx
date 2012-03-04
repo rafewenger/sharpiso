@@ -74,7 +74,6 @@ void aniso_print_coord(std::ostream & out, const CTYPE coord[DIM3])
   out << ")";
 }
 
-
 void print_info
 (
  const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -103,21 +102,24 @@ void print_info
   }
     
   if (aniso_info.print_c) {
-    cout <<"  c[" << aniso_info.dirc << "]:  ";
+    cout <<"  c (direction" << aniso_info.dirc << "):  ";
     aniso_print_coord(cout, aniso_info.c);
     cout << endl;
   }
 
   if (aniso_info.print_gradientH_d_normals) {
 
-    cout<<"  gradientH_d normals[" 
-        << aniso_info.gradH_d_normals_direc << "]: ";
-    for (int k=0; k<DIM9; k++) {
-      if(k%3==0)
-        cout << endl;
-      cout<< " " <<aniso_info.gradientH_d_Normals[k];
-    }
-    cout << ")" << endl;
+    cout << "  gradientH_d normals (direction " 
+         << aniso_info.gradH_d_normals_direc << "): " << endl;
+    cout << "    index 0: ";
+    aniso_print_coord(cout, aniso_info.gradientH_d_Normals);
+    cout << endl;
+    cout << "    index 1: ";
+    aniso_print_coord(cout, aniso_info.gradientH_d_Normals+DIM3);
+    cout << endl;
+    cout << "    index 2: ";
+    aniso_print_coord(cout, aniso_info.gradientH_d_Normals+2*DIM3);
+    cout << endl;
   }
     
   if(aniso_info.flag_normals){
