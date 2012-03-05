@@ -22,8 +22,9 @@ class ANISOINFO_TYPE {
   int iv1;
   int flag_aniso;
   bool flag_k;
-  bool flag_normals;
   bool flag_m;
+  bool flag_print_normal;
+  bool flag_print_neighbors;
   bool flag_print_c;
   bool flag_print_w;
   bool flag_print_gradS;

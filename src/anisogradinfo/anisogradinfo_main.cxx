@@ -199,7 +199,11 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-m")
       { aniso_info.flag_m = true; }
     else if (s == "-n")
-      { aniso_info.flag_normals = true; }
+      { aniso_info.flag_print_normal = true; }
+    else if (s == "-N") {
+      aniso_info.flag_print_normal = true; 
+      aniso_info.flag_print_neighbors = true; 
+    }
     else if (s == "-hdir") {
       iarg++;
       if (iarg >= argc) { usage_error(); };
@@ -258,7 +262,8 @@ void usage_msg()
   cerr << "OPTIONS:" << endl;
   cerr << "  -time | -vertex <iv> | -iso | -mu |-lambda | -num_iter"
        << endl;
-  cerr << "  -k | -n | -m | -hdir <dir> | -c | -w | -gradS | -gradN | -cdiffN | -fdiffN" 
+  cerr << "  -k | -n | -N | -m | -hdir <dir> | -c | -w";
+  cerr << " | -gradS | -gradN | -cdiffN | -fdiffN" 
        << endl;
   cerr << "  -help" << endl;
 }
@@ -274,7 +279,8 @@ void help()
   cerr << "  -lambda: Diffusion parameter." << endl;
   cerr << "  -num_iter: Number of iterations." << endl;
   cerr << "  -k: Print curvature." << endl;
-  cerr << "  -n: Print normal vectors." << endl;
+  cerr << "  -n: Print normal vector." << endl;
+  cerr << "  -n: Print normal vectors of neighbors." << endl;
   cerr << "  -m: Prints m vectors." << endl;
   cerr << "  -hdir <d>: Offset point by half edge in direction d." << endl;
   cerr << "  -c: Print c vector." << endl;

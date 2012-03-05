@@ -23,6 +23,7 @@
 
 #include "anisograd_operators.h"
 
+#include "ijkcoord.txx"
 
 // local type definition
 namespace {
@@ -212,30 +213,18 @@ void anisotropic_diff_per_vert
  const GRADIENT_GRID & gradient_grid,
  GRADIENT_GRID & temp_gradient_grid)
 {
-  GRADIENT_COORD_TYPE w[DIM3];
+  const GRADIENT_COORD_TYPE * N = gradient_grid.VectorPtrConst(iv1);
+  GRADIENT_COORD_TYPE w[DIM3], w_orth[DIM3], newN[DIM3];
 
   compute_w(scalar_grid, mu, iv1, flag_aniso, gradient_grid, w);
 
-  GRADIENT_COORD_TYPE  wN = 0.0;
+  IJK::compute_orthogonal_vector(DIM3, w, N, w_orth);
 
-  const GRADIENT_COORD_TYPE * Normals = gradient_grid.VectorPtrConst(iv1);
-
-  for (int i=0; i<DIM3; i++) {
-    wN = wN + Normals[i]*w[i];
-  }
-
-
-  GRADIENT_COORD_TYPE w_dash[DIM3] ={0.0};
-  for (int i=0; i<DIM3; i++) {
-    w_dash[i] = w[i] - wN*Normals[i];
-  }
-  GRADIENT_COORD_TYPE Normals2[DIM3];
-  for (int i=0; i<DIM3; i++) {
-    Normals2[i] = Normals[i]  + lambda *w_dash[i];
-  }
+  for (int d=0; d<DIM3; d++) 
+    { newN[d] = N[d]  + lambda * w_orth[d]; }
 
   // update the temporary gradient grid
-  temp_gradient_grid.Set(iv1, Normals2);
+  temp_gradient_grid.Set(iv1, newN);
 }
 
 

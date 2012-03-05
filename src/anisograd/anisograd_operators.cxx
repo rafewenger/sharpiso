@@ -22,6 +22,7 @@
 */
 
 #include "anisograd_operators.h"
+
 using namespace std;
 
 // LOCAL FUNCTION DEFINITIONS 

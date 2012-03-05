@@ -6,6 +6,8 @@
 #include "anisograd.h"
 #include "anisograd_operators.h"
 
+#include "ijkcoord.txx"
+
 using namespace std;
 
 // **************************************************
@@ -177,11 +179,18 @@ void print_aniso_info
     cout << endl;
   }
 
-  if (aniso_info.flag_normals){
+  if (aniso_info.flag_print_normal) {
+
+    GRADIENT_COORD_TYPE magnitude;
+    IJK::compute_magnitude_3D(aniso_info.normals, magnitude);
+
     cout << "  Vertex normal: ";
     aniso_print_coord(cout, aniso_info.normals);
-    cout << endl;
-        
+    cout << "  Magnitude: " << magnitude << endl;
+  }
+
+  if (aniso_info.flag_print_neighbors) {
+
     for (int i=0; i<DIM3; i++) {
       VERTEX_INDEX prev = scalar_grid.PrevVertex(aniso_info.iv1, i);
       VERTEX_INDEX next = scalar_grid.NextVertex(aniso_info.iv1, i);
@@ -237,8 +246,9 @@ void print_gradient_info
 void ANISOINFO_TYPE::Init()
 {
   flag_k = false;
-  flag_normals = false;
   flag_m = false;
+  flag_print_normal = false;
+  flag_print_neighbors = false;
   flag_print_c = false;
   flag_print_w = false;
   flag_print_gradS = false;
