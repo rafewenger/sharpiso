@@ -24,12 +24,11 @@ void compute_curvature
   int icube = iv1;
   aniso_info.iv1 = iv1;
 
-  // Compute the central difference.
 
   // Compute M d for direction 'd' for  vertex iv1
-  compute_m_d( scalar_grid, gradient_grid, icube, iv1, 0, aniso_info.mX);
-  compute_m_d( scalar_grid, gradient_grid, icube, iv1, 1, aniso_info.mY);
-  compute_m_d( scalar_grid, gradient_grid, icube, iv1, 2, aniso_info.mZ);
+  compute_m_d(scalar_grid, gradient_grid, iv1, 0, aniso_info.mX);
+  compute_m_d(scalar_grid, gradient_grid, iv1, 1, aniso_info.mY);
+  compute_m_d(scalar_grid, gradient_grid, iv1, 2, aniso_info.mZ);
 
   // compute the curvature k for a vertex iv1
   compute_curvature_iv 

@@ -128,7 +128,6 @@ void compute_gradH_d_scalar_grid
 
 // Compute C d for direction 'd' for  vertex iv1
 // called from the compute_m_d function 
-
 void compute_c_d
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -159,6 +158,7 @@ void compute_c_d
 
 
 // *** OBSOLETE ***
+/*
 /////////
 // Compute M d for direction 'd' for  vertex iv1
 // 
@@ -187,6 +187,7 @@ void compute_m_d
   for (int i=0; i<DIM3; i++) 
     { m[i] = fwd_diff_d_normals[i] - (fwd_diff_d * c[i]); }
 }
+*/
 
 /////////
 // Compute M d for direction 'd' for  vertex iv1

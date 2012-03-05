@@ -51,45 +51,12 @@ void compute_forward_difference_d
  GRADIENT_COORD_TYPE &fwd_diff_d);
 
 
-/*
-// Calculates the forward difference in the 'd' direction
-// Calculates for the Normals
-// [1X3]
-void compute_forward_difference_d_normals
-( const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX iv1,
- const int d,
- GRADIENT_COORD_TYPE &fwd_diff_d_normals); 
-*/
 void compute_forward_difference_d_normals
 (const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
  const int d,
  GRADIENT_COORD_TYPE fwd_diff_d_normals[DIM3]);
 
-///
-/// BACKWARD DIFFERENCE CALCULATORS 
-///
-/*
-// Calculate the BACKWARD difference in the 'd' direction
-// Calculates for the scalar_grid
-void compute_backward_difference_d
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const VERTEX_INDEX iv1,
- const int d, 
- GRADIENT_COORD_TYPE &bkwd_diff_d);
-
-// Calculates the BACKWARD difference in the 'd' direction 
-// Calculates for the Normals[index_coord]
-void compute_backward_difference_d
-( const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX iv1,
- const int d,
- const int index_coord,
- GRADIENT_COORD_TYPE &bkwd_diff_d);
-
-*/
 // Compute operator gradH for the direction 'd'
 // for the Normal field
 void compute_gradH_d_normals
@@ -97,7 +64,6 @@ void compute_gradH_d_normals
  const VERTEX_INDEX iv1,
  const int d,
  GRADIENT_COORD_TYPE  gradientH_d_Normals[DIM9]);
-
 
 // Central difference operators
 // compute central difference in the 'd' direction
@@ -108,11 +74,21 @@ void compute_central_difference_d
  GRADIENT_COORD_TYPE &cntrl_diff_d);
 
 
+/* OBSOLETE
 // Compute M d for direction 'd' for  vertex iv1
 void compute_m_d
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const int icube,
+ const VERTEX_INDEX iv1,
+ const int d,
+ GRADIENT_COORD_TYPE m[DIM3]);
+*/
+
+// Compute M d for direction 'd' for  vertex iv1
+void compute_m_d
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
  const int d,
  GRADIENT_COORD_TYPE m[DIM3]);
