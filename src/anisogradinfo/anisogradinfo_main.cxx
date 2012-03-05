@@ -123,8 +123,11 @@ int main(int argc, char **argv)
       }            
     }
     else {
-      print_gradient_info(full_scalar_grid, vertex_index);
-      cout << endl;
+
+      if (aniso_info.flag_print_scalar) {
+        print_gradient_info(full_scalar_grid, vertex_index);
+        cout << endl;
+      }
 
       cout << "Anisostropic gradients called."<<endl;
 
@@ -221,6 +224,8 @@ void parse_command_line(int argc, char **argv)
       { aniso_info.flag_print_cdiffN = true; }
     else if (s == "-fdiffN")
       { aniso_info.flag_print_fdiffN = true; }
+    else if (s == "-scalar")
+      { aniso_info.flag_print_scalar = true; }
     else if (s == "-mu") {
       iarg++;
       if (iarg >= argc) { usage_error(); };
@@ -262,9 +267,9 @@ void usage_msg()
   cerr << "OPTIONS:" << endl;
   cerr << "  -time | -vertex <iv> | -iso | -mu |-lambda | -num_iter"
        << endl;
-  cerr << "  -k | -n | -N | -m | -hdir <dir> | -c | -w";
-  cerr << " | -gradS | -gradN | -cdiffN | -fdiffN" 
+  cerr << "  -k | -n | -N | -m | -hdir <dir> | -c | -w | -gradS | -gradN"
        << endl;
+  cerr << "  -scalar | -cdiffN | -fdiffN" << endl;
   cerr << "  -help" << endl;
 }
 
@@ -287,6 +292,7 @@ void help()
   cerr << "  -w: Print w vector." << endl;
   cerr << "  -gradS: Print gradients of scalar function."<<endl;
   cerr << "  -gradN: Print gradients of normals." << endl;
+  cerr << "  -scalar: Print scalar field information." << endl;
   cerr << "  -cdiffN: Print gradient of normals (central difference)." 
        << endl;
   cerr << "  -fdiffN: Print gradient of normals (forward difference)." 

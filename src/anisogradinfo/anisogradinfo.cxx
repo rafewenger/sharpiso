@@ -95,6 +95,25 @@ void aniso_print_coord(std::ostream & out, const CTYPE coord[DIM3])
   out << ")";
 }
 
+template <typename CTYPE>
+void aniso_print_magnitude
+(std::ostream & out, const CTYPE coord[DIM3])
+{
+  GRADIENT_COORD_TYPE magnitude;
+
+  IJK::compute_magnitude_3D(coord, magnitude);
+
+  out << "Mag: " << magnitude;
+}
+
+template <typename CTYPE>
+void aniso_print_vector(std::ostream & out, const CTYPE coord[DIM3])
+{
+  aniso_print_coord(out, coord);
+  out << " ";
+  aniso_print_magnitude(out, coord);
+}
+
 void print_aniso_info
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID & gradient_grid,
@@ -130,11 +149,11 @@ void print_aniso_info
   }
 
   if (aniso_info.flag_print_w) {
-    cout <<"  w: ";
-    aniso_print_coord(cout, aniso_info.w);
+    cout <<"  w:        ";
+    aniso_print_vector(cout, aniso_info.w);
     cout << endl;
     cout <<"  w (proj): ";
-    aniso_print_coord(cout, aniso_info.w_orth);
+    aniso_print_vector(cout, aniso_info.w_orth);
     cout << endl;
   }
 
@@ -183,12 +202,9 @@ void print_aniso_info
 
   if (aniso_info.flag_print_normal) {
 
-    GRADIENT_COORD_TYPE magnitude;
-    IJK::compute_magnitude_3D(aniso_info.normals, magnitude);
-
     cout << "  Vertex normal: ";
-    aniso_print_coord(cout, aniso_info.normals);
-    cout << "  Magnitude: " << magnitude << endl;
+    aniso_print_vector(cout, aniso_info.normals);
+    cout << endl;
   }
 
   if (aniso_info.flag_print_neighbors) {
@@ -249,6 +265,7 @@ void ANISOINFO_TYPE::Init()
 {
   flag_k = false;
   flag_m = false;
+  flag_print_scalar = false;
   flag_print_normal = false;
   flag_print_neighbors = false;
   flag_print_c = false;

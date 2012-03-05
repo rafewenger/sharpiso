@@ -196,9 +196,9 @@ void compute_w
  GRADIENT_COORD_TYPE w[DIM3])
 {
   GRADIENT_COORD_TYPE mX[DIM3], mY[DIM3], mZ[DIM3];
-  GRADIENT_COORD_TYPE mX_prev_vert_X[DIM3]={0.0};
-  GRADIENT_COORD_TYPE mY_prev_vert_Y[DIM3]={0.0};
-  GRADIENT_COORD_TYPE mZ_prev_vert_Z[DIM3]={0.0};
+  GRADIENT_COORD_TYPE mXprevX[DIM3]={0.0};
+  GRADIENT_COORD_TYPE mYprevY[DIM3]={0.0};
+  GRADIENT_COORD_TYPE mZprevZ[DIM3]={0.0};
 
   // Compute M d for direction 'd' for  vertex iv1
   compute_m_d(scalar_grid, gradient_grid, iv1, 0, mX);
@@ -213,11 +213,11 @@ void compute_w
 
   // Compute m_d for the previous vertices.
   compute_m_d
-    (scalar_grid, gradient_grid, prev_vert[0], 0, mX_prev_vert_X);
+    (scalar_grid, gradient_grid, prev_vert[0], 0, mXprevX);
   compute_m_d
-    (scalar_grid, gradient_grid, prev_vert[1], 1, mY_prev_vert_Y);
+    (scalar_grid, gradient_grid, prev_vert[1], 1, mYprevY);
   compute_m_d
-    (scalar_grid, gradient_grid, prev_vert[2], 2, mZ_prev_vert_Z);
+    (scalar_grid, gradient_grid, prev_vert[2], 2, mZprevZ);
 
   // Compute 'k' for each dimensions ,
   // used for anisotropic gradients
@@ -266,9 +266,9 @@ void compute_w
 
 
   for (int i=0; i<DIM3; i++) {
-    w[i] =  gK[i]*mX[i] - gKprev[i]*mX_prev_vert_X[i] +
-      gK[i]*mY[i] - gKprev[i]*mY_prev_vert_Y[i] +
-      gK[i]*mZ[i] - gKprev[i]*mZ_prev_vert_Z[i];
+    w[i] =  gK[i]*mX[i] - gKprev[i]*mXprevX[i] +
+      gK[i]*mY[i] - gKprev[i]*mYprevY[i] +
+      gK[i]*mZ[i] - gKprev[i]*mZprevZ[i];
   }
 }
 

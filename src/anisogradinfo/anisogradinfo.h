@@ -23,6 +23,7 @@ class ANISOINFO_TYPE {
   int flag_aniso;
   bool flag_k;
   bool flag_m;
+  bool flag_print_scalar;
   bool flag_print_normal;
   bool flag_print_neighbors;
   bool flag_print_c;
