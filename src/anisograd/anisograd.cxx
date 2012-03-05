@@ -212,7 +212,7 @@ void anisotropic_diff_per_vert
  const GRADIENT_GRID & gradient_grid,
  GRADIENT_GRID & temp_gradient_grid)
 {
-  GRADIENT_COORD_TYPE w[DIM3]={0.0};
+  GRADIENT_COORD_TYPE w[DIM3];
 
   compute_w(scalar_grid, mu, iv1, flag_aniso, gradient_grid, w);
 

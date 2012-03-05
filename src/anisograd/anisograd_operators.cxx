@@ -156,39 +156,6 @@ void compute_c_d
     { c[k]=c[k]/mag_gradS_d; }
 }
 
-
-// *** OBSOLETE ***
-/*
-/////////
-// Compute M d for direction 'd' for  vertex iv1
-// 
-void compute_m_d
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const int icube,
- const VERTEX_INDEX iv1,
- const int d,
- GRADIENT_COORD_TYPE m[DIM3])
-{
-  GRADIENT_COORD_TYPE   c[DIM3] = {0.0};
-  GRADIENT_COORD_TYPE   fwd_diff_d_normals[DIM3] = {0.0};
-  GRADIENT_COORD_TYPE   fwd_diff_d = 0.0;
-    
-  // calculate C for direction d
-  compute_c_d(scalar_grid, gradient_grid, iv1, d, c);
-    
-  //compute forward difference of normals
-  compute_forward_difference_d_normals
-    ( gradient_grid, iv1, d, fwd_diff_d_normals);
-    
-  compute_forward_difference_d
-    (scalar_grid, iv1, d, fwd_diff_d);
-    
-  for (int i=0; i<DIM3; i++) 
-    { m[i] = fwd_diff_d_normals[i] - (fwd_diff_d * c[i]); }
-}
-*/
-
 /////////
 // Compute M d for direction 'd' for  vertex iv1
 // 
@@ -227,24 +194,15 @@ void compute_w
  const GRADIENT_GRID & gradient_grid,
  GRADIENT_COORD_TYPE w[DIM3])
 {
-  GRADIENT_COORD_TYPE mX[DIM3]={0.0};
+  GRADIENT_COORD_TYPE mX[DIM3], mY[DIM3], mZ[DIM3];
   GRADIENT_COORD_TYPE mX_prev_vert_X[DIM3]={0.0};
-
-  GRADIENT_COORD_TYPE mY[DIM3]={0.0};
   GRADIENT_COORD_TYPE mY_prev_vert_Y[DIM3]={0.0};
-
-  GRADIENT_COORD_TYPE mZ[DIM3]={0.0};
   GRADIENT_COORD_TYPE mZ_prev_vert_Z[DIM3]={0.0};
 
   // Compute M d for direction 'd' for  vertex iv1
-  compute_m_d
-    ( scalar_grid, gradient_grid, iv1, 0, mX);
-
-  compute_m_d
-    ( scalar_grid, gradient_grid, iv1, 1, mY);
-
-  compute_m_d
-    ( scalar_grid, gradient_grid, iv1, 2, mZ);
+  compute_m_d(scalar_grid, gradient_grid, iv1, 0, mX);
+  compute_m_d(scalar_grid, gradient_grid, iv1, 1, mY);
+  compute_m_d(scalar_grid, gradient_grid, iv1, 2, mZ);
 
   // compute prev vertex in 0,1,2 direction
   VERTEX_INDEX prev_vert[DIM3];
@@ -306,12 +264,11 @@ void compute_w
     }
 
 
-   for (int i  =0; i<DIM3; i++)
-    {
-        w[i] =  gK[i]*mX[i] - gKprev[i]*mX_prev_vert_X[i] +
-        gK[i]*mY[i] - gKprev[i]*mY_prev_vert_Y[i] +
-        gK[i]*mZ[i] - gKprev[i]*mZ_prev_vert_Z[i] ;
-    }
+  for (int i=0; i<DIM3; i++) {
+    w[i] =  gK[i]*mX[i] - gKprev[i]*mX_prev_vert_X[i] +
+      gK[i]*mY[i] - gKprev[i]*mY_prev_vert_Y[i] +
+      gK[i]*mZ[i] - gKprev[i]*mZ_prev_vert_Z[i];
+  }
 }
 
 /////////////
