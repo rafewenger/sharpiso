@@ -23,9 +23,7 @@ void compute_curvature
  ANISOINFO_TYPE  &aniso_info)
 {
   const int hdir = aniso_info.half_edge_direction;
-  int icube = iv1;
   aniso_info.iv1 = iv1;
-
 
   // Compute M d for direction 'd' for  vertex iv1
   compute_m_d(scalar_grid, gradient_grid, iv1, 0, aniso_info.mX);
@@ -62,7 +60,8 @@ void compute_curvature
   // Compute w
   bool flag_aniso = true;
   compute_w(scalar_grid, mu, iv1, flag_aniso, gradient_grid, aniso_info.w);
-
+  IJK::compute_orthogonal_vector
+    (DIM3, aniso_info.w, gradient_grid.VectorPtrConst(iv1), aniso_info.w_orth);
 }
 
 
@@ -134,6 +133,9 @@ void print_aniso_info
     cout <<"  w: ";
     aniso_print_coord(cout, aniso_info.w);
     cout << endl;
+    cout <<"  w (proj): ";
+    aniso_print_coord(cout, aniso_info.w_orth);
+    cout << endl;
   }
 
   if (aniso_info.flag_print_gradS) {
@@ -197,8 +199,8 @@ void print_aniso_info
       const GRADIENT_COORD_TYPE *gr_prev;
       const GRADIENT_COORD_TYPE *gr_next;
       gr_prev=gradient_grid.VectorPtrConst(prev);
-      cout << "    Direction " << i << ". ";
-      cout <<"  Prev vert: ";
+      cout << "    Dir " << i << ".";
+      cout <<" Prev vert: ";
       aniso_print_coord(cout, gr_prev);
       gr_next=gradient_grid.VectorPtrConst(next);
       cout <<"  Next vert: ";
