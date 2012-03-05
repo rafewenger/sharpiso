@@ -25,6 +25,7 @@ class ANISOINFO_TYPE {
   bool flag_normals;
   bool flag_m;
   bool flag_print_c;
+  bool flag_print_w;
   bool flag_print_gradS;
   bool flag_print_gradN;
   bool flag_print_cdiffN;
@@ -44,6 +45,8 @@ class ANISOINFO_TYPE {
   GRADIENT_COORD_TYPE mZ_prev_vert_Z[DIM3];
     
   GRADIENT_COORD_TYPE c[DIM3];
+  GRADIENT_COORD_TYPE w[DIM3];
+
   GRADIENT_COORD_TYPE fwd_diff_d_normals[DIM3];
   GRADIENT_COORD_TYPE fwd_diff_d;
 

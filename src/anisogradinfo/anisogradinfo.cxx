@@ -56,6 +56,11 @@ void compute_curvature
 
   // Compute gradient of normals using central difference
   compute_gradient_normals(gradient_grid, iv1, aniso_info.cdiffN);
+
+  // Compute w
+  bool flag_aniso = true;
+  compute_w(scalar_grid, mu, iv1, flag_aniso, gradient_grid, aniso_info.w);
+
 }
 
 
@@ -120,6 +125,12 @@ void print_aniso_info
   if (aniso_info.flag_print_c) {
     cout <<"  c (direction " << hdir << "):  ";
     aniso_print_coord(cout, aniso_info.c);
+    cout << endl;
+  }
+
+  if (aniso_info.flag_print_w) {
+    cout <<"  w: ";
+    aniso_print_coord(cout, aniso_info.w);
     cout << endl;
   }
 
@@ -229,6 +240,7 @@ void ANISOINFO_TYPE::Init()
   flag_normals = false;
   flag_m = false;
   flag_print_c = false;
+  flag_print_w = false;
   flag_print_gradS = false;
   flag_print_gradN = false;
   flag_print_cdiffN = false;
