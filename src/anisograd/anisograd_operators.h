@@ -68,7 +68,7 @@ void compute_forward_difference_d_normals
  GRADIENT_COORD_TYPE fwd_diff_d_normals[DIM3]);
 
 ///
-/// BACKWARD DIFFERNCE CALCULATORS 
+/// BACKWARD DIFFERENCE CALCULATORS 
 ///
 /*
 // Calculate the BACKWARD difference in the 'd' direction
@@ -108,7 +108,7 @@ void compute_central_difference_d
  GRADIENT_COORD_TYPE &cntrl_diff_d);
 
 
-// Compute M d for dierection 'd' for  vertex iv1
+// Compute M d for direction 'd' for  vertex iv1
 void compute_m_d
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -123,6 +123,14 @@ void compute_c_d
  const VERTEX_INDEX iv1,
  const int d,
  GRADIENT_COORD_TYPE c[DIM3]);
+
+// Compute vector w
+void compute_w
+(const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const float mu,
+ const VERTEX_INDEX iv1, const int flag_aniso,
+ const GRADIENT_GRID & gradient_grid,
+ GRADIENT_COORD_TYPE w[DIM3]);
 
 // Compute gradient of normals using central difference
 // Used for anisogradinfo.

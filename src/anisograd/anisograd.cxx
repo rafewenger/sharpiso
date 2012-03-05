@@ -191,14 +191,14 @@ void compute_boundary_gradient
 
 
 // Compute gx as e^(-x/2*mu^2)
-void compute_g_x(const float mu, const float param, const int flag_aniso, float & result )
+void compute_g_x
+(const float mu, const float param, const int flag_aniso, float & result )
 {
   // the flag_aniso when set to zero calculates isotropic diffusion
   // when set to 1 calculates the anisotropic diffusion
   result = exp ((param*param*float(flag_aniso))/(-2.0*mu*mu));
 
 };
-
 
 //////
 // anisotropic gradient filtering per vertex
@@ -212,95 +212,9 @@ void anisotropic_diff_per_vert
  const GRADIENT_GRID & gradient_grid,
  GRADIENT_GRID & temp_gradient_grid)
 {
-  GRADIENT_COORD_TYPE mX[DIM3]={0.0};
-  GRADIENT_COORD_TYPE mX_prev_vert_X[DIM3]={0.0};
+  GRADIENT_COORD_TYPE w[DIM3]={0.0};
 
-  GRADIENT_COORD_TYPE mY[DIM3]={0.0};
-  GRADIENT_COORD_TYPE mY_prev_vert_Y[DIM3]={0.0};
-
-  GRADIENT_COORD_TYPE mZ[DIM3]={0.0};
-  GRADIENT_COORD_TYPE mZ_prev_vert_Z[DIM3]={0.0};
-
-  // Compute M d for direction 'd' for  vertex iv1
-  compute_m_d
-    ( scalar_grid, gradient_grid, icube, iv1, 0, mX);
-
-  compute_m_d
-    ( scalar_grid, gradient_grid, icube, iv1, 1, mY);
-
-  compute_m_d
-    ( scalar_grid, gradient_grid, icube, iv1, 2, mZ);
-
-  // compute prev vertex in 0,1,2 direction
-  VERTEX_INDEX prev_vert[DIM3];
-  prev_vert[0] = scalar_grid.PrevVertex(iv1, 0);
-  prev_vert[1] = scalar_grid.PrevVertex(iv1, 1);
-  prev_vert[2] = scalar_grid.PrevVertex(iv1, 2);
-
-  // Compute m_d for the previous vertices.
-  compute_m_d
-    ( scalar_grid, gradient_grid, icube, prev_vert[0], 0, mX_prev_vert_X);
-
-  compute_m_d
-    ( scalar_grid, gradient_grid, icube, prev_vert[1], 1, mY_prev_vert_Y);
-
-  compute_m_d
-    ( scalar_grid, gradient_grid, icube, prev_vert[2], 2, mZ_prev_vert_Z);
-
-  // Compute 'k' for each dimensions ,
-  // used for anisotropic gradients
-
-  SCALAR_TYPE K[DIM3]={0.0};
-  SCALAR_TYPE gK[DIM3]={0.0};
-
-  SCALAR_TYPE gKprev[DIM3]={0.0};
-
-  GRADIENT_COORD_TYPE   mag=0.0;
-
-  // compute_curvature for the present vertex
-  compute_curvature_iv(scalar_grid, gradient_grid, iv1, K);
-
-  // compute the gx
-  for (int d=0; d<DIM3; d++)
-    compute_g_x(mu, K[d], flag_aniso, gK[d]);
-
-  // compute k _d and gkd for the previous vertices
-  for (int d=0; d<DIM3; d++)
-    {
-      // compute gradHN_d
-      GRADIENT_COORD_TYPE   gradHN_d[DIM9]={0.0};
-      compute_gradH_d_normals (gradient_grid, prev_vert[d], d,gradHN_d);
-      // compute C_d
-      GRADIENT_COORD_TYPE c[DIM3]={0.0};
-      compute_c_d(scalar_grid, gradient_grid, prev_vert[d], d, c);
-
-      SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
-
-      vector_sum_of_squares(gradHN_d, DIM9, sum_gradHNd);
-
-      vector_dot_pdt(c, c, DIM3, c_square);
-
-      GRADIENT_COORD_TYPE gr[DIM3];
-
-      compute_grad_H_d
-        ( scalar_grid, prev_vert[d], d, gr);
-      vector_magnitude (gr, DIM3,mag);
-
-
-      K[d] = sum_gradHNd  - c_square*mag*mag;
-
-      compute_g_x(mu, K[d],flag_aniso, gKprev[d]);
-    }
-
-
-  GRADIENT_COORD_TYPE    w[DIM3]={0.0};
-
-   for (int i  =0; i<DIM3; i++)
-    {
-        w[i] =  gK[i]*mX[i] - gKprev[i]*mX_prev_vert_X[i] +
-        gK[i]*mY[i] - gKprev[i]*mY_prev_vert_Y[i] +
-        gK[i]*mZ[i] - gKprev[i]*mZ_prev_vert_Z[i] ;
-    }
+  compute_w(scalar_grid, mu, iv1, flag_aniso, gradient_grid, w);
 
   GRADIENT_COORD_TYPE  wN = 0.0;
 

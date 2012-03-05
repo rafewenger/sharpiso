@@ -157,8 +157,10 @@ void compute_c_d
     { c[k]=c[k]/mag_gradS_d; }
 }
 
+
+// *** OBSOLETE ***
 /////////
-// Compute M d for dierection 'd' for  vertex iv1
+// Compute M d for direction 'd' for  vertex iv1
 // 
 void compute_m_d
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -184,6 +186,131 @@ void compute_m_d
     
   for (int i=0; i<DIM3; i++) 
     { m[i] = fwd_diff_d_normals[i] - (fwd_diff_d * c[i]); }
+}
+
+/////////
+// Compute M d for direction 'd' for  vertex iv1
+// 
+void compute_m_d
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1,
+ const int d,
+ GRADIENT_COORD_TYPE m[DIM3])
+{
+  GRADIENT_COORD_TYPE   c[DIM3] = {0.0};
+  GRADIENT_COORD_TYPE   fwd_diff_d_normals[DIM3] = {0.0};
+  GRADIENT_COORD_TYPE   fwd_diff_d = 0.0;
+    
+  // calculate C for direction d
+  compute_c_d(scalar_grid, gradient_grid, iv1, d, c);
+    
+  //compute forward difference of normals
+  compute_forward_difference_d_normals
+    ( gradient_grid, iv1, d, fwd_diff_d_normals);
+    
+  compute_forward_difference_d
+    (scalar_grid, iv1, d, fwd_diff_d);
+    
+  for (int i=0; i<DIM3; i++) 
+    { m[i] = fwd_diff_d_normals[i] - (fwd_diff_d * c[i]); }
+}
+
+/////////
+// Compute w
+// 
+void compute_w
+(const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const float mu,
+ const VERTEX_INDEX iv1, const int flag_aniso,
+ const GRADIENT_GRID & gradient_grid,
+ GRADIENT_COORD_TYPE w[DIM3])
+{
+  GRADIENT_COORD_TYPE mX[DIM3]={0.0};
+  GRADIENT_COORD_TYPE mX_prev_vert_X[DIM3]={0.0};
+
+  GRADIENT_COORD_TYPE mY[DIM3]={0.0};
+  GRADIENT_COORD_TYPE mY_prev_vert_Y[DIM3]={0.0};
+
+  GRADIENT_COORD_TYPE mZ[DIM3]={0.0};
+  GRADIENT_COORD_TYPE mZ_prev_vert_Z[DIM3]={0.0};
+
+  // Compute M d for direction 'd' for  vertex iv1
+  compute_m_d
+    ( scalar_grid, gradient_grid, iv1, 0, mX);
+
+  compute_m_d
+    ( scalar_grid, gradient_grid, iv1, 1, mY);
+
+  compute_m_d
+    ( scalar_grid, gradient_grid, iv1, 2, mZ);
+
+  // compute prev vertex in 0,1,2 direction
+  VERTEX_INDEX prev_vert[DIM3];
+  prev_vert[0] = scalar_grid.PrevVertex(iv1, 0);
+  prev_vert[1] = scalar_grid.PrevVertex(iv1, 1);
+  prev_vert[2] = scalar_grid.PrevVertex(iv1, 2);
+
+  // Compute m_d for the previous vertices.
+  compute_m_d
+    (scalar_grid, gradient_grid, prev_vert[0], 0, mX_prev_vert_X);
+  compute_m_d
+    (scalar_grid, gradient_grid, prev_vert[1], 1, mY_prev_vert_Y);
+  compute_m_d
+    (scalar_grid, gradient_grid, prev_vert[2], 2, mZ_prev_vert_Z);
+
+  // Compute 'k' for each dimensions ,
+  // used for anisotropic gradients
+
+  SCALAR_TYPE K[DIM3]={0.0};
+  SCALAR_TYPE gK[DIM3]={0.0};
+
+  SCALAR_TYPE gKprev[DIM3]={0.0};
+
+  GRADIENT_COORD_TYPE   mag=0.0;
+
+  // compute_curvature for the present vertex
+  compute_curvature_iv(scalar_grid, gradient_grid, iv1, K);
+
+  // compute the gx
+  for (int d=0; d<DIM3; d++)
+    compute_g_x(mu, K[d], flag_aniso, gK[d]);
+
+  // compute k _d and gkd for the previous vertices
+  for (int d=0; d<DIM3; d++)
+    {
+      // compute gradHN_d
+      GRADIENT_COORD_TYPE   gradHN_d[DIM9]={0.0};
+      compute_gradH_d_normals (gradient_grid, prev_vert[d], d,gradHN_d);
+      // compute C_d
+      GRADIENT_COORD_TYPE c[DIM3]={0.0};
+      compute_c_d(scalar_grid, gradient_grid, prev_vert[d], d, c);
+
+      SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
+
+      vector_sum_of_squares(gradHN_d, DIM9, sum_gradHNd);
+
+      vector_dot_pdt(c, c, DIM3, c_square);
+
+      GRADIENT_COORD_TYPE gr[DIM3];
+
+      compute_grad_H_d
+        ( scalar_grid, prev_vert[d], d, gr);
+      vector_magnitude (gr, DIM3,mag);
+
+
+      K[d] = sum_gradHNd  - c_square*mag*mag;
+
+      compute_g_x(mu, K[d],flag_aniso, gKprev[d]);
+    }
+
+
+   for (int i  =0; i<DIM3; i++)
+    {
+        w[i] =  gK[i]*mX[i] - gKprev[i]*mX_prev_vert_X[i] +
+        gK[i]*mY[i] - gKprev[i]*mY_prev_vert_Y[i] +
+        gK[i]*mZ[i] - gKprev[i]*mZ_prev_vert_Z[i] ;
+    }
 }
 
 /////////////
