@@ -36,7 +36,7 @@ class ANISOINFO_TYPE {
 
   int iter;
   GRADIENT_COORD_TYPE *normals;
-    
+
   GRADIENT_COORD_TYPE mX[DIM3];
   GRADIENT_COORD_TYPE mX_prev_vert_X[DIM3];
     

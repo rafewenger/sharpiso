@@ -113,6 +113,7 @@ int main(int argc, char **argv)
         aniso_info.iter=k;
         if(flag_vertex) {
           aniso_info.flag_aniso = 0;
+          aniso_info.normals = gradient_grid.VectorPtr(vertex_index);
           compute_curvature
             (full_scalar_grid, gradient_grid, mu, lambda, vertex_index, aniso_info);
           print_aniso_info(full_scalar_grid, gradient_grid, aniso_info);

@@ -35,7 +35,7 @@ void compute_curvature
     (scalar_grid, gradient_grid, iv1, aniso_info.K);
     
   for (int d=0; d<DIM3; d++)
-    compute_g_x(mu, aniso_info.K[d],aniso_info.flag_aniso, aniso_info.gK[d]);
+    compute_g_x(mu, aniso_info.K[d], aniso_info.flag_aniso, aniso_info.gK[d]);
 
   compute_c_d
     ( scalar_grid, gradient_grid, iv1, hdir, aniso_info.c);
