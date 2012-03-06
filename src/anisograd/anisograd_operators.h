@@ -27,10 +27,6 @@
 
 #include "sharpiso_grids.h"
 
-/* OBSOLETE
-#include "anisograd.h"
-*/
-
 // **************************************************
 // TYPE DECLARATIONS
 // **************************************************
@@ -181,10 +177,18 @@ void vector_sum_of_squares
 void vector_dot_pdt 
 (const float * A, const float *B, const int num_elements, float &res);
 
-// Normalize the vectors.
-void normalize (float *vec, const int num_elements);
-
 // Calculate vector magnitude.
 void vector_magnitude (const float * vec, const int num_elements, float & mag);
+
+/// Normalize the vectors.
+/// Set small magnitude vectors to zero.
+void normalize
+(float *vec, float & magnitude, const int num_elements, 
+ const float max_small_mag);
+
+/// Normalize the vectors.
+/// Set small magnitude vectors to zero.
+void normalize
+(float *vec, const int num_elements, const float max_small_mag);
 
 #endif

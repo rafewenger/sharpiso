@@ -32,9 +32,6 @@ namespace {
 
 };
 
-// Normalize the vectors.
-void normalize (float *vec, const int num_elements);
-
 // local routines
 // Compute gradient for each vertex
 void compute_gradient_central_difference
@@ -202,7 +199,7 @@ void anisotropic_diff_iter_k
   for (int l=0; l<scalar_grid.NumVertices(); l++) {
     GRADIENT_COORD_TYPE * grad = temp_gradient_grid.VectorPtr(l);
     // debug normalize
-    normalize(grad, DIM3);
+    normalize(grad, DIM3, EPSILON);
     gradient_grid.Set(l, grad);
   }
 }
@@ -232,42 +229,30 @@ void anisotropic_diff
 // before calling anisotropic diff
 void normalize_and_store_gradient_magnitudes
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const float max_small_mag,
  GRADIENT_GRID & gradient_grid,
  vector<GRADIENT_COORD_TYPE> &mag_list)
 // mag_list has the magnitudes of the original gradients.
 {
-  // *** NOTE: SHOULD BE A PARAMETER ***
-  const float EPSILON = 0.00001;
-
   // Normalize the gradients and
   // store the magnitudes so that they can be later added back
   for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++)
     {
       GRADIENT_COORD_TYPE  * N = gradient_grid.VectorPtr(iv);
-      GRADIENT_COORD_TYPE   mag = 0.0;
-      vector_magnitude (N, DIM3, mag);
+      GRADIENT_COORD_TYPE   magnitude = 0.0;
 
-      if (mag>EPSILON)
-        {
-          mag_list.push_back(mag);
-          normalize (N, DIM3);
-          gradient_grid.Set(iv, N);
-        }
-      else
-        {
-          mag_list.push_back(0.0);
-        }
+      normalize(N, magnitude, DIM3, max_small_mag);
+      mag_list.push_back(magnitude);
     }
 };
 
 // Re Normalize the gradients and reset the magnitudes.
 // after computing the anisotropic diffusion
 void reset_gradient_magnitudes
-(
- const SHARPISO_SCALAR_GRID_BASE & full_scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & full_scalar_grid,
+ const float max_small_mag,
  GRADIENT_GRID & gradient_grid,
- const vector<GRADIENT_COORD_TYPE> mag_list
- )
+ const vector<GRADIENT_COORD_TYPE> mag_list)
 {
   // reset the gradients to be normalized
   for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
@@ -275,22 +260,13 @@ void reset_gradient_magnitudes
       GRID_COORD_TYPE coord[DIM3];
 
       GRADIENT_COORD_TYPE  * N = gradient_grid.VectorPtr(iv);
-      GRADIENT_COORD_TYPE   mag = 0.0;
-      vector_magnitude (N, DIM3, mag);
+      GRADIENT_COORD_TYPE   mag;
 
-      if (mag > 0.0001)
-        {
-          normalize (N, DIM3);
-          gradient_grid.Set(iv, N);
-        }
-    }
-  //reset the magnitudes of the gradients
-  for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
-    {
-      GRADIENT_COORD_TYPE  * N = gradient_grid.VectorPtr(iv);
-      for (int i=0; i<DIM3; i++) {
-        N[i] = N[i]*mag_list[iv];
-      }
+      normalize(N, mag, DIM3, max_small_mag);
+
+      for (int i=0; i<DIM3; i++) 
+        { N[i] = N[i]*mag_list[iv]; }
+
       gradient_grid.Set(iv, N);
     }
 }

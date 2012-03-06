@@ -476,24 +476,31 @@ void vector_magnitude (const float * vec, const int num_elements, float & mag)
   mag = sqrt(sum);
 }
 
-
-
-
-
-// Normalize the vectors.
-void normalize (float *vec, const int num_elements)
+/// Normalize the vectors.
+/// Set small magnitude vectors to zero.
+void normalize
+(float *vec, float & magnitude, const int num_elements, 
+ const float max_small_mag)
 {
-  // *** NOTE: SHOULD BE A PARAMETER ***
-  const float EPSILON = 0.00001;
-  float mag = 0.0;
-  vector_magnitude (vec, num_elements, mag);
+  vector_magnitude(vec, num_elements, magnitude);
 
-  for (int i=0; i<num_elements; i++) {
-    if (abs(mag-0.0) < EPSILON) {
-      vec[i] = 0.0;
-    }
-    else
-      vec[i] = vec[i] / mag;
+  if (magnitude <= max_small_mag) {
+    magnitude = 0.0;
+    for (int i=0; i<num_elements; i++) 
+      { vec[i] = 0.0; }
   }
+  else {
+    for (int i=0; i<num_elements; i++) 
+      { vec[i] = vec[i] / magnitude; }
+  }
+
 }
 
+/// Normalize the vectors.
+/// Set small magnitude vectors to zero.
+void normalize
+(float *vec, const int num_elements, const float max_small_mag)
+{
+  float magnitude;
+  normalize(vec, magnitude, num_elements, max_small_mag);
+}
