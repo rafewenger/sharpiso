@@ -30,6 +30,7 @@
 // **************************************************
 // TYPE DECLARATIONS
 // **************************************************
+
 using SHARPISO::SHARPISO_SCALAR_GRID_BASE;
 using SHARPISO::GRADIENT_GRID_BASE;
 using SHARPISO::GRADIENT_GRID;
@@ -135,6 +136,21 @@ void compute_boundary_gradient
  const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE gradient[DIM3]);
 
 // **************************************************
+// COMPUTE CURVATURE AND EXP FUNCTION
+// **************************************************
+
+// compute the curvature k for a vertex iv1
+void compute_curvature_iv 
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1,
+ GRADIENT_COORD_TYPE K[DIM3]);
+
+// Compute gx as e^(-x/2*mu^2)
+void compute_g_x(const float mu, const float param, 
+                 const int flag_aniso, float & result);
+
+// **************************************************
 // COMPUTE VECTORS m, c, w
 // **************************************************
 
@@ -161,21 +177,6 @@ void compute_w
  const VERTEX_INDEX iv1, const int flag_aniso,
  const GRADIENT_GRID_BASE & gradient_grid,
  GRADIENT_COORD_TYPE w[DIM3]);
-
-// **************************************************
-// COMPUTE CURVATURE AND EXP FUNCTION
-// **************************************************
-
-// compute the curvature k for a vertex iv1
-void compute_curvature_iv 
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX iv1,
- GRADIENT_COORD_TYPE K[DIM3]);
-
-// Compute gx as e^(-x/2*mu^2)
-void compute_g_x(const float mu, const float param, 
-                 const int flag_aniso, float & result);
 
 // **************************************************
 // VECTOR OPERATORS

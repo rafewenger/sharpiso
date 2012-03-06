@@ -123,7 +123,8 @@ void compute_central_difference_d_normals_per_index
 {
   GRID_COORD_TYPE coord[DIM3];
   gradient_grid.ComputeCoord(iv1, coord);
-  if (0 < coord[direction] && coord[direction] + 1 < gradient_grid.AxisSize(direction)) {
+  if (0 < coord[direction] && 
+      coord[direction] + 1 < gradient_grid.AxisSize(direction)) {
     VERTEX_INDEX next_vert = gradient_grid.NextVertex(iv1, direction);
     VERTEX_INDEX prev_vert = gradient_grid.PrevVertex(iv1, direction);
 
@@ -253,7 +254,8 @@ void compute_gradH_d_normals_per_index
     if(i==direction) {
       // compute_forward_difference_d_normals_per_index
       compute_forward_difference_d_normals_per_index  
-        (gradient_grid, iv1, direction, index, gradientH_d_Normals_per_index[i]);
+        (gradient_grid, iv1, direction, index, 
+         gradientH_d_Normals_per_index[i]);
     }
     else {
       GRADIENT_COORD_TYPE    temp1=0.0, temp2=0.0;
@@ -295,6 +297,63 @@ void compute_gradH_d_scalar_grid
       gradientH_d_scalar_grid[i] = 0.5 * (temp1 + temp2);
     }
   }
+}
+
+// **************************************************
+// COMPUTE CURVATURE AND EXP FUNCTION
+// **************************************************
+
+// compute the curvature k for a vertex iv1, direction d
+void compute_curvature_iv_d
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1,
+ const int d,
+ GRADIENT_COORD_TYPE & K)
+{
+  // compute gradHN_d
+  GRADIENT_COORD_TYPE   gradHN_d[DIM3*DIM3]={0.0};
+  compute_gradH_d_normals(gradient_grid, iv1, d,gradHN_d);
+
+  // compute C_d
+  GRADIENT_COORD_TYPE c[DIM3]={0.0};
+  compute_c_d(scalar_grid, gradient_grid, iv1, d, c);
+
+  SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
+
+  vector_sum_of_squares(gradHN_d, DIM3*DIM3, sum_gradHNd);
+
+  vector_dot_pdt(c, c, DIM3, c_square);
+
+  GRADIENT_COORD_TYPE gr[DIM3];
+  compute_grad_H_d(scalar_grid, iv1, d, gr);
+
+  GRADIENT_COORD_TYPE mag=0.0;
+  vector_magnitude (gr, DIM3, mag);
+
+  K = sum_gradHNd  - c_square*mag*mag;
+}
+
+// compute the curvature k for a vertex iv1
+void compute_curvature_iv
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1,
+ GRADIENT_COORD_TYPE K[DIM3])
+{
+
+  for (int d = 0; d<DIM3; d++) 
+    { compute_curvature_iv_d(scalar_grid, gradient_grid, iv1, d, K[d]); }
+}
+
+// Compute gx as e^(-x^2/2*mu^2)
+void compute_g_x
+(const float mu, const float param, const int flag_aniso, float & result )
+{
+  // the flag_aniso when set to zero calculates isotropic diffusion
+  // when set to 1 calculates the anisotropic diffusion
+  result = exp ((param*param*float(flag_aniso))/(-2.0*mu*mu));
+
 }
 
 // **************************************************
@@ -411,32 +470,12 @@ void compute_w
     compute_g_x(mu, K[d], flag_aniso, gK[d]);
 
   // compute k _d and gkd for the previous vertices
-  for (int d=0; d<DIM3; d++)
-    {
-      // compute gradHN_d
-      GRADIENT_COORD_TYPE   gradHN_d[DIM3*DIM3]={0.0};
-      compute_gradH_d_normals (gradient_grid, prev_vert[d], d,gradHN_d);
-      // compute C_d
-      GRADIENT_COORD_TYPE c[DIM3]={0.0};
-      compute_c_d(scalar_grid, gradient_grid, prev_vert[d], d, c);
+  for (int d=0; d<DIM3; d++) {
+    compute_curvature_iv_d
+      (scalar_grid, gradient_grid, prev_vert[d], d, K[d]);
 
-      SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
-
-      vector_sum_of_squares(gradHN_d, DIM3*DIM3, sum_gradHNd);
-
-      vector_dot_pdt(c, c, DIM3, c_square);
-
-      GRADIENT_COORD_TYPE gr[DIM3];
-
-      compute_grad_H_d
-        ( scalar_grid, prev_vert[d], d, gr);
-      vector_magnitude (gr, DIM3,mag);
-
-      K[d] = sum_gradHNd  - c_square*mag*mag;
-
-      compute_g_x(mu, K[d],flag_aniso, gKprev[d]);
-    }
-
+    compute_g_x(mu, K[d], flag_aniso, gKprev[d]);
+  }
 
   for (int i=0; i<DIM3; i++) {
     w[i] =  gK[i]*mX[i] - gKprev[i]*mXprevX[i] +
@@ -444,54 +483,6 @@ void compute_w
       gK[i]*mZ[i] - gKprev[i]*mZprevZ[i];
   }
 }
-
-// **************************************************
-// COMPUTE CURVATURE AND EXP FUNCTION
-// **************************************************
-
-// compute the curvature k for a vertex iv1
-void compute_curvature_iv
-(const SHARPISO_SCALAR_GRID_BASE &scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX iv1,
- GRADIENT_COORD_TYPE K[DIM3])
-{
-  GRADIENT_COORD_TYPE mag=0.0;
-  for (int d=0; d<DIM3; d++)
-    {
-      // compute gradHN_d
-      GRADIENT_COORD_TYPE   gradHN_d[DIM3*DIM3]={0.0};
-      compute_gradH_d_normals(gradient_grid, iv1, d,gradHN_d);
-
-      // compute C_d
-      GRADIENT_COORD_TYPE c[DIM3]={0.0};
-      compute_c_d(scalar_grid, gradient_grid, iv1, d, c);
-
-      SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
-
-      vector_sum_of_squares(gradHN_d, DIM3*DIM3, sum_gradHNd);
-
-      vector_dot_pdt(c, c, DIM3, c_square);
-
-      GRADIENT_COORD_TYPE gr[DIM3];
-      compute_grad_H_d
-        ( scalar_grid, iv1, d, gr);
-
-      vector_magnitude (gr, DIM3,mag);
-
-      K[d] = sum_gradHNd  - c_square*mag*mag;
-    }
-}
-
-// Compute gx as e^(-x^2/2*mu^2)
-void compute_g_x
-(const float mu, const float param, const int flag_aniso, float & result )
-{
-  // the flag_aniso when set to zero calculates isotropic diffusion
-  // when set to 1 calculates the anisotropic diffusion
-  result = exp ((param*param*float(flag_aniso))/(-2.0*mu*mu));
-
-};
 
 // **************************************************
 // VECTOR OPERATORS
