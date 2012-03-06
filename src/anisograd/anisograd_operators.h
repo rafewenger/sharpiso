@@ -123,6 +123,15 @@ void compute_gradH_d_scalar_grid
  const int d,
  GRADIENT_COORD_TYPE gradientH_d_scalar_grid[DIM3]);
 
+// Calculates the central  difference in th 'd' direction 
+// for the Normals[index]
+void compute_central_difference_d_normals_per_index
+(const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1,
+ const int direction,
+ const int index,
+ GRADIENT_COORD_TYPE & cntrl_diff_d_normals_index);
+
 // Calculate the sum of squares of all elements in a vector 'vec'
 // of size 'num_elements' and return the 'sum'
 void vector_sum_of_squares 

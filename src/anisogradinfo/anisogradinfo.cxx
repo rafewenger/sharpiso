@@ -10,6 +10,15 @@
 
 using namespace std;
 
+// local functions
+void compute_div_grad_N
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID & gradient_grid,
+ const VERTEX_INDEX iv1,
+ GRADIENT_COORD_TYPE divgradN[DIM3]);
+template <typename CTYPE>
+void aniso_print_coord(std::ostream & out, const CTYPE coord[DIM3]);
+
 // **************************************************
 // COMPUTE
 // **************************************************
@@ -23,6 +32,8 @@ void compute_curvature
  ANISOINFO_TYPE  &aniso_info)
 {
   const int hdir = aniso_info.half_edge_direction;
+  const GRADIENT_COORD_TYPE * Norm1 = gradient_grid.VectorPtrConst(iv1);
+
   aniso_info.iv1 = iv1;
 
   // Compute M d for direction 'd' for  vertex iv1
@@ -57,11 +68,23 @@ void compute_curvature
   // Compute gradient of normals using central difference
   compute_gradient_normals(gradient_grid, iv1, aniso_info.cdiffN);
 
+  // Compute component of aniso_info.cdiffN orthogonal to Norm1
+  GRADIENT_COORD_TYPE * cdiffN = aniso_info.cdiffN;
+  IJK::compute_orthogonal_vector
+    (DIM3, cdiffN, Norm1, aniso_info.cdiffN_orth);
+  IJK::compute_orthogonal_vector
+    (DIM3, cdiffN+DIM3, Norm1, aniso_info.cdiffN_orth+DIM3);
+  IJK::compute_orthogonal_vector
+    (DIM3, cdiffN+2*DIM3, Norm1, aniso_info.cdiffN_orth+2*DIM3);
+
+  // Compute divergence of gradient of N
+  compute_div_grad_N(scalar_grid, gradient_grid, iv1, aniso_info.divgradN);
+
   // Compute w
   bool flag_aniso = true;
   compute_w(scalar_grid, mu, iv1, flag_aniso, gradient_grid, aniso_info.w);
   IJK::compute_orthogonal_vector
-    (DIM3, aniso_info.w, gradient_grid.VectorPtrConst(iv1), aniso_info.w_orth);
+    (DIM3, aniso_info.w, Norm1, aniso_info.w_orth);
 }
 
 
@@ -76,6 +99,68 @@ void compute_gradients
     compute_forward_difference_d(scalar_grid, iv, d, fdiff[d]);
   }
 }
+
+void compute_partial_grad_N
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID & gradient_grid,
+ const VERTEX_INDEX iv1,
+ const int direction,
+ const int index,
+ GRADIENT_COORD_TYPE & result)
+{
+  VERTEX_INDEX iv0, iv2;
+  GRADIENT_COORD_TYPE grad0[DIM3], grad2[DIM3];
+  GRADIENT_COORD_TYPE Norm0[DIM3], Norm2[DIM3];
+
+  iv0 = scalar_grid.PrevVertex(iv1, direction);
+  iv2 = scalar_grid.NextVertex(iv1, direction);
+
+  for (int dir=0; dir<DIM3; dir++) {
+    compute_central_difference_d_normals_per_index
+      (gradient_grid, iv0, dir, index, grad0[dir]);
+  }
+
+  for (int dir=0; dir<DIM3; dir++) {
+    compute_central_difference_d_normals_per_index
+      (gradient_grid, iv2, dir, index, grad2[dir]);
+  }
+
+  for (int d = 0; d < DIM3; d++) {
+    compute_central_difference_d(scalar_grid, iv0, d, Norm0[d]);
+    compute_central_difference_d(scalar_grid, iv2, d, Norm2[d]);
+  }
+
+  IJK::compute_orthogonal_vector(DIM3, grad0, Norm0, grad0);
+  IJK::compute_orthogonal_vector(DIM3, grad2, Norm2, grad2);
+
+  result = (grad2[direction]-grad0[direction])/2.0;
+}
+
+void compute_div_grad_N
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID & gradient_grid,
+ const VERTEX_INDEX iv1,
+ GRADIENT_COORD_TYPE divgradN[DIM3])
+{
+  for (int i = 0; i < DIM3; i++) {
+
+    GRADIENT_COORD_TYPE div = 0;
+
+    for (int dir = 0; dir < DIM3; dir++) {
+
+      GRADIENT_COORD_TYPE pderiv;
+      compute_partial_grad_N
+        (scalar_grid, gradient_grid, iv1, dir, i, pderiv);
+
+      div += pderiv;
+    }
+
+    divgradN[i] = div;
+  }
+
+}
+
+
 
 // **************************************************
 // PRINT
@@ -112,6 +197,20 @@ void aniso_print_vector(std::ostream & out, const CTYPE coord[DIM3])
   aniso_print_coord(out, coord);
   out << " ";
   aniso_print_magnitude(out, coord);
+}
+
+template <typename CTYPE>
+void aniso_print_3_vectors(std::ostream & out, const CTYPE coord[DIM3*DIM3])
+{
+  out << "    index 0: ";
+  aniso_print_vector(cout, coord);
+  cout << endl;
+  cout << "    index 1: ";
+  aniso_print_vector(cout, coord+DIM3);
+  cout << endl;
+  cout << "    index 2: ";
+  aniso_print_vector(cout, coord+2*DIM3);
+  cout << endl;
 }
 
 void print_aniso_info
@@ -155,6 +254,9 @@ void print_aniso_info
     cout <<"  w (proj): ";
     aniso_print_vector(cout, aniso_info.w_orth);
     cout << endl;
+    cout << "  div grad N: ";
+    aniso_print_coord(cout, aniso_info.divgradN);
+    cout << endl;
   }
 
   if (aniso_info.flag_print_gradS) {
@@ -167,15 +269,9 @@ void print_aniso_info
 
   if (aniso_info.flag_print_cdiffN) {
     cout << "  gradient normals (central difference):" << endl;
-    cout << "    index 0: ";
-    aniso_print_coord(cout, aniso_info.cdiffN);
-    cout << endl;
-    cout << "    index 1: ";
-    aniso_print_coord(cout, aniso_info.cdiffN+DIM3);
-    cout << endl;
-    cout << "    index 2: ";
-    aniso_print_coord(cout, aniso_info.cdiffN+2*DIM3);
-    cout << endl;
+    aniso_print_3_vectors(cout, aniso_info.cdiffN);
+    cout << "  gradient normals (central difference, projected):" << endl;
+    aniso_print_3_vectors(cout, aniso_info.cdiffN_orth);
   }
 
   if (aniso_info.flag_print_fdiffN) {

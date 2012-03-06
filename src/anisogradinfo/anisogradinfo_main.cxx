@@ -106,7 +106,7 @@ int main(int argc, char **argv)
             
     if (flag_iso) {
 
-      // Calculate the anisotropic diff of the gradients.
+      // Calculate the isotropic diff of the gradients.
       const int dimension = full_scalar_grid.Dimension();
       gradient_grid.SetSize(full_scalar_grid, dimension);
       for (int k=0; k<num_iter; k++) {
@@ -132,6 +132,7 @@ int main(int argc, char **argv)
 
       cout << "Anisostropic gradients called."<<endl;
 
+      // Calculate the anisotropic diff of the gradients.
       const int dimension = full_scalar_grid.Dimension();
       gradient_grid.SetSize(full_scalar_grid, dimension);
       for (int k=0; k<num_iter; k++) {

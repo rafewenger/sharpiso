@@ -322,7 +322,6 @@ void compute_forward_difference_d_normals_per_index
 
 // Calculates the central  difference in th 'd' direction 
 // for the Normals[index]
-// [1X1]
 void compute_central_difference_d_normals_per_index
 (const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
