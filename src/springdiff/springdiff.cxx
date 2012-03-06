@@ -31,7 +31,7 @@
 using namespace SHARPISO;
 using namespace std;
 
-
+const float EPSILON = 0.0001;
 
 // local type definition
 namespace {
@@ -48,6 +48,10 @@ void compute_gradient_central_difference
 void compute_boundary_gradient
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient);
+// Calculate vector magnitude.
+void vector_magnitude 
+(const float * vec, const int num_elements, float & mag);
+
 
 void compute_gradient_central_difference
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -125,15 +129,30 @@ void compute_dist_for_v
  float & distance
 ){
     const GRADIENT_COORD_TYPE * grad_u = gradient_grid.VectorPtrConst(u);
-    const GRADIENT_COORD_TYPE * grad_iv = gradient_grid.VectorPtrConst(iv);
+    //const GRADIENT_COORD_TYPE * grad_iv = gradient_grid.VectorPtrConst(iv);
     GRID_COORD_TYPE coord_u[DIM3], coord_iv[DIM3];
     scalar_grid.ComputeCoord(u, coord_u);
     scalar_grid.ComputeCoord(iv, coord_iv);
     
+    float mag_u={0.0};
+    float mag_v={0.0};
+    vector_magnitude (grad_u, DIM3,  mag_u);
+    vector_magnitude (grad_u, DIM3,  mag_v);
 
-    compute_distance_to_gfield_plane
-    (grad_u, coord_u, scalar_grid.Scalar(u), coord_iv, scalar_grid.Scalar(iv), distance);
-   
+    if (mag_u > EPSILON && mag_v > EPSILON) {
+        compute_distance_to_gfield_plane
+        (grad_u, coord_u, scalar_grid.Scalar(u), coord_iv, scalar_grid.Scalar(iv), distance);    
+    }
+    else
+        distance = 100.0; ////
+    /*
+    //debug 
+    cout <<" dist     "<<distance<<endl;
+    cout <<" grad_u  ("<<grad_u[0]<<","<<grad_u[1]<<","<<grad_u[2]<<")"<<endl;
+    cout <<" coord_u ("<<coord_u[0]<<","<<coord_u[1]<<","<<coord_u[2]<<")"<<endl;
+    cout <<" coord_iv("<<coord_iv[0]<<","<<coord_iv[1]<<","<<coord_iv[2]<<")"<<endl;
+    cout <<" scalar_u("<<scalar_grid.Scalar(u)<<") scalar v("<<scalar_grid.Scalar(iv)<<")"<<endl;
+   */
 };
 
 
@@ -200,12 +219,20 @@ void compute_spring_diffusion
     float distance=0.0;
     for (int i=0; i<num_iter; i++) {
         for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++){
+            
             if (boundary_grid.Scalar(iv)) {
                 compute_boundary_gradient(scalar_grid, iv, temp_gradient_grid.VectorPtr(iv));
             }
             else {
-                GRADIENT_COORD_TYPE * grad_iv = gradient_grid.VectorPtr(iv);
                 
+                COORD_TYPE coord[DIM3]={0.0};
+                scalar_grid.ComputeCoord(iv, coord);
+                //DEBUG
+                //cout <<"("<<coord[0]<<","<<coord[1]<<","<<coord[2]<<")"<<endl;
+                
+                GRADIENT_COORD_TYPE * grad_iv = gradient_grid.VectorPtr(iv);
+                //DEBUG
+                //cout <<"{"<<grad_iv[0]<<","<<grad_iv[1]<<","<<grad_iv[2]<<"}"<<endl;
                 GRADIENT_COORD_TYPE gdiff[DIM3]={0.0};
                 for (int d=0; d<DIM3; d++) {
                     // prev vertices to v
@@ -230,5 +257,18 @@ void compute_spring_diffusion
         update_all_gradients(temp_gradient_grid, gradient_grid);
     }
 };
+
+
+//local routines 
+// Calculate vector magnitude.
+void vector_magnitude (const float * vec, const int num_elements, float & mag)
+{
+    float sum = 0.0;
+    mag = 0.0;
+    for (int i=0; i<num_elements; i++) {
+        sum = sum + vec[i]*vec[i];
+    }
+    mag = sqrt(sum);
+}
 
 

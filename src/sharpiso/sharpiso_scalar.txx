@@ -148,7 +148,7 @@ namespace SHARPISO {
   template <typename CTYPE0, typename CTYPE1, typename CTYPE2,
             typename STYPE0, typename STYPE1, typename DIST_TYPE>
   void compute_distance_to_gfield_plane
-  (const CTYPE0 gfield_gradient[DIM3], const CTYPE1 gfield_point[DIM3], 
+  (const CTYPE0 gfield_gradient[DIM3], const CTYPE1 gfield_point[DIM3],
    const STYPE0 gfield_point_scalar, const CTYPE2 point[DIM3],
    const STYPE1 plane_scalar, DIST_TYPE & distance)
   {
@@ -159,7 +159,7 @@ namespace SHARPISO {
 
     gradient_magnitude = std::sqrt(gradient_magnitude);
 
-    distance = 
+    distance =
       gfield_gradient[0]*(point[0]-gfield_point[0]) +
       gfield_gradient[1]*(point[1]-gfield_point[1]) +
       gfield_gradient[2]*(point[2]-gfield_point[2]) +
