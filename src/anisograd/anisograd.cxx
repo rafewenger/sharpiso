@@ -42,24 +42,6 @@ void compute_gradient_central_difference
  const VERTEX_INDEX iv1,
  GRADIENT_COORD_TYPE  gradient[DIM3]);
 
-// Compute central difference in one direction and return a single value
-void compute_central_difference_d
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const VERTEX_INDEX iv1,
- const int d,
- GRADIENT_COORD_TYPE &cntrl_diff_d);
-
-
-// Computes the central difference in the d th dim
-// this is for the normals
-void compute_central_difference_d
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX iv1,
- const int d,
- const int index_coord,
- GRADIENT_COORD_TYPE &cntrl_diff_d);
-
 void compute_boundary_gradient
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient);
@@ -191,7 +173,7 @@ void compute_boundary_gradient
 
 
 
-// Compute gx as e^(-x/2*mu^2)
+// Compute gx as e^(-x^2/2*mu^2)
 void compute_g_x
 (const float mu, const float param, const int flag_aniso, float & result )
 {

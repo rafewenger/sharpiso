@@ -272,6 +272,9 @@ void print_aniso_info
     aniso_print_3_vectors(cout, aniso_info.cdiffN);
     cout << "  gradient normals (central difference, projected):" << endl;
     aniso_print_3_vectors(cout, aniso_info.cdiffN_orth);
+    GRADIENT_COORD_TYPE ksquared;
+    vector_sum_of_squares(aniso_info.cdiffN_orth, DIM9, ksquared);
+    cout << "  curvature: " << ksquared << endl;
   }
 
   if (aniso_info.flag_print_fdiffN) {

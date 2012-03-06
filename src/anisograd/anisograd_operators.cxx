@@ -258,7 +258,6 @@ void compute_w
         ( scalar_grid, prev_vert[d], d, gr);
       vector_magnitude (gr, DIM3,mag);
 
-
       K[d] = sum_gradHNd  - c_square*mag*mag;
 
       compute_g_x(mu, K[d],flag_aniso, gKprev[d]);
