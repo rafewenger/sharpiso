@@ -40,7 +40,7 @@ char * gradient_filename = NULL;
 bool report_time_flag = false;
 bool flag_gzip = false;
 
-int num_iter=1;
+int num_iter=20;
 float lambda = 0.25;
 float mu = 0.1;
 
