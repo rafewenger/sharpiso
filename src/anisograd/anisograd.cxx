@@ -21,7 +21,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "anisograd_operators.h"
+#include "anisograd.h"
 
 #include "ijkcoord.txx"
 
@@ -71,28 +71,6 @@ void compute_gradient_central_difference
   }
 }
 
-// Compute Gd
-void compute_grad_H_d
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const VERTEX_INDEX iv1,
- const int d,
- GRADIENT_COORD_TYPE * gradient)
-{
-  const int dimension = scalar_grid.Dimension();
-  GRADIENT_COORD_TYPE   temp0, temp1;
-  for (int i=0; i<dimension; i++) {
-    if (i==d) {
-      compute_forward_difference_d(scalar_grid, iv1, i, gradient[i]);
-    }
-    else{
-      compute_central_difference_d(scalar_grid, iv1, i, temp0);
-      VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
-      compute_central_difference_d(scalar_grid, iv2, i, temp1);
-      gradient[i] = (temp0 + temp1)/2.0;
-    }
-  }
-}
-
 void compute_gradient_central_difference
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const VERTEX_INDEX iv1,
@@ -105,19 +83,6 @@ void compute_gradient_central_difference
     gradient[d] = (scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0))/2.0;
   }
 }
-
-/*
-// Computes the backward diff in the d th dim
-void compute_backward_difference_d
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-const VERTEX_INDEX iv1,
-const int d,
-GRADIENT_COORD_TYPE &bkwd_diff_d)
-{
-VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
-bkwd_diff_d = scalar_grid.Scalar(iv1) - scalar_grid.Scalar(iv0);
-};
-*/
 
 void compute_central_difference_d
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -171,18 +136,6 @@ void compute_boundary_gradient
 }
 
 
-
-
-// Compute gx as e^(-x^2/2*mu^2)
-void compute_g_x
-(const float mu, const float param, const int flag_aniso, float & result )
-{
-  // the flag_aniso when set to zero calculates isotropic diffusion
-  // when set to 1 calculates the anisotropic diffusion
-  result = exp ((param*param*float(flag_aniso))/(-2.0*mu*mu));
-
-};
-
 //////
 // anisotropic gradient filtering per vertex
 void anisotropic_diff_per_vert
@@ -207,41 +160,6 @@ void anisotropic_diff_per_vert
 
   // update the temporary gradient grid
   temp_gradient_grid.Set(iv1, newN);
-}
-
-
-// compute the curvature k for a vertex iv1
-void compute_curvature_iv
-(const SHARPISO_SCALAR_GRID_BASE &scalar_grid,
- const GRADIENT_GRID & gradient_grid,
- const VERTEX_INDEX iv1,
- GRADIENT_COORD_TYPE K[DIM3])
-{
-  GRADIENT_COORD_TYPE mag=0.0;
-  for (int d=0; d<DIM3; d++)
-    {
-      // compute gradHN_d
-      GRADIENT_COORD_TYPE   gradHN_d[DIM9]={0.0};
-      compute_gradH_d_normals(gradient_grid, iv1, d,gradHN_d);
-
-      // compute C_d
-      GRADIENT_COORD_TYPE c[DIM3]={0.0};
-      compute_c_d(scalar_grid, gradient_grid, iv1, d, c);
-
-      SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
-
-      vector_sum_of_squares(gradHN_d, DIM9, sum_gradHNd);
-
-      vector_dot_pdt(c, c, DIM3, c_square);
-
-      GRADIENT_COORD_TYPE gr[DIM3];
-      compute_grad_H_d
-        ( scalar_grid, iv1, d, gr);
-
-      vector_magnitude (gr, DIM3,mag);
-
-      K[d] = sum_gradHNd  - c_square*mag*mag;
-    }
 }
 
 
@@ -318,6 +236,9 @@ void normalize_and_store_gradient_magnitudes
  vector<GRADIENT_COORD_TYPE> &mag_list)
 // mag_list has the magnitudes of the original gradients.
 {
+  // *** NOTE: SHOULD BE A PARAMETER ***
+  const float EPSILON = 0.00001;
+
   // Normalize the gradients and
   // store the magnitudes so that they can be later added back
   for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++)
@@ -372,37 +293,5 @@ void reset_gradient_magnitudes
       }
       gradient_grid.Set(iv, N);
     }
-}
-
-// helper routines
-
-// Calculate vector magnitude.
-void vector_magnitude (const float * vec, const int num_elements, float & mag)
-{
-  float sum = 0.0;
-  mag = 0.0;
-  for (int i=0; i<num_elements; i++) {
-    sum = sum + vec[i]*vec[i];
-  }
-  mag = sqrt(sum);
-}
-
-
-
-
-
-// Normalize the vectors.
-void normalize (float *vec, const int num_elements)
-{
-  float mag = 0.0;
-  vector_magnitude (vec, num_elements, mag);
-
-  for (int i=0; i<num_elements; i++) {
-    if (abs(mag-0.0) < EPSILON) {
-      vec[i] = 0.0;
-    }
-    else
-      vec[i] = vec[i] / mag;
-  }
 }
 

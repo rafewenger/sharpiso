@@ -26,11 +26,10 @@
 
 
 #include <iostream>
-#include "ijkscalar_grid.txx"
 #include "sharpiso_grids.h"
+#include "anisograd_operators.h"
 
 // glabal constants.
-const float EPSILON = 0.00001;
 const int DIM9 = 9;//{//debug  change this later to DIM3*DIM3}
 
 using namespace SHARPISO;
@@ -129,28 +128,8 @@ void normalize_and_store_gradient_magnitudes
 // Re Normalize the gradients and reset the magnitudes.
 // after computing the anisotropic diffusion
 void reset_gradient_magnitudes
-(
- const SHARPISO_SCALAR_GRID_BASE & full_scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & full_scalar_grid,
  GRADIENT_GRID & gradient_grid,
- const vector<GRADIENT_COORD_TYPE> mag_list
- );
+ const vector<GRADIENT_COORD_TYPE> mag_list);
 
-
-// compute the curvature k for a vertex iv1
-void compute_curvature_iv 
-(
- const SHARPISO_SCALAR_GRID_BASE &scalar_grid,
- const GRADIENT_GRID & gradient_grid,
- const VERTEX_INDEX iv1,
- GRADIENT_COORD_TYPE K[DIM3]
- );
-
-// Normalize the vectors.
-void normalize (float *vec, const int num_elements);
-// Calculate vector magnitude.
-void vector_magnitude (const float * vec, const int num_elements, float & mag);
-
-
-// Compute gx as e^(-x/2*mu^2)
-void compute_g_x(const float mu, const float param, const int flag_aniso, float & result );
 #endif

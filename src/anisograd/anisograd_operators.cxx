@@ -25,18 +25,11 @@
 
 using namespace std;
 
-// LOCAL FUNCTION DEFINITIONS 
-///////////
-void compute_forward_difference_d_normals_per_index
-(const GRADIENT_GRID_BASE & gradient_grid, const VERTEX_INDEX iv1, 
- const int direction, const int index,
- GRADIENT_COORD_TYPE & fwd_diff_d_normals_index);
-void compute_central_difference_d_normals_per_index
-(const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX iv1,
- const int direction,
- const int index,
- GRADIENT_COORD_TYPE & cntrl_diff_d_normals_index);
+using namespace SHARPISO;
+
+// **************************************************
+// COMPUTE FORWARD DIFFERENCE
+// **************************************************
 
 ///////////
 // Calculate the FORWARD difference in the 'd' direction
@@ -55,7 +48,6 @@ void compute_forward_difference_d
 ///////
 // Calculates the forward difference in the 'd' direction
 // Calculates for the Normals
-// [1X3]
 void compute_forward_difference_d_normals
 (const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
@@ -69,9 +61,32 @@ void compute_forward_difference_d_normals
       (gradient_grid, iv1, d, index, fwd_diff_d_normals[index]);
 }
 
-/// CENTRAL DIFFERENCE 
-// compute Central difference on the scalar grid in the 'd' direction
+// Calculate the forward difference of the gradients in the 'd' direction
+//   for i'th component of the gradient.
+void compute_forward_difference_d_normals_per_index
+(const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1,
+ const int direction,
+ const int index,
+ GRADIENT_COORD_TYPE & fwd_diff_d_normals_index)
+{
+  VERTEX_INDEX next_vert = gradient_grid.NextVertex(iv1, direction);
+    
+  const GRADIENT_COORD_TYPE * vertex_grad_iv1 = 
+    gradient_grid.VectorPtrConst (iv1);
+  const GRADIENT_COORD_TYPE * vertex_grad_next_vert = 
+    gradient_grid.VectorPtrConst (next_vert);
+    
+  fwd_diff_d_normals_index = 
+    vertex_grad_next_vert[index] - vertex_grad_iv1[index];
+}
 
+
+// **************************************************
+// COMPUTE CENTRAL DIFFERENCE
+// **************************************************
+
+/// Compute central difference on the scalar grid in the 'd' direction
 void compute_central_difference_d
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const VERTEX_INDEX iv1, 
@@ -83,6 +98,79 @@ void compute_central_difference_d
   cntrl_diff_d = 0.5*(scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0));
 }
 
+// Calculates the central  difference in th 'd' direction 
+// for the Normals[index]
+void compute_central_difference_d_normals_per_index
+(const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1,
+ const int direction,
+ const int index,
+ GRADIENT_COORD_TYPE & cntrl_diff_d_normals_index)
+{
+  GRID_COORD_TYPE coord[DIM3];
+  gradient_grid.ComputeCoord(iv1, coord);
+  if (0 < coord[direction] && coord[direction] + 1 < gradient_grid.AxisSize(direction)) {
+    VERTEX_INDEX next_vert = gradient_grid.NextVertex(iv1, direction);
+    VERTEX_INDEX prev_vert = gradient_grid.PrevVertex(iv1, direction);
+
+    cntrl_diff_d_normals_index = 
+      (gradient_grid.Vector(next_vert, index) - gradient_grid.Vector(prev_vert, index))*0.5;
+
+  }
+  else {
+    cout <<"error"<<endl;
+    cntrl_diff_d_normals_index=0.0;
+  }
+
+}
+
+/////////////
+// Compute gradient of normals using central difference
+// Used for anisogradinfo.
+void compute_gradient_normals
+(const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1,
+ GRADIENT_COORD_TYPE  gradient_normals[DIM3*DIM3])
+{
+  GRADIENT_COORD_TYPE cdiff;
+
+  // for each index to the normal vector N[0]. N[1]. N[2].
+  for (int i=0; i<DIM3; i++) {
+
+    for (int dir=0; dir<DIM3; dir++) {
+      compute_central_difference_d_normals_per_index
+        (gradient_grid, iv1, dir, i, cdiff);
+      gradient_normals[i*DIM3+dir] = cdiff;
+    }
+  }
+}
+
+// **************************************************
+// COMPUTE GRADIENTS
+// **************************************************
+
+// Compute Gd
+void compute_grad_H_d
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX iv1,
+ const int d,
+ GRADIENT_COORD_TYPE * gradient)
+{
+  const int dimension = scalar_grid.Dimension();
+  GRADIENT_COORD_TYPE   temp0, temp1;
+  for (int i=0; i<dimension; i++) {
+    if (i==d) {
+      compute_forward_difference_d(scalar_grid, iv1, i, gradient[i]);
+    }
+    else{
+      compute_central_difference_d(scalar_grid, iv1, i, temp0);
+      VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
+      compute_central_difference_d(scalar_grid, iv2, i, temp1);
+      gradient[i] = (temp0 + temp1)/2.0;
+    }
+  }
+}
+
 /////////////
 // Compute operator gradH for the direction 'd'
 // for the Normal field
@@ -90,7 +178,7 @@ void compute_gradH_d_normals
 (const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
  const int d,
- GRADIENT_COORD_TYPE  gradientH_d_Normals[DIM9])
+ GRADIENT_COORD_TYPE  gradientH_d_Normals[DIM3*DIM3])
 {
   const int dimension = gradient_grid.Dimension();
   for (int index=0; index<dimension; index++) {
@@ -98,6 +186,38 @@ void compute_gradH_d_normals
     compute_gradH_d_normals_per_index
       (gradient_grid, d, index, iv1, &gradientH_d_Normals[DIM3*index]);
   }
+}
+
+////////////
+// Compute the gradient of the normal vector[index] in the 
+// 'd' direction
+void compute_gradH_d_normals_per_index
+(const GRADIENT_GRID_BASE & gradient_grid,
+ const int direction,
+ const int index,
+ const VERTEX_INDEX iv1,
+ GRADIENT_COORD_TYPE  gradientH_d_Normals_per_index[DIM3])
+{
+  for (int i=0; i<DIM3; i++) {
+    if(i==direction) {
+      // compute_forward_difference_d_normals_per_index
+      compute_forward_difference_d_normals_per_index  
+        (gradient_grid, iv1, direction, index, gradientH_d_Normals_per_index[i]);
+    }
+    else {
+      GRADIENT_COORD_TYPE    temp1=0.0, temp2=0.0;
+      compute_central_difference_d_normals_per_index  
+        (gradient_grid, iv1, i, index, temp1);
+            
+      VERTEX_INDEX nextvert = gradient_grid.NextVertex(iv1, direction);
+            
+      compute_central_difference_d_normals_per_index  
+        (gradient_grid, nextvert, i, index, temp2);
+            
+      gradientH_d_Normals_per_index[i] = 0.5*(temp1 + temp2);
+    }
+  }
+
 }
 
 /////////////
@@ -126,6 +246,9 @@ void compute_gradH_d_scalar_grid
   }
 }
 
+// **************************************************
+// COMPUTE VECTORS m, c, w
+// **************************************************
 
 // Compute C d for direction 'd' for  vertex iv1
 // called from the compute_m_d function 
@@ -137,7 +260,7 @@ void compute_c_d
  GRADIENT_COORD_TYPE c[DIM3])
 {
   // compute the gradient of the Normal vector
-  GRADIENT_COORD_TYPE gradientN_d[DIM9]={0.0};
+  GRADIENT_COORD_TYPE gradientN_d[DIM3*DIM3]={0.0};
   compute_gradH_d_normals
     (gradient_grid, iv1, d, gradientN_d);
     
@@ -192,7 +315,7 @@ void compute_w
 (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const float mu,
  const VERTEX_INDEX iv1, const int flag_aniso,
- const GRADIENT_GRID & gradient_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  GRADIENT_COORD_TYPE w[DIM3])
 {
   GRADIENT_COORD_TYPE mX[DIM3], mY[DIM3], mZ[DIM3];
@@ -240,7 +363,7 @@ void compute_w
   for (int d=0; d<DIM3; d++)
     {
       // compute gradHN_d
-      GRADIENT_COORD_TYPE   gradHN_d[DIM9]={0.0};
+      GRADIENT_COORD_TYPE   gradHN_d[DIM3*DIM3]={0.0};
       compute_gradH_d_normals (gradient_grid, prev_vert[d], d,gradHN_d);
       // compute C_d
       GRADIENT_COORD_TYPE c[DIM3]={0.0};
@@ -248,7 +371,7 @@ void compute_w
 
       SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
 
-      vector_sum_of_squares(gradHN_d, DIM9, sum_gradHNd);
+      vector_sum_of_squares(gradHN_d, DIM3*DIM3, sum_gradHNd);
 
       vector_dot_pdt(c, c, DIM3, c_square);
 
@@ -271,111 +394,57 @@ void compute_w
   }
 }
 
-/////////////
-// Compute gradient of normals using central difference
-// Used for anisogradinfo.
-void compute_gradient_normals
-(const GRADIENT_GRID_BASE & gradient_grid,
+// **************************************************
+// COMPUTE CURVATURE AND EXP FUNCTION
+// **************************************************
+
+// compute the curvature k for a vertex iv1
+void compute_curvature_iv
+(const SHARPISO_SCALAR_GRID_BASE &scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1,
- GRADIENT_COORD_TYPE  gradient_normals[DIM9])
+ GRADIENT_COORD_TYPE K[DIM3])
 {
-  GRADIENT_COORD_TYPE cdiff;
+  GRADIENT_COORD_TYPE mag=0.0;
+  for (int d=0; d<DIM3; d++)
+    {
+      // compute gradHN_d
+      GRADIENT_COORD_TYPE   gradHN_d[DIM3*DIM3]={0.0};
+      compute_gradH_d_normals(gradient_grid, iv1, d,gradHN_d);
 
-  // for each index to the normal vector N[0]. N[1]. N[2].
-  for (int i=0; i<DIM3; i++) {
+      // compute C_d
+      GRADIENT_COORD_TYPE c[DIM3]={0.0};
+      compute_c_d(scalar_grid, gradient_grid, iv1, d, c);
 
-    for (int dir=0; dir<DIM3; dir++) {
-      compute_central_difference_d_normals_per_index
-        (gradient_grid, iv1, dir, i, cdiff);
-      gradient_normals[i*DIM3+dir] = cdiff;
+      SCALAR_TYPE sum_gradHNd = 0.0, c_square = 0.0;
+
+      vector_sum_of_squares(gradHN_d, DIM3*DIM3, sum_gradHNd);
+
+      vector_dot_pdt(c, c, DIM3, c_square);
+
+      GRADIENT_COORD_TYPE gr[DIM3];
+      compute_grad_H_d
+        ( scalar_grid, iv1, d, gr);
+
+      vector_magnitude (gr, DIM3,mag);
+
+      K[d] = sum_gradHNd  - c_square*mag*mag;
     }
-  }
 }
 
-// *************
-// LOCAL FUNCTION 
-// **************
-////////////
-// Calculates the forward difference in th 'd' direction 
-// for the Normals[index]
-// [1X1]
-// LOCAL FUNCTION to compute_forward_differnce_d_normals
-
-void compute_forward_difference_d_normals_per_index
-(const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX iv1,
- const int direction,
- const int index,
- GRADIENT_COORD_TYPE & fwd_diff_d_normals_index)
+// Compute gx as e^(-x^2/2*mu^2)
+void compute_g_x
+(const float mu, const float param, const int flag_aniso, float & result )
 {
-  VERTEX_INDEX next_vert = gradient_grid.NextVertex(iv1, direction);
-    
-  const GRADIENT_COORD_TYPE * vertex_grad_iv1 = 
-    gradient_grid.VectorPtrConst (iv1);
-  const GRADIENT_COORD_TYPE * vertex_grad_next_vert = 
-    gradient_grid.VectorPtrConst (next_vert);
-    
-  fwd_diff_d_normals_index = 
-    vertex_grad_next_vert[index] - vertex_grad_iv1[index];
-}
+  // the flag_aniso when set to zero calculates isotropic diffusion
+  // when set to 1 calculates the anisotropic diffusion
+  result = exp ((param*param*float(flag_aniso))/(-2.0*mu*mu));
 
-// Calculates the central  difference in th 'd' direction 
-// for the Normals[index]
-void compute_central_difference_d_normals_per_index
-(const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX iv1,
- const int direction,
- const int index,
- GRADIENT_COORD_TYPE & cntrl_diff_d_normals_index)
-{
-  GRID_COORD_TYPE coord[DIM3];
-  gradient_grid.ComputeCoord(iv1, coord);
-  if (0 < coord[direction] && coord[direction] + 1 < gradient_grid.AxisSize(direction)) {
-    VERTEX_INDEX next_vert = gradient_grid.NextVertex(iv1, direction);
-    VERTEX_INDEX prev_vert = gradient_grid.PrevVertex(iv1, direction);
+};
 
-    cntrl_diff_d_normals_index = 
-      (gradient_grid.Vector(next_vert, index) - gradient_grid.Vector(prev_vert, index))*0.5;
-
-  }
-  else {
-    cout <<"error"<<endl;
-    cntrl_diff_d_normals_index=0.0;
-  }
-
-}
-////////////
-// Compute the gradient of the normal vector[index] in the 
-// 'd' direction
-void compute_gradH_d_normals_per_index
-(const GRADIENT_GRID_BASE & gradient_grid,
- const int direction,
- const int index,
- const VERTEX_INDEX iv1,
- GRADIENT_COORD_TYPE  gradientH_d_Normals_per_index[DIM3])
-{
-  for (int i=0; i<DIM3; i++) {
-    if(i==direction) {
-      // compute_forward_difference_d_normals_per_index
-      compute_forward_difference_d_normals_per_index  
-        (gradient_grid, iv1, direction, index, gradientH_d_Normals_per_index[i]);
-    }
-    else {
-      GRADIENT_COORD_TYPE    temp1=0.0, temp2=0.0;
-      compute_central_difference_d_normals_per_index  
-        (gradient_grid, iv1, i, index, temp1);
-            
-      VERTEX_INDEX nextvert = gradient_grid.NextVertex(iv1, direction);
-            
-      compute_central_difference_d_normals_per_index  
-        (gradient_grid, nextvert, i, index, temp2);
-            
-      gradientH_d_Normals_per_index[i] = 0.5*(temp1 + temp2);
-    }
-  }
-
-}
-
+// **************************************************
+// VECTOR OPERATORS
+// **************************************************
 
 // Calculate the sum of squares of all elements in a vector 'vec'
 // of size 'num_elements' and return the 'sum'
@@ -396,5 +465,35 @@ void vector_dot_pdt
     { res = res + A[i]*B[i]; }
 }
 
+// Calculate vector magnitude.
+void vector_magnitude (const float * vec, const int num_elements, float & mag)
+{
+  float sum = 0.0;
+  mag = 0.0;
+  for (int i=0; i<num_elements; i++) {
+    sum = sum + vec[i]*vec[i];
+  }
+  mag = sqrt(sum);
+}
 
+
+
+
+
+// Normalize the vectors.
+void normalize (float *vec, const int num_elements)
+{
+  // *** NOTE: SHOULD BE A PARAMETER ***
+  const float EPSILON = 0.00001;
+  float mag = 0.0;
+  vector_magnitude (vec, num_elements, mag);
+
+  for (int i=0; i<num_elements; i++) {
+    if (abs(mag-0.0) < EPSILON) {
+      vec[i] = 0.0;
+    }
+    else
+      vec[i] = vec[i] / mag;
+  }
+}
 
