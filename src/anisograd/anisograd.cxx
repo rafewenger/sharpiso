@@ -32,16 +32,9 @@ namespace {
 
 };
 
-// local routines
-// Compute gradient for each vertex
-void compute_gradient_central_difference
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const VERTEX_INDEX iv1,
- GRADIENT_COORD_TYPE  gradient[DIM3]);
-
-void compute_boundary_gradient
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient);
+// **************************************************
+// COMPUTE GRADIENT USING CENTRAL DIFFERENCE
+// **************************************************
 
 // Compute central difference main function
 void compute_gradient_central_difference
@@ -62,76 +55,15 @@ void compute_gradient_central_difference
       compute_boundary_gradient(scalar_grid, iv, gradient_grid.VectorPtr(iv));
     }
     else {
-      compute_gradient_central_difference
+      compute_central_difference
         (scalar_grid, iv, gradient_grid.VectorPtr(iv));
     }
   }
 }
 
-void compute_gradient_central_difference
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const VERTEX_INDEX iv1,
- GRADIENT_COORD_TYPE gradient[DIM3])
-{
-  const int dimension = scalar_grid.Dimension();
-  for (int d = 0; d < dimension; d++) {
-    VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
-    VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
-    gradient[d] = (scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0))/2.0;
-  }
-}
-
-void compute_central_difference_d
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX iv1,
- const int d,
- const int index_coord,
- GRADIENT_COORD_TYPE &cntrl_diff_d)
-{
-
-  VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
-  VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
-
-  const GRADIENT_COORD_TYPE * vertex_gradient_coord0 = gradient_grid.VectorPtrConst(iv0);
-
-  const GRADIENT_COORD_TYPE * vertex_gradient_coord2 = gradient_grid.VectorPtrConst(iv2);
-
-  cntrl_diff_d = (vertex_gradient_coord2[index_coord] - vertex_gradient_coord0[index_coord])/2.0;
-}
-
-
-void compute_boundary_gradient
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient)
-{
-  const int dimension = scalar_grid.Dimension();
-  GRID_COORD_TYPE coord[dimension];
-
-  scalar_grid.ComputeCoord(iv1, coord);
-
-  for (int d = 0; d < dimension; d++) {
-    if (coord[d] > 0) {
-      VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
-      if (coord[d]+1 < scalar_grid.AxisSize(d)) {
-        VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
-        // use central difference
-        gradient[d] = (scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0))/2;
-      }
-      else {
-        gradient[d] = scalar_grid.Scalar(iv1) - scalar_grid.Scalar(iv0);
-      }
-    }
-    else if (coord[d]+1 < scalar_grid.AxisSize(d)) {
-      VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
-      gradient[d] = scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv1);
-    }
-    else {
-      gradient[d] = 0;
-    }
-  }
-}
-
+// **************************************************
+// ANISOTROPIC GRADIENT FILTERING
+// **************************************************
 
 //////
 // anisotropic gradient filtering per vertex
@@ -184,14 +116,14 @@ void anisotropic_diff_iter_k
           2 <= coord[1] && coord[1]+2 < scalar_grid.AxisSize(1) &&
           2 <= coord[2] && coord[2]+2 < scalar_grid.AxisSize(2)) {
 
-
-
         // Store new gradient values in temp_gradient_grid
         anisotropic_diff_per_vert
-          (scalar_grid, mu, lambda, iv, flag_aniso, icube, gradient_grid, temp_gradient_grid );
+          (scalar_grid, mu, lambda, iv, flag_aniso, icube, 
+           gradient_grid, temp_gradient_grid );
       }
       else {
-        compute_boundary_gradient(scalar_grid, iv, temp_gradient_grid.VectorPtr(iv));
+        compute_boundary_gradient
+          (scalar_grid, iv, temp_gradient_grid.VectorPtr(iv));
       }
     }
 

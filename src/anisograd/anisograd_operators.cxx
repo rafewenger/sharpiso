@@ -98,6 +98,20 @@ void compute_central_difference_d
   cntrl_diff_d = 0.5*(scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0));
 }
 
+/// Compute central difference on a vertex in the scalar grid
+void compute_central_difference
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX iv1,
+ GRADIENT_COORD_TYPE gradient[DIM3])
+{
+  const int dimension = scalar_grid.Dimension();
+  for (int d = 0; d < dimension; d++) {
+    VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
+    VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
+    gradient[d] = (scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0))/2.0;
+  }
+}
+
 // Calculates the central  difference in th 'd' direction 
 // for the Normals[index]
 void compute_central_difference_d_normals_per_index
@@ -114,7 +128,8 @@ void compute_central_difference_d_normals_per_index
     VERTEX_INDEX prev_vert = gradient_grid.PrevVertex(iv1, direction);
 
     cntrl_diff_d_normals_index = 
-      (gradient_grid.Vector(next_vert, index) - gradient_grid.Vector(prev_vert, index))*0.5;
+      (gradient_grid.Vector(next_vert, index) - 
+       gradient_grid.Vector(prev_vert, index))*0.5;
 
   }
   else {
@@ -144,6 +159,42 @@ void compute_gradient_normals
     }
   }
 }
+
+
+// **************************************************
+// COMPUTE BOUNDARY GRADIENT
+// **************************************************
+
+void compute_boundary_gradient
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE gradient[DIM3])
+{
+  GRID_COORD_TYPE coord[DIM3];
+
+  scalar_grid.ComputeCoord(iv1, coord);
+
+  for (int d = 0; d < DIM3; d++) {
+    if (coord[d] > 0) {
+      VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
+      if (coord[d]+1 < scalar_grid.AxisSize(d)) {
+        VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
+        // use central difference
+        gradient[d] = (scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0))/2;
+      }
+      else {
+        gradient[d] = scalar_grid.Scalar(iv1) - scalar_grid.Scalar(iv0);
+      }
+    }
+    else if (coord[d]+1 < scalar_grid.AxisSize(d)) {
+      VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
+      gradient[d] = scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv1);
+    }
+    else {
+      gradient[d] = 0;
+    }
+  }
+}
+
 
 // **************************************************
 // COMPUTE GRADIENTS

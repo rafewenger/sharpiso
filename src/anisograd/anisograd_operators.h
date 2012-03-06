@@ -77,6 +77,12 @@ void compute_central_difference_d
  const int d,
  GRADIENT_COORD_TYPE &cntrl_diff_d);
 
+/// Compute central difference on a vertex in the scalar grid
+void compute_central_difference
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX iv1,
+ GRADIENT_COORD_TYPE gradient[DIM3]);
+
 // Compute gradient of normals using central difference
 // Used for anisogradinfo.
 void compute_gradient_normals
@@ -119,6 +125,14 @@ void compute_gradH_d_normals_per_index
  const int index,
  const VERTEX_INDEX iv1,
  GRADIENT_COORD_TYPE  gradientH_d_Normals_per_index[DIM3]);
+
+// **************************************************
+// COMPUTE BOUNDARY GRADIENT
+// **************************************************
+
+void compute_boundary_gradient
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE gradient[DIM3]);
 
 // **************************************************
 // COMPUTE VECTORS m, c, w

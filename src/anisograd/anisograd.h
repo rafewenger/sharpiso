@@ -37,8 +37,7 @@ using namespace SHARPISO;
 using namespace std;
 void compute_gradient_central_difference
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const int icube,
- GRADIENT_GRID & gradient_grid);
+ const int icube, GRADIENT_GRID & gradient_grid);
 
 // Calculate the anisotropic diff of the gradients.
 void anisotropic_diff
