@@ -100,9 +100,11 @@ int main(int argc, char **argv)
     GRADIENT_GRID gradient_grid;
         
     // compute the central gradients first 
-    compute_gradient_central_difference(full_scalar_grid, vertex_index, gradient_grid);
+    compute_gradient_central_difference
+      (full_scalar_grid, vertex_index, gradient_grid);
             
-    normalize_and_store_gradient_magnitudes(full_scalar_grid, gradient_grid, mag_list);
+    normalize_and_store_gradient_magnitudes
+      (full_scalar_grid, EPSILON, gradient_grid, mag_list);
             
     if (flag_iso) {
 

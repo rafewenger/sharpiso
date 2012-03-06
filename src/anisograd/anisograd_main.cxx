@@ -92,15 +92,17 @@ int main(int argc, char **argv)
             cout <<" num_iter " << num_iter << endl;
         }
         if (flag_cdiff) {
-            compute_gradient_central_difference(full_scalar_grid, icube, gradient_grid);
+            compute_gradient_central_difference
+              (full_scalar_grid, icube, gradient_grid);
         }
         else
         {
             // compute the central gradients first
-            compute_gradient_central_difference(full_scalar_grid, icube, gradient_grid);
+            compute_gradient_central_difference
+              (full_scalar_grid, icube, gradient_grid);
             //normalize the gradients
             normalize_and_store_gradient_magnitudes
-            (  full_scalar_grid, gradient_grid, mag_list);
+              (full_scalar_grid, EPSILON, gradient_grid, mag_list);
 
             if (flag_iso)
             {
@@ -114,7 +116,7 @@ int main(int argc, char **argv)
             }
             //reset the magnitudes
             reset_gradient_magnitudes
-            (full_scalar_grid, gradient_grid, mag_list);
+              (full_scalar_grid, EPSILON, gradient_grid, mag_list);
 
         }
         if (flag_gzip) {

@@ -339,8 +339,8 @@ void print_gradient_info
   compute_gradients(scalar_grid, iv, cdiff, fdiff);
   std::copy(cdiff, cdiff+DIM3, normalized_cdiff);
   std::copy(fdiff, fdiff+DIM3, normalized_fdiff);
-  normalize(normalized_cdiff, DIM3);
-  normalize(normalized_fdiff, DIM3);
+  normalize(normalized_cdiff, DIM3, EPSILON);
+  normalize(normalized_fdiff, DIM3, EPSILON);
 
   cout << "Gradients computed from scalar grid:" << endl;
   cout << "  central difference: ";

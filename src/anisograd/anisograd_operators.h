@@ -27,13 +27,10 @@
 
 #include "sharpiso_grids.h"
 
-/* OBSOLETE
-#include "anisograd.h"
-*/
-
 // **************************************************
 // TYPE DECLARATIONS
 // **************************************************
+
 using SHARPISO::SHARPISO_SCALAR_GRID_BASE;
 using SHARPISO::GRADIENT_GRID_BASE;
 using SHARPISO::GRADIENT_GRID;
@@ -81,6 +78,12 @@ void compute_central_difference_d
  const int d,
  GRADIENT_COORD_TYPE &cntrl_diff_d);
 
+/// Compute central difference on a vertex in the scalar grid
+void compute_central_difference
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX iv1,
+ GRADIENT_COORD_TYPE gradient[DIM3]);
+
 // Compute gradient of normals using central difference
 // Used for anisogradinfo.
 void compute_gradient_normals
@@ -125,6 +128,29 @@ void compute_gradH_d_normals_per_index
  GRADIENT_COORD_TYPE  gradientH_d_Normals_per_index[DIM3]);
 
 // **************************************************
+// COMPUTE BOUNDARY GRADIENT
+// **************************************************
+
+void compute_boundary_gradient
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE gradient[DIM3]);
+
+// **************************************************
+// COMPUTE CURVATURE AND EXP FUNCTION
+// **************************************************
+
+// compute the curvature k for a vertex iv1
+void compute_curvature_iv 
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv1,
+ GRADIENT_COORD_TYPE K[DIM3]);
+
+// Compute gx as e^(-x/2*mu^2)
+void compute_g_x(const float mu, const float param, 
+                 const int flag_aniso, float & result);
+
+// **************************************************
 // COMPUTE VECTORS m, c, w
 // **************************************************
 
@@ -153,21 +179,6 @@ void compute_w
  GRADIENT_COORD_TYPE w[DIM3]);
 
 // **************************************************
-// COMPUTE CURVATURE AND EXP FUNCTION
-// **************************************************
-
-// compute the curvature k for a vertex iv1
-void compute_curvature_iv 
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX iv1,
- GRADIENT_COORD_TYPE K[DIM3]);
-
-// Compute gx as e^(-x/2*mu^2)
-void compute_g_x(const float mu, const float param, 
-                 const int flag_aniso, float & result);
-
-// **************************************************
 // VECTOR OPERATORS
 // **************************************************
 
@@ -181,10 +192,18 @@ void vector_sum_of_squares
 void vector_dot_pdt 
 (const float * A, const float *B, const int num_elements, float &res);
 
-// Normalize the vectors.
-void normalize (float *vec, const int num_elements);
-
 // Calculate vector magnitude.
 void vector_magnitude (const float * vec, const int num_elements, float & mag);
+
+/// Normalize the vectors.
+/// Set small magnitude vectors to zero.
+void normalize
+(float *vec, float & magnitude, const int num_elements, 
+ const float max_small_mag);
+
+/// Normalize the vectors.
+/// Set small magnitude vectors to zero.
+void normalize
+(float *vec, const int num_elements, const float max_small_mag);
 
 #endif
