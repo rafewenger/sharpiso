@@ -49,14 +49,14 @@ namespace {
     {SUBSAMPLE_PARAM, SUPERSAMPLE_PARAM,
      GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM,
      MAX_EIGEN_PARAM, GRAD_S_OFFSET_PARAM, RAY_I_OFFSET_PARAM,
-     HELP_PARAM, OFF_PARAM, IV_PARAM,
+     HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
      OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
      NOWRITE_PARAM, SILENT_PARAM, TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
     {"-subsample", "-supersample",
      "-gradient", "-position", "-trimesh",
      "-max_eigen", "-gradS_offset", "-rayI_offset",
-     "-help", "-off", "-iv",
+     "-help", "-off", "-iv", "-out_param",
      "-o", "-stdout",
      "-nowrite", "-s", "-time", "-unknown"};
 
@@ -181,6 +181,9 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 {
   if (argc == 1) { usage_error(); };
 
+  // Set default
+  io_info.ray_intersection_cube_offset = 0.3;
+
   int iarg = 1;
   bool is_vertex_position_method_set = false;
   while (iarg < argc && argv[iarg][0] == '-') {
@@ -240,6 +243,10 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 
     case IV_PARAM:
       io_info.output_format = IV;
+      break;
+
+    case OUTPUT_PARAM_PARAM:
+      io_info.flag_output_param = true;
       break;
 
     case OUTPUT_FILENAME_PARAM:
@@ -947,6 +954,22 @@ void ISODUAL3D::report_num_cubes
 
 }
 
+void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
+{
+  cout << "Gradient selection cube offset: "
+       << isodual_param.grad_selection_cube_offset << endl;
+  cout << "Ray intersection cube offset: "
+       << isodual_param.ray_intersection_cube_offset << endl;
+  cout << "Maximum small eigenvalue: "
+       << isodual_param.max_small_eigenvalue << endl;
+  cout << "Max (Linf) distance from cube to isosurface vertex: "
+       << isodual_param.max_dist << endl;
+  cout << "Max small gradient magnitude: "
+       << isodual_param.max_small_magnitude << endl;
+  cout << endl;
+}
+
+
 void ISODUAL3D::report_iso_info
 (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
  const vector<COORD_TYPE> & vertex_coord,
@@ -1047,7 +1070,7 @@ namespace {
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
   cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
   << endl;
-  cerr << "  [-help] [-s] [-nowrite] [-time]" << endl;
+  cerr << "  [-help] [-s] [-out_param] [-nowrite] [-time]" << endl;
   }
 
 }
@@ -1108,6 +1131,7 @@ void ISODUAL3D::help()
   cout << "  -time: Output running time." << endl;
   cout << "  -s: Silent mode." << endl;
   cout << "  -help: Print this help message." << endl;
+  cout << "  -out_param: Print isodual3D parameters." << endl;
   exit(20);
 }
 
@@ -1138,6 +1162,7 @@ void ISODUAL3D::IO_INFO::Init()
   region_length = 1;
   flag_output_tri_mesh = false;
   max_small_eigenvalue = 0.1;
+  flag_output_param = false;
 }
 
   // **************************************************

@@ -94,6 +94,7 @@ namespace ISODUAL3D {
     bool flag_color_alternating;  ///< Color simplices in alternating cubes
     int region_length;
     bool flag_output_tri_mesh;
+    bool flag_output_param;
 
     /// List of high resolution arguments,
     ///   e.g., "-highres {coord list}".
@@ -342,6 +343,8 @@ namespace ISODUAL3D {
   void report_num_cubes
     (const ISODUAL_GRID & full_grid, const IO_INFO & io_info, 
      const ISODUAL_DATA & isodual_data);
+
+  void report_isodual_param(const ISODUAL_PARAM & isodual_param);
 
   void report_iso_info
     (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,

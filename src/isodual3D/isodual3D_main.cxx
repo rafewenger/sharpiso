@@ -117,6 +117,9 @@ int main(int argc, char **argv)
     // Note: isodual_data.SetScalarGrid or isodual_data.SetGrids
     //       must be called before set_mesh_data.
     set_isodual_data(io_info, isodual_data, isodual_time);
+    if (io_info.flag_output_param) 
+      { report_isodual_param(isodual_data); }
+
     report_num_cubes(full_scalar_grid, io_info, isodual_data);
 
     construct_isosurface(io_info, isodual_data, isodual_time, io_time);
