@@ -60,7 +60,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
 	COORD_TYPE coord1[3]={0.0};
 	scalar_grid.ComputeCoord(cube_index, coord1);
 
-	cout<<"cube index ("<<coord1[0]<<","<<coord1[1]<<","<<coord1[2]<<")";
+	//cout<<"cube index ("<<coord1[0]<<","<<coord1[1]<<","<<coord1[2]<<")";
 	const EIGENVALUE_TYPE max_small_eigenvalue =
     sharp_isovert_param.max_small_eigenvalue;
     const SIGNED_COORD_TYPE ray_intersection_cube_offset =
@@ -207,7 +207,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
     }
 
 //debug
-cout<<" sharp ("<<coord[0]<<","<<coord[1]<<","<<coord[2]<<")"<<endl;
+//cout<<" sharp ("<<coord[0]<<","<<coord[1]<<","<<coord[2]<<")"<<endl;
 }
 
 
