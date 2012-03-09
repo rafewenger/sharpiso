@@ -89,6 +89,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
 
     GRADIENT_COORD_TYPE ray_direction[DIM3]={0.0};
 
+    
     /*
     svd_calculate_sharpiso_vertex
     (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
