@@ -355,7 +355,6 @@ void compute_iso_vertex_using_svd
   else {
 
     OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
-
     svd_compute_sharp_vertex_for_cube
       (scalar_grid, gradient_grid, cube_index, isovalue,
        sharp_isovert_param, cube_111,
@@ -503,6 +502,8 @@ void output_svd_results
     print_coord3D(output, svd_info.ray_initial_point);
     output << " + t";
     print_coord3D(output, svd_info.ray_direction);
+    output <<" intersection point ";
+      print_coord3D(output, svd_info.ray_cube_intersection);
     if (svd_info.ray_intersect_cube)
       { output << " intersects cube." << endl; }
     else
