@@ -34,6 +34,7 @@
 #include "sharpiso_eigen.h"
 #include "sharpiso_types.h"
 #include "sharpiso_scalar.txx"
+#include "sharpiso_findIntersect.h"
 
 using namespace SHARPISO;
 using namespace IJK;
@@ -109,7 +110,9 @@ void output_gradients
  const std::vector<SCALAR_TYPE> & scalar,
  const NUM_TYPE num_points);
 void output_svd_results
-(std::ostream & output, const COORD_TYPE sharp_coord[DIM3],
+(std::ostream & output, 
+ const COORD_TYPE cube_coord[DIM3],
+ const COORD_TYPE sharp_coord[DIM3],
  const EIGENVALUE_TYPE eigenvalues[DIM3], const NUM_TYPE num_large_eigenvalues,
  const EIGENVALUE_TYPE eigenvalue_tolerance, SVD_INFO & svd_info);
 void output_subgrid_results
@@ -241,12 +244,18 @@ int main(int argc, char **argv)
           cout << endl;
         }
         else {
+          COORD_TYPE cube_coord[DIM3];
+
           compute_iso_vertex_using_svd
             (scalar_grid, gradient_grid, cube_index, isovalue,
              sharp_coord, eigenvalues,
              num_large_eigenvalues, svd_info);
+
+          scalar_grid.ComputeCoord(cube_index, cube_coord);
+
           output_svd_results
-            (cout, sharp_coord, eigenvalues, num_large_eigenvalues,
+            (cout, cube_coord, sharp_coord, 
+             eigenvalues, num_large_eigenvalues,
              max_small_eigenvalue, svd_info);
           cout << endl;
         }
@@ -469,15 +478,19 @@ void output_gradients
 
 void output_svd_results
 (std::ostream & output,
+ const COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE sharp_coord[DIM3],
  const EIGENVALUE_TYPE eigenvalues[DIM3],
  const NUM_TYPE num_large_eigenvalues,
  const EIGENVALUE_TYPE eigenvalue_tolerance,
  SVD_INFO & svd_info)
 {
+  COORD_TYPE closest_point[DIM3];
+
   bool use_only_cube_gradients = sharp_isovert_param.use_only_cube_gradients;
   bool use_selected_gradients = sharp_isovert_param.use_selected_gradients;
 
+  
   output << "SVD: Sharp coordinates ";
   if (svd_info.location == LOC_SVD)
     { output << "(svd): "; }
@@ -502,12 +515,24 @@ void output_svd_results
     print_coord3D(output, svd_info.ray_initial_point);
     output << " + t";
     print_coord3D(output, svd_info.ray_direction);
-    output <<" intersection point ";
-      print_coord3D(output, svd_info.ray_cube_intersection);
+    output << endl;
+
+    output <<"  Midpoint ray-cube intersection: ";
+    print_coord3D(output, svd_info.ray_cube_intersection);
+    output << endl;
+
+    compute_closest_point_to_cube_center
+      (cube_coord, svd_info.ray_cube_intersection, svd_info.ray_direction,
+       closest_point);
+
+    output <<"  Closest point on ray to cube center: ";
+    print_coord3D(output, closest_point);
+    output << endl;
+      
     if (svd_info.ray_intersect_cube)
-      { output << " intersects cube." << endl; }
+      { output << "  Ray intersects cube." << endl; }
     else
-      { output << " does not intersect cube." << endl; }
+      { output << "  Ray does not intersect cube." << endl; }
   }
 
   if (!use_only_cube_gradients && use_selected_gradients) {
