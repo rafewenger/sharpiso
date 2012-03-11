@@ -6,7 +6,10 @@
 #include <limits>
 
 #include "sharpiso_findIntersect.h"
-
+#include "ijkcoord.txx"
+#include "ijkgrid.txx"
+#include "ijkinterpolate.txx"
+#include "sharpiso_linear_alg.txx"
 
 using namespace std;
 using namespace SHARPISO;
@@ -276,6 +279,59 @@ bool SHARPISO::calculate_point_intersect_complex
     }
     return true;    
 };
+
+
+//  Given a point and a ray direction and the cord of the cube index 
+//  Find a point on the ray which is at the closest distance to the cube-center
+//  Note calculate the cube center from the cube coord (index) by adding 0.5 0.5 0.5
+void SHARPISO::compute_closest_point_to_cube_center
+(const COORD_TYPE cube_coord[],
+ const COORD_TYPE coord[],
+ const COORD_TYPE ray_direction[],
+ COORD_TYPE closest_point[DIM3])
+{
+  COORD_TYPE ray_direction_normalized[DIM3]={0.0};
+  bool is_ray_direc_zero = false;
+  // Normalize the ray_direction
+  normalize_vector_3D
+  (ray_direction, ray_direction_normalized, is_ray_direc_zero, 0.0001);
+ 
+  // find the cube center
+  COORD_TYPE center_offset[DIM3] = {0.5, 0.5, 0.5};
+  COORD_TYPE cube_center[DIM3];
+  IJK::add_coord(DIM3, center_offset, cube_coord, cube_center);
+  
+  
+  // the vector perpendicular is given by 
+  // c =a -(a dot b^)* b^
+  COORD_TYPE a[DIM3]={0.0};  
+    //set a and b is given  by the ray direction
+  IJK::subtract_coord(DIM3, cube_center, coord, a);
+
+  COORD_TYPE c[DIM3]={0.0};
+  // dot product
+  float dotpdt=0.0;
+  IJK::compute_inner_product(DIM3, a, ray_direction_normalized, dotpdt);
+  
+  // compute c and invert it at same time 
+  for (int d=0; d<DIM3; d++) 
+    c[d]=-(a[d]-dotpdt*ray_direction_normalized[d]);
+  
+  
+  //debug
+ /*
+  cout <<" cube_coord  "<<cube_coord[0]<<","<<cube_coord[1]<<","<<cube_coord[2]<<endl;
+  cout <<" cube_center "<<cube_center[0]<<","<<cube_center[1]<<","<<cube_center[2]<<endl;
+  cout <<" coord       "<<coord[0]<<","<<coord[1]<<","<<coord[2]<<endl;
+  cout <<" a           "<<a[0]<<","<<a[1]<<","<<a[2]<<endl;
+  cout <<" dot pdt     "<<dotpdt<<endl;
+  cout <<" c           "<<c[0]<<","<<c[1]<<","<<c[2]<<endl;
+  cout <<" ray dir     "<<ray_direction_normalized[0]<<","<<ray_direction_normalized[1]<<","
+  <<ray_direction_normalized[2]<<endl;
+  */
+  IJK::add_coord(DIM3, cube_center, c, closest_point);
+}
+
 
 
 // HELPER FUNCTIONS:

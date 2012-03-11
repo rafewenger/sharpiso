@@ -56,7 +56,6 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info)
 {
-  
 	const EIGENVALUE_TYPE max_small_eigenvalue =
   sharp_isovert_param.max_small_eigenvalue;
   const SIGNED_COORD_TYPE ray_intersection_cube_offset =
@@ -119,16 +118,37 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
     if (isIntersect) {
       svd_info.SetRayInfo(coord, ray_direction, intersection_pt, isIntersect);
       IJK::copy_coord_3D(intersection_pt, coord);
+      IJK::round16_coord(DIM3, coord, coord);  // Round to nearest 16'th
       svd_info.location = LOC_SVD;
       svd_info.is_svd_point_in_cube = true;
       //check if the new-cube has a  vertex
-      VERTEX_INDEX new_icube = get_cube_containing_point(scalar_grid, intersection_pt);
-      if ( new_icube !=cube_index && IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue)){
-        svd_info.location = CENTROID;
-        flag_use_centroid = true;
-        svd_info.is_svd_point_in_cube = false;
-      }
-    }
+      VERTEX_INDEX new_icube = get_cube_containing_point(scalar_grid, coord);
+      if ( new_icube !=cube_index && IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue))
+        {
+          svd_info.location = CENTROID;
+          flag_use_centroid = true;
+          svd_info.is_svd_point_in_cube = false;
+        }
+        if (flag_use_centroid) {
+          // check for another point
+          COORD_TYPE closest_point[DIM3]={0.0};
+          compute_closest_point_to_cube_center
+          (cube_coord, intersection_pt, ray_direction, closest_point);
+         
+          IJK::copy_coord_3D(closest_point, coord);
+          IJK::round16_coord(DIM3, coord, coord);  // Round to nearest 16'th
+          VERTEX_INDEX new_icube2 = get_cube_containing_point(scalar_grid, coord);
+          svd_info.location = LOC_SVD;
+          svd_info.is_svd_point_in_cube = true;
+          
+          if(new_icube2 == new_icube || (new_icube2 !=cube_index && IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube2, isovalue)))
+          {
+            svd_info.location = CENTROID;
+            flag_use_centroid = true;
+            svd_info.is_svd_point_in_cube = false;
+          }
+        }
+    }// is intersect end
     else 
     {
       // there  is no intersect.
@@ -143,17 +163,25 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
   {
     const SIGNED_COORD_TYPE max_dist = sharp_isovert_param.max_dist;
     if (is_dist_to_cube_le(coord, cube_coord, max_dist) && scalar_grid.ContainsPoint(coord)) {
+     
       svd_info.location = LOC_SVD;
+      // check for the point 
+      VERTEX_INDEX new_icube = get_cube_containing_point (scalar_grid, coord);
+      if (new_icube!= cube_index && IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue)) {
+        svd_info.location = CENTROID;
+        flag_use_centroid = true;
+      }
     }
     else {
       // *** SHOULD TRY TO USE 2 eigenvalues here ***
       //  flag_use_centroid = true;
       // svd_info.location = CENTROID;
-      //DEBUG
+
       svd_calculate_sharpiso_vertex_2_svals_unit_normals
       (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
        num_gradients, isovalue, max_small_eigenvalue, num_large_eigenvalues,
        eigenvalues, coord, ray_direction);
+      
       if (num_large_eigenvalues==2) {
         isIntersect=false;//re-initialize
         GRADIENT_COORD_TYPE intersection_pt[DIM3];
@@ -162,20 +190,41 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
         (cube_coord, coord, ray_direction, ray_intersection_cube_offset,
          intersection_pt);
         IJK::round16_coord(DIM3, intersection_pt, intersection_pt);  // Round to nearest 16'th
+    
         if (isIntersect) {
           svd_info.SetRayInfo(coord, ray_direction, intersection_pt, isIntersect);
           IJK::copy_coord_3D(intersection_pt, coord);
+          IJK::round16_coord(DIM3, coord, coord);  // Round to nearest 16'th
           svd_info.location = LOC_SVD;
           svd_info.is_svd_point_in_cube = true;
           //check if the new-cube has a  vertex
-          VERTEX_INDEX new_icube = get_cube_containing_point(scalar_grid, intersection_pt);
-          if ( new_icube !=cube_index && IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue)){
+          VERTEX_INDEX new_icube = get_cube_containing_point(scalar_grid, coord);
+          if ( new_icube !=cube_index && IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue))
+          {//
             svd_info.location = CENTROID;
             flag_use_centroid = true;
             svd_info.is_svd_point_in_cube = false;
-            
           }
-        }
+          if (flag_use_centroid) {
+            // check for another point
+            COORD_TYPE closest_point[DIM3]={0.0};
+            compute_closest_point_to_cube_center
+            (cube_coord, coord, ray_direction, closest_point);
+            
+            IJK::copy_coord_3D(closest_point, coord);
+            IJK::round16_coord(DIM3, coord, coord);  // Round to nearest 16'th
+            VERTEX_INDEX new_icube2 = get_cube_containing_point(scalar_grid, coord);
+            svd_info.location = LOC_SVD;
+            svd_info.is_svd_point_in_cube = true;
+            
+            if(new_icube2 == new_icube || (new_icube2 !=cube_index && IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube2, isovalue)))
+            {
+              svd_info.location = CENTROID;
+              flag_use_centroid = true;
+              svd_info.is_svd_point_in_cube = false;
+            }
+          }
+        }//is intersect end
         else 
         {
           // there  is no intersect.
@@ -185,66 +234,6 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
       }
     }
   }
-  
-  /*
-   // check if the coord is within the scalar grid
-   if (  (num_large_eigenvalues == 3) && flag_use_centroid && scalar_grid.ContainsPoint(coord)) {
-   // check if the coord is within the cube
-   if (!scalar_grid.CubeContainsPoint(cube_index, coord)){
-   VERTEX_INDEX new_icube = get_cube_containing_point(scalar_grid, coord);
-   
-   scalar_grid.ComputeCoord(new_icube, coord1);
-   cout <<" |"<<num_large_eigenvalues<<"| "; 
-   
-   if ( !IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue)) {
-   cout <<" ? ";
-   // calculate again, this time we force it to use 2 svals or lower.
-   //debug
-   
-   //                 svd_calculate_sharpiso_vertex_2_svals
-   //                 (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
-   //                 num_gradients, isovalue, max_small_eigenvalue,
-   //                 num_large_eigenvalues, eigenvalues, coord, ray_direction);
-   
-   
-   // do i check for the new vertex or the old ?
-   num_large_eigenvalues=0;
-   svd_calculate_sharpiso_vertex_2_svals_unit_normals
-   (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
-   num_gradients, isovalue, max_small_eigenvalue,
-   num_large_eigenvalues, eigenvalues, coord, ray_direction);
-   
-   if (num_large_eigenvalues == 2) {
-   
-   // new vertex or the old ?
-   isIntersect = calculate_point_intersect_complex
-   (coord1, coord, ray_direction, ray_intersection_cube_offset,
-   coord);
-   svd_info.SetRayInfo(coord, ray_direction, intersection_pt, isIntersect);
-   
-   IJK::round16_coord(DIM3, coord, coord);  // Round to nearest 16'th
-   
-   if (isIntersect) {
-   svd_info.location = LOC_SVD;
-   }
-   else {
-   svd_info.location = CENTROID;
-   flag_use_centroid = true;
-   }
-   }
-   }
-   else {
-   // the other cube  intersects , so this cube reverts back to centroid
-   svd_info.location = CENTROID;
-   flag_use_centroid = true;
-   }
-   }
-   else {
-   svd_info.is_svd_point_in_cube = true;}
-   }
-   
-   */
-  
   if (num_large_eigenvalues  == 1 || flag_use_centroid == true)
   {
     compute_isosurface_grid_edge_centroid
