@@ -93,7 +93,9 @@ namespace ISODUAL3D {
     int supersample_resolution;
     bool flag_color_alternating;  ///< Color simplices in alternating cubes
     int region_length;
+    /* OBSOLETE
     bool flag_output_tri_mesh;
+    */
     bool flag_output_param;
 
     /// List of high resolution arguments,
@@ -212,15 +214,24 @@ namespace ISODUAL3D {
 // OUTPUT ISOSURFACE
 // **************************************************
 
+  /// Output dual isosurface.
   void output_dual_isosurface
     (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
      const DUAL_ISOSURFACE & dual_isosurface,
      const ISODUAL_INFO & isodual_info, IO_TIME & io_time);
 
-  void output_dual_isosurface
+  /// Output isosurface of quadrilaterals.
+  void output_quad_isosurface
     (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
      const std::vector<COORD_TYPE> & vertex_coord, 
-     const std::vector<VERTEX_INDEX> & slist,
+     const std::vector<VERTEX_INDEX> & quad_vert,
+     const ISODUAL_INFO & isodual_info, IO_TIME & io_time);
+
+  /// Output isosurface of triangles.
+  void output_tri_isosurface
+    (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
+     const std::vector<COORD_TYPE> & vertex_coord, 
+     const std::vector<VERTEX_INDEX> & tri_vert,
      const ISODUAL_INFO & isodual_info, IO_TIME & io_time);
 
   void output_dual_isosurface_color

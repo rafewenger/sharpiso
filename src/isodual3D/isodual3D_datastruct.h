@@ -70,10 +70,15 @@ namespace ISODUAL3D {
 
   public:
     /// List of isosurface polytope vertices.
+    /// NOTE: Should rename to quad_vert
     VERTEX_INDEX_ARRAY isopoly_vert;
 
     /// List of vertex coordinates.
     COORD_ARRAY vertex_coord;
+
+    /// List of vertices of each triangle in triangular mesh.
+    /// Not always set.
+    VERTEX_INDEX_ARRAY tri_vert;
 
     /// cube_containing_isopoly[i] = cube containing i'th isopoly.
     /// Not always set.
@@ -106,6 +111,8 @@ namespace ISODUAL3D {
     // control parameters
     INTERPOLATION_TYPE interpolation_type;
     VERTEX_POSITION_METHOD vertex_position_method;
+    bool flag_convert_quad_to_tri;
+    QUAD_TRI_METHOD quad_tri_method;
 
   public:
     ISODUAL_PARAM() { Init(); };

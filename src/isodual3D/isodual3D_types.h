@@ -76,8 +76,12 @@ namespace ISODUAL3D {
   ///                    of the edge isosurface intersections.
   /// GRADIENT_POSITIONING: Position using gradients.
   typedef enum { CUBECENTER, CENTROID_EDGE_ISO,
-                 GRADIENT_POSITIONING, EDGE_SIMPLE, EDGE_COMPLEX} 
+                 GRADIENT_POSITIONING, EDGE_SIMPLE, EDGE_COMPLEX } 
   VERTEX_POSITION_METHOD;
+
+  /// Quadrilateral triangulation method.
+  typedef enum { UNDEFINED_TRI, UNIFORM_TRI, SPLIT_MAX_ANGLE }
+  QUAD_TRI_METHOD;
 
 // **************************************************
 // CLASSES

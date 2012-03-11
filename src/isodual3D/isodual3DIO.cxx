@@ -47,14 +47,14 @@ namespace {
 
   typedef enum
     {SUBSAMPLE_PARAM, SUPERSAMPLE_PARAM,
-     GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM,
+     GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
      MAX_EIGEN_PARAM, GRAD_S_OFFSET_PARAM, RAY_I_OFFSET_PARAM,
      HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
      OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
      NOWRITE_PARAM, SILENT_PARAM, TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
     {"-subsample", "-supersample",
-     "-gradient", "-position", "-trimesh",
+     "-gradient", "-position", "-trimesh", "-uniform_trimesh",
      "-max_eigen", "-gradS_offset", "-rayI_offset",
      "-help", "-off", "-iv", "-out_param",
      "-o", "-stdout",
@@ -219,7 +219,16 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
       break;
 
     case TRIMESH_PARAM:
+      /* OBSOLETE
       io_info.flag_output_tri_mesh = true;
+      */
+      io_info.flag_convert_quad_to_tri = true;
+      io_info.quad_tri_method = SPLIT_MAX_ANGLE;
+      break;
+
+    case UNIFORM_TRIMESH_PARAM:
+      io_info.flag_convert_quad_to_tri = true;
+      io_info.quad_tri_method = UNIFORM_TRI;
       break;
 
     case MAX_EIGEN_PARAM:
@@ -499,29 +508,51 @@ void ISODUAL3D::output_dual_isosurface
  const DUAL_ISOSURFACE & dual_isosurface,
  const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
 {
-  output_dual_isosurface
+  if (output_info.flag_output_tri_mesh) {
+    output_tri_isosurface
+    (output_info, isodual_data,
+     dual_isosurface.vertex_coord, dual_isosurface.tri_vert,
+     isodual_info, io_time);
+  }
+  else {
+    output_quad_isosurface
     (output_info, isodual_data,
      dual_isosurface.vertex_coord, dual_isosurface.isopoly_vert,
      isodual_info, io_time);
+  }
 }
 
-void ISODUAL3D::output_dual_isosurface
+/// Output isosurface of quadrilaterals.
+void ISODUAL3D::output_quad_isosurface
 (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
- const vector<COORD_TYPE> & vertex_coord, const vector<VERTEX_INDEX> & slist,
+ const vector<COORD_TYPE> & vertex_coord, 
+ const vector<VERTEX_INDEX> & quad_vert,
  const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
 {
   if (!output_info.use_stdout && !output_info.flag_silent) {
     report_iso_info(output_info, isodual_data,
-                    vertex_coord, slist, isodual_info);
+                    vertex_coord, quad_vert, isodual_info);
   }
 
   if (!output_info.nowrite_flag) {
-    if (output_info.flag_output_tri_mesh) {
-      write_dual_tri_mesh(output_info, vertex_coord, slist, io_time);
-    }
-    else {
-      write_dual_quad_mesh(output_info, vertex_coord, slist, io_time);
-    }
+    write_dual_quad_mesh(output_info, vertex_coord, quad_vert, io_time);
+  }
+}
+
+/// Output isosurface of triangles.
+void ISODUAL3D::output_tri_isosurface
+(const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
+ const vector<COORD_TYPE> & vertex_coord, 
+ const vector<VERTEX_INDEX> & tri_vert,
+ const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
+{
+  if (!output_info.use_stdout && !output_info.flag_silent) {
+    report_iso_info(output_info, isodual_data,
+                    vertex_coord, tri_vert, isodual_info);
+  }
+
+  if (!output_info.nowrite_flag) {
+    write_dual_tri_mesh(output_info, vertex_coord, tri_vert, io_time);
   }
 }
 
@@ -733,15 +764,19 @@ void ISODUAL3D::write_dual_mesh_color
 void ISODUAL3D::write_dual_tri_mesh
 (const OUTPUT_INFO & output_info,
  const std::vector<COORD_TYPE> & vertex_coord,
- const std::vector<VERTEX_INDEX> & quad_vert)
+ const std::vector<VERTEX_INDEX> & tri_vert)
 {
   const int NUMV_PER_QUAD = 4;
   const int NUMV_PER_TRI = 3;
   const int dimension = output_info.dimension;
+  /* OBSOLETE
   const int numv_per_poly = output_info.num_vertices_per_isopoly;
+  */
   const bool use_stdout = output_info.use_stdout;
   ofstream output_file;
+  /* OBSOLETE
   std::vector<VERTEX_INDEX> tri_vert;
+  */
   PROCEDURE_ERROR error("write_dual_tri_mesh");
 
   if (dimension != 3) {
@@ -750,6 +785,7 @@ void ISODUAL3D::write_dual_tri_mesh
     throw error;
   }
 
+  /* OBSOLETE
   if (numv_per_poly != NUMV_PER_QUAD) {
     error.AddMessage
       ("Programming error.  Illegal number of vertices per quad: ",
@@ -757,9 +793,12 @@ void ISODUAL3D::write_dual_tri_mesh
     error.AddMessage("  Should be ", NUMV_PER_QUAD, " vertices per quad.");
     throw error;
   }
+  */
 
+  /* OBSOLETE
   // Convert quadrilaterals to triangles
   convert_quad_to_tri(quad_vert, tri_vert);
+  */
 
   string ofilename = output_info.output_filename;
 
@@ -1160,7 +1199,9 @@ void ISODUAL3D::IO_INFO::Init()
   supersample_resolution = 2;
   flag_color_alternating = false;  // color simplices in alternating cubes
   region_length = 1;
+  /* OBSOLETE
   flag_output_tri_mesh = false;
+  */
   max_small_eigenvalue = 0.1;
   flag_output_param = false;
 }
@@ -1268,6 +1309,8 @@ void ISODUAL3D::set_isodual_data
     io_info.grad_selection_cube_offset;
   isodual_data.ray_intersection_cube_offset =
     io_info.ray_intersection_cube_offset;
+  isodual_data.flag_convert_quad_to_tri = io_info.flag_convert_quad_to_tri;
+  isodual_data.quad_tri_method = io_info.quad_tri_method;
 }
 
 void ISODUAL3D::set_io_info
@@ -1286,7 +1329,10 @@ void ISODUAL3D::set_output_info
   output_info.nowrite_flag = io_info.nowrite_flag;
   output_info.use_stdout = io_info.use_stdout;
   output_info.flag_silent = io_info.flag_silent;
+  /* OBSOLETE
   output_info.flag_output_tri_mesh = io_info.flag_output_tri_mesh;
+  */
+  output_info.flag_output_tri_mesh = io_info.flag_convert_quad_to_tri;
 
   output_info.grow_factor = 1;
   if (io_info.flag_subsample)
