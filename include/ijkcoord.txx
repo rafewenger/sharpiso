@@ -229,6 +229,28 @@ namespace IJK {
       { v_orth[d] = v[d]-dir[d]*inner_product; }
   }
 
+  /// Compute magnitude of coordinate vector.
+  /// @param coord0 = Input coordinates.
+  /// @param[out] magnitude = magnitude
+  template <typename DTYPE, typename CTYPE0, typename MTYPE, 
+            typename CTYPE1>
+  void normalize_vector
+  (const DTYPE dimension, const CTYPE0 coord0[], 
+   const MTYPE max_small_magnitude, CTYPE1 coord1[])
+  { 
+    MTYPE magnitude;
+
+    compute_magnitude(dimension, coord0, magnitude); 
+    if (magnitude > max_small_magnitude) {
+      multiply_coord(dimension, 1.0/magnitude, coord0, coord1);
+    }
+    else {
+      set_coord(dimension, 0, coord1);
+    }
+
+  }
+
+  
   // **************************************************
   // Comparison operators
   // **************************************************

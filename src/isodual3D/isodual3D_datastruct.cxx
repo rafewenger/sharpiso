@@ -43,6 +43,7 @@ void DUAL_ISOSURFACE::Clear()
 {
   isopoly_vert.clear();
   vertex_coord.clear();
+  tri_vert.clear();
 }
 
 // **************************************************
@@ -54,6 +55,8 @@ void ISODUAL_PARAM::Init()
 {
   interpolation_type = LINEAR_INTERPOLATION;
   vertex_position_method = CENTROID_EDGE_ISO;
+  quad_tri_method = UNDEFINED_TRI;
+  flag_convert_quad_to_tri = false;
   use_only_cube_gradients = false;
   use_selected_gradients = true;
   grad_selection_cube_offset = 0;

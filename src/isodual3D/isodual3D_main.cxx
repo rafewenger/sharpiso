@@ -27,6 +27,9 @@
 #include "isodual3DIO.h"
 #include "isodual3D.h"
 
+#include "ijkmesh.txx"
+#include "ijkmesh_geom.txx"
+
 using namespace IJK;
 using namespace ISODUAL3D;
 
@@ -184,6 +187,21 @@ void construct_isosurface
 
     dual_contouring(isodual_data, isovalue, dual_isosurface, isodual_info);
     isodual_time.Add(isodual_info.time);
+
+    if (isodual_data.flag_convert_quad_to_tri) {
+
+      if (isodual_data.quad_tri_method == SPLIT_MAX_ANGLE) {
+
+        // *** CREATE create_dual_tri IN isodual3D.cxx ***
+        convert_quad_to_tri_split_max_angle
+          (DIM3, dual_isosurface.vertex_coord, dual_isosurface.isopoly_vert,
+           isodual_data.max_small_magnitude, dual_isosurface.tri_vert);
+      }
+      else {
+        convert_quad_to_tri
+          (dual_isosurface.isopoly_vert, dual_isosurface.tri_vert);
+      }
+    }
 
     OUTPUT_INFO output_info;
     set_output_info(io_info, i, output_info);
