@@ -121,14 +121,16 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
         if (flag_use_centroid) {
           // check for another point
           COORD_TYPE closest_point[DIM3]={0.0};
-          compute_closest_point_to_cube_center
+          compute_closest_point_to_cube_center_linf
             (cube_coord, intersection_pt, ray_direction, closest_point);
          
           IJK::copy_coord_3D(closest_point, coord);
           IJK::round16_coord(DIM3, coord, coord);  // Round to nearest 16'th
           svd_info.location = LOC_SVD;
           svd_info.is_svd_point_in_cube = true;
-      
+          //debug
+          cout <<" \n closest point linf "<<coord[0]<<","<<coord[1]<<","<<coord[2]<<endl;
+          flag_use_centroid = false;
           if (!scalar_grid.CubeContainsPoint(cube_index, coord)) {
             VERTEX_INDEX new_icube2 = 
               get_cube_containing_point(scalar_grid, coord);
@@ -206,7 +208,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
             if (flag_use_centroid) {
               // check for another point
               COORD_TYPE closest_point[DIM3]={0.0};
-              compute_closest_point_to_cube_center
+              compute_closest_point_to_cube_center_linf
                 (cube_coord, coord, ray_direction, closest_point);
             
               IJK::copy_coord_3D(closest_point, coord);
@@ -214,7 +216,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
               VERTEX_INDEX new_icube2 = get_cube_containing_point(scalar_grid, coord);
               svd_info.location = LOC_SVD;
               svd_info.is_svd_point_in_cube = true;
-            
+            flag_use_centroid = false;
               if (!scalar_grid.CubeContainsPoint(cube_index, coord)) {
                 if (IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube2, isovalue)) {
                   svd_info.location = CENTROID;

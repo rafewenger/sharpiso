@@ -78,7 +78,7 @@ namespace IJK {
     out << s;
   }
 
-  inline void print_time(std::ostream & out, const char * s, 
+  inline void print_time(std::ostream & out, const char * s,
                          const clock_t & t_start, const clock_t & t_end)
   {
     out << s;
