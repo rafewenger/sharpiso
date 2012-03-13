@@ -197,6 +197,70 @@ bool SHARPISO::calculate_point_intersect
 };
 
 
+// check if the ray intersects the larger cube 
+// Does not compute the ray cube intersection point 
+// the intersection point is calculated seprately 
+// using shortest distance l2 norm 
+
+// Calculate the intersection with a larger cube.
+// Takes an extra parameter of how big the cube is
+
+bool SHARPISO::calculate_point_intersect_complex
+(const COORD_TYPE cube_coord[],
+ const SCALAR_TYPE *original_pt,
+ const SCALAR_TYPE *dir,
+ const float th
+)
+{
+	SCALAR_TYPE p[DIM3] ={0.0};
+  
+	for (int i = 0; i < DIM3; i++){
+		p[i] = original_pt[i] - cube_coord[i];
+	}
+  
+  int ind  = findmax(dir);
+  //find t0 and t1
+  SCALAR_TYPE t0 = (-th -p[ind])/(dir[ind]);
+  SCALAR_TYPE t1 = (1.0 + th - p[ind])/(dir[ind]);
+  SCALAR_TYPE min_coord_j;
+  SCALAR_TYPE max_coord_j;
+  
+  for (int j = 0; j < DIM3; j++)
+  {
+    if(j != ind)
+    {
+      min_coord_j = p[j] + t0*dir[j];
+      max_coord_j = p[j] + t1*dir[j];
+      //swap
+      if (min_coord_j > max_coord_j)
+      {
+        swap(t0, t1);
+        swap(min_coord_j, max_coord_j);
+      }
+      
+      if (( min_coord_j - (1.0 + th)) > EPSILON)
+      {
+        return false ;
+      }
+      else if (((0.0 - th) - max_coord_j) > EPSILON)
+      {
+        return false;
+      }
+      else
+      {
+        if ((min_coord_j <= (0.0 - th))
+            && (max_coord_j > (0.0 - th)))
+        {  t0 = (-th - p[j])/dir[j]; }
+        
+        
+        if ((min_coord_j < (1.0 + th)) &&
+            (max_coord_j >= (1.0 + th)))
+        { t1  = (1.0 + th - p[j])/dir[j]; }
+      }
+    }
+  }
+  return true;
+};
 
 
 // Calculate the intersection with a larger cube.
