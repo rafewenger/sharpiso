@@ -358,13 +358,13 @@ istTrue=false;
 }//
 
 void  compute_linf_point
-(const COORD_TYPE coord[DIM3], const COORD_TYPE ray_direction_normalized[DIM3], 
+(const COORD_TYPE coord[DIM3], const COORD_TYPE ray_direction_normalized[DIM3],
  const float *t, const int index, COORD_TYPE point[3])
 {
-      for (int j=0; j<DIM3; j++) 
+      for (int j=0; j<DIM3; j++)
         point[j]=coord[j]+t[index]*ray_direction_normalized[j];
 }
- 
+
 
 void compute_linf_dist
 (const COORD_TYPE *cube_center,COORD_TYPE *point_list,
@@ -373,15 +373,15 @@ void compute_linf_dist
       float max =-1.0;
       for (int d=0; d<DIM3; d++) {
         if (abs(cube_center[d]-point_list[3*i+d]) > max) {
-          max=abs(cube_center[d]-point_list[3*i+d]) ; 
+          max=abs(cube_center[d]-point_list[3*i+d]) ;
         }
       }
       linf_dist_to_cc=max;
 }
 
-// Find the index with the min distance 
+// Find the index with the min distance
 void findMinIndex
-(const COORD_TYPE *linf_dist_to_cc, 
+(const COORD_TYPE *linf_dist_to_cc,
  const int count, int & index){
   float min = linf_dist_to_cc[0];
   index=0;
@@ -393,7 +393,7 @@ void findMinIndex
   }
 }
 
-// compute the linf distance between a point and a ray 
+// compute the linf distance between a point and a ray
 void SHARPISO::compute_closest_point_to_cube_center_linf
 (const COORD_TYPE cube_coord[],
  const COORD_TYPE coord[],
@@ -405,38 +405,30 @@ void SHARPISO::compute_closest_point_to_cube_center_linf
   // Normalize the ray_direction
   normalize_vector_3D
   (ray_direction, ray_direction_normalized, is_ray_direc_zero, 0.0001);
-  
+
   // find the cube center
   COORD_TYPE center_offset[DIM3] = {0.5, 0.5, 0.5};
   COORD_TYPE cube_center[DIM3];
   IJK::add_coord(DIM3, center_offset, cube_coord, cube_center);
-  //debug
-  
-  cout <<" cube_coord  "<<cube_coord[0]<<","<<cube_coord[1]<<","<<cube_coord[2]<<endl;
-  cout <<" cube_center "<<cube_center[0]<<","<<cube_center[1]<<","<<cube_center[2]<<endl;
-  cout <<" coord       "<<coord[0]<<","<<coord[1]<<","<<coord[2]<<endl;
-  cout <<" ray dir     "<<ray_direction_normalized[0]<<","<<ray_direction_normalized[1]<<","
-  <<ray_direction_normalized[2]<<endl;
-  
-  
+
   int X=0,Y=1,Z=2;
   // store the values of t (2 for each)
   float t[6]={0.0};
-  bool  istTrue[6]; 
-  
+  bool  istTrue[6];
+
   update_t_minus(X, Y, ray_direction_normalized, cube_center, coord, t[0], istTrue[0]);
   update_t_plus(X, Y, ray_direction_normalized, cube_center, coord, t[1], istTrue[1]);
-  
+
   update_t_minus(X, Z, ray_direction_normalized, cube_center, coord, t[2], istTrue[2]);
   update_t_plus(X, Z, ray_direction_normalized, cube_center, coord, t[3], istTrue[3]);
-  
+
   update_t_minus( Y,Z, ray_direction_normalized, cube_center, coord, t[4], istTrue[4]);
   update_t_plus( Y,Z, ray_direction_normalized, cube_center, coord, t[5], istTrue[5]);
-  
-  
+
+
   // compute the points for these t's
   vector<COORD_TYPE> points;
-  //for a given t calculate the point 
+  //for a given t calculate the point
   COORD_TYPE point_list[DIM3 *6]={0.0};
   int count=0;
   int count_arr[6]={0.0};
@@ -452,199 +444,24 @@ void SHARPISO::compute_closest_point_to_cube_center_linf
       point_list[3*i+2]=0.0;
     }
   }
-  /*
-   for (int i=0; i<6; i++) {
-   COORD_TYPE p[DIM3]={0.0};
-   if (istTrue[i]) {
-   for (int j=0; j<DIM3; j++) {
-   points.push_back(coord[j]+t[i]*ray_direction_normalized[j]);
-   cout <<" point "<<i<<" dim "<<j<<" "<<coord[j]+t[i]*ray_direction_normalized[j]<<endl;
-   }
-   }
-   else
-   {
-   for (int j=0; j<DIM3; j++) {
-   points.push_back(0.0);
-   }
-   }
-   }
-   
-   */
+
   // for each point calculate the linf distance to cube_center
   float linf_dist_to_cc[count];
   for (int i=0; i<count; i++) {
-    // find the linf distance of the ith point in the point list 
-    // from the cube center 
+    // find the linf distance of the ith point in the point list
+    // from the cube center
     compute_linf_dist(cube_center, point_list, count_arr[i], linf_dist_to_cc[i]);
   }
-  
-  /*
-   for (int k=0; k<6; k++) {
-   if (istTrue[k]) {
-   float max =-1.0;
-   for (int d=0; d<3; d++) {
-   if (abs(cube_center[d]-points[3*k+d]) > max) {
-   max=abs(cube_center[d]-points[3*k+d]) ; 
-   }
-   }
-   linf_dist_to_cc[k]=max;
-   }
-   else
-   {
-   linf_dist_to_cc[k]=-1;//default 
-   }
-   cout <<" linf "<<k<<"  "<<linf_dist_to_cc[k]<<endl;
-   }
-   */
+
   int index=0.0;
   findMinIndex(linf_dist_to_cc, count, index);
-  /*
-   //calculate the min of all the distances 
-   float min=999999.0; //very large number
-   int index=0;
-   for (int k=0; k<6; k++) {
-   if (istTrue[k]) {
-   if (linf_dist_to_cc[k] < min) {
-   min = linf_dist_to_cc[k];
-   index = k;
-   }
-   }
-   }
-   */
+
   //copy coord
   for (int d=0; d<DIM3; d++) {
     closest_point[d]=point_list[3*count_arr[index]+d];
-    cout <<" d "<<closest_point[d];
   }
 }
 
-/*
-/// old legacy code
-// compute the linf distance between a point and a ray 
-void SHARPISO::compute_closest_point_to_cube_center_linf2
-(const COORD_TYPE cube_coord[],
- const COORD_TYPE coord[],
- const COORD_TYPE ray_direction[],
- COORD_TYPE closest_point[DIM3])
-{
-  COORD_TYPE ray_direction_normalized[DIM3]={0.0};
-  bool is_ray_direc_zero = false;
-  // Normalize the ray_direction
-  normalize_vector_3D
-  (ray_direction, ray_direction_normalized, is_ray_direc_zero, 0.0001);
-  
-  // find the cube center
-  COORD_TYPE center_offset[DIM3] = {0.5, 0.5, 0.5};
-  COORD_TYPE cube_center[DIM3];
-  IJK::add_coord(DIM3, center_offset, cube_coord, cube_center);
-  //debug
-  
-   cout <<" cube_coord  "<<cube_coord[0]<<","<<cube_coord[1]<<","<<cube_coord[2]<<endl;
-   cout <<" cube_center "<<cube_center[0]<<","<<cube_center[1]<<","<<cube_center[2]<<endl;
-   cout <<" coord       "<<coord[0]<<","<<coord[1]<<","<<coord[2]<<endl;
-   cout <<" ray dir     "<<ray_direction_normalized[0]<<","<<ray_direction_normalized[1]<<","
-   <<ray_direction_normalized[2]<<endl;
-   
-  
-  int X=0,Y=1,Z=2;
-  // store the values of t (2 for each)
-  float t[6]={0.0};
-  bool  istTrue[6]; 
-  
-  update_t_minus(X, Y, ray_direction_normalized, cube_center, coord, t[0], istTrue[0]);
-   update_t_plus(X, Y, ray_direction_normalized, cube_center, coord, t[1], istTrue[1]);
- 
-  update_t_minus(X, Z, ray_direction_normalized, cube_center, coord, t[2], istTrue[2]);
-  update_t_plus(X, Z, ray_direction_normalized, cube_center, coord, t[3], istTrue[3]);
-  
-  update_t_minus( Y,Z, ray_direction_normalized, cube_center, coord, t[4], istTrue[4]);
-  update_t_plus( Y,Z, ray_direction_normalized, cube_center, coord, t[5], istTrue[5]);
-  
-  
-  // compute the points for these t's
-   vector<COORD_TYPE> points;
-  //for a given t calculate the point 
-  COORD_TYPE point_list[DIM3 *6]={0.0};
-  int count=0;
-  int count_arr[6]={0.0};
-  for (int i=0; i<6; i++) {
-    if (istTrue[i]) {
-      count_arr[count]=i;
-      compute_linf_point(coord, ray_direction_normalized, t, i, &(point_list[3*i]));
-      count++;
-    }
-    else
-    {
-      point_list[3*i]=0.0 ; point_list[3*i+1]=0.0;
-      point_list[3*i+2]=0.0;
-    }
-  }
-  
-//  for (int i=0; i<6; i++) {
-//    COORD_TYPE p[DIM3]={0.0};
-//    if (istTrue[i]) {
-//      for (int j=0; j<DIM3; j++) {
-//        points.push_back(coord[j]+t[i]*ray_direction_normalized[j]);
-//        cout <<" point "<<i<<" dim "<<j<<" "<<coord[j]+t[i]*ray_direction_normalized[j]<<endl;
-//      }
-//    }
-//    else
-//    {
-//      for (int j=0; j<DIM3; j++) {
-//        points.push_back(0.0);
-//      }
-//    }
-//  }
-//   
-   
-  // for each point calculate the linf distance to cube_center
-  float linf_dist_to_cc[count]={0.0};
-  for (int i=0; i<count; i++) {
-      // find the linf distance of the ith point in the point list 
-      // from the cube center 
-      compute_linf_dist(cube_center, point_list, count_arr[i], linf_dist_to_cc[i]);
-  }
-  
-  
-//  for (int k=0; k<6; k++) {
-//    if (istTrue[k]) {
-//      float max =-1.0;
-//      for (int d=0; d<3; d++) {
-//        if (abs(cube_center[d]-points[3*k+d]) > max) {
-//          max=abs(cube_center[d]-points[3*k+d]) ; 
-//        }
-//      }
-//      linf_dist_to_cc[k]=max;
-//    }
-//    else
-//    {
-//      linf_dist_to_cc[k]=-1;//default 
-//    }
-//    cout <<" linf "<<k<<"  "<<linf_dist_to_cc[k]<<endl;
-//  }
-  
-  
-  findMinIndex(linf_dist_to_cc, count, index);
-  
-  //calculate the min of all the distances 
-//  float min=999999.0; //very large number
-//  int index=0;
-//  for (int k=0; k<6; k++) {
-//    if (istTrue[k]) {
-//      if (linf_dist_to_cc[k] < min) {
-//        min = linf_dist_to_cc[k];
-//        index = k;
-//      }
-//    }
-//  }
-  
-  //copy coord
-  for (int d=0; d<DIM3; d++) {
-    closest_point[d]=point_list[3*count_arr[index]+d];
-    cout <<" d "<<closest_point[d];
-  }
-}
-*/
 // HELPER FUNCTIONS:
 // find the max direction
 int findmax(const SCALAR_TYPE dir[])
