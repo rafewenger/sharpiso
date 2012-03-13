@@ -53,7 +53,7 @@ namespace SHARPISO {
    const COORD_TYPE coord[],
    const COORD_TYPE ray_direction[],
    COORD_TYPE closest_point[DIM3]);
-  
+
   
 };
 #endif
