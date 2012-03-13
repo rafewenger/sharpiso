@@ -91,17 +91,19 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
   
   if (num_large_eigenvalues == 2)
   {
-   COORD_TYPE ray_origin[DIM3];
+    COORD_TYPE ray_origin[DIM3];
     // if there are 2 sing vals then the coord acts as the ray origin
     IJK::copy_coord_3D(sharp_coord, ray_origin);
     compute_vertex_on_ray
     ( scalar_grid, gradient_grid, cube_index, isovalue, sharp_isovert_param, 
      ray_origin, ray_direction, sharp_coord, flag_use_centroid, svd_info);
+    svd_info.SetRayInfo(ray_origin, ray_direction, sharp_coord, !flag_use_centroid);
   }
   
-  bool flag_use_ray_cube_interesection = false;
+  bool flag_use_ray_cube_intersection = false;
   if (num_large_eigenvalues == 3)
   {
+    IJK::round16_coord(DIM3, sharp_coord, sharp_coord);
     const SIGNED_COORD_TYPE max_dist = sharp_isovert_param.max_dist;
     if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist) && scalar_grid.ContainsPoint(sharp_coord)) {
       
@@ -110,13 +112,13 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
       if (!scalar_grid.CubeContainsPoint(cube_index, sharp_coord)) {
         VERTEX_INDEX new_icube = get_cube_containing_point (scalar_grid, sharp_coord);
         if (IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue)) {
-          flag_use_ray_cube_interesection = true;
+          flag_use_ray_cube_intersection = true;
         }
       }
     }
     
     if((!is_dist_to_cube_le(sharp_coord, cube_coord, max_dist) && scalar_grid.ContainsPoint(sharp_coord))
-       ||(flag_use_ray_cube_interesection)){
+       ||(flag_use_ray_cube_intersection)){
       
       svd_calculate_sharpiso_vertex_2_svals_unit_normals
       (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
@@ -131,6 +133,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
         ( scalar_grid, gradient_grid,
          cube_index, isovalue, sharp_isovert_param, ray_origin, ray_direction,
          sharp_coord, flag_use_centroid, svd_info);
+        svd_info.SetRayInfo(ray_origin, ray_direction, sharp_coord, !flag_use_centroid);
       }// num_large eigen ==2 end
       else {
         svd_info.location = CENTROID;
@@ -621,6 +624,7 @@ void SHARPISO::compute_vertex_on_ray
       {
         //check for the linf distance
         COORD_TYPE linf_point[DIM3]={0.0};
+        
         compute_closest_point_to_cube_center_linf
         (cube_coord, ray_origin, ray_direction, linf_point);
         IJK::copy_coord_3D(linf_point, sharp_coord);
