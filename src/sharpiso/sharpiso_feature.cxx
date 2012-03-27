@@ -350,24 +350,6 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood
   }
 }
 
-/* OBSOLETE
- /// Return true if the coord is within the allowable offset of cube.
- void is_coord_inside_offset
- (const COORD_TYPE * sharp_coord,
- const COORD_TYPE * cube_center,
- const SCALAR_TYPE  threshold,
- bool is_inside)
- {
- for (int d=0; d<DIM3; d++) {
- // ERROR:  NEED TO ALSO CHECK sharp_coord[d] + 0.5 + threshold < cube_center
- if (sharp_coord[d] - cube_center[d] > (0.5 + threshold)) {
- is_inside = false;
- }
- }
- }
- */
-
-
 /// Compute sharp isosurface vertex on the ray
 void SHARPISO::compute_vertex_on_ray
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
