@@ -94,10 +94,12 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
     COORD_TYPE ray_origin[DIM3];
     // if there are 2 sing vals then the coord acts as the ray origin
     IJK::copy_coord_3D(sharp_coord, ray_origin);
+
     compute_vertex_on_ray
     ( scalar_grid, gradient_grid, cube_index, isovalue, sharp_isovert_param, 
      ray_origin, ray_direction, sharp_coord, flag_use_centroid, svd_info);
     svd_info.SetRayInfo(ray_origin, ray_direction, sharp_coord, !flag_use_centroid);
+
   }
   
   bool flag_use_ray_cube_intersection = false;
@@ -374,6 +376,7 @@ void SHARPISO::compute_vertex_on_ray
   isIntersect = calculate_point_intersect_complex
   (cube_coord, ray_origin, ray_direction, 
    ray_intersection_cube_offset);
+
   if (isIntersect) {
     
     //compute the l2 (shortest distance)
@@ -385,6 +388,7 @@ void SHARPISO::compute_vertex_on_ray
     IJK::round16_coord(DIM3, sharp_coord, sharp_coord);  // Round to nearest 16'th
     svd_info.location = LOC_SVD;
     svd_info.is_svd_point_in_cube = true;
+
     if (!scalar_grid.CubeContainsPoint(cube_index, sharp_coord)) {
       //check if the isosurface intersects the new_icube
       VERTEX_INDEX new_icube = get_cube_containing_point(scalar_grid, sharp_coord);
