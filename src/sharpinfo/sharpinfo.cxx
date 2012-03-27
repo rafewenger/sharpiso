@@ -145,6 +145,7 @@ void output_dist2vert
  const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX iv1);
+void report_sharp_param(const SHARP_ISOVERT_PARAM & sharp_param);
 
 // local subroutines
 void memory_exhaustion();
@@ -257,6 +258,9 @@ int main(int argc, char **argv)
             (cout, cube_coord, sharp_coord, 
              eigenvalues, num_large_eigenvalues,
              max_small_eigenvalue, svd_info);
+          cout << endl;
+
+          report_sharp_param(sharp_isovert_param);
           cout << endl;
         }
 
@@ -517,15 +521,25 @@ void output_svd_results
     print_coord3D(output, svd_info.ray_direction);
     output << endl;
 
-    output <<"  Midpoint ray-cube intersection: ";
-    print_coord3D(output, svd_info.ray_cube_intersection);
+    compute_closest_point_to_cube_center
+      (cube_coord, svd_info.ray_initial_point, svd_info.ray_direction,
+       closest_point);
+    output <<"  Closest (L2) point on ray to cube center: ";
+    print_coord3D(output, closest_point);
+    output << endl;
+
+    compute_closest_point_to_cube_center_linf
+      (cube_coord, svd_info.ray_initial_point, svd_info.ray_direction,
+       closest_point);
+    output <<"  Closest (Linf) point on ray to cube center: ";
+    print_coord3D(output, closest_point);
     output << endl;
 
     compute_closest_point_to_cube_center
-      (cube_coord, svd_info.ray_cube_intersection, svd_info.ray_direction,
+      (cube_coord, svd_info.ray_initial_point, svd_info.ray_direction,
        closest_point);
 
-    output <<"  Closest point on ray to cube center: ";
+    output <<"  Vertex on ray: ";
     print_coord3D(output, closest_point);
     output << endl;
       
@@ -770,6 +784,20 @@ void output_cube_eigenvalues
         IJK::ijkgrid_output_coord(output, DIM3, eigenvalues);
         output << endl;
     }
+}
+
+void report_sharp_param(const SHARP_ISOVERT_PARAM & sharp_param)
+{
+  cout << "Gradient selection cube offset: "
+       << sharp_param.grad_selection_cube_offset << endl;
+  cout << "Ray intersection cube offset: "
+       << sharp_param.ray_intersection_cube_offset << endl;
+  cout << "Maximum small eigenvalue: "
+       << sharp_param.max_small_eigenvalue << endl;
+  cout << "Max (Linf) distance from cube to isosurface vertex: "
+       << sharp_param.max_dist << endl;
+  cout << "Max small gradient magnitude: "
+       << sharp_param.max_small_magnitude << endl;
 }
 
 // **************************************************

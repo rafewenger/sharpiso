@@ -366,7 +366,7 @@ void SHARPISO::compute_vertex_on_ray
   // Compute coord of the cube.
   COORD_TYPE cube_coord[DIM3];
   scalar_grid.ComputeCoord(cube_index, cube_coord);
-  
+
   // if there are 2 sing vals then the coord acts as the ray origin
   const SIGNED_COORD_TYPE ray_intersection_cube_offset =
   sharp_isovert_param.ray_intersection_cube_offset;
@@ -388,6 +388,7 @@ void SHARPISO::compute_vertex_on_ray
     if (!scalar_grid.CubeContainsPoint(cube_index, sharp_coord)) {
       //check if the isosurface intersects the new_icube
       VERTEX_INDEX new_icube = get_cube_containing_point(scalar_grid, sharp_coord);
+
       if (IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue))
       {
         //check for the linf distance
