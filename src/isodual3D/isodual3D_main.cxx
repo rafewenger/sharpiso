@@ -170,21 +170,6 @@ void construct_isosurface
     ISODUAL_INFO isodual_info(dimension);
     isodual_info.grid.num_cubes = num_cubes;
 
-    // *** DEBUG ***
-    /*
-    using namespace std;
-    cerr << "use_only_cube_gradients: "
-         << int(isodual_data.use_only_cube_gradients) << endl;
-    cerr << "use_selected_gradients: "
-         << int(isodual_data.use_selected_gradients) << endl;
-    cerr << "grad_selection_cube_offset: "
-         << isodual_data.grad_selection_cube_offset << endl;
-    cerr << "ray_intersection_cube_offset: "
-         << isodual_data.ray_intersection_cube_offset << endl;
-    cerr << "max_small_eigenvalue: "
-         << isodual_data.max_small_eigenvalue << endl;
-    */
-
     dual_contouring(isodual_data, isovalue, dual_isosurface, isodual_info);
     isodual_time.Add(isodual_info.time);
 
