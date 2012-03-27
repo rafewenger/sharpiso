@@ -60,7 +60,7 @@ void ISODUAL3D::dual_contouring
       || isodual_data.VertexPositionMethod() == EDGE_COMPLEX) {
     dual_contouring
       (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
-       isovalue, isodual_data, 
+       isovalue, isodual_data,
        dual_isosurface.isopoly_vert, dual_isosurface.vertex_coord,
        merge_data, isodual_info);
   }
@@ -163,6 +163,7 @@ void ISODUAL3D::dual_contouring
   PROCEDURE_ERROR error("dual_contouring");
 
 
+
   clock_t t0 = clock();
 
   isopoly_vert.clear();
@@ -180,19 +181,19 @@ void ISODUAL3D::dual_contouring
 
   if (vertex_position_method == GRADIENT_POSITIONING) {
     position_dual_isovertices_using_gradients
-      (scalar_grid, gradient_grid, isovalue, cube_offset, 
+      (scalar_grid, gradient_grid, isovalue, cube_offset,
        iso_vlist, vertex_coord);
   }
   else if (vertex_position_method == EDGE_SIMPLE) {
     //EDGE SIMPLE
     position_dual_isovertices_using_edge_intersection_simple
-      (scalar_grid, gradient_grid, isovalue, cube_offset, 
+      (scalar_grid, gradient_grid, isovalue, cube_offset,
        iso_vlist, vertex_coord);
   }
   else if (vertex_position_method == EDGE_COMPLEX) {
     //EDGE COMPLEX
     position_dual_isovertices_using_edge_intersection_complex
-      (scalar_grid, gradient_grid, isovalue, cube_offset, 
+      (scalar_grid, gradient_grid, isovalue, cube_offset,
        iso_vlist, vertex_coord);
   }
   else {
@@ -231,6 +232,7 @@ void ISODUAL3D::dual_contouring
 // isodual_info = information about running time and grid cubes and edges
 {
   PROCEDURE_ERROR error("dual_contouring");
+
   const VERTEX_POSITION_METHOD vertex_position_method =
     isodual_param.vertex_position_method;
   const bool use_selected_gradients =

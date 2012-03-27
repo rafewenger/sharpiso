@@ -72,7 +72,7 @@ void ISODUAL_PARAM::SetInterpolationType
 }
 
 /// Set isosurface vertex position method.
-void ISODUAL_PARAM::SetVertexPositionMethod    
+void ISODUAL_PARAM::SetVertexPositionMethod
 (const VERTEX_POSITION_METHOD vertex_position_method)
 {
   this->vertex_position_method = vertex_position_method;
@@ -97,7 +97,7 @@ bool ISODUAL_PARAM::GradientsRequired() const
 {
   if (VertexPositionMethod() == GRADIENT_POSITIONING ||
       VertexPositionMethod() == EDGE_SIMPLE ||
-      VertexPositionMethod() == EDGE_COMPLEX) 
+      VertexPositionMethod() == EDGE_COMPLEX)
     { return(true); }
   else
     { return(false); }
@@ -154,7 +154,7 @@ void ISODUAL_DATA::SupersampleScalarGrid
 
 // Copy, subsample or supersample scalar grid.
 void ISODUAL_DATA::SetScalarGrid
-(const ISODUAL_SCALAR_GRID_BASE & full_scalar_grid, 
+(const ISODUAL_SCALAR_GRID_BASE & full_scalar_grid,
  const bool flag_subsample, const int subsample_resolution,
  const bool flag_supersample, const int supersample_resolution)
 {
@@ -164,7 +164,7 @@ void ISODUAL_DATA::SetScalarGrid
     error.AddMessage("Scalar grid cannot both be subsampled and supersampled.");
     throw error;
   }
-  
+
   if (flag_subsample) {
     // subsample grid
     SubsampleScalarGrid(full_scalar_grid, subsample_resolution);
@@ -181,7 +181,7 @@ void ISODUAL_DATA::SetScalarGrid
 
 // Copy, subsample or supersample scalar and gradient grids.
 void ISODUAL_DATA::SetGrids
-(const ISODUAL_SCALAR_GRID_BASE & full_scalar_grid, 
+(const ISODUAL_SCALAR_GRID_BASE & full_scalar_grid,
  const GRADIENT_GRID_BASE & full_gradient_grid,
  const bool flag_subsample, const int subsample_resolution,
  const bool flag_supersample, const int supersample_resolution)
@@ -345,19 +345,19 @@ void ISODUAL3D::MERGE_DATA::Init
 {
   this->num_obj_per_vertex = num_obj_per_vertex;
   this->num_obj_per_edge = num_obj_per_edge;
-  this->num_obj_per_grid_vertex = 
+  this->num_obj_per_grid_vertex =
     dimension*num_obj_per_edge + num_obj_per_vertex;
   compute_num_grid_vertices(dimension, axis_size, num_vertices);
   num_edges = dimension*num_vertices;
   vertex_id0 = num_obj_per_edge*num_edges;
-  MERGE_INDEX num_obj = 
+  MERGE_INDEX num_obj =
     num_obj_per_vertex*num_vertices + num_obj_per_edge*num_edges;
   INTEGER_LIST<MERGE_INDEX,MERGE_INDEX>::Init(num_obj);
 }
 
 bool ISODUAL3D::MERGE_DATA::Check(ERROR & error) const
 {
-  if (MaxNumInt() < 
+  if (MaxNumInt() <
       NumObjPerVertex()*NumVertices() + NumObjPerEdge()*NumEdges()) {
     error.AddMessage("Not enough allocated memory.");
     return(false);

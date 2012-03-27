@@ -232,6 +232,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  COORD_TYPE * sharp_coord)
 {
+
   const SIGNED_COORD_TYPE grad_selection_cube_offset =
     isodual_param.grad_selection_cube_offset;
 
@@ -301,6 +302,7 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_complex
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  COORD_TYPE * sharp_coord)
 {
+  
     const int dimension = scalar_grid.Dimension();
 
     for (VERTEX_INDEX i = 0; i < vlist.size(); i++) {

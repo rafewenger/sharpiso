@@ -87,6 +87,29 @@ void svd_calculate_sharpiso_vertex_2_svals_unit_normals
  GRADIENT_COORD_TYPE *ray_direction);
 
 
+void compute_cube_vertex
+(const MatrixXf A,
+ const RowVectorXf b,
+ MatrixXf &singular_values,
+ const float  err_tolerance,
+ int &num_singular_vals,
+ const RowVectorXf centroid,
+ float * sharp_point);
+
+
+// Compute A inverse using svd
+MatrixXf compute_A_inverse
+(const MatrixXf A, const EIGENVALUE_TYPE  err_tolerance,
+ MatrixXf &singularValues, NUM_TYPE & num_singular_vals );
+
+ // Compute X as Ainverse times B
+RowVectorXf compute_X(const MatrixXf Inv_A, RowVectorXf B);
+// FUNCTION compute w
+RowVectorXf calculate_w
+(const MatrixXf & inA, const MatrixXf & A, const MatrixXf &I);
+
+void normalize(const GRADIENT_COORD_TYPE *intial,GRADIENT_COORD_TYPE  *normalized);
+
 void svd_calculate_sharpiso_vertex_edge_based
 
 (const COORD_TYPE * vert_coords,

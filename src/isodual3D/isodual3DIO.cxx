@@ -525,7 +525,7 @@ void ISODUAL3D::output_dual_isosurface
 /// Output isosurface of quadrilaterals.
 void ISODUAL3D::output_quad_isosurface
 (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
- const vector<COORD_TYPE> & vertex_coord, 
+ const vector<COORD_TYPE> & vertex_coord,
  const vector<VERTEX_INDEX> & quad_vert,
  const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
 {
@@ -542,7 +542,7 @@ void ISODUAL3D::output_quad_isosurface
 /// Output isosurface of triangles.
 void ISODUAL3D::output_tri_isosurface
 (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
- const vector<COORD_TYPE> & vertex_coord, 
+ const vector<COORD_TYPE> & vertex_coord,
  const vector<VERTEX_INDEX> & tri_vert,
  const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
 {
