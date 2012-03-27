@@ -284,9 +284,9 @@ bool shFindPoint
     //setup edge_intercepts.
     setup_edgeIntercepts
     (cb, isovalue, use_cmplx_interp);
-  if (cb.ne_intersect == 0) {
-    return false;
-  }
+//  if (cb.ne_intersect == 0) {
+//    return false;
+//  }
 
     //find point calculations.
     findPoint

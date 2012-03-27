@@ -344,6 +344,7 @@ void sh_cube::findPoint
   //set m
   int ind[cb.ne_intersect]; //ind (index) keeep tracks of the edges which are intersected
   RowVectorXf centroid(3);
+  centroid<<0.0,0.0,0.0;
 
   int i = 0;
   MatrixXf m(cb.ne_intersect, cb.dim);
@@ -351,7 +352,7 @@ void sh_cube::findPoint
     if (cb.edges[k].is_intersect) {
       for (int j = 0; j < 3; j++) {
         m(i,j) = cb.edges[k].pt_intersect.grads[j];
-        centroid(j)=centroid(j)+cb.edges[k].pt_intersect.pos[j];
+        centroid(j)=centroid(j) + cb.edges[k].pt_intersect.pos[j];
       }
       ind[i]=k;
       i++;
