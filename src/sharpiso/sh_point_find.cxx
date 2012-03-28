@@ -267,8 +267,6 @@ bool shFindPoint
  SVD_INFO &svd_debug_info,
  COORD_TYPE *shpoint)
 {
-
-
     //setup sh_cube.
     CUBE cb;
     bool cubeSetup(true);

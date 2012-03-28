@@ -578,8 +578,8 @@ void compute_cube_vertex
         sigma(i,i) = 1.0/singular_values(i);
       }
   }
- 
-  MatrixXf point = centroid.transpose() - svd.matrixV()*sigma*
+
+  MatrixXf point = centroid.transpose() + svd.matrixV()*sigma*
   svd.matrixU().transpose()*(b.transpose() - A*centroid.transpose());
   
   /*

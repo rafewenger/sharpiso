@@ -490,7 +490,6 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info)
 {
-
   NUM_TYPE num_gradients = 0;
   std::vector<COORD_TYPE> point_coord;
   GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3];
