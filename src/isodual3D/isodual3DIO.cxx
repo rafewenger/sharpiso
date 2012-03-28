@@ -1107,6 +1107,8 @@ namespace {
   cerr << "  [-subsample S] [-supersample S]" << endl;
   cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|gradES|gradEC}]" << endl;
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
+  cerr << "  [-max_eigen {max}] [-gradS_offset {offset}] [-rayI_offset {offset}]" 
+       << endl;
   cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
   << endl;
   cerr << "  [-help] [-s] [-out_param] [-nowrite] [-time]" << endl;
@@ -1161,6 +1163,12 @@ void ISODUAL3D::help()
        << endl;
   cout << "       Use complex choice to compute isosurface-edge intersections." << endl;
   cout << "  -gradient {gradient_nrrd_filename}: Read gradients from gradient nrrd file." << endl;
+  cerr << "  -max_eigen {max}: Set maximum small eigenvalue to max."
+       << endl;
+  cerr << "  -gradS_offset {offset}: Set cube offset for gradient selection to offset."
+       << endl;
+  cerr << "  -rayI_offset {offset}: Set cube offset for ray intersection to offset."
+       << endl;
   cout << "  -trimesh:   Output triangle mesh." << endl;
   cout << "  -off: Output in geomview OFF format. (Default.)" << endl;
   cout << "  -iv: Output in OpenInventor .iv format." << endl;
