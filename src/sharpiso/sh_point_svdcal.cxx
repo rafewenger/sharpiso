@@ -86,9 +86,6 @@ void setCubeCenter(COORD_TYPE *shpoint)
 
 void setCubeCentroid(const CUBE &cb, NUM_TYPE index[], COORD_TYPE *shpoint)
 {
-  //debug
-  using namespace std;
-  cout << " centroid calculations "<<endl;
   for( int k=0; k<3; k++){
     double temp_k = 0.0;
     for(int i=0; i<12; i++){
@@ -210,9 +207,8 @@ MatrixXf computePseudoinv
   MatrixXf PseudoInvSigma =
   MatrixXf::Zero(num_singular_values,num_singular_values);
 
-  //debug
-  cout <<" cutt off "<< EIGEN_VALUE_CUTOFF<<endl;
-  computePseudoSigmaInv(PseudoInvSigma, singular_vals, num_svals, EIGEN_VALUE_CUTOFF );
+  computePseudoSigmaInv
+    (PseudoInvSigma, singular_vals, num_svals, EIGEN_VALUE_CUTOFF );
 
   MatrixXf pseudoInverse;
   pseudoInverse = svd.matrixV()*PseudoInvSigma.transpose()*svd.matrixU().transpose();
