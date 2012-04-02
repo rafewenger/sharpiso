@@ -1,3 +1,4 @@
+//**** DEBUG 
 /// \file isodual3D.cxx
 /// Marching cubes/hypercubes isosurface generation
 /// Version 0.0.1
