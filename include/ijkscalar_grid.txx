@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2008,2009,2010 Rephael Wenger
+  Copyright (C) 2008,2009,2010,2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -70,7 +70,9 @@ namespace IJK {
     // set functions
     void Set               ///< Set scalar value of vertex \a iv to \a s.
     (const VTYPE iv, const STYPE s) { scalar[iv] = s; };
-    void SetAll(const STYPE s);  ///< Set all scalar values to \a s.
+    void SetAll(const STYPE s);    ///< Set all scalar values to \a s.
+    void Add(const STYPE s);       ///< Add s to all scalar values.
+    void Multiply(const STYPE s);  ///< Multiply all scalar values by s.
     void CopyScalar        ///< Copy scalar values from \a scalar_grid.
     (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid);
     void SetCorners        ///< Set scalar values at grid corners to \a s.
@@ -800,6 +802,24 @@ namespace IJK {
   {
     for (VTYPE i = 0; i < this->NumVertices(); i++)
       { scalar[i] = s; }
+  }
+
+  /// Add s to all scalar values.
+  template <class GRID_CLASS, class STYPE>
+  void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::
+  Add(const STYPE s)
+  {
+    for (VTYPE i = 0; i < this->NumVertices(); i++)
+      { scalar[i] += s; }
+  }
+
+  /// Multiply all scalar values by s.
+  template <class GRID_CLASS, class STYPE>
+  void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::
+  Multiply(const STYPE s)
+  {
+    for (VTYPE i = 0; i < this->NumVertices(); i++)
+      { scalar[i] *= s; }
   }
 
   /// Copy scalar values of scalar_grid to current grid.

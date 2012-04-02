@@ -88,8 +88,12 @@ namespace IJK {
     template <typename VITYPE2>
     void Set               ///< Set vector value of vector at \a iv to \a v[].
     (const VITYPE2 iv, const VCTYPE * v);
-    void SetAll(const VCTYPE s);    ///< Set all vector coord values to \a s.
-    void SetAll(const VCTYPE * v);  ///< Set all vector values to \a v.
+    template <typename VCTYPE2>
+    void SetAllCoord(const VCTYPE2 s); ///< Set all vector coord values to \a s.
+    template <typename VCTYPE2>
+    void SetAllVectors(const VCTYPE2 * v);  ///< Set all vectors to \a v.
+    template <typename STYPE2>
+    void ScalarMultiply(const STYPE2 s);   ///< Multiply by scalar s.
     void CopyVector        ///< Copy vector values from \a vector_grid.
     (const VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE> & vector_grid);
     template <typename DTYPE2, typename ATYPE2, typename LTYPE2>
@@ -124,6 +128,12 @@ namespace IJK {
     { return(vec[ic+iv*vector_length]); };
     VCTYPE ComputeMagnitudeSquared(const VITYPE iv) const;
     VCTYPE ComputeMagnitude(const VITYPE iv) const;
+
+    // *** DEPRECATED ***
+    void SetAll(const VCTYPE s)
+    { SetAllCoord(s); };
+    void SetAll(const VCTYPE * v)
+    { SetAllVectors(v); };
   };
 
   // **************************************************
@@ -280,10 +290,11 @@ namespace IJK {
       { vec_iv[ic] = v[ic]; }
   }
 
-  /// Set all scalar values to s.
+  /// Set all coordinate values to s.
   template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
+  template <typename VCTYPE2>
   void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::
-  SetAll(const VCTYPE s)
+  SetAllCoord(const VCTYPE2 s)
   {
     for (VCTYPE * ptr = vec; ptr != End(); ptr++)
       { *ptr = s; }
@@ -291,8 +302,9 @@ namespace IJK {
 
   /// Set all vectors to v
   template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
+  template <typename VCTYPE2>
   void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::
-  SetAll(const VCTYPE * v)
+  SetAllVectors(const VCTYPE2 * v)
   {
     const LTYPE vector_length = VectorLength();
     LTYPE j = 0;
@@ -301,6 +313,16 @@ namespace IJK {
       vec[i] = v[j];
       j = (j+1)%vector_length;
     }
+  }
+
+  /// Multiply by scalar s.
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
+  template <typename STYPE2>
+  void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::
+  ScalarMultiply(const STYPE2 s)
+  {
+    for (VCTYPE * ptr = vec; ptr != End(); ptr++)
+      { *ptr = s*(*ptr); }
   }
 
   /// Copy vector values of scalar_grid to current grid.

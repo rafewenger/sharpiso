@@ -382,7 +382,13 @@ namespace IJK {
     }
   }
 
-  /// *** NOTE: WRITE AND TEST VERSION WITH std::string filename ***
+  template <typename GTYPE, typename DTYPE, typename ATYPE>
+  void write_scalar_grid_nrrd
+  (const std::string & output_filename, const GTYPE & grid, 
+   const NRRD_DATA<DTYPE,ATYPE> & nrrd_header)
+  {
+    write_scalar_grid_nrrd(output_filename.c_str(), grid, nrrd_header);
+  }
 
   template <typename GTYPE>
   void write_vector_grid_nrrd
@@ -408,6 +414,13 @@ namespace IJK {
       add_nrrd_message(error);
       throw error;
     }
+  }
+
+  template <typename GTYPE>
+  void write_vector_grid_nrrd
+  (const std::string & output_filename, const GTYPE & grid)
+  {
+    write_vector_grid_nrrd(output_filename.c_str(), grid);
   }
 
   template <typename GTYPE>
@@ -440,8 +453,6 @@ namespace IJK {
       throw error;
     }
   }
-
-  /// *** NOTE: WRITE AND TEST VERSION WITH std::string filename ***
 
   template <typename GTYPE, typename DTYPE, typename ATYPE>
   void write_vector_grid_nrrd
@@ -476,6 +487,15 @@ namespace IJK {
       add_nrrd_message(error);
       throw error;
     }
+  }
+
+  template <typename GTYPE, typename DTYPE, typename ATYPE>
+  void write_vector_grid_nrrd
+  (const std::string & output_filename, const GTYPE & grid,
+   const NRRD_DATA<DTYPE,ATYPE> & nrrd_header)
+  {
+    write_vector_grid_nrrd
+      (output_filename.c_str(), grid, nrrd_header);
   }
 
   // **************************************************

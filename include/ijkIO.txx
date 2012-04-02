@@ -995,6 +995,123 @@ namespace IJK {
   }
 
   // ******************************************
+  // Read Geomview LINE file
+  // ******************************************
+
+  /// \brief Read header of Geomview .line file.
+  /// Ignores line color.
+  /// @param in = Input stream.
+  /// @param dim = Vertex dimension.
+  /// @param numv = Number of vertices.
+  /// @param nume = Number of edges.
+  inline void ijkinLINEheader
+  (std::istream & in, int & dim, int & numv, int & nume)
+  {
+    float r,g,b,a;
+    std::string header_keyword;
+    IJK::PROCEDURE_ERROR error("ijkinLINE");
+    if (!in.good()) {
+      error.AddMessage("Error reading from input stream in.");
+      throw error;
+    }
+
+    // read input
+    in >> header_keyword;
+
+    if (!in.good()) {
+      error.AddMessage
+        ("Error reading from header keyword from input stream in.");
+      throw error;
+    }
+
+    if (header_keyword == "LINEC") {
+      dim = 3;
+      in >> r >> g >> b >> a;
+
+      if (!in.good()) {
+        error.AddMessage("Error reading number of rgba edge color from input stream in.");
+        throw error;
+      }
+    }
+    else if (header_keyword == "LINE") {
+      dim = 3;
+    }
+    else {
+      error.AddMessage("Illegal Geomview .off file header: "+
+                       header_keyword);
+      throw error;
+    };
+
+    if (dim < 1)
+      throw error("Dimension must be at least 1.");
+
+    in >> numv;
+    in >> nume;
+
+    if (!in.good()) {
+      error.AddMessage("Error reading number of vertices and edges from input stream in.");
+      throw error;
+    }
+  }
+
+  /// \brief Read \a nume edges from Geomview .off file.
+  ///
+  /// @param in = Input stream.
+  /// @param nume = Number of edges to read.
+  /// @param edge_endpoint = Array of edge endpoints. 
+  ///        edge_enpdoint[2*je+k] = index of k'th endpoint of edge je.
+  /// @pre Array edge_endpoint[] has been preallocated
+  ///      with size at least 2 * \a nume.
+  template <class T> void ijkinLINEedge
+  (std::istream & in, const int nume, T * & edge_endpoint)
+  {
+    IJK::PROCEDURE_ERROR error("ijkinLINEedge");
+
+    for (int i = 0; i < nume; i++) {
+
+      for (int k = 0; k < 2; k++) 
+        { in >> edge_endpoint[2*i + k]; }
+      gobble_line(in);
+
+      if (!in.good()) {
+        error.AddMessage("Error reading endpoints of edge ", i, ".");
+        throw error;
+      }
+    }
+  }
+
+  /// \brief Read Geomview .line file.
+  ///
+  /// @param in = Input stream.
+  /// @param dim = Dimension of vertices.
+  /// @param coord = Array of coordinates. 
+  ///                coord[dim*i+k] = k'th coordinate of vertex i (k < dim).
+  /// @param numv = Number of vertices.
+  /// @param edge_endpoint = Array of edge endpoints. 
+  ///        edge_endpoint[dim*j+k] = Vertex index of endpoint k of edge j.
+  /// @param nume = Number of edges.
+  template <class T> void ijkinLINE
+  (std::istream & in, int & dim, T * & coord, int & numv, 
+   int * & edge_endpoint, int & nume)
+  {
+    IJK::PROCEDURE_ERROR error("ijkinLINE");
+
+    coord = NULL;
+    edge_endpoint = NULL;
+
+    ijkinLINEheader(in, dim, numv, nume);
+
+    coord = new T[numv*dim];
+    ijkinOFFcoord(in, dim, numv, coord);
+
+    int num_edge_endpoint = 0;
+    edge_endpoint = new int[2*nume];
+
+    // read in first edge
+    ijkinLINEedge(in, nume, edge_endpoint);
+  }
+
+  // ******************************************
   // Fig file
   // ******************************************
 
