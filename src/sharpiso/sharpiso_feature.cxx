@@ -948,10 +948,15 @@ void SHARPISO::get_gradients
       (scalar_grid, gradient_grid, cube_index, max_small_magnitude, isovalue,
        point_coord, gradient_coord, scalar, num_gradients, cube_111);
     }
+    else if (sharp_isovert_param.use_intersected_edge_endpoint_gradients) {
+      get_intersected_edge_endpoint_gradients
+        (scalar_grid, gradient_grid, cube_index, max_small_magnitude, isovalue,
+         point_coord, gradient_coord, scalar, num_gradients);
+    }
     else {
       get_large_cube_gradients
-      (scalar_grid, gradient_grid, cube_index, max_small_magnitude,
-       point_coord, gradient_coord, scalar, num_gradients);
+        (scalar_grid, gradient_grid, cube_index, max_small_magnitude,
+         point_coord, gradient_coord, scalar, num_gradients);
     }
   }
   else {
@@ -1099,7 +1104,7 @@ void SHARPISO::get_selected_cube_neighbor_gradients
   typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;
 
   const GRADIENT_COORD_TYPE max_small_mag_squared =
-  max_small_mag * max_small_mag;
+    max_small_mag * max_small_mag;
   IJK::ARRAY<GRID_COORD_TYPE> offset_111(DIM3, 1);
   IJK::ARRAY<GRID_COORD_TYPE> cube_coord(DIM3);
   IJK::ARRAY<GRID_COORD_TYPE> vertex_coord(DIM3);
@@ -1149,6 +1154,61 @@ void SHARPISO::get_selected_cube_neighbor_gradients
 
 }
 
+namespace {
+  int axis_size_222[DIM3] = { 2, 2, 2 };
+  SHARPISO_GRID grid_222(DIM3, axis_size_222);
+}
+
+void SHARPISO::get_intersected_edge_endpoint_gradients
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index, const GRADIENT_COORD_TYPE max_small_mag,
+ const SCALAR_TYPE isovalue,
+ std::vector<COORD_TYPE> & point_coord,
+ std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+ std::vector<SCALAR_TYPE> & scalar,
+ NUM_TYPE & num_gradients)
+{
+  typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;
+
+  const DTYPE dimension = scalar_grid.Dimension();
+  const GRADIENT_COORD_TYPE max_small_mag_squared =
+    max_small_mag * max_small_mag;
+  bool corner_flags[NUM_CUBE_VERTICES3D];
+
+  for (VERTEX_INDEX i = 0; i < NUM_CUBE_VERTICES3D; i++)
+    { corner_flags[i] = false; }
+
+  for (DTYPE d = 0; d < dimension; d++) {
+    for (VERTEX_INDEX k = 0; k < scalar_grid.NumFacetVertices(); k++) {
+      VERTEX_INDEX iv0 = scalar_grid.FacetVertex(cube_index, d, k);
+      VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, d);
+      SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
+      SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
+
+      if ((s0 < isovalue && isovalue <= s1) ||
+          (s1 < isovalue && isovalue <= s0)) {
+        VERTEX_INDEX icorner0 = grid_222.FacetVertex(0, d, k);
+        VERTEX_INDEX icorner1 = grid_222.NextVertex(icorner0, d);
+        corner_flags[icorner0] = true;
+        corner_flags[icorner1] = true;
+      }
+    }
+  }
+
+  for (VERTEX_INDEX j = 0; j < NUM_CUBE_VERTICES3D; j++) {
+    if (corner_flags[j]) {
+      // grid_222.CubeVertex(0,j) will probably be j, but no guarantees.
+      VERTEX_INDEX icorner = grid_222.CubeVertex(0, j);
+      VERTEX_INDEX iv = scalar_grid.CubeVertex(cube_index, icorner);
+
+      add_large_gradient
+        (scalar_grid, gradient_grid, iv, max_small_mag_squared, 
+         point_coord, gradient_coord, scalar, num_gradients);
+    }
+  }
+
+}
 
 // **************************************************
 // MISC ROUTINES
@@ -1232,6 +1292,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 {
   use_only_cube_gradients = false;
   use_selected_gradients = true;
+  use_intersected_edge_endpoint_gradients = false;
   max_dist = 1.0;
   grad_selection_cube_offset = 0;
   ray_intersection_cube_offset = 0;

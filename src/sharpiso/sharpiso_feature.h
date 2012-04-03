@@ -336,6 +336,17 @@ namespace SHARPISO {
    std::vector<SCALAR_TYPE> & scalar,
    NUM_TYPE & num_gradients,
    const OFFSET_CUBE_111 & cube_111);
+
+  /// Get gradients at endpoints of grid edges which intersect the isosurface.
+  void get_intersected_edge_endpoint_gradients
+    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+     const GRADIENT_GRID_BASE & gradient_grid,
+     const VERTEX_INDEX cube_index, const GRADIENT_COORD_TYPE max_small_mag,
+     const SCALAR_TYPE isovalue,
+     std::vector<COORD_TYPE> & point_coord,
+     std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+     std::vector<SCALAR_TYPE> & scalar,
+     NUM_TYPE & num_gradients);
   
   // **************************************************
   // OFFSET_CUBE_111
@@ -379,6 +390,7 @@ namespace SHARPISO {
   public:
     bool use_only_cube_gradients;
     bool use_selected_gradients;
+    bool use_intersected_edge_endpoint_gradients;
     SIGNED_COORD_TYPE grad_selection_cube_offset;
     SIGNED_COORD_TYPE ray_intersection_cube_offset;
     

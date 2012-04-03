@@ -916,7 +916,7 @@ void usage_error()
     cerr << "OPTIONS:" << endl;
     cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\""
     << endl;
-    cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS ]" << endl;
+    cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS | -gradIE ]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -dist2vert | -vertex <vertex_index> | -vc \"vertex coordinates\"" << endl;
     cerr << "  -svd_grad | -svd_edge_simple | -svd_edge_cmplx"<<endl;
@@ -966,6 +966,7 @@ void parse_command_line(int argc, char **argv)
 {
   bool use_only_cube_gradients(true);
   bool use_selected_gradients(true);
+  bool use_intersected_edge_endpoint_gradients(false);
   SIGNED_COORD_TYPE grad_selection_cube_offset(0);
   SIGNED_COORD_TYPE ray_intersection_cube_offset(0.3);
 
@@ -1039,14 +1040,22 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-gradN") {
       use_only_cube_gradients = false;
       use_selected_gradients = false;
+      use_intersected_edge_endpoint_gradients = false;
     }
     else if (s == "-gradCS") {
       use_only_cube_gradients = true;
       use_selected_gradients = true;
+      use_intersected_edge_endpoint_gradients = false;
     }
     else if (s == "-gradNS") {
       use_only_cube_gradients = false;
       use_selected_gradients = true;
+      use_intersected_edge_endpoint_gradients = false;
+    }
+    else if (s == "-gradIE") {
+      use_only_cube_gradients = true;
+      use_selected_gradients = false;
+      use_intersected_edge_endpoint_gradients = true;
     }
     else if (s == "-gradS_offset") {
       grad_selection_cube_offset = get_float(iarg, argc, argv);
@@ -1136,6 +1145,8 @@ void parse_command_line(int argc, char **argv)
 
   sharp_isovert_param.use_only_cube_gradients = use_only_cube_gradients;
   sharp_isovert_param.use_selected_gradients = use_selected_gradients;
+  sharp_isovert_param.use_intersected_edge_endpoint_gradients = 
+    use_intersected_edge_endpoint_gradients;
   sharp_isovert_param.ray_intersection_cube_offset = ray_intersection_cube_offset;
   sharp_isovert_param.grad_selection_cube_offset = grad_selection_cube_offset;
 }
@@ -1160,6 +1171,8 @@ void help()
   cerr << "  -gradNS: Use selected gradients from cube and neighboring cubes."
        << endl;
   cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
+  cerr << "  -gradIE: Use gradients at endpoints of intersected cube edges."
+       << endl;
   cerr << "  -neighbor <cube_index>:  Use gradients from cube and" << endl
        << "           neighbors of cube <cube_index>." << endl;
   cerr << "  -svd_grad: Compute using svd directly on gradients."<<endl;
@@ -1170,12 +1183,15 @@ void help()
        << endl
        << "           using gradient assignment and apply svd." << endl;
   cerr << "  -coord \"point_coord\":  Compute scalar values at coordinate point_coord." << endl;
-  cerr << "  -cube_offset2: Cube offset for intersection calculations. Initial value set to 0.3." << endl;
+  cerr << "  -cube_offset2: Cube offset for intersection calculations."
+       << endl;
+  cerr << "                 Initial value set to 0.3." << endl;
   cerr << "  -max_eigen <V>: Normalized eigenvalues below V are set to zero." << endl;
   cerr << "  -listg: List gradients." << endl;
   cerr << "  -list_subgrid:  List all scalar values at vertices of subgrid." << endl;
-  cerr << "  -dist2vert: Distance from vertex to planes defined by" << endl
-       << "              gradients at neighboring vertices." << endl;
+  cerr << "  -dist2vert: Distance from vertex to planes defined by gradients" 
+       << endl
+       << "              at neighboring vertices." << endl;
   cerr << "  -vertex <vertex_index>:  Set vertex." << endl;
   cerr << "  -vc \"vertex coordinates\":  Vertex coordinates."
        << endl;
