@@ -96,6 +96,7 @@ namespace {
     io_info.vertex_position_method = CENTROID_EDGE_ISO;
     io_info.use_only_cube_gradients = false;
     io_info.use_selected_gradients = true;
+    io_info.use_intersected_edge_endpoint_gradients = false;
 
     if (str == "cube_center") {
       io_info.vertex_position_method = CUBECENTER;
@@ -122,6 +123,12 @@ namespace {
       io_info.vertex_position_method = GRADIENT_POSITIONING;
       io_info.use_only_cube_gradients = false;
       io_info.use_selected_gradients = true;
+    }
+    else if (str == "gradIE"){
+      io_info.vertex_position_method = GRADIENT_POSITIONING;
+      io_info.use_only_cube_gradients = true;
+      io_info.use_selected_gradients = false;
+      io_info.use_intersected_edge_endpoint_gradients = true;
     }
     else if (str == "gradES"){
       io_info.vertex_position_method = EDGE_SIMPLE;
@@ -219,9 +226,6 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
       break;
 
     case TRIMESH_PARAM:
-      /* OBSOLETE
-      io_info.flag_output_tri_mesh = true;
-      */
       io_info.flag_convert_quad_to_tri = true;
       io_info.quad_tri_method = SPLIT_MAX_ANGLE;
       break;
@@ -1105,7 +1109,7 @@ namespace {
   {
   cerr << "OPTIONS:" << endl;
   cerr << "  [-subsample S] [-supersample S]" << endl;
-  cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|gradES|gradEC}]" << endl;
+  cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|gradIE|gradES|gradEC}]" << endl;
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
   cerr << "  [-max_eigen {max}] [-gradS_offset {offset}] [-rayI_offset {offset}]" 
        << endl;
@@ -1151,6 +1155,10 @@ void ISODUAL3D::help()
   cout << "  -position gradNS: Position isosurface vertices using svd"
        << endl;
   cout << "       on selected vertex gradients of cube and cube neighbors."
+       << endl;
+  cout << "  -position gradIE: Position isosurface vertices using svd"
+       << endl;
+  cout << "       on gradients at endpoints of intersected cube edges."
        << endl;
   cout << "  -position gradES: Position using isosurface vertices using svd"
        << endl;
@@ -1312,6 +1320,8 @@ void ISODUAL3D::set_isodual_data
   isodual_data.SetVertexPositionMethod(io_info.vertex_position_method);
   isodual_data.SetUseSelectedGradients(io_info.use_selected_gradients);
   isodual_data.SetUseOnlyCubeGradients(io_info.use_only_cube_gradients);
+  isodual_data.SetUseIntersectedEdgeEndpointGradients
+    (io_info.use_intersected_edge_endpoint_gradients);
   isodual_data.max_small_eigenvalue = io_info.max_small_eigenvalue;
   isodual_data.grad_selection_cube_offset =
     io_info.grad_selection_cube_offset;

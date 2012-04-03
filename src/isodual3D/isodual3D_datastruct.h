@@ -119,13 +119,17 @@ namespace ISODUAL3D {
     ~ISODUAL_PARAM() { Init(); };
 
     // Set functions
-    void SetInterpolationType       /// Set type of interpolation.
+    void SetInterpolationType       ///< Set type of interpolation.
       (const INTERPOLATION_TYPE interpolation_type);
-    void SetVertexPositionMethod    /// Set isosurface vertex position method.
+    void SetVertexPositionMethod    ///< Set isosurface vertex position method.
       (const VERTEX_POSITION_METHOD vertex_position_method);
-    void SetUseSelectedGradients    /// Set flag for using selected gradients.
+    void SetUseSelectedGradients    ///< Set flag for using selected gradients.
       (const bool flag);
-    void SetUseOnlyCubeGradients    /// Set flag for using only cube gradients.
+    void SetUseOnlyCubeGradients    ///< Set flag for using only cube gradients.
+      (const bool flag);
+
+    /// Set flag for using gradients at endpoints of intersected edges.
+    void SetUseIntersectedEdgeEndpointGradients    
       (const bool flag);
 
     /// Return interpolation type.

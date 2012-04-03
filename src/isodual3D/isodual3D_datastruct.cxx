@@ -92,6 +92,13 @@ void ISODUAL_PARAM::SetUseOnlyCubeGradients
   this->use_only_cube_gradients = flag;
 }
 
+/// Set flag for using gradients at endpoints of intersected edges.
+void ISODUAL_PARAM::SetUseIntersectedEdgeEndpointGradients
+(const bool flag)
+{
+  this->use_intersected_edge_endpoint_gradients = flag;
+}
+
 /// Return true if gradient data required.
 bool ISODUAL_PARAM::GradientsRequired() const
 {
