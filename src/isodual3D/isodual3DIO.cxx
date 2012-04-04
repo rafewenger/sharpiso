@@ -48,14 +48,14 @@ namespace {
   typedef enum
     {SUBSAMPLE_PARAM, SUPERSAMPLE_PARAM,
      GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
-     MAX_EIGEN_PARAM, GRAD_S_OFFSET_PARAM, RAY_I_OFFSET_PARAM,
+     MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, RAY_I_OFFSET_PARAM,
      HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
      OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
      NOWRITE_PARAM, SILENT_PARAM, TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
     {"-subsample", "-supersample",
      "-gradient", "-position", "-trimesh", "-uniform_trimesh",
-     "-max_eigen", "-gradS_offset", "-rayI_offset",
+     "-max_eigen", "-max_dist", "-gradS_offset", "-rayI_offset",
      "-help", "-off", "-iv", "-out_param",
      "-o", "-stdout",
      "-nowrite", "-s", "-time", "-unknown"};
@@ -237,6 +237,11 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 
     case MAX_EIGEN_PARAM:
       io_info.max_small_eigenvalue = get_float(iarg, argc, argv);
+      iarg++;
+      break;
+
+    case MAX_DIST_PARAM:
+      io_info.max_dist = get_float(iarg, argc, argv);
       iarg++;
       break;
 
@@ -1111,7 +1116,8 @@ namespace {
   cerr << "  [-subsample S] [-supersample S]" << endl;
   cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|gradIE|gradES|gradEC}]" << endl;
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
-  cerr << "  [-max_eigen {max}] [-gradS_offset {offset}] [-rayI_offset {offset}]" 
+  cerr << "  [-max_eigen {max}]" << endl;
+  cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-rayI_offset {offset}]" 
        << endl;
   cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
   << endl;
@@ -1173,9 +1179,11 @@ void ISODUAL3D::help()
   cout << "  -gradient {gradient_nrrd_filename}: Read gradients from gradient nrrd file." << endl;
   cerr << "  -max_eigen {max}: Set maximum small eigenvalue to max."
        << endl;
+  cerr << "  -max_dist {D}:    Set max Linf distance from cube to isosurface vertex." 
+       << endl;
   cerr << "  -gradS_offset {offset}: Set cube offset for gradient selection to offset."
        << endl;
-  cerr << "  -rayI_offset {offset}: Set cube offset for ray intersection to offset."
+  cerr << "  -rayI_offset {offset}:  Set cube offset for ray intersection to offset."
        << endl;
   cout << "  -trimesh:   Output triangle mesh." << endl;
   cout << "  -off: Output in geomview OFF format. (Default.)" << endl;
@@ -1215,9 +1223,6 @@ void ISODUAL3D::IO_INFO::Init()
   supersample_resolution = 2;
   flag_color_alternating = false;  // color simplices in alternating cubes
   region_length = 1;
-  /* OBSOLETE
-  flag_output_tri_mesh = false;
-  */
   max_small_eigenvalue = 0.1;
   flag_output_param = false;
 }
@@ -1323,6 +1328,7 @@ void ISODUAL3D::set_isodual_data
   isodual_data.SetUseIntersectedEdgeEndpointGradients
     (io_info.use_intersected_edge_endpoint_gradients);
   isodual_data.max_small_eigenvalue = io_info.max_small_eigenvalue;
+  isodual_data.max_dist = io_info.max_dist;
   isodual_data.grad_selection_cube_offset =
     io_info.grad_selection_cube_offset;
   isodual_data.ray_intersection_cube_offset =
