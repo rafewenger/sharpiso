@@ -916,10 +916,9 @@ void usage_error()
     cerr << "OPTIONS:" << endl;
     cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\""
     << endl;
-    cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS | -gradIE ]" << endl;
+    cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS | -gradIE | gradES | gradEC ]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -dist2vert | -vertex <vertex_index> | -vc \"vertex coordinates\"" << endl;
-    cerr << "  -svd_grad | -svd_edge_simple | -svd_edge_cmplx"<<endl;
     cerr << "  -max_eigen <value> | -gradS_offset <value> -rayI_offset <value>"
          << endl;
     cerr << "  -listg | -list_subgrid" << endl;
@@ -1021,13 +1020,10 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-list_eigen") {
       flag_list_eigen = true;
     }
-    else if(s == "-svd_grad") {
-      flag_svd_gradients = true;
-    }
-    else if(s == "-svd_edge_simple") {
+    else if (s == "-gradES") {
       flag_svd_edges_simple = true;
     }
-    else if(s == "-svd_edge_cmplx") {
+    else if (s == "-gradEC") {
       flag_svd_edges_cmplx = true;
     }
     else if (s == "-centroid") {
@@ -1175,11 +1171,10 @@ void help()
        << endl;
   cerr << "  -neighbor <cube_index>:  Use gradients from cube and" << endl
        << "           neighbors of cube <cube_index>." << endl;
-  cerr << "  -svd_grad: Compute using svd directly on gradients."<<endl;
-  cerr << "  -svd_edge_simple: Interpolate intersection points/normals and"
+  cerr << "  -gradES: Interpolate intersection points/normals and"
        << endl
        << "           apply svd." << endl;
-  cerr << "  -svd_edge_cmplx:  Compute edge-isosurface intersection points/normals"
+  cerr << "  -gradEC:  Compute edge-isosurface intersection points/normals"
        << endl
        << "           using gradient assignment and apply svd." << endl;
   cerr << "  -coord \"point_coord\":  Compute scalar values at coordinate point_coord." << endl;
