@@ -55,11 +55,9 @@ bool sh_cube::setup_shCube
     }
        
 	     
-    //if (!(isovalue >= min_sval && isovalue <= max_sval))
-    if (!(isovalue > min_sval && isovalue < max_sval))
-	{ 
-        return false;
-	}
+    if (isovalue <= min_sval || isovalue > max_sval)
+      {  return false; }
+
     EDGE temp;
     temp.p1=cb.pts[0];
     temp.p2=cb.pts[1];

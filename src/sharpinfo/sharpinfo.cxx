@@ -921,7 +921,8 @@ void usage_error()
     cerr << "  [-lindstrom | -rayI]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -dist2vert | -vertex <vertex_index> | -vc \"vertex coordinates\"" << endl;
-    cerr << "  -max_eigen <value> | -gradS_offset <value> -rayI_offset <value>"
+    cerr << "  -max_eigen <value>" << endl;
+    cerr << "  -gradS_offset <value> | -rayI_offset <value> | -max_dist <value>"
          << endl;
     cerr << "  -listg | -list_subgrid" << endl;
     exit(10);
@@ -1071,6 +1072,10 @@ void parse_command_line(int argc, char **argv)
       ray_intersection_cube_offset = get_float(iarg, argc, argv);
       iarg++;
     }
+    else if (s == "-max_dist") {
+      sharp_isovert_param.max_dist = get_float(iarg, argc, argv);
+      iarg++;
+    }
     else if (s == "-max_eigen") {
       sharp_isovert_param.max_small_eigenvalue = get_float(iarg, argc, argv);
       iarg++;
@@ -1193,7 +1198,10 @@ void help()
   cerr << "  -cube_offset2: Cube offset for intersection calculations."
        << endl;
   cerr << "                 Initial value set to 0.3." << endl;
-  cerr << "  -max_eigen <V>: Normalized eigenvalues below V are set to zero." << endl;
+  cerr << "  -max_eigen <V>: Normalized eigenvalues below V are set to zero." 
+       << endl;
+  cerr << "  -max_dist <V>:  Maximum distance from cube to isosurface vertex."
+       << endl;
   cerr << "  -listg: List gradients." << endl;
   cerr << "  -list_subgrid:  List all scalar values at vertices of subgrid." << endl;
   cerr << "  -dist2vert: Distance from vertex to planes defined by gradients" 

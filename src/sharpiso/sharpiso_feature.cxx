@@ -764,7 +764,7 @@ void SHARPISO::compute_isosurface_grid_edge_centroid
       SCALAR_TYPE s1 = scalar_grid.Scalar(iend1);
       bool is_end1_positive = true;
       if (s1 < isovalue)
-      { is_end1_positive = false; };
+        { is_end1_positive = false; };
 
       if (is_end0_positive != is_end1_positive) {
 
@@ -787,7 +787,7 @@ void SHARPISO::compute_isosurface_grid_edge_centroid
   else {
     scalar_grid.ComputeCoord(iv, vcoord);
     for (int d = 0; d < dimension; d++)
-    { vcoord[iv] += 0.5; };
+      { vcoord[d] += 0.5; };
   }
 
   IJK::copy_coord(dimension, vcoord, coord);

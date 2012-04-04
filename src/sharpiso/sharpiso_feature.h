@@ -347,7 +347,7 @@ namespace SHARPISO {
      std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
      std::vector<SCALAR_TYPE> & scalar,
      NUM_TYPE & num_gradients);
-  
+
   // **************************************************
   // OFFSET_CUBE_111
   // **************************************************
