@@ -98,15 +98,21 @@ void compute_cube_vertex
 
 
 // Compute A inverse using svd
+/*
 MatrixXf compute_A_inverse
 (const MatrixXf A, const EIGENVALUE_TYPE  err_tolerance,
  MatrixXf &singularValues, NUM_TYPE & num_singular_vals );
-
+*/
+void compute_A_inverse
+(const MatrixXf A, const EIGENVALUE_TYPE  err_tolerance,
+ MatrixXf &singularValues, NUM_TYPE & num_singular_vals, MatrixXf & );
+ 
  // Compute X as Ainverse times B
-RowVectorXf compute_X(const MatrixXf Inv_A, RowVectorXf B);
+void compute_X(const MatrixXf Inv_A, RowVectorXf B,RowVectorXf &);
+
 // FUNCTION compute w
-RowVectorXf calculate_w
-(const MatrixXf & inA, const MatrixXf & A, const MatrixXf &I);
+void calculate_w
+(const MatrixXf & inA, const MatrixXf & A, const MatrixXf &I, RowVectorXf &w);
 
 // function to normalize an array
 void normalize(const GRADIENT_COORD_TYPE *intial, GRADIENT_COORD_TYPE  *normalized);
