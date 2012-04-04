@@ -64,6 +64,7 @@ bool flag_svd_edges_cmplx(false);
 bool flag_dist2vert(false);
 bool flag_cube_set(false);
 bool flag_vertex_set(false);
+bool flag_use_lindstrom(false);
 
 // compute isosurface vertices
 void compute_iso_vertex_using_svd
@@ -514,7 +515,7 @@ void output_svd_results
          << "): "
          << num_large_eigenvalues << endl;
 
-  if(num_large_eigenvalues == 2) {
+  if(num_large_eigenvalues == 2 && !flag_use_lindstrom) {
     output << "Ray: ";
     print_coord3D(output, svd_info.ray_initial_point);
     output << " + t";
@@ -916,10 +917,10 @@ void usage_error()
     cerr << "OPTIONS:" << endl;
     cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\""
     << endl;
-    cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS | -gradIE ]" << endl;
+    cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS | -gradIE | gradES | gradEC ]" << endl;
+    cerr << "  [-lindstrom | -rayI]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -dist2vert | -vertex <vertex_index> | -vc \"vertex coordinates\"" << endl;
-    cerr << "  -svd_grad | -svd_edge_simple | -svd_edge_cmplx"<<endl;
     cerr << "  -max_eigen <value> | -gradS_offset <value> -rayI_offset <value>"
          << endl;
     cerr << "  -listg | -list_subgrid" << endl;
@@ -1021,14 +1022,13 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-list_eigen") {
       flag_list_eigen = true;
     }
-    else if(s == "-svd_grad") {
-      flag_svd_gradients = true;
-    }
-    else if(s == "-svd_edge_simple") {
+    else if (s == "-gradES") {
       flag_svd_edges_simple = true;
+      flag_use_lindstrom = true;    // *** CURRENTLY ONLY LINDSTROM
     }
-    else if(s == "-svd_edge_cmplx") {
+    else if (s == "-gradEC") {
       flag_svd_edges_cmplx = true;
+      flag_use_lindstrom = true;    // *** CURRENTLY ONLY LINDSTROM
     }
     else if (s == "-centroid") {
       flag_centroid = true;
@@ -1060,6 +1060,12 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-gradS_offset") {
       grad_selection_cube_offset = get_float(iarg, argc, argv);
       iarg++;
+    }
+    else if (s == "-lindstrom") {
+      flag_use_lindstrom = true;
+    }
+    else if (s == "-rayI") {
+      flag_use_lindstrom = false;
     }
     else if (s == "-rayI_offset") {
       ray_intersection_cube_offset = get_float(iarg, argc, argv);
@@ -1175,13 +1181,14 @@ void help()
        << endl;
   cerr << "  -neighbor <cube_index>:  Use gradients from cube and" << endl
        << "           neighbors of cube <cube_index>." << endl;
-  cerr << "  -svd_grad: Compute using svd directly on gradients."<<endl;
-  cerr << "  -svd_edge_simple: Interpolate intersection points/normals and"
+  cerr << "  -gradES:    Interpolate intersection points/normals and"
        << endl
        << "           apply svd." << endl;
-  cerr << "  -svd_edge_cmplx:  Compute edge-isosurface intersection points/normals"
+  cerr << "  -gradEC:    Compute edge-isosurface intersection points/normals"
        << endl
-       << "           using gradient assignment and apply svd." << endl;
+       << "                using gradient assignment and apply svd." << endl;
+  cerr << "  -lindstrom: Use Lindstrom's equation for calculating point on sharp feature." << endl;
+  cerr << "  -rayI:      Use intersection of ray and cubes for calculating point on sharp feature." << endl;
   cerr << "  -coord \"point_coord\":  Compute scalar values at coordinate point_coord." << endl;
   cerr << "  -cube_offset2: Cube offset for intersection calculations."
        << endl;
