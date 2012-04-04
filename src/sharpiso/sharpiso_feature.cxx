@@ -99,7 +99,6 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
     ( scalar_grid, gradient_grid, cube_index, isovalue, sharp_isovert_param,
      ray_origin, ray_direction, sharp_coord, flag_use_centroid, svd_info);
     svd_info.SetRayInfo(ray_origin, ray_direction, sharp_coord, !flag_use_centroid);
-
   }
 
   bool flag_use_ray_cube_intersection = false;
@@ -143,6 +142,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
       }
     }
   }
+
   if (num_large_eigenvalues  == 1 || flag_use_centroid == true)
   {
     compute_isosurface_grid_edge_centroid
