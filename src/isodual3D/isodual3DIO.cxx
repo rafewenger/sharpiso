@@ -1327,6 +1327,7 @@ void ISODUAL3D::set_isodual_data
   isodual_data.SetUseOnlyCubeGradients(io_info.use_only_cube_gradients);
   isodual_data.SetUseIntersectedEdgeEndpointGradients
     (io_info.use_intersected_edge_endpoint_gradients);
+  isodual_data.use_lindstrom = io_info.use_lindstrom;
   isodual_data.max_small_eigenvalue = io_info.max_small_eigenvalue;
   isodual_data.max_dist = io_info.max_dist;
   isodual_data.grad_selection_cube_offset =

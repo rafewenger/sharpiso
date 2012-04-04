@@ -1293,6 +1293,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   use_only_cube_gradients = false;
   use_selected_gradients = true;
   use_intersected_edge_endpoint_gradients = false;
+  use_lindstrom = false;
   max_dist = 1.0;
   grad_selection_cube_offset = 0;
   ray_intersection_cube_offset = 0;

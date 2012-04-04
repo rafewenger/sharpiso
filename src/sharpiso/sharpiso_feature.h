@@ -391,6 +391,7 @@ namespace SHARPISO {
     bool use_only_cube_gradients;
     bool use_selected_gradients;
     bool use_intersected_edge_endpoint_gradients;
+    bool use_lindstrom;
     SIGNED_COORD_TYPE grad_selection_cube_offset;
     SIGNED_COORD_TYPE ray_intersection_cube_offset;
     
