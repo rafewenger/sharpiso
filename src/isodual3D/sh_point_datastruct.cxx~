@@ -53,8 +53,10 @@ bool sh_cube::setup_shCube
         }
         cb.pts.push_back(p); 
     }
-       
-	     
+        //cout <<" isovalue "<<isovalue <<endl;
+	      //cout <<" max "<<max_sval<<endl;
+	      //cout <<" min "<<min_sval<<endl;
+	      cout <<" intersect "<<int (isovalue > min_sval && isovalue < max_sval)<<endl;
     //if (!(isovalue >= min_sval && isovalue <= max_sval))
     if (!(isovalue > min_sval && isovalue < max_sval))
 	{ 

@@ -91,6 +91,7 @@ void set_pt_intersect
 		//set scalar
 		e.pt_intersect.scalar = isovalue;
 		double lambda = (isovalue-e.p1.scalar)/(e.p2.scalar-e.p1.scalar);
+		cout <<"lamda"<<lambda<<endl;
 		set_gradients(e,lambda);
 		set_positions(e,lambda);
 	}
@@ -139,8 +140,8 @@ void set_pt_intersect
 					p_lambda.grads[i]=0.0;
 				// compute lambda2 based on lambda 
 				double lambda2 = 0.0;
-
-				if (e.p1.scalar <isovalue && isovalue<=s_lambda) 
+				
+				if (e.p1.scalar <=isovalue && isovalue<=s_lambda) 
 				{
 					lambda2=(isovalue-e.p1.scalar)/(s_lambda-e.p1.scalar);
 					if (lambda2 > 1.0 || lambda2<0.0) {
@@ -160,7 +161,7 @@ void set_pt_intersect
 						interpolate_positions(e, p_lambda, e.p2, lambda2);
 						assign_gradients(e, e.p2);}
 				}
-				else if(e.p2.scalar<isovalue && isovalue<=s_lambda){
+				else if(e.p2.scalar<=isovalue && isovalue<=s_lambda){
 					lambda2=(isovalue-e.p2.scalar)/(s_lambda-e.p2.scalar);
 					if (lambda2 > 1.0 || lambda2 < 0.0) {
 						use_simple_interp = true;
@@ -183,11 +184,13 @@ void set_pt_intersect
 				}
 			}
 		}
+		
+		
 		if (use_simple_interp || denominator == 0.0) {
 			//set scalar
 			e.pt_intersect.scalar = isovalue;
 			double lambda = (isovalue-e.p1.scalar)/(e.p2.scalar-e.p1.scalar);
-
+			
 			set_gradients(e,lambda);
 			set_positions(e,lambda);
 		}
@@ -250,14 +253,14 @@ bool shFindPoint
 	const  SCALAR_TYPE   EIGEN_VALUE_CUTOFF,
 	float eigenvalues[DIM3],
 	int &num_large_eigenvalues,
-	SVD_INFO &svd_info,
+	SVD_INFO &svd_debug_info,
 	COORD_TYPE *shpoint)
 {
 	//setup sh_cube.
 	CUBE cb;
 	bool cubeSetup(true);
 	cubeSetup = sh_cube::setup_shCube
-		(cb, gradients, isovalue, scalar_vals);
+	(cb, gradients, isovalue, scalar_vals);
 
 	for (int i = 0; i < DIM3; i++)
 	{ eigenvalues[i] = 0; }
@@ -269,11 +272,11 @@ bool shFindPoint
 	//setup edge_intercepts.
 	setup_edgeIntercepts
 		(cb, isovalue, use_cmplx_interp);
-
+	
 	//find point calculations.
 	findPoint
 		(cb, EIGEN_VALUE_CUTOFF, eigenvalues, num_large_eigenvalues,
-		svd_info, shpoint);
+		svd_debug_info, shpoint);
 
 	return true;
 };
