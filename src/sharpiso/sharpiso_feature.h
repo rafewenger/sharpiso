@@ -135,6 +135,20 @@ namespace SHARPISO {
    const OFFSET_CUBE_111 & cube_111);
   
   /// Compute sharp isosurface vertex using simple interpolation on the edges.
+  // with sharp isovert param
+  void svd_compute_sharp_vertex_in_cube_edge_based_simple
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const GRADIENT_COORD_TYPE max_small_mag,
+   const EIGENVALUE_TYPE max_small_eigenvalue,
+   const SCALAR_TYPE cube_offset2,
+   COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
+   NUM_TYPE & num_large_eigenvalues,
+   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+   SVD_INFO & svd_info);
+   // with out the sharp isovert param
   void svd_compute_sharp_vertex_in_cube_edge_based_simple
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -161,6 +175,18 @@ namespace SHARPISO {
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
   
+   void svd_compute_sharp_vertex_in_cube_edge_based_cmplx
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const GRADIENT_COORD_TYPE max_small_mag,
+   const EIGENVALUE_TYPE max_small_eigenvalue,
+   const SCALAR_TYPE cube_offset2,
+   COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
+   NUM_TYPE & num_large_eigenvalues,
+   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+   SVD_INFO & svd_info);
   // **************************************************
   // SUBGRID ROUTINES TO COMPUTE SHARP VERTEX/EDGE
   // **************************************************

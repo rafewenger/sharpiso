@@ -1,11 +1,11 @@
 /*
- *  sh_point_svdcal.cxx
- *  SHARPPOINT
- *
- *  Created by arindam bhattacharya on 11/6/11.
- *  Copyright 2011 Ohio State University. All rights reserved.
- *
- */
+*  sh_point_svdcal.cxx
+*  SHARPPOINT
+*
+*  Created by arindam bhattacharya on 11/6/11.
+*  Copyright 2011 Ohio State University. All rights reserved.
+*
+*/
 
 #include "sh_point_svdcal.h"
 #include "sh_point_datastruct.h"
@@ -16,13 +16,13 @@
 
 using namespace sh_cube;
 /*
- Normalize a vector
- */
+Normalize a vector
+*/
 
 void normalize3D(GRADIENT_COORD_TYPE intial[], GRADIENT_COORD_TYPE normalized[])
 {
   double sum(0.0),mag(0.0);
-	for (int i=0; i<3; i++) {
+  for (int i=0; i<3; i++) {
     sum = sum + intial[i]*intial[i];
   }
   if (sum>0) {
@@ -35,12 +35,12 @@ void normalize3D(GRADIENT_COORD_TYPE intial[], GRADIENT_COORD_TYPE normalized[])
 
 
 /*
- Check if the point is inside the cube.
- */
+Check if the point is inside the cube.
+*/
 bool inCube(COORD_TYPE *pt){
   if (((pt[0]>= 0.0) && (pt[0]<= 1.0))
-      &&((pt[1]>= 0.0) && (pt[1]<= 1.0))
-      &&((pt[2]>= 0.0) && (pt[2]<= 1.0)))
+    &&((pt[1]>= 0.0) && (pt[1]<= 1.0))
+    &&((pt[2]>= 0.0) && (pt[2]<= 1.0)))
   {
     return true;
   }
@@ -51,8 +51,8 @@ bool inCube(COORD_TYPE *pt){
 };
 
 /*
- clamp to 0 /1 based on a threshold 't'.
- */
+clamp to 0 /1 based on a threshold 't'.
+*/
 void clamp (COORD_TYPE *coord, const SCALAR_TYPE t)
 {
   for (int i = 0; i < 3; i++) {
@@ -71,8 +71,8 @@ void clamp (COORD_TYPE *coord, const SCALAR_TYPE t)
 }
 
 /*
- set sharp point to cube center
- */
+set sharp point to cube center
+*/
 void setCubeCenter(COORD_TYPE *shpoint)
 {
   for (int i=0; i<3; i++) {
@@ -81,8 +81,8 @@ void setCubeCenter(COORD_TYPE *shpoint)
 };
 
 /*
- set sharp point to cube centroid.
- */
+set sharp point to cube centroid.
+*/
 
 void setCubeCentroid(const CUBE &cb, NUM_TYPE index[], COORD_TYPE *shpoint)
 {
@@ -118,8 +118,8 @@ float CalMag( RowVectorXf &res){
 };
 
 /*
- Function to Calculate the w
- */
+Function to Calculate the w
+*/
 RowVectorXf Cal_w(MatrixXf &pseudoInverse,const MatrixXf  &m,const MatrixXf  &I)
 {
   vector<RowVectorXf> e;
@@ -151,12 +151,12 @@ RowVectorXf Cal_w(MatrixXf &pseudoInverse,const MatrixXf  &m,const MatrixXf  &I)
   return e[index];
 }
 /*
- Compute pseudo inverse of sigma
- notes:
- before calculating the cutoff, the eigen values must be normalized.
- to normalize the eigen value divide the all of them with the largest one.
+Compute pseudo inverse of sigma
+notes:
+before calculating the cutoff, the eigen values must be normalized.
+to normalize the eigen value divide the all of them with the largest one.
 
- */
+*/
 void computePseudoSigmaInv
 (MatrixXf &PseudoInvSigma,
  MatrixXf &singular_vals,
@@ -183,8 +183,8 @@ void computePseudoSigmaInv
 
 
 /*
- compute the pseudo inverse of m
- */
+compute the pseudo inverse of m
+*/
 MatrixXf computePseudoinv
 ( const MatrixXf &m,
  const double EIGEN_VALUE_CUTOFF,
@@ -205,7 +205,7 @@ MatrixXf computePseudoinv
 
   // compute the pseudo inverse.
   MatrixXf PseudoInvSigma =
-  MatrixXf::Zero(num_singular_values,num_singular_values);
+    MatrixXf::Zero(num_singular_values,num_singular_values);
 
   computePseudoSigmaInv
     (PseudoInvSigma, singular_vals, num_svals, EIGEN_VALUE_CUTOFF );
@@ -215,117 +215,7 @@ MatrixXf computePseudoinv
   return pseudoInverse;
 };
 
-//
-// Find the sharp point inside cube. old find point.
-//
-/*
- void sh_cube::findPoint
- (const CUBE &cb,
- const SCALAR_TYPE EIGEN_VALUE_CUTOFF,
- float eigenvalues[DIM3],
- int &num_large_eigenvalues,
- SVD_INFO &svd_debug_info,
- COORD_TYPE *shpoint)
- {
- //set m
- int ind[cb.ne_intersect]; //ind (index) keeep tracks of the edges which are intersected
 
- int i = 0;
- MatrixXf m(cb.ne_intersect, cb.dim);
- for (int k = 0; k < cb.num_edges; k++) {
- if (cb.edges[k].is_intersect) {
- for (int j = 0; j < 3; j++) {
- m(i,j) = cb.edges[k].pt_intersect.grads[j];
- }
- ind[i]=k;
- i++;
- }
- }
-
- //set b
- RowVectorXf b(cb.ne_intersect);
- for (int i=0; i<cb.ne_intersect; i++) {
- b(i)=m(i,0)*cb.edges[ind[i]].pt_intersect.pos[0]+
- m(i,1)*cb.edges[ind[i]].pt_intersect.pos[1]+
- m(i,2)*cb.edges[ind[i]].pt_intersect.pos[2];
- }
-
-
- //compute pseudo inverse of m. and also return the number of sing vals.
- int num_svals = 0;
-
- MatrixXf pseudoInv_m = computePseudoinv(m, EIGEN_VALUE_CUTOFF, num_svals, eigenvalues);
- num_large_eigenvalues = num_svals;
-
- // x = m inv *b, mx=b
- RowVectorXf x;
- x = pseudoInv_m*b.transpose();
-
- if (num_svals == 3 ) {
- //set shpoint to x
- shpoint[0] = x(0);
- shpoint[1] = x(1);
- shpoint[2] = x(2);
-
- //clamp the shpoint
- // clamp (shpoint, clamp_threshold);
-
- bool isInsideCube = inCube(shpoint);
- if (!isInsideCube) {
- //check centroid.
- setCubeCentroid(cb, ind, shpoint);
- // using centroid
- svd_debug_info.location = CENTROID;
- }
- }
- else if ( num_svals == 2 ){
- RowVectorXf tempdir;
- MatrixXf I(3,3);
-
- I<< 1,0,0, 0,1,0, 0,0,1;
- RowVectorXf w = Cal_w(pseudoInv_m, m, I );
- tempdir = (I-pseudoInv_m*m)*w.transpose();
- GRADIENT_COORD_TYPE dir[DIM3];
- dir[0]=tempdir(0);
- dir[1]=tempdir(1);
- dir[2]=tempdir(2);
-
- normalize3D(dir, dir);
-
- //given x and ray direction , check if this intersects the identity cube.
- SCALAR_TYPE intersect[3]={0.0};
- SCALAR_TYPE p[3]={0.0};
- p[0]=x(0);
- p[1]=x(1);
- p[2]=x(2);
-
- bool isIntersect = calculate_point_intersect(p, dir, shpoint);
- svd_debug_info.ray_direction[0] = dir[0];
- svd_debug_info.ray_direction[1] = dir[1];
- svd_debug_info.ray_direction[2] = dir[2];
- svd_debug_info.ray_initial_point[0] = p[0];
- svd_debug_info.ray_initial_point[1] = p[1];
- svd_debug_info.ray_initial_point[2] = p[2];
-
- if (isIntersect) {
- svd_debug_info.ray_intersect_cube = true;
-
- for (int i=0; i<3; i++) {
- shpoint[i] = intersect[i];
- }
- }
- else {
- svd_debug_info.location = CENTROID;
- setCubeCentroid(cb, ind, shpoint);
- }
- }
- else {
- // One or less singular values
- setCubeCentroid(cb, ind, shpoint);
- svd_debug_info.location = CENTROID;
- }
- }
- */
 
 ///// svd computation for edge complex
 
@@ -364,15 +254,16 @@ void sh_cube::findPoint
   RowVectorXf b(cb.ne_intersect);
   for (int i=0; i<cb.ne_intersect; i++) {
     b(i)=m(i,0)*cb.edges[ind[i]].pt_intersect.pos[0]+
-    m(i,1)*cb.edges[ind[i]].pt_intersect.pos[1]+
-    m(i,2)*cb.edges[ind[i]].pt_intersect.pos[2];
+      m(i,1)*cb.edges[ind[i]].pt_intersect.pos[1]+
+      m(i,2)*cb.edges[ind[i]].pt_intersect.pos[2];
   }
   MatrixXf singular_values;
 
   // compute the cube vertex
   compute_cube_vertex
-  (m, b, singular_values,  EIGEN_VALUE_CUTOFF,
-   num_singular_vals, centroid, isoVertcoords);
+    (m, b, singular_values,  EIGEN_VALUE_CUTOFF,
+    num_singular_vals, centroid, isoVertcoords);
+
   //set up singular values. convert from eigen data type to floating type.
   for (int i=0; i<num_singular_vals; i++)
   { singular_vals[i]  = singular_values(i); }

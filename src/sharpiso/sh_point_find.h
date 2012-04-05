@@ -36,6 +36,15 @@ bool shFindPoint
  SVD_INFO &svd_debug_info, 
  COORD_TYPE *shpoint)
 ;
-
+bool shFindPoint
+(const GRADIENT_COORD_TYPE gradients[],
+ const  SCALAR_TYPE  scalar_vals[],
+ const  SCALAR_TYPE  isovalue, const  bool use_cmplx_interp, 
+ const  SCALAR_TYPE EIGEN_VALUE_CUTOFF, float eigenvalues[DIM3],
+ int &num_large_eigenvalues, 
+ SVD_INFO &svd_debug_info, 
+ const float threshold_cube_offset,
+ COORD_TYPE *shpoint)
+;
 
 
