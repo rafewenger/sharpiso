@@ -86,10 +86,9 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
 	GRADIENT_COORD_TYPE ray_direction[DIM3]={0.0};
 
 	/// svd_calculate_sharpiso vertex using lindstrom
-
+  
 	if (sharp_isovert_param.use_lindstrom)
 	{
-
 		COORD_TYPE default_center[DIM3] = {0.5,0.5,0.5};
 		COORD_TYPE cube_center[DIM3];
 		IJK::add_coord_3D(cube_coord, default_center, cube_center);
@@ -99,8 +98,9 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
 			num_gradients, isovalue, max_small_eigenvalue,
 			num_large_eigenvalues, eigenvalues, cube_center, sharp_coord);
 		
+		IJK::round16_coord(DIM3, sharp_coord, sharp_coord);
 		// the distance used in lindstorm is max_dist-1. 
-		clamp_point(sharp_isovert_param.max_dist-1.0, cube_coord, sharp_coord);
+		clamp_point(sharp_isovert_param.max_dist, cube_coord, sharp_coord);
 		
 	}
 	else{

@@ -312,7 +312,7 @@ bool shFindPoint
 	  (cb, EIGEN_VALUE_CUTOFF, eigenvalues, num_large_eigenvalues,
 	  svd_info, shpoint);
 	  
-   clamp_point (threshold_cube_offset-1.0, shpoint);
+   clamp_point (threshold_cube_offset, shpoint);
 
   return true;
 };

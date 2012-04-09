@@ -1064,6 +1064,7 @@ void parse_command_line(int argc, char **argv)
     }
     else if (s == "-lindstrom") {
       flag_use_lindstrom = true;
+       sharp_isovert_param.use_lindstrom = true;
     }
     else if (s == "-rayI") {
       flag_use_lindstrom = false;
