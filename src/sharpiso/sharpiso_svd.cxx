@@ -62,7 +62,55 @@ void normalize(const GRADIENT_COORD_TYPE *intial,GRADIENT_COORD_TYPE  *normalize
   }
 }
 
+// calculate the sharp iso vertex using SVD, 
+// and the lindstrom approach
+// this is called from svd_compute_sharp_vertex_for_cube in sharpiso_feature.cxx
+void svd_calculate_sharpiso_vertex_using_lindstrom
+(const COORD_TYPE * vert_coords,
+ const GRADIENT_COORD_TYPE * vert_grads,
+ const SCALAR_TYPE * vert_scalars,
+ const NUM_TYPE  num_vert,
+ const SCALAR_TYPE isovalue,
+ const EIGENVALUE_TYPE err_tolerance,
+ NUM_TYPE & num_singular_vals,
+ EIGENVALUE_TYPE singular_vals[DIM3],
+ COORD_TYPE * cubecenter,
+ COORD_TYPE * isoVertcoords)
+{
+  if (num_vert == 0)
+    return;
+  // Initialize variables
+  for (int i=0; i<DIM3; i++)
+  {
+    singular_vals[i] = 0.0;   // set the default singular values to zero.
+    isoVertcoords[i] = 0.5;   // set the default value to cube center.
+  }
 
+  /// Find point x (3 coordinates) such that:
+  /// (g_i) cdot (x - p_i) + s_i = isovalue
+  // singular values
+  MatrixXf singular_values;
+
+  //Compute A where A is g_i's
+  //call the version which normalizes the gradients
+  MatrixXf A(num_vert, DIM3);
+  compute_A_normalize(vert_grads, num_vert, A);
+
+  //Compute B where B is isovalue - s_i + g_i*p_i;
+  RowVectorXf B(num_vert);
+  compute_B_normalize(vert_coords, vert_grads, vert_scalars, num_vert, isovalue, B);
+  RowVectorXf eigen_cubecenter(DIM3);
+  eigen_cubecenter<<  cubecenter[0],cubecenter[1],cubecenter[2];
+  
+  // compute the cube vertex
+  compute_cube_vertex
+    ( A, B, singular_values, err_tolerance, num_singular_vals, eigen_cubecenter, isoVertcoords); 
+  
+  //set up singular values. convert from eigen data type to floating type.
+  for (int i=0; i<num_singular_vals; i++)
+  { singular_vals[i]  = singular_values(i); }
+
+}
 
 
 // calculate the sharp iso vertex using SVD, but normalize the
@@ -105,6 +153,9 @@ void svd_calculate_sharpiso_vertex_unit_normals
   //Compute A inverse using svd
   //MatrixXf inA = compute_A_inverse(A, err_tolerance, singular_values, num_singular_vals);
   MatrixXf inA(DIM3, num_vert);
+
+
+
   compute_A_inverse(A, err_tolerance, singular_values, num_singular_vals, inA);
   //set up singular values. convert from eigen data type to floating type.
   for (int i=0; i<num_singular_vals; i++)
@@ -142,7 +193,6 @@ void svd_calculate_sharpiso_vertex_unit_normals
     ray_direction[2] = dir[2];
     normalize(ray_direction, ray_direction);
   }
-
 }
 
 // SVD calculate the sharp vertex using only top 2 singular values
@@ -442,7 +492,7 @@ void compute_A_pseudoinverse
 
 // compute_point for edge based dual contouring
 // applying the formula used in  lindstrom
-
+// need not be the centroid , may even be the cube_center
 void compute_cube_vertex
 (const MatrixXf A,
  const RowVectorXf b,
@@ -481,14 +531,8 @@ void compute_cube_vertex
   MatrixXf point = centroid.transpose() + svd.matrixV()*sigma*
     svd.matrixU().transpose()*(b.transpose() - A*centroid.transpose());
 
-  /*
-  MatrixXf point = cube_center.transpose() - svd.matrixV()*sigma.transpose()*
-  svd.matrixU().transpose()*(b - A*cube_center.transpose());
-  */
-
   for (int i=0;i<3;i++)
     sharp_point[i]=point(i);
-
 }
 // FUNCTION compute the pseudo inverse of A using the TOP 2 singular values.
 // helper function to compute_A_inverse.

@@ -274,11 +274,24 @@ namespace SHARPISO {
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
    COORD_TYPE * coord);
-  
+
+  // **************************************************
+  // CLAMP POINTS TO threshold_cube_offset
+  // **************************************************
+// clamp point : shpoint in the global coord 
+  void  clamp_point
+	  ( const float threshold_cube_offset,
+	  COORD_TYPE * cube_coord,
+	  COORD_TYPE * shpoint);
+	// clamp point: shpoint in the local coord
+	void  clamp_point
+	  ( const float threshold_cube_offset,
+	  COORD_TYPE * shpoint);
+
   // **************************************************
   // ROUTINES TO GET GRADIENTS
   // **************************************************
-  
+
   /// Get all 8 cube gradients
   void get_cube_gradients
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,

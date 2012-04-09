@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <stdlib.h>
 #include "sharpiso_svd.h"
+#include "sharpiso_feature.h"
 #include "sh_point_find.h"
 #include "sh_point_datastruct.h"
 #include "sh_point_svdcal.h"
@@ -308,17 +309,10 @@ bool shFindPoint
 
   // find point calculations
   findPoint
-    (cb, EIGEN_VALUE_CUTOFF, eigenvalues, num_large_eigenvalues,
-    svd_info, shpoint);
+	  (cb, EIGEN_VALUE_CUTOFF, eigenvalues, num_large_eigenvalues,
+	  svd_info, shpoint);
+	  
+   clamp_point (threshold_cube_offset-1.0, shpoint);
 
-    // After clamp 
-    for (int i=0;i<3;i++)
-    {
-      if (shpoint[i] < (1.0-threshold_cube_offset))
-        shpoint[i] = (1.0-threshold_cube_offset);
-
-      if (shpoint[i]> threshold_cube_offset)
-        shpoint[i]= threshold_cube_offset;
-    }
-    return true;
+  return true;
 };

@@ -49,14 +49,14 @@ namespace {
     {SUBSAMPLE_PARAM, SUPERSAMPLE_PARAM,
      GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
      MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, RAY_I_OFFSET_PARAM,
-     HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
+	 USE_LINDSTROM,HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
      OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
      NOWRITE_PARAM, SILENT_PARAM, TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
     {"-subsample", "-supersample",
      "-gradient", "-position", "-trimesh", "-uniform_trimesh",
      "-max_eigen", "-max_dist", "-gradS_offset", "-rayI_offset",
-     "-help", "-off", "-iv", "-out_param",
+	 "-lindstrom", "-help", "-off", "-iv", "-out_param",
      "-o", "-stdout",
      "-nowrite", "-s", "-time", "-unknown"};
 
@@ -254,6 +254,10 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
       io_info.ray_intersection_cube_offset = get_float(iarg, argc, argv);
       iarg++;
       break;
+
+	case USE_LINDSTROM:
+		io_info.use_lindstrom =true;
+		break;
 
     case OFF_PARAM:
       io_info.output_format = OFF;
@@ -1119,6 +1123,7 @@ namespace {
   cerr << "  [-max_eigen {max}]" << endl;
   cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-rayI_offset {offset}]" 
        << endl;
+  cerr << "  [-lindstrom]";
   cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
   << endl;
   cerr << "  [-help] [-s] [-out_param] [-nowrite] [-time]" << endl;
