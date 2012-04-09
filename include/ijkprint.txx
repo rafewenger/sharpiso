@@ -25,6 +25,7 @@
 #ifndef _IJKPRINT_
 #define _IJKPRINT_
 
+#include <cmath>
 #include <iostream>
 #include <time.h>
 
@@ -78,7 +79,7 @@ namespace IJK {
     out << s;
   }
 
-  inline void print_time(std::ostream & out, const char * s,
+  inline void print_time(std::ostream & out, const char * s, 
                          const clock_t & t_start, const clock_t & t_end)
   {
     out << s;
@@ -109,7 +110,7 @@ namespace IJK {
     if (denominator != 0) {
       float percent;
       compute_percent(numerator, denominator, percent);
-      percent = floor(percent);
+      percent = std::floor(percent);
       out << "(" << percent << "%)";
     }
   }
