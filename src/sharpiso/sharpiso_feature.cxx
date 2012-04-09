@@ -944,7 +944,6 @@ void  SHARPISO::clamp_point
 	COORD_TYPE * cube_coord,
 	COORD_TYPE * shpoint)
 {
-	if (abs(threshold_cube_offset - 0.0) > 0.001){
 		for (int i=0;i<3;i++)
 		{
 			float p = shpoint[i] -cube_coord[i];
@@ -955,14 +954,13 @@ void  SHARPISO::clamp_point
 				shpoint[i]=  cube_coord[i] + 1.0 + threshold_cube_offset;
 			}
 		}
-	}
+	
 }
 // when the sharp point is in local coordinates
 void  SHARPISO::clamp_point
 	( const float threshold_cube_offset,
 	COORD_TYPE * shpoint)
 {
-	if (abs(threshold_cube_offset - 0.0) > 0.001){
 		for (int i=0;i<3;i++)
 		{
 
@@ -973,7 +971,7 @@ void  SHARPISO::clamp_point
 				shpoint[i]=  1.0 + threshold_cube_offset;
 			}
 		}
-	}
+	
 }
 
 // **************************************************
