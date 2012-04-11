@@ -387,6 +387,21 @@ namespace SHARPISO {
      std::vector<SCALAR_TYPE> & scalar,
      NUM_TYPE & num_gradients);
 
+  /// Get gradients of vertices which determine edge isosurface intersections.
+  /// @param zero_tolerance No division by numbers less than or equal 
+  ///        to zero_tolerance.
+  /// @pre zero_tolerance must be non-negative.
+  void get_gradients_determining_edge_intersections
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index, const GRADIENT_COORD_TYPE max_small_mag,
+   const SCALAR_TYPE isovalue,
+   const GRADIENT_COORD_TYPE zero_tolerance,
+   std::vector<COORD_TYPE> & point_coord,
+   std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+   std::vector<SCALAR_TYPE> & scalar,
+   NUM_TYPE & num_gradients);
+
   // **************************************************
   // OFFSET_CUBE_111
   // **************************************************
@@ -430,10 +445,12 @@ namespace SHARPISO {
     bool use_only_cube_gradients;
     bool use_selected_gradients;
     bool use_intersected_edge_endpoint_gradients;
+    bool use_gradients_determining_edge_intersections;
     bool use_lindstrom;
     SIGNED_COORD_TYPE grad_selection_cube_offset;
     SIGNED_COORD_TYPE ray_intersection_cube_offset;
-    
+    GRADIENT_COORD_TYPE zero_tolerance;
+
     /// Maximum (Linf) distance from cube to isosurface vertex
     SIGNED_COORD_TYPE max_dist;
     

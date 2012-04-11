@@ -1105,15 +1105,22 @@ void SHARPISO::get_gradients
 		sharp_isovert_param.max_small_magnitude;
 
 	if (sharp_isovert_param.use_only_cube_gradients) {
-		if (sharp_isovert_param.use_selected_gradients) {
-			select_cube_gradients
-				(scalar_grid, gradient_grid, cube_index, max_small_magnitude, isovalue,
-				point_coord, gradient_coord, scalar, num_gradients, cube_111);
-		}
-		else if (sharp_isovert_param.use_intersected_edge_endpoint_gradients) {
+    if (sharp_isovert_param.use_intersected_edge_endpoint_gradients) {
 			get_intersected_edge_endpoint_gradients
 				(scalar_grid, gradient_grid, cube_index, max_small_magnitude, isovalue,
 				point_coord, gradient_coord, scalar, num_gradients);
+		}
+    else if (sharp_isovert_param.use_gradients_determining_edge_intersections) {
+      const GRADIENT_COORD_TYPE zero_tolerance = 
+        sharp_isovert_param.zero_tolerance;
+      get_gradients_determining_edge_intersections
+        (scalar_grid, gradient_grid, cube_index, max_small_magnitude, isovalue,
+         zero_tolerance, point_coord, gradient_coord, scalar, num_gradients);
+    }
+		else if (sharp_isovert_param.use_selected_gradients) {
+			select_cube_gradients
+				(scalar_grid, gradient_grid, cube_index, max_small_magnitude, isovalue,
+				point_coord, gradient_coord, scalar, num_gradients, cube_111);
 		}
 		else {
 			get_large_cube_gradients
@@ -1372,6 +1379,129 @@ void SHARPISO::get_intersected_edge_endpoint_gradients
 
 }
 
+
+namespace {
+
+  int axis_size_444[DIM3] = { 4, 4, 4 };
+  SHARPISO_GRID grid_444(DIM3, axis_size_444);
+
+  /// Get vertex whose gradient determines intersection of isosurface 
+  ///    and edge (iv0,iv1)
+  /// @param zero_tolerance No division by numbers less than or equal 
+  ///        to zero_tolerance.
+  /// @pre zero_tolerance must be non-negative.
+  void get_gradient_determining_edge_intersection
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
+   const GRADIENT_COORD_TYPE zero_tolerance,
+   VERTEX_INDEX & iv2)
+  {
+    const SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
+    const SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
+
+    const GRADIENT_COORD_TYPE g0 = gradient_grid.Vector(iv0, dir);
+    const GRADIENT_COORD_TYPE g1 = gradient_grid.Vector(iv1, dir);
+    const GRADIENT_COORD_TYPE gdiff = g0 - g1;
+    
+    iv2 = iv0;
+    if (abs(gdiff) <= zero_tolerance) { return; }
+
+    const SCALAR_TYPE s2 = g0*(g1+s1-s0)/gdiff;
+
+    if (s0 <= s1) {
+      if (isovalue < s2) { iv2 = iv0; }
+      else { iv2 = iv1; }
+    }
+    else {
+      if (isovalue < s2) { iv2 = iv1; }
+      else { iv2 = iv0; }
+    }
+  }
+
+  void flag_cube_gradients_determining_edge_intersections
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const GRADIENT_COORD_TYPE zero_tolerance,
+   bool corner_flags[NUM_CUBE_VERTICES3D])
+  {
+    typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;
+
+    const DTYPE dimension = scalar_grid.Dimension();
+
+    for (VERTEX_INDEX i = 0; i < NUM_CUBE_VERTICES3D; i++)
+      { corner_flags[i] = false; }
+
+    for (DTYPE d = 0; d < dimension; d++) {
+      for (VERTEX_INDEX k = 0; k < scalar_grid.NumFacetVertices(); k++) {
+        VERTEX_INDEX iv0 = scalar_grid.FacetVertex(cube_index, d, k);
+        VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, d);
+        SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
+        SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
+
+        if ((s0 < isovalue && isovalue <= s1) ||
+            (s1 < isovalue && isovalue <= s0)) {
+          VERTEX_INDEX icorner0 = grid_222.FacetVertex(0, d, k);
+          VERTEX_INDEX icorner1 = grid_222.NextVertex(icorner0, d);
+
+          VERTEX_INDEX iv2;
+          get_gradient_determining_edge_intersection
+            (scalar_grid, gradient_grid, isovalue, iv0, iv1, d,
+             zero_tolerance, iv2);
+
+          if (iv2 == iv0) { corner_flags[icorner0] = true; }
+          else { corner_flags[icorner1] = true; }
+        }
+      }
+    }
+
+  }
+
+}
+
+/// Get gradients of vertices which determine edge isosurface intersections.
+/// @param zero_tolerance No division by numbers less than or equal 
+///        to zero_tolerance.
+/// @pre zero_tolerance must be non-negative.
+void SHARPISO::get_gradients_determining_edge_intersections
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index, const GRADIENT_COORD_TYPE max_small_mag,
+ const SCALAR_TYPE isovalue,
+ const GRADIENT_COORD_TYPE zero_tolerance,
+ std::vector<COORD_TYPE> & point_coord,
+ std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+ std::vector<SCALAR_TYPE> & scalar,
+ NUM_TYPE & num_gradients)
+{
+  typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;
+
+  const DTYPE dimension = scalar_grid.Dimension();
+  const GRADIENT_COORD_TYPE max_small_mag_squared =
+    max_small_mag * max_small_mag;
+  bool corner_flags[NUM_CUBE_VERTICES3D];
+
+  flag_cube_gradients_determining_edge_intersections
+    (scalar_grid, gradient_grid, cube_index, isovalue, zero_tolerance,
+     corner_flags);
+
+  for (VERTEX_INDEX j = 0; j < NUM_CUBE_VERTICES3D; j++) {
+    if (corner_flags[j]) {
+      // grid_222.CubeVertex(0,j) will probably be j, but no guarantees.
+      VERTEX_INDEX icorner = grid_222.CubeVertex(0, j);
+      VERTEX_INDEX iv = scalar_grid.CubeVertex(cube_index, icorner);
+
+      add_large_gradient
+        (scalar_grid, gradient_grid, iv, max_small_mag_squared, 
+         point_coord, gradient_coord, scalar, num_gradients);
+    }
+  }
+
+}
+
 // **************************************************
 // MISC ROUTINES
 // **************************************************
@@ -1455,12 +1585,14 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 	use_only_cube_gradients = false;
 	use_selected_gradients = true;
 	use_intersected_edge_endpoint_gradients = false;
+  use_gradients_determining_edge_intersections = false;
 	use_lindstrom = false;
 	max_dist = 1.0;
 	grad_selection_cube_offset = 0;
 	ray_intersection_cube_offset = 0;
 	max_small_magnitude = 0.0;
 	max_small_eigenvalue = 0.1;
+  zero_tolerance = 0.0000001;
 }
 
 // **************************************************
