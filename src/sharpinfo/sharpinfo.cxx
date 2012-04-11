@@ -969,6 +969,7 @@ void parse_command_line(int argc, char **argv)
   bool use_only_cube_gradients(true);
   bool use_selected_gradients(true);
   bool use_intersected_edge_endpoint_gradients(false);
+  bool use_gradients_determining_edge_intersections(false);
   SIGNED_COORD_TYPE grad_selection_cube_offset(0);
   SIGNED_COORD_TYPE ray_intersection_cube_offset(0.3);
 
@@ -1026,10 +1027,12 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-gradES") {
       flag_svd_edges_simple = true;
       flag_use_lindstrom = true;    // *** CURRENTLY ONLY LINDSTROM
+      use_gradients_determining_edge_intersections = true;
     }
     else if (s == "-gradEC") {
       flag_svd_edges_cmplx = true;
       flag_use_lindstrom = true;    // *** CURRENTLY ONLY LINDSTROM
+      use_gradients_determining_edge_intersections = true;
     }
     else if (s == "-centroid") {
       flag_centroid = true;
@@ -1064,7 +1067,6 @@ void parse_command_line(int argc, char **argv)
     }
     else if (s == "-lindstrom") {
       flag_use_lindstrom = true;
-       sharp_isovert_param.use_lindstrom = true;
     }
     else if (s == "-rayI") {
       flag_use_lindstrom = false;
@@ -1159,8 +1161,12 @@ void parse_command_line(int argc, char **argv)
   sharp_isovert_param.use_selected_gradients = use_selected_gradients;
   sharp_isovert_param.use_intersected_edge_endpoint_gradients = 
     use_intersected_edge_endpoint_gradients;
-  sharp_isovert_param.ray_intersection_cube_offset = ray_intersection_cube_offset;
+  sharp_isovert_param.use_gradients_determining_edge_intersections =
+    use_gradients_determining_edge_intersections;
+  sharp_isovert_param.ray_intersection_cube_offset = 
+    ray_intersection_cube_offset;
   sharp_isovert_param.grad_selection_cube_offset = grad_selection_cube_offset;
+  sharp_isovert_param.use_lindstrom = flag_use_lindstrom;
 }
 
 void help()
