@@ -12,6 +12,7 @@ void output_vert_degree
 ( const int numv, vector <int> &vert_degree);
 void output_vert_degree_2_file 
 (const int numv, vector <int> &vert_degree,const string output_fn);
-
+void output_vert_degree_2_file 
+(const int numv, vector <int> &vert_degree);
 #endif
 
