@@ -50,8 +50,8 @@ int main(int argc, char **argv)
     else 
     {
       //compute the output file name
-      compute_output_fn ();
-      output_vert_degree_2_file (num_vertices, vert_degree, output_fn);
+      //compute_output_fn ();
+      output_vert_degree_2_file (num_vertices, vert_degree);
     }
 
   }
