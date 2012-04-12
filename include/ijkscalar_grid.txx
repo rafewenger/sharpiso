@@ -1878,6 +1878,32 @@ namespace IJK {
     return(false);
   }
 
+  /// Returns true if \a s is greater than min scalar value of (iv0,iv1)
+  ///   and \a s is less then or equal to max scalar value of (iv0,iv1)
+  /// @param scalar_grid Scalar grid.
+  /// @param iv0 First vertex index.
+  /// @param iv1 Second vertex index.
+  /// @param s Scalar value
+  template <typename GRID_TYPE, typename ITYPE0, typename ITYPE1,
+            typename STYPE>
+  bool is_gt_min_le_max
+  (const GRID_TYPE & scalar_grid, const ITYPE0 iv0, const ITYPE1 iv1,
+   const STYPE s)
+  {
+    const STYPE s0 = scalar_grid.Scalar(iv0);
+    const STYPE s1 = scalar_grid.Scalar(iv1);
+
+    if (s0 < s) {
+      if (s1 >= s) { return(true); }
+      else { return(false); }
+    }
+    else {
+      if (s1 < s) { return(true); }
+      else { return(false); }
+    }
+  }
+
+
   // **************************************************
   // TEMPLATE OUTPUT FUNCTIONS
   // **************************************************
