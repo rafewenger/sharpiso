@@ -917,7 +917,7 @@ void usage_error()
     cerr << "OPTIONS:" << endl;
     cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\""
     << endl;
-    cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS | -gradIE | gradES | gradEC ]" << endl;
+    cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS | -gradIE | gradNIE | gradES | gradEC ]" << endl;
     cerr << "  [-lindstrom | -rayI]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -dist2vert | -vertex <vertex_index> | -vc \"vertex coordinates\"" << endl;
@@ -1058,6 +1058,11 @@ void parse_command_line(int argc, char **argv)
     }
     else if (s == "-gradIE") {
       use_only_cube_gradients = true;
+      use_selected_gradients = false;
+      use_intersected_edge_endpoint_gradients = true;
+    }
+    else if (s == "-gradNIE") {
+      use_only_cube_gradients = false;
       use_selected_gradients = false;
       use_intersected_edge_endpoint_gradients = true;
     }
