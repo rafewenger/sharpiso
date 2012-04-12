@@ -10,5 +10,8 @@ void output_edges
  const VERTEX_INDEX * edge_vert, const int nume);
 void output_vert_degree
 ( const int numv, vector <int> &vert_degree);
- #endif
- 
+void output_vert_degree_2_file 
+(const int numv, vector <int> &vert_degree,const string output_fn);
+
+#endif
+
