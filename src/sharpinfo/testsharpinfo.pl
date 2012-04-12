@@ -17,6 +17,7 @@ compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd
 compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradNS -isovalue 3.2");
 compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradES -isovalue 3.2");
 compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradEC -isovalue 3.2");
+compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradIE -isovalue 3.2");
 
 # *********************************************
 

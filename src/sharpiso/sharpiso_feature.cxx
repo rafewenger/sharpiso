@@ -1355,8 +1355,7 @@ void SHARPISO::get_intersected_edge_endpoint_gradients
 			SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
 			SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
 
-			if ((s0 < isovalue && isovalue <= s1) ||
-				(s1 < isovalue && isovalue <= s0)) {
+      if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
 					VERTEX_INDEX icorner0 = grid_222.FacetVertex(0, d, k);
 					VERTEX_INDEX icorner1 = grid_222.NextVertex(icorner0, d);
 					corner_flags[icorner0] = true;
@@ -1442,8 +1441,8 @@ namespace {
         SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
         SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
 
-        if ((s0 < isovalue && isovalue <= s1) ||
-            (s1 < isovalue && isovalue <= s0)) {
+        if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
+    
           VERTEX_INDEX icorner0 = grid_222.FacetVertex(0, d, k);
           VERTEX_INDEX icorner1 = grid_222.NextVertex(icorner0, d);
 
