@@ -141,8 +141,8 @@ sub compare_executables {
 
       $isoval = $isoval + $isoval_offset;
       run_isodual3D($prog0, $tfile, "$outfile0", \@option_list, $isoval);
-      foreach my $ijkdual (@proglist) {
-        run_isodual3D($ijkdual, $tfile, "$outfile", \@option_list, $isoval);
+      foreach my $isodual (@proglist) {
+        run_isodual3D($isodual, $tfile, "$outfile", \@option_list, $isoval);
         diff_files("$outfile0", "$outfile");
       }
     }
@@ -154,7 +154,7 @@ sub run_isodual3D {
   scalar(@_) > 4 ||
     die "Error in sub run_isodual3D. Requires at least 5 parameters.\n";
 
-  my $ijkdual = $_[0];
+  my $isodual = $_[0];
   my $input_filename = $_[1];
   my $output_filename = $_[2];
   my @option_list = @{$_[3]};
@@ -162,11 +162,11 @@ sub run_isodual3D {
 
   my $command_line;
   $command_line = 
-    "./$ijkdual @option_list -s -o $output_filename $isoval1 $input_filename";
+    "./$isodual @option_list -s -o $output_filename $isoval1 $input_filename";
 
   print "$command_line\n";
   system("$command_line") == 0 ||
-    die "Program ijkdual abnormally terminated.\n";
+    die "Program isodual3D abnormally terminated.\n";
 
 }
 

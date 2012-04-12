@@ -130,6 +130,12 @@ namespace {
       io_info.use_selected_gradients = false;
       io_info.use_intersected_edge_endpoint_gradients = true;
     }
+    else if (str == "gradNIE"){
+      io_info.vertex_position_method = GRADIENT_POSITIONING;
+      io_info.use_only_cube_gradients = false;
+      io_info.use_selected_gradients = false;
+      io_info.use_intersected_edge_endpoint_gradients = true;
+    }
     else if (str == "gradES"){
       io_info.vertex_position_method = EDGE_SIMPLE;
     }
