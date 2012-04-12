@@ -917,7 +917,8 @@ void usage_error()
     cerr << "OPTIONS:" << endl;
     cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\""
     << endl;
-    cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS | -gradIE | gradNIE | gradES | gradEC ]" << endl;
+    cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS |" << endl;
+    cerr << "   -gradIE | gradNIE | gradES | gradEC ]" << endl;
     cerr << "  [-lindstrom | -rayI]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -dist2vert | -vertex <vertex_index> | -vc \"vertex coordinates\"" << endl;
@@ -1195,6 +1196,10 @@ void help()
        << endl;
   cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
   cerr << "  -gradIE: Use gradients at endpoints of intersected cube edges."
+       << endl;
+  cerr << "  -gradNIE: Use gradients at endpoints of intersected cube edges"
+       << endl
+       << "              and intersected cube edges in neighboring cubes."
        << endl;
   cerr << "  -neighbor <cube_index>:  Use gradients from cube and" << endl
        << "           neighbors of cube <cube_index>." << endl;
