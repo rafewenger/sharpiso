@@ -138,8 +138,8 @@ void output_cube_eigenvalues
  const SHARPISO_SCALAR_GRID & scalar_grid,
  const GRADIENT_GRID & gradient_grid,
  const SCALAR_TYPE isovalue,
- const GRADIENT_COORD_TYPE max_zero_mag,
- const EIGENVALUE_TYPE eigenvalue_tolerance);
+ const SHARP_ISOVERT_PARAM & sharp_isovert_param);
+
 void output_centroid_results
 (std::ostream & output, const COORD_TYPE coord[DIM3]);
 void output_dist2vert
@@ -299,15 +299,9 @@ int main(int argc, char **argv)
 
     if (flag_list_eigen) {
 
-      GRADIENT_COORD_TYPE max_small_mag =
-        sharp_isovert_param.max_small_magnitude;
-      GRADIENT_COORD_TYPE max_small_eigenvalue =
-        sharp_isovert_param.max_small_eigenvalue;
-
-
       output_cube_eigenvalues
-        (cout, scalar_grid, gradient_grid, isovalue,
-         max_small_mag, max_small_eigenvalue);
+        (cout, scalar_grid, gradient_grid, isovalue, sharp_isovert_param);
+
     }
 
     if (flag_dist2vert) {
@@ -730,32 +724,31 @@ void output_cube_eigenvalues
  const SHARPISO_SCALAR_GRID & scalar_grid,
  const GRADIENT_GRID & gradient_grid,
  const SCALAR_TYPE isovalue,
- const GRADIENT_COORD_TYPE max_zero_mag,
- const EIGENVALUE_TYPE eigenvalue_tolerance)
+ const SHARP_ISOVERT_PARAM & sharp_isovert_param)
 {
-  SIGNED_COORD_TYPE ray_intersection_cube_offset =
-    sharp_isovert_param.ray_intersection_cube_offset;
+  COORD_TYPE sharp_coord[DIM3];
+  EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
+  NUM_TYPE num_large_eigenvalues(0);
+  SVD_INFO svd_info;
 
-    COORD_TYPE sharp_coord[DIM3];
-    EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
-    NUM_TYPE num_large_eigenvalues(0);
-    SVD_INFO svd_info;
+  const SIGNED_COORD_TYPE grad_selection_cube_offset =
+    sharp_isovert_param.grad_selection_cube_offset;
 
-    IJK_FOR_EACH_GRID_CUBE(icube, scalar_grid, VERTEX_INDEX) {
+  OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
 
-        svd_compute_sharp_vertex_in_cube
-        (scalar_grid, gradient_grid, icube, isovalue,
-         max_zero_mag, eigenvalue_tolerance, ray_intersection_cube_offset,
-         sharp_coord, eigenvalues, num_large_eigenvalues,
-         svd_info);
+  IJK_FOR_EACH_GRID_CUBE(icube, scalar_grid, VERTEX_INDEX) {
 
-        output_cube_coordinates(output, scalar_grid, icube);
+    svd_compute_sharp_vertex_for_cube
+      (scalar_grid, gradient_grid, icube, isovalue,
+       sharp_isovert_param, cube_111,
+       sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+    output_cube_coordinates(output, scalar_grid, icube);
 
-        output << " Num eigen: " << num_large_eigenvalues
-        << " Eigen: ";
-        IJK::ijkgrid_output_coord(output, DIM3, eigenvalues);
-        output << endl;
-    }
+    output << " Num eigen: " << num_large_eigenvalues
+           << " Eigen: ";
+    IJK::ijkgrid_output_coord(output, DIM3, eigenvalues);
+    output << endl;
+  }
 }
 
 void report_sharp_param(const SHARP_ISOVERT_PARAM & sharp_param)
