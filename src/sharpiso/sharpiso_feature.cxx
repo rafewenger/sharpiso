@@ -85,101 +85,101 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
 
   GRADIENT_COORD_TYPE ray_direction[DIM3]={0.0};
 
-  /// svd_calculate_sharpiso vertex using lindstrom
+  // svd_calculate_sharpiso vertex using lindstrom
   
-    if (sharp_isovert_param.use_lindstrom)
+  if (sharp_isovert_param.use_lindstrom) {
+
+    COORD_TYPE default_center[DIM3] = {0.5,0.5,0.5};
+    COORD_TYPE cube_center[DIM3];
+    IJK::add_coord_3D(cube_coord, default_center, cube_center);
+
+    svd_calculate_sharpiso_vertex_using_lindstrom
+      (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
+       num_gradients, isovalue, max_small_eigenvalue,
+       num_large_eigenvalues, eigenvalues, cube_center, sharp_coord);
+    
+    IJK::round16_coord(DIM3, sharp_coord, sharp_coord);
+    // the distance used in lindstorm is max_dist-1. 
+    clamp_point(sharp_isovert_param.max_dist, cube_coord, sharp_coord);
+    
+  }
+  else{
+    /// if the lindtorm flag is off use the ray cube intersection
+    svd_calculate_sharpiso_vertex_unit_normals
+      (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
+       num_gradients, isovalue, max_small_eigenvalue,
+       num_large_eigenvalues, eigenvalues, sharp_coord, ray_direction);
+
+    if (num_large_eigenvalues == 2)
       {
-        COORD_TYPE default_center[DIM3] = {0.5,0.5,0.5};
-        COORD_TYPE cube_center[DIM3];
-        IJK::add_coord_3D(cube_coord, default_center, cube_center);
+        COORD_TYPE ray_origin[DIM3];
+        // if there are 2 sing vals then the coord acts as the ray origin
+        IJK::copy_coord_3D(sharp_coord, ray_origin);
 
-        svd_calculate_sharpiso_vertex_using_lindstrom
-          (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
-           num_gradients, isovalue, max_small_eigenvalue,
-           num_large_eigenvalues, eigenvalues, cube_center, sharp_coord);
-    
-        IJK::round16_coord(DIM3, sharp_coord, sharp_coord);
-        // the distance used in lindstorm is max_dist-1. 
-        clamp_point(sharp_isovert_param.max_dist, cube_coord, sharp_coord);
-    
+        compute_vertex_on_ray
+          ( scalar_grid, gradient_grid, cube_index, isovalue, sharp_isovert_param,
+            ray_origin, ray_direction, sharp_coord, flag_use_centroid, svd_info);
+        svd_info.SetRayInfo(ray_origin, ray_direction, sharp_coord, !flag_use_centroid);
       }
-    else{
-      /// if the lindtorm flag is off use the ray cube intersection
-      svd_calculate_sharpiso_vertex_unit_normals
-        (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
-         num_gradients, isovalue, max_small_eigenvalue,
-         num_large_eigenvalues, eigenvalues, sharp_coord, ray_direction);
 
-      if (num_large_eigenvalues == 2)
-        {
-          COORD_TYPE ray_origin[DIM3];
-          // if there are 2 sing vals then the coord acts as the ray origin
-          IJK::copy_coord_3D(sharp_coord, ray_origin);
+    bool flag_use_ray_cube_intersection = false;
+    if (num_large_eigenvalues == 3)
+      {
+        IJK::round16_coord(DIM3, sharp_coord, sharp_coord);
+        const SIGNED_COORD_TYPE max_dist = sharp_isovert_param.max_dist;
+        if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist) && scalar_grid.ContainsPoint(sharp_coord)) {
 
-          compute_vertex_on_ray
-            ( scalar_grid, gradient_grid, cube_index, isovalue, sharp_isovert_param,
-              ray_origin, ray_direction, sharp_coord, flag_use_centroid, svd_info);
-          svd_info.SetRayInfo(ray_origin, ray_direction, sharp_coord, !flag_use_centroid);
-        }
-
-      bool flag_use_ray_cube_intersection = false;
-      if (num_large_eigenvalues == 3)
-        {
-          IJK::round16_coord(DIM3, sharp_coord, sharp_coord);
-          const SIGNED_COORD_TYPE max_dist = sharp_isovert_param.max_dist;
-          if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist) && scalar_grid.ContainsPoint(sharp_coord)) {
-
-            svd_info.location = LOC_SVD;
-            // check for the point
-            if (!scalar_grid.CubeContainsPoint(cube_index, sharp_coord)) {
-              VERTEX_INDEX new_icube = get_cube_containing_point (scalar_grid, sharp_coord);
-              if (IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue)) {
-                flag_use_ray_cube_intersection = true;
-              }
-            }
-          }
-
-          if((!is_dist_to_cube_le(sharp_coord, cube_coord, max_dist) && scalar_grid.ContainsPoint(sharp_coord))
-             ||(flag_use_ray_cube_intersection)){
-
-            svd_calculate_sharpiso_vertex_2_svals_unit_normals
-              (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
-               num_gradients, isovalue, max_small_eigenvalue, num_large_eigenvalues,
-               eigenvalues, sharp_coord, ray_direction);
-
-            if (num_large_eigenvalues==2) {
-              COORD_TYPE ray_origin[DIM3];
-              // if there are 2 sing vals then the coord acts as the ray origin
-              IJK::copy_coord_3D(sharp_coord, ray_origin);
-              compute_vertex_on_ray
-                ( scalar_grid, gradient_grid,
-                  cube_index, isovalue, sharp_isovert_param, ray_origin, ray_direction,
-                  sharp_coord, flag_use_centroid, svd_info);
-              svd_info.SetRayInfo(ray_origin, ray_direction, sharp_coord, !flag_use_centroid);
-            }// num_large eigen ==2 end
-            else {
-              svd_info.location = CENTROID;
-              flag_use_centroid = true;
+          svd_info.location = LOC_SVD;
+          // check for the point
+          if (!scalar_grid.CubeContainsPoint(cube_index, sharp_coord)) {
+            VERTEX_INDEX new_icube = get_cube_containing_point (scalar_grid, sharp_coord);
+            if (IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue)) {
+              flag_use_ray_cube_intersection = true;
             }
           }
         }
 
-      if (num_large_eigenvalues  == 1 || flag_use_centroid == true)
-        {
-          compute_isosurface_grid_edge_centroid
-            (scalar_grid, isovalue, cube_index, sharp_coord);
-          svd_info.location = CENTROID;
+        if((!is_dist_to_cube_le(sharp_coord, cube_coord, max_dist) && scalar_grid.ContainsPoint(sharp_coord))
+           ||(flag_use_ray_cube_intersection)){
 
-          IJK::round16_coord(DIM3, sharp_coord, sharp_coord);  // Round to nearest 16'th
-        }
+          svd_calculate_sharpiso_vertex_2_svals_unit_normals
+            (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
+             num_gradients, isovalue, max_small_eigenvalue, num_large_eigenvalues,
+             eigenvalues, sharp_coord, ray_direction);
 
-      if (num_large_eigenvalues == 0 )
-        {
-          COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
-          IJK::add_coord_3D(cube_coord, cube_center, sharp_coord);
-          svd_info.location = CUBE_CENTER;
+          if (num_large_eigenvalues==2) {
+            COORD_TYPE ray_origin[DIM3];
+            // if there are 2 sing vals then the coord acts as the ray origin
+            IJK::copy_coord_3D(sharp_coord, ray_origin);
+            compute_vertex_on_ray
+              ( scalar_grid, gradient_grid,
+                cube_index, isovalue, sharp_isovert_param, ray_origin, ray_direction,
+                sharp_coord, flag_use_centroid, svd_info);
+            svd_info.SetRayInfo(ray_origin, ray_direction, sharp_coord, !flag_use_centroid);
+          }// num_large eigen ==2 end
+          else {
+            svd_info.location = CENTROID;
+            flag_use_centroid = true;
+          }
         }
-    }
+      }
+
+    if (num_large_eigenvalues  == 1 || flag_use_centroid == true)
+      {
+        compute_isosurface_grid_edge_centroid
+          (scalar_grid, isovalue, cube_index, sharp_coord);
+        svd_info.location = CENTROID;
+
+        IJK::round16_coord(DIM3, sharp_coord, sharp_coord);  // Round to nearest 16'th
+      }
+
+    if (num_large_eigenvalues == 0 )
+      {
+        COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
+        IJK::add_coord_3D(cube_coord, cube_center, sharp_coord);
+        svd_info.location = CUBE_CENTER;
+      }
+  }
 }
 
 
