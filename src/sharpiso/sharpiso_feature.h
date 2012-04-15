@@ -195,59 +195,18 @@ namespace SHARPISO {
   // **************************************************
   
   /// Compute sharp isosurface vertex using subgrid sampling of cube.
-  /// Use only cube vertex gradients.
+  /// Use subgrid sampling to locate isosurface vertex on sharp edge/corner.
   void subgrid_compute_sharp_vertex_in_cube
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
-   const VERTEX_INDEX cube_index, const SCALAR_TYPE isovalue,
-   const GRADIENT_COORD_TYPE max_small_mag,
-   const SCALAR_TYPE cube_offset2,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const GET_GRADIENTS_PARAM & get_gradients_param,
+   const OFFSET_CUBE_111 & cube_111,
    const NUM_TYPE subgrid_axis_size,
    COORD_TYPE sharp_coord[DIM3],
    SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error);
-  
-  /// Compute sharp isosurface vertex using subgrid sampling of cube.
-  /// Use selected cube vertex gradients.
-  void subgrid_compute_sharp_vertex_in_cube_S
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const VERTEX_INDEX cube_index, const SCALAR_TYPE isovalue,
-   const GRADIENT_COORD_TYPE max_small_mag,
-   const SCALAR_TYPE cube_offset2,
-   const NUM_TYPE subgrid_axis_size,
-   COORD_TYPE sharp_coord[DIM3],
-   SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error,
-   const OFFSET_CUBE_111 & cube_111);
-  
-  /// Compute sharp isosurface vertex using subgrid sampling of cube.
-  /// Use large gradients from cube and neighboring cubes.
-  /// @param cube_111 Cube with origin at (1-offset,1-offset,1-offset).
-  void subgrid_compute_sharp_vertex_neighborhood
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const VERTEX_INDEX cube_index,
-   const SCALAR_TYPE isovalue,
-   const GRADIENT_COORD_TYPE max_small_mag,
-   const SCALAR_TYPE cube_offset2,
-   const NUM_TYPE subgrid_axis_size,
-   COORD_TYPE sharp_coord[DIM3],
-   SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error);
-  
-  /// Compute sharp isosurface vertex using subgrid sampling of cube.
-  /// Use selected gradients from cube and neighboring cubes.
-  /// @param cube_111 Cube with origin at (1-offset,1-offset,1-offset).
-  void subgrid_compute_sharp_vertex_neighborhood_S
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const VERTEX_INDEX cube_index,
-   const SCALAR_TYPE isovalue,
-   const GRADIENT_COORD_TYPE max_small_mag,
-   const SCALAR_TYPE cube_offset2,
-   const NUM_TYPE subgrid_axis_size,
-   COORD_TYPE sharp_coord[DIM3],
-   SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error,
-   const OFFSET_CUBE_111 & cube_111);
-  
+
   /// Calculate isosurface vertex using regular subgrid of the cube.
   void subgrid_calculate_iso_vertex_in_cube
   (const COORD_TYPE * point_coord, const GRADIENT_COORD_TYPE * gradient_coord,
@@ -258,6 +217,7 @@ namespace SHARPISO {
    SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error);
   
   /// Calculate isosurface vertex using regular subgrid of the cube.
+  /// std::vector variation.
   void subgrid_calculate_iso_vertex_in_cube
   (const std::vector<COORD_TYPE> & point_coord,
    const std::vector<GRADIENT_COORD_TYPE> & gradient_coord,

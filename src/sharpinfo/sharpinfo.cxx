@@ -80,11 +80,12 @@ void compute_iso_vertex_using_subgrid
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
- const GRADIENT_COORD_TYPE max_small_mag,
+ const GET_GRADIENTS_PARAM & get_gradients_param,
  const NUM_TYPE subgrid_axis_size,
  COORD_TYPE sharp_coord[DIM3],
  SCALAR_TYPE & scalar_stdev,
  SCALAR_TYPE & max_abs_scalar_error);
+
 
 // check routines
 bool check_gradient_grid
@@ -279,7 +280,7 @@ int main(int argc, char **argv)
         SCALAR_TYPE max_abs_scalar_error;
         compute_iso_vertex_using_subgrid
           (scalar_grid, gradient_grid, cube_index, isovalue,
-           max_small_mag, subgrid_axis_size,
+           sharp_isovert_param, subgrid_axis_size,
            sharp_coord, scalar_stdev, max_abs_scalar_error);
 
         output_subgrid_results
@@ -382,52 +383,22 @@ void compute_iso_vertex_using_subgrid
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
- const GRADIENT_COORD_TYPE max_small_mag,
+ const GET_GRADIENTS_PARAM & get_gradients_param,
  const NUM_TYPE subgrid_axis_size,
  COORD_TYPE sharp_coord[DIM3],
  SCALAR_TYPE & scalar_stdev,
  SCALAR_TYPE & max_abs_scalar_error)
 {
-  bool use_only_cube_gradients = sharp_isovert_param.use_only_cube_gradients;
-  bool use_selected_gradients = sharp_isovert_param.use_selected_gradients;
   SIGNED_COORD_TYPE grad_selection_cube_offset =
     sharp_isovert_param.grad_selection_cube_offset;
-  SIGNED_COORD_TYPE ray_intersection_cube_offset =
-    sharp_isovert_param.ray_intersection_cube_offset;
 
-    if (use_selected_gradients) {
-        OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+  OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
 
-        if (use_only_cube_gradients) {
-            subgrid_compute_sharp_vertex_in_cube_S
-            (scalar_grid, gradient_grid, cube_index, isovalue,
-             max_small_mag, ray_intersection_cube_offset, subgrid_axis_size,
-             sharp_coord, scalar_stdev, max_abs_scalar_error, cube_111);
-        }
-        else {
-            subgrid_compute_sharp_vertex_neighborhood_S
-            (scalar_grid, gradient_grid, cube_index, isovalue,
-             max_small_mag, ray_intersection_cube_offset, subgrid_axis_size,
-             sharp_coord, scalar_stdev, max_abs_scalar_error, cube_111);
-        }
-    }
-    else {
-        if (use_only_cube_gradients) {
-            subgrid_compute_sharp_vertex_in_cube
-            (scalar_grid, gradient_grid, cube_index, isovalue,
-             max_small_mag, ray_intersection_cube_offset, subgrid_axis_size,
-             sharp_coord, scalar_stdev, max_abs_scalar_error);
-        }
-        else {
-            subgrid_compute_sharp_vertex_neighborhood
-            (scalar_grid, gradient_grid, cube_index, isovalue,
-             max_small_mag,ray_intersection_cube_offset, subgrid_axis_size,
-             sharp_coord, scalar_stdev, max_abs_scalar_error);
-        }
-    }
-
+  subgrid_compute_sharp_vertex_in_cube
+    (scalar_grid, gradient_grid, cube_index, isovalue,
+     get_gradients_param, cube_111, subgrid_axis_size,
+     sharp_coord, scalar_stdev, max_abs_scalar_error);
 }
-
 
 // **************************************************
 // OUTPUT ROUTINES
