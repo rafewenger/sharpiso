@@ -268,7 +268,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_S
   std::vector<GRADIENT_COORD_TYPE> gradient_coord;
   std::vector<SCALAR_TYPE> scalar;
 
-  select_cube_gradients
+  select_cube_gradients_based_on_isoplanes
     (scalar_grid, gradient_grid, cube_index, max_small_mag, isovalue,
      point_coord, gradient_coord, scalar, num_gradients, cube_111);
 
@@ -704,7 +704,7 @@ void SHARPISO::subgrid_compute_sharp_vertex_in_cube_S
   std::vector<GRADIENT_COORD_TYPE> gradient_coord;
   std::vector<SCALAR_TYPE> scalar;
 
-  select_cube_gradients
+  select_cube_gradients_based_on_isoplanes
     (scalar_grid, gradient_grid, cube_index, max_small_mag, isovalue,
      point_coord, gradient_coord, scalar, num_gradients, cube_111);
 
