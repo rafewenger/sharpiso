@@ -29,10 +29,14 @@ LINK_DIRECTORIES("${NRRD_LIBDIR}")
 LINK_LIBRARIES(expat NrrdIO z)
 ADD_DEFINITIONS(-DIJK_ISOTABLE_DIR=\"${IJK_ISOTABLE_DIR}\")
 
-ADD_EXECUTABLE(isodual3D isodual3D_main.cxx isodual3DIO.cxx isodual3D.cxx isodual3D_datastruct.cxx
-isodual3D_extract.cxx isodual3D_position.cxx sharpiso_feature.cxx sharpiso_feature.cxx sharpiso_svd.cxx
-sh_point_find.cxx sh_point_datastruct.cxx sh_point_svdcal.cxx
-sharpiso_findIntersect.cxx)
+ADD_EXECUTABLE(isodual3D isodual3D_main.cxx isodual3DIO.cxx isodual3D.cxx 
+                         isodual3D_datastruct.cxx isodual3D_extract.cxx 
+                         isodual3D_position.cxx sharpiso_feature.cxx 
+                         sharpiso_feature.cxx sharpiso_get_gradients.cxx
+                         sharpiso_svd.cxx sh_point_find.cxx 
+                         sh_point_datastruct.cxx sh_point_svdcal.cxx
+                         sharpiso_findIntersect.cxx)
+
 SET(CMAKE_INSTALL_PREFIX ${IJK_DIR})
 INSTALL(TARGETS isodual3D DESTINATION "bin/$ENV{OSTYPE}")
 

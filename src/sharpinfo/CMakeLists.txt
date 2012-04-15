@@ -27,9 +27,10 @@ INCLUDE_DIRECTORIES("../eigen")
 LINK_DIRECTORIES("${NRRD_LIBDIR}")
 LINK_LIBRARIES(NrrdIO z)
 
-ADD_EXECUTABLE(sharpinfo sharpinfo.cxx sharpiso_feature.cxx sharpiso_svd.cxx
-sh_point_find.cxx sh_point_datastruct.cxx sh_point_svdcal.cxx 
-sharpiso_findIntersect.cxx)
+ADD_EXECUTABLE(sharpinfo sharpinfo.cxx sharpiso_feature.cxx 
+                         sharpiso_get_gradients.cxx sharpiso_svd.cxx
+                         sh_point_find.cxx sh_point_datastruct.cxx 
+                         sh_point_svdcal.cxx sharpiso_findIntersect.cxx)
 
 SET(CMAKE_INSTALL_PREFIX ${SHARP_DIR})
 INSTALL(TARGETS sharpinfo DESTINATION "bin/$ENV{OSTYPE}")
