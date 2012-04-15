@@ -1,4 +1,4 @@
-// \file sharpinfo.cxx
+/// \file sharpinfo.cxx
 /// Output information about sharp isosurface vertices and edges.
 /// Version 0.1.0
 
