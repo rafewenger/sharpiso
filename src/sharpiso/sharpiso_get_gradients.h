@@ -51,6 +51,7 @@ namespace SHARPISO {
   /// @param vertex_list[] List of vertices.
   /// @param vertex_flag[] Boolean array. If vertex_flag[i] is true, then
   ///        vertex vertex_list[i] is selected.
+  /// @pre Size of vertex_flag[] is at least size of vertex_list[].
   void get_selected_vertex_gradients
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
      const GRADIENT_GRID_BASE & gradient_grid,
@@ -60,6 +61,19 @@ namespace SHARPISO {
      std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
      std::vector<SCALAR_TYPE> & scalar,
      NUM_TYPE & num_gradients);
+
+  /// Get selected grid vertex gradients.
+  /// std::vector variation.
+  /// @pre Size of vertex_flag[] is at least size of vertex_list[].
+  void get_selected_vertex_gradients
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const std::vector<VERTEX_INDEX> & vertex_list,
+   const bool vertex_flag[],
+   std::vector<COORD_TYPE> & point_coord,
+   std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+   std::vector<SCALAR_TYPE> & scalar,
+   NUM_TYPE & num_gradients);
 
   /// Get all 8 cube gradients
   void get_cube_gradients
@@ -172,24 +186,34 @@ namespace SHARPISO {
   // GET VERTICES
   // **************************************************
 
-  // Get all 8 cube vertices.
+  /// Get all 8 cube vertices.
   void get_cube_vertices
     (const SHARPISO_GRID & grid, const VERTEX_INDEX cube_index,
      VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D]);
 
-  // Get vertices at endpoints of cube edges which intersect the isosurface.
+  /// Get vertices at endpoints of cube edges which intersect the isosurface.
   void get_intersected_cube_edge_endpoints
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
      const VERTEX_INDEX cube_index, const SCALAR_TYPE isovalue,
      VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D], NUM_TYPE & num_vertices);
 
-  // Get cube vertices which determining intersection of isosurface and edges.
+  /// Get cube vertices which determining intersection of isosurface and edges.
   void get_cube_vertices_determining_edge_intersections
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
      const GRADIENT_GRID_BASE & gradient_grid, const VERTEX_INDEX cube_index,
      const SCALAR_TYPE isovalue, const GRADIENT_COORD_TYPE zero_tolerance,
      VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D], NUM_TYPE & num_vertices);
 
+  /// Get vertices of cube and cube neighbors.
+  void get_cube_neighbor_vertices
+  (const SHARPISO_GRID & grid, const VERTEX_INDEX cube_index,
+   std::vector<VERTEX_INDEX> & vertex_list);
+
+  /// Get vertices at endpoints of cube and neighbor edges 
+  ///   which intersect the isosurface.
+  void get_intersected_cube_neighbor_edge_endpoints
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue, std::vector<VERTEX_INDEX> & vertex_list);
 
   // **************************************************
   // SELECTION FUNCTIONS
@@ -212,15 +236,27 @@ namespace SHARPISO {
 
   /// Set vertex_flag[i] to false for any vertex_list[i] 
   ///   with small gradient magnitude.
+  /// @pre Array vertex_flag[] is preallocated with size 
+  ///      at least vertex_list.size().
   void deselect_vertices_with_small_gradients
   (const GRADIENT_GRID_BASE & gradient_grid, 
    const VERTEX_INDEX vertex_list[], const NUM_TYPE num_vertices,
    const GRADIENT_COORD_TYPE max_small_grad,
    bool vertex_flag[]);
 
+  /// Set to false vertex_flag[i] for any vertex_list[i] 
+  ///   with small gradient magnitude.
+  /// std::vector variation.
+  void deselect_vertices_with_small_gradients
+  (const GRADIENT_GRID_BASE & gradient_grid, 
+   const std::vector<VERTEX_INDEX> & vertex_list,
+   const GRADIENT_COORD_TYPE max_small_mag_squared,
+   bool vertex_flag[]);
 
   /// Set vertex_flag[i] to false for any vertex_list[i] 
   ///   determining an isoplane which does not intersect the cube.
+  /// @pre Array vertex_flag[] is preallocated with size 
+  ///      at least vertex_list.size().
   void deselect_vertices_based_on_isoplanes
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid, 
@@ -228,6 +264,18 @@ namespace SHARPISO {
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX vertex_list[], const NUM_TYPE num_vertices,
    bool vertex_flag[]);
+
+  /// Set to false vertex_flag[i] for any vertex_list[i] 
+  ///   determining an isoplane which does not intersect the cube.
+  /// std::vector variation.
+  void deselect_vertices_based_on_isoplanes
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid, 
+   const GRID_COORD_TYPE * cube_coord, const OFFSET_CUBE_111 & cube_111,
+   const SCALAR_TYPE isovalue,
+   const std::vector<VERTEX_INDEX> & vertex_list,
+   bool vertex_flag[]);
+
 
   // **************************************************
   // GET_GRADIENTS_PARAM
