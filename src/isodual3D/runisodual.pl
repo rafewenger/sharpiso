@@ -32,10 +32,12 @@ sub run_isodual3D {
   my $position_option = $_[2];
 
   my $output_filename = "$position_option" . ".off";
+  my $line_filename = "$position_option" . ".line";
+  my $count_filename = "$position_option" . ".count";
 
   my $command_line;
   $command_line = 
-    "./isodual3D -trimesh -lindstrom -max_dist 0 -position $position_option -s -o $output_filename $isovalue $input_filename";
+    "./isodual3D -trimesh -position $position_option -s -o $output_filename $isovalue $input_filename";
 
   print "$command_line\n";
   system("$command_line") == 0 ||
@@ -46,6 +48,10 @@ sub run_isodual3D {
   system("$command_line") == 0 ||
     die "Program findedge abnormally terminated.\n";
 
+  $command_line = "findEdgeCount $line_filename > $count_filename";
+  print "$command_line\n";
+  system("$command_line") == 0 ||
+    die "Program findedge abnormally terminated.\n";
 }
 
 
