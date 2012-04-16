@@ -882,7 +882,7 @@ void usage_error()
     cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\""
     << endl;
     cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS |" << endl;
-    cerr << "   -gradIE | gradNIE | gradES | gradEC ]" << endl;
+    cerr << "   -gradIE | -gradIES | -gradNIE | -gradNIES | -gradES | -gradEC ]" << endl;
     cerr << "  [-lindstrom | -rayI]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -dist2vert | -vertex <vertex_index> | -vc \"vertex coordinates\"" << endl;
@@ -1026,9 +1026,19 @@ void parse_command_line(int argc, char **argv)
       use_selected_gradients = false;
       use_intersected_edge_endpoint_gradients = true;
     }
+    else if (s == "-gradIES") {
+      use_only_cube_gradients = true;
+      use_selected_gradients = true;
+      use_intersected_edge_endpoint_gradients = true;
+    }
     else if (s == "-gradNIE") {
       use_only_cube_gradients = false;
       use_selected_gradients = false;
+      use_intersected_edge_endpoint_gradients = true;
+    }
+    else if (s == "-gradNIES") {
+      use_only_cube_gradients = false;
+      use_selected_gradients = true;
       use_intersected_edge_endpoint_gradients = true;
     }
     else if (s == "-gradS_offset") {
@@ -1161,10 +1171,18 @@ void help()
   cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
   cerr << "  -gradIE: Use gradients at endpoints of intersected cube edges."
        << endl;
+  cerr << "  -gradIES: Use gradients at endpoints of intersected cube edges."
+       << endl;
+  cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
   cerr << "  -gradNIE: Use gradients at endpoints of intersected cube edges"
        << endl
        << "              and intersected cube edges in neighboring cubes."
        << endl;
+  cerr << "  -gradNIES: Use gradients at endpoints of intersected cube edges"
+       << endl
+       << "              and intersected cube edges in neighboring cubes."
+       << endl;
+  cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
   cerr << "  -neighbor <cube_index>:  Use gradients from cube and" << endl
        << "           neighbors of cube <cube_index>." << endl;
   cerr << "  -gradES:    Interpolate intersection points/normals and"
