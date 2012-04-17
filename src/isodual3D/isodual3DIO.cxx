@@ -50,7 +50,7 @@ namespace {
      GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
      MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, 
      ALLOW_CONFLICT_PARAM, CLAMP_CONFLICT_PARAM, CLAMP_FAR_PARAM,
-     RECOMPUTE_EIGEN2_PARAM,
+     RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,
      USE_LINDSTROM,HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
      OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
      NOWRITE_PARAM, SILENT_PARAM, TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
@@ -58,7 +58,8 @@ namespace {
     {"-subsample", "-supersample",
      "-gradient", "-position", "-trimesh", "-uniform_trimesh",
      "-max_eigen", "-max_dist", "-gradS_offset", 
-     "-allow_conflict", "-clamp_conflict","-clamp_far", "-recompute_eigen2",
+     "-allow_conflict", "-clamp_conflict","-clamp_far", 
+     "-recompute_eigen2", "-no_recompute_eigen2",
      "-lindstrom", "-help", "-off", "-iv", "-out_param",
      "-o", "-stdout",
      "-nowrite", "-s", "-time", "-unknown"};
@@ -286,6 +287,10 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 
     case RECOMPUTE_EIGEN2_PARAM:
       io_info.flag_recompute_eigen2 = true;
+      break;
+
+    case NO_RECOMPUTE_EIGEN2_PARAM:
+      io_info.flag_recompute_eigen2 = false;
       break;
     
     case OFF_PARAM:
@@ -1128,9 +1133,11 @@ namespace {
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
   cerr << "  [-max_eigen {max}]" << endl;
   cerr << "  [-max_dist {D}] [-gradS_offset {offset}]" << endl;
-  cerr << "  [-lindstrom]";
+  cerr << "  [-lindstrom]" << endl;
+  cerr << "  [-allow_conflict] [-clamp_conflict] [-clamp_far]" << endl;
+  cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
   cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
-  << endl;
+       << endl;
   cerr << "  [-help] [-s] [-out_param] [-nowrite] [-time]" << endl;
   }
 
@@ -1205,6 +1212,15 @@ void ISODUAL3D::help()
   cerr << "  -max_dist {D}:    Set max Linf distance from cube to isosurface vertex." 
        << endl;
   cerr << "  -gradS_offset {offset}: Set cube offset for gradient selection to offset."
+       << endl;
+  cout << "  -lindstrom:   Use Lindstrom's equation to compute sharp point."
+       << endl;
+  cout << "  -allow_conflict:  Allow more than one isosurface vertex in a cube."
+       << endl;
+  cout << "  -clamp_conflict:  Settle conflicts by clamping to cube." << endl;
+  cout << "  -clamp_far: Clamp isosurface vertices at distance greater than max_dist." << endl;
+  cout << "  -recompute_eigen2:  Recompute with only 2 eigenvalues to settle conflicts." << endl;
+  cout << "  -no_recompute_eigen2:  Don't recompute with only 2 eigenvalues." 
        << endl;
   cout << "  -trimesh:   Output triangle mesh." << endl;
   cout << "  -off: Output in geomview OFF format. (Default.)" << endl;
