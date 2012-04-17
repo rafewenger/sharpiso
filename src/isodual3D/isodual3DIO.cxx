@@ -49,13 +49,16 @@ namespace {
     {SUBSAMPLE_PARAM, SUPERSAMPLE_PARAM,
      GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
      MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, 
-	 USE_LINDSTROM,HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
+     ALLOW_CONFLICT_PARAM, CLAMP_CONFLICT_PARAM, CLAMP_FAR_PARAM,
+     RECOMPUTE_EIGEN2_PARAM,
+     USE_LINDSTROM,HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
      OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
      NOWRITE_PARAM, SILENT_PARAM, TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
     {"-subsample", "-supersample",
      "-gradient", "-position", "-trimesh", "-uniform_trimesh",
      "-max_eigen", "-max_dist", "-gradS_offset", 
+     "-allow_conflict", "-clamp_conflict","-clamp_far", "-recompute_eigen2",
      "-lindstrom", "-help", "-off", "-iv", "-out_param",
      "-o", "-stdout",
      "-nowrite", "-s", "-time", "-unknown"};
@@ -265,10 +268,26 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
       iarg++;
       break;
 
-	case USE_LINDSTROM:
-		io_info.use_lindstrom =true;
-		break;
+    case USE_LINDSTROM:
+      io_info.use_lindstrom =true;
+      break;
 
+    case ALLOW_CONFLICT_PARAM:
+      io_info.flag_allow_conflict = true;
+      break;
+
+    case CLAMP_CONFLICT_PARAM:
+      io_info.flag_clamp_conflict = true;
+      break;
+
+    case CLAMP_FAR_PARAM:
+      io_info.flag_clamp_far = true;
+      break;
+
+    case RECOMPUTE_EIGEN2_PARAM:
+      io_info.flag_recompute_eigen2 = true;
+      break;
+    
     case OFF_PARAM:
       io_info.output_format = OFF;
       break;
@@ -1336,6 +1355,10 @@ void ISODUAL3D::set_isodual_data
     io_info.grad_selection_cube_offset;
   isodual_data.flag_convert_quad_to_tri = io_info.flag_convert_quad_to_tri;
   isodual_data.quad_tri_method = io_info.quad_tri_method;
+  isodual_data.flag_allow_conflict = io_info.flag_allow_conflict;
+  isodual_data.flag_clamp_conflict = io_info.flag_clamp_conflict;
+  isodual_data.flag_clamp_far = io_info.flag_clamp_far;
+  isodual_data.flag_recompute_eigen2 = io_info.flag_recompute_eigen2;
 }
 
 void ISODUAL3D::set_io_info
