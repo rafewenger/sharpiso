@@ -11,8 +11,10 @@ my $infile = $ARGV[1];
 
 run_isodual3D($isovalue, $infile, "gradES");
 run_isodual3D($isovalue, $infile, "gradEC");
+run_isodual3D($isovalue, $infile, "gradC");
 run_isodual3D($isovalue, $infile, "gradIE");
 run_isodual3D($isovalue, $infile, "gradIES");
+run_isodual3D($isovalue, $infile, "gradN");
 run_isodual3D($isovalue, $infile, "gradNS");
 run_isodual3D($isovalue, $infile, "gradNIE");
 run_isodual3D($isovalue, $infile, "gradNIES");
