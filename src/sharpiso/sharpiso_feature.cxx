@@ -123,7 +123,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
       // Check for far point or conflict and recompute using 2 eigenvalues.
       if (sharpiso_param.flag_recompute_eigen2) {
         snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
-        if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist) ||
+        if (!is_dist_to_cube_le(sharp_coord, cube_coord, max_dist) ||
             check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
 
           svd_calculate_sharpiso_vertex_2_svals_unit_normals

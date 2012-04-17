@@ -36,13 +36,20 @@ sub run_isodual3D {
   my $count_filename = "$position_option" . ".count";
 
   my $command_line;
-  $command_line = 
-    "./isodual3D -trimesh -position $position_option -s -o $output_filename $isovalue $input_filename";
+  if (-e "./isodual3D") {
+    # Use version in current directory
+    $command_line = 
+      "./isodual3D -trimesh -position $position_option -s -o $output_filename $isovalue $input_filename";
+  }
+  else {
+    # Use version in bin
+    $command_line = 
+      "isodual3D -trimesh -position $position_option -s -o $output_filename $isovalue $input_filename";
+  }
 
   print "$command_line\n";
   system("$command_line") == 0 ||
     die "Program isodual3D abnormally terminated.\n";
-
   $command_line = "findedge 140 $output_filename";
   print "$command_line\n";
   system("$command_line") == 0 ||
