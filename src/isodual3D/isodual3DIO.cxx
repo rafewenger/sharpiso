@@ -48,15 +48,15 @@ namespace {
   typedef enum
     {SUBSAMPLE_PARAM, SUPERSAMPLE_PARAM,
      GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
-     MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, RAY_I_OFFSET_PARAM,
+     MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, 
 	 USE_LINDSTROM,HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
      OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
      NOWRITE_PARAM, SILENT_PARAM, TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
     {"-subsample", "-supersample",
      "-gradient", "-position", "-trimesh", "-uniform_trimesh",
-     "-max_eigen", "-max_dist", "-gradS_offset", "-rayI_offset",
-	 "-lindstrom", "-help", "-off", "-iv", "-out_param",
+     "-max_eigen", "-max_dist", "-gradS_offset", 
+     "-lindstrom", "-help", "-off", "-iv", "-out_param",
      "-o", "-stdout",
      "-nowrite", "-s", "-time", "-unknown"};
 
@@ -206,9 +206,6 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 {
   if (argc == 1) { usage_error(); };
 
-  // Set default
-  io_info.ray_intersection_cube_offset = 0.3;
-
   int iarg = 1;
   bool is_vertex_position_method_set = false;
   while (iarg < argc && argv[iarg][0] == '-') {
@@ -265,11 +262,6 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 
     case GRAD_S_OFFSET_PARAM:
       io_info.grad_selection_cube_offset = get_float(iarg, argc, argv);
-      iarg++;
-      break;
-
-    case RAY_I_OFFSET_PARAM:
-      io_info.ray_intersection_cube_offset = get_float(iarg, argc, argv);
       iarg++;
       break;
 
@@ -800,14 +792,8 @@ void ISODUAL3D::write_dual_tri_mesh
   const int NUMV_PER_QUAD = 4;
   const int NUMV_PER_TRI = 3;
   const int dimension = output_info.dimension;
-  /* OBSOLETE
-  const int numv_per_poly = output_info.num_vertices_per_isopoly;
-  */
   const bool use_stdout = output_info.use_stdout;
   ofstream output_file;
-  /* OBSOLETE
-  std::vector<VERTEX_INDEX> tri_vert;
-  */
   PROCEDURE_ERROR error("write_dual_tri_mesh");
 
   if (dimension != 3) {
@@ -815,21 +801,6 @@ void ISODUAL3D::write_dual_tri_mesh
     error.AddMessage("   Routine only allowed for dimension 3.");
     throw error;
   }
-
-  /* OBSOLETE
-  if (numv_per_poly != NUMV_PER_QUAD) {
-    error.AddMessage
-      ("Programming error.  Illegal number of vertices per quad: ",
-       numv_per_poly, ".");
-    error.AddMessage("  Should be ", NUMV_PER_QUAD, " vertices per quad.");
-    throw error;
-  }
-  */
-
-  /* OBSOLETE
-  // Convert quadrilaterals to triangles
-  convert_quad_to_tri(quad_vert, tri_vert);
-  */
 
   string ofilename = output_info.output_filename;
 
@@ -1028,8 +999,6 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
 {
   cout << "Gradient selection cube offset: "
        << isodual_param.grad_selection_cube_offset << endl;
-  cout << "Ray intersection cube offset: "
-       << isodual_param.ray_intersection_cube_offset << endl;
   cout << "Maximum small eigenvalue: "
        << isodual_param.max_small_eigenvalue << endl;
   cout << "Max (Linf) distance from cube to isosurface vertex: "
@@ -1139,8 +1108,7 @@ namespace {
   cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|gradIE|gradIES|gradNIE|gradNIES|gradES|gradEC}]" << endl;
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
   cerr << "  [-max_eigen {max}]" << endl;
-  cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-rayI_offset {offset}]" 
-       << endl;
+  cerr << "  [-max_dist {D}] [-gradS_offset {offset}]" << endl;
   cerr << "  [-lindstrom]";
   cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
   << endl;
@@ -1218,8 +1186,6 @@ void ISODUAL3D::help()
   cerr << "  -max_dist {D}:    Set max Linf distance from cube to isosurface vertex." 
        << endl;
   cerr << "  -gradS_offset {offset}: Set cube offset for gradient selection to offset."
-       << endl;
-  cerr << "  -rayI_offset {offset}:  Set cube offset for ray intersection to offset."
        << endl;
   cout << "  -trimesh:   Output triangle mesh." << endl;
   cout << "  -off: Output in geomview OFF format. (Default.)" << endl;
@@ -1368,8 +1334,6 @@ void ISODUAL3D::set_isodual_data
   isodual_data.max_dist = io_info.max_dist;
   isodual_data.grad_selection_cube_offset =
     io_info.grad_selection_cube_offset;
-  isodual_data.ray_intersection_cube_offset =
-    io_info.ray_intersection_cube_offset;
   isodual_data.flag_convert_quad_to_tri = io_info.flag_convert_quad_to_tri;
   isodual_data.quad_tri_method = io_info.quad_tri_method;
 }
@@ -1390,9 +1354,6 @@ void ISODUAL3D::set_output_info
   output_info.nowrite_flag = io_info.nowrite_flag;
   output_info.use_stdout = io_info.use_stdout;
   output_info.flag_silent = io_info.flag_silent;
-  /* OBSOLETE
-  output_info.flag_output_tri_mesh = io_info.flag_output_tri_mesh;
-  */
   output_info.flag_output_tri_mesh = io_info.flag_convert_quad_to_tri;
 
   output_info.grow_factor = 1;

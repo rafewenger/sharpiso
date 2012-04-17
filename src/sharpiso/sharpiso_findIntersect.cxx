@@ -108,7 +108,7 @@ bool SHARPISO::calculate_point_intersect
 // to find the intersection with the unit cube and translate it back.
 
 bool SHARPISO::calculate_point_intersect
-(const COORD_TYPE cube_coord[],
+(const GRID_COORD_TYPE cube_coord[],
  const SCALAR_TYPE *original_pt,
  const SCALAR_TYPE *dir,
  SCALAR_TYPE *intersect)
@@ -206,7 +206,7 @@ bool SHARPISO::calculate_point_intersect
 // Takes an extra parameter of how big the cube is
 
 bool SHARPISO::calculate_point_intersect_complex
-(const COORD_TYPE cube_coord[],
+(const GRID_COORD_TYPE cube_coord[],
  const SCALAR_TYPE *original_pt,
  const SCALAR_TYPE *dir,
  const float th
@@ -267,7 +267,7 @@ bool SHARPISO::calculate_point_intersect_complex
 // Takes an extra parameter of how big the cube is
 
 bool SHARPISO::calculate_point_intersect_complex
-(const COORD_TYPE cube_coord[],
+(const GRID_COORD_TYPE cube_coord[],
  const SCALAR_TYPE *original_pt,
  const SCALAR_TYPE *dir,
  const float th,
@@ -349,7 +349,7 @@ bool SHARPISO::calculate_point_intersect_complex
 //  Find a point on the ray which is at the closest distance to the cube-center
 //  Note calculate the cube center from the cube coord (index) by adding 0.5 0.5 0.5
 void SHARPISO::compute_closest_point_to_cube_center
-(const COORD_TYPE cube_coord[],
+(const GRID_COORD_TYPE cube_coord[],
  const COORD_TYPE coord[],
  const COORD_TYPE ray_direction[],
  COORD_TYPE closest_point[DIM3])
@@ -434,7 +434,7 @@ void compute_linf_dist
 };
 // compute the linf distance between a point and a ray
 void SHARPISO::compute_closest_point_to_cube_center_linf
-(const COORD_TYPE cube_coord[],
+(const GRID_COORD_TYPE cube_coord[],
  const COORD_TYPE coord[],
  const COORD_TYPE ray_direction[],
  COORD_TYPE closest_point[DIM3])

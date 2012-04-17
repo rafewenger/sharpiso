@@ -60,7 +60,6 @@ void ISODUAL_PARAM::Init()
   use_only_cube_gradients = false;
   use_selected_gradients = true;
   grad_selection_cube_offset = 0;
-  ray_intersection_cube_offset = 0;
   max_small_eigenvalue = 0.1;
 }
 

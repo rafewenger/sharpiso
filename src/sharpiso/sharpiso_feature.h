@@ -75,6 +75,20 @@ namespace SHARPISO {
    bool & flag_use_centroid,
    SVD_INFO & svd_info);
   
+  /// Compute sharp isosurface vertex on the line
+  /// @param flag_conflict True if sharp_coord conflicts with other cube.
+  void compute_vertex_on_line
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const GRID_COORD_TYPE cube_coord[DIM3],
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & sharpiso_param,
+   const COORD_TYPE line_origin[DIM3],
+   const COORD_TYPE line_direction[DIM3],
+   COORD_TYPE sharp_coord[DIM3],
+   bool & flag_conflict,
+   SVD_INFO & svd_info);
+
   /// Compute sharp isosurface vertex using singular valued decomposition.
   /// Use only cube vertex gradients.
   void svd_compute_sharp_vertex_in_cube
@@ -144,12 +158,12 @@ namespace SHARPISO {
    const SCALAR_TYPE isovalue,
    const GRADIENT_COORD_TYPE max_small_mag,
    const EIGENVALUE_TYPE max_small_eigenvalue,
-   const SCALAR_TYPE cube_offset2,
    COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
    const SHARP_ISOVERT_PARAM & sharp_isovert_param,
    SVD_INFO & svd_info);
-   // with out the sharp isovert param
+
+  // with out the sharp isovert param
   void svd_compute_sharp_vertex_in_cube_edge_based_simple
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -157,7 +171,6 @@ namespace SHARPISO {
    const SCALAR_TYPE isovalue,
    const GRADIENT_COORD_TYPE max_small_mag,
    const EIGENVALUE_TYPE max_small_eigenvalue,
-   const SCALAR_TYPE cube_offset2,
    COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
@@ -171,7 +184,6 @@ namespace SHARPISO {
    const SCALAR_TYPE isovalue,
    const GRADIENT_COORD_TYPE max_small_mag,
    const EIGENVALUE_TYPE max_small_eigenvalue,
-   const SCALAR_TYPE cube_offset2,
    COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
@@ -183,7 +195,6 @@ namespace SHARPISO {
    const SCALAR_TYPE isovalue,
    const GRADIENT_COORD_TYPE max_small_mag,
    const EIGENVALUE_TYPE max_small_eigenvalue,
-   const SCALAR_TYPE cube_offset2,
    COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
    const SHARP_ISOVERT_PARAM & sharp_isovert_param,
@@ -244,11 +255,11 @@ namespace SHARPISO {
 
   // clamp point : shpoint in the global coord 
   void  clamp_point
-	  (const float threshold_cube_offset, COORD_TYPE * cube_coord,
-      COORD_TYPE * shpoint);
+	  (const float threshold_cube_offset, GRID_COORD_TYPE cube_coord[DIM3],
+      COORD_TYPE point[DIM3]);
 	// clamp point: shpoint in the local coord
 	void  clamp_point
-	  (const float threshold_cube_offset, COORD_TYPE * shpoint);
+	  (const float threshold_cube_offset, COORD_TYPE shpoint[DIM3]);
 
   // **************************************************
   // SHARP_ISOVERT_PARAM
@@ -261,11 +272,19 @@ namespace SHARPISO {
     void Init();
     
   public:
-    bool use_lindstrom;
-    SIGNED_COORD_TYPE ray_intersection_cube_offset;
+    bool use_lindstrom;            ///< If true, use Lindstrom formula
+    bool flag_allow_conflict;      ///< If true, allow conflicts
+    bool flag_clamp_conflict;      ///< If true, clamp conflicts to cube.
+    bool flag_clamp_far;           ///< If true, clamp far points.
+    bool flag_recompute_eigen2;    ///< If true, recompute with 2 eigenvalues.
+    bool flag_round;               ///< Round output coordinates.
+    bool use_Linf_dist;            ///< If true, use Linf dist.
 
     /// Maximum (Linf) distance from cube to isosurface vertex
     SIGNED_COORD_TYPE max_dist;
+
+    /// Snap points within snap distance to cube.
+    COORD_TYPE snap_dist;
     
     /// Normalized eigenvalues with value less than max_small_eigenvalue
     ///   are set to zero.
@@ -284,15 +303,13 @@ namespace SHARPISO {
   public:
     LOC_TYPE location;                       // location type
     GRADIENT_COORD_TYPE ray_direction[DIM3]; // ray direction
-    COORD_TYPE ray_initial_point[DIM3];     // point on ray
+    COORD_TYPE ray_initial_point[DIM3];      // point on ray
     COORD_TYPE ray_cube_intersection[DIM3];
-    bool ray_intersect_cube;                 // true if ray intersects cube
-    bool is_svd_point_in_cube;               // true if svd point is in cube
     
     /// Set ray information.
     void SetRayInfo
     (const COORD_TYPE origin[DIM3], const COORD_TYPE direction[DIM3],
-     const COORD_TYPE intersect[DIM3], const bool flag_intersects_cube);
+     const COORD_TYPE intersect[DIM3]);
 	};
   
   

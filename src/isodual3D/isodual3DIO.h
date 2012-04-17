@@ -93,9 +93,6 @@ namespace ISODUAL3D {
     int supersample_resolution;
     bool flag_color_alternating;  ///< Color simplices in alternating cubes
     int region_length;
-    /* OBSOLETE
-    bool flag_output_tri_mesh;
-    */
     bool flag_output_param;
 
     /// List of high resolution arguments,

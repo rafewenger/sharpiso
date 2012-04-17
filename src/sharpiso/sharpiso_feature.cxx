@@ -34,10 +34,18 @@
 
 // Local functions.
 bool is_dist_to_cube_le
-(const COORD_TYPE * coord, const COORD_TYPE * cube_coord,
+(const COORD_TYPE coord[DIM3], const GRID_COORD_TYPE cube_coord[DIM3],
  const SCALAR_TYPE max_dist);
 VERTEX_INDEX get_cube_containing_point
 (const SHARPISO_GRID & grid, const COORD_TYPE * coord);
+void snap_to_cube
+(const GRID_COORD_TYPE cube_coord[DIM3],
+ const COORD_TYPE snap_dist, COORD_TYPE coord[DIM3]);
+bool check_conflict
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const GRID_COORD_TYPE cube_coord[DIM3], 
+ const COORD_TYPE point_coord[DIM3]);
 
 
 // **************************************************
@@ -50,7 +58,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
- const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
  const OFFSET_CUBE_111 & cube_111,
  COORD_TYPE sharp_coord[DIM3],
  EIGENVALUE_TYPE eigenvalues[DIM3],
@@ -58,21 +66,16 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
  SVD_INFO & svd_info)
 {
   const EIGENVALUE_TYPE max_small_eigenvalue =
-    sharp_isovert_param.max_small_eigenvalue;
-  const SIGNED_COORD_TYPE ray_intersection_cube_offset =
-    sharp_isovert_param.ray_intersection_cube_offset;
+    sharpiso_param.max_small_eigenvalue;
+  const COORD_TYPE max_dist = sharpiso_param.max_dist;
 
   NUM_TYPE num_gradients = 0;
   std::vector<COORD_TYPE> point_coord;
   std::vector<GRADIENT_COORD_TYPE> gradient_coord;
   std::vector<SCALAR_TYPE> scalar;
 
-  // Initialize svd_info
-  svd_info.ray_intersect_cube = false;
-  svd_info.is_svd_point_in_cube = false;
-
   // Compute coord of the cube.
-  COORD_TYPE cube_coord[DIM3];
+  GRID_COORD_TYPE cube_coord[DIM3];
   scalar_grid.ComputeCoord(cube_index, cube_coord);
 
   // flag used centroid initialized to false
@@ -80,15 +83,17 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
 
   get_gradients
     (scalar_grid, gradient_grid, cube_index, isovalue,
-     sharp_isovert_param, cube_111,
+     sharpiso_param, cube_111,
      point_coord, gradient_coord, scalar, num_gradients);
 
-  GRADIENT_COORD_TYPE ray_direction[DIM3]={0.0};
+  GRADIENT_COORD_TYPE line_direction[DIM3];
+  bool flag_conflict = false;
 
-  // svd_calculate_sharpiso vertex using lindstrom
-  
-  if (sharp_isovert_param.use_lindstrom) {
+  svd_info.location = LOC_SVD;
 
+  if (sharpiso_param.use_lindstrom) {
+
+    // svd_calculate_sharpiso vertex using lindstrom
     COORD_TYPE default_center[DIM3] = {0.5,0.5,0.5};
     COORD_TYPE cube_center[DIM3];
     IJK::add_coord_3D(cube_coord, default_center, cube_center);
@@ -98,88 +103,97 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
        num_gradients, isovalue, max_small_eigenvalue,
        num_large_eigenvalues, eigenvalues, cube_center, sharp_coord);
     
-    IJK::round16_coord(DIM3, sharp_coord, sharp_coord);
-    // the distance used in lindstorm is max_dist-1. 
-    clamp_point(sharp_isovert_param.max_dist, cube_coord, sharp_coord);
-    
+    if (!sharpiso_param.flag_allow_conflict) {
+      flag_conflict = 
+        check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord);
+    }
   }
-  else{
-    /// if the lindtorm flag is off use the ray cube intersection
+  else {
+
+    /// if use_lindstrom=false, use ray-cube intersection and centroid
+    ///   to calculate sharp_point when num eigenvalues < 3.
     svd_calculate_sharpiso_vertex_unit_normals
-      (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
-       num_gradients, isovalue, max_small_eigenvalue,
-       num_large_eigenvalues, eigenvalues, sharp_coord, ray_direction);
+      (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]), 
+       num_gradients, isovalue, 
+       max_small_eigenvalue, num_large_eigenvalues, 
+       eigenvalues, sharp_coord, line_direction);
+    
+    if (num_large_eigenvalues == 3) {
 
-    if (num_large_eigenvalues == 2)
-      {
-        COORD_TYPE ray_origin[DIM3];
-        // if there are 2 sing vals then the coord acts as the ray origin
-        IJK::copy_coord_3D(sharp_coord, ray_origin);
-
-        compute_vertex_on_ray
-          ( scalar_grid, gradient_grid, cube_index, isovalue, sharp_isovert_param,
-            ray_origin, ray_direction, sharp_coord, flag_use_centroid, svd_info);
-        svd_info.SetRayInfo(ray_origin, ray_direction, sharp_coord, !flag_use_centroid);
-      }
-
-    bool flag_use_ray_cube_intersection = false;
-    if (num_large_eigenvalues == 3)
-      {
-        IJK::round16_coord(DIM3, sharp_coord, sharp_coord);
-        const SIGNED_COORD_TYPE max_dist = sharp_isovert_param.max_dist;
-        if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist) && scalar_grid.ContainsPoint(sharp_coord)) {
-
-          svd_info.location = LOC_SVD;
-          // check for the point
-          if (!scalar_grid.CubeContainsPoint(cube_index, sharp_coord)) {
-            VERTEX_INDEX new_icube = get_cube_containing_point (scalar_grid, sharp_coord);
-            if (IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue)) {
-              flag_use_ray_cube_intersection = true;
-            }
-          }
-        }
-
-        if((!is_dist_to_cube_le(sharp_coord, cube_coord, max_dist) && scalar_grid.ContainsPoint(sharp_coord))
-           ||(flag_use_ray_cube_intersection)){
+      // Check for far point or conflict and recompute using 2 eigenvalues.
+      if (sharpiso_param.flag_recompute_eigen2) {
+        snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
+        if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist) ||
+            check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
 
           svd_calculate_sharpiso_vertex_2_svals_unit_normals
-            (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
-             num_gradients, isovalue, max_small_eigenvalue, num_large_eigenvalues,
-             eigenvalues, sharp_coord, ray_direction);
-
-          if (num_large_eigenvalues==2) {
-            COORD_TYPE ray_origin[DIM3];
-            // if there are 2 sing vals then the coord acts as the ray origin
-            IJK::copy_coord_3D(sharp_coord, ray_origin);
-            compute_vertex_on_ray
-              ( scalar_grid, gradient_grid,
-                cube_index, isovalue, sharp_isovert_param, ray_origin, ray_direction,
-                sharp_coord, flag_use_centroid, svd_info);
-            svd_info.SetRayInfo(ray_origin, ray_direction, sharp_coord, !flag_use_centroid);
-          }// num_large eigen ==2 end
-          else {
-            svd_info.location = CENTROID;
-            flag_use_centroid = true;
-          }
+            (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]), 
+             num_gradients, isovalue, 
+             max_small_eigenvalue, num_large_eigenvalues,
+             eigenvalues, sharp_coord, line_direction);
         }
       }
+      else {
+        flag_conflict = 
+          check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord);
+      }
+    }
 
-    if (num_large_eigenvalues  == 1 || flag_use_centroid == true)
-      {
+    if (num_large_eigenvalues == 2) {
+      COORD_TYPE line_origin[DIM3];
+      // if there are 2 sing vals then the coord acts as the line origin
+      IJK::copy_coord_3D(sharp_coord, line_origin);
+
+      compute_vertex_on_line
+        (scalar_grid, gradient_grid, cube_coord, isovalue, sharpiso_param,
+         line_origin, line_direction, sharp_coord, flag_conflict, svd_info);
+      svd_info.SetRayInfo(line_origin, line_direction, sharp_coord);
+    }
+    else if (num_large_eigenvalues  == 1) {
+      compute_isosurface_grid_edge_centroid
+        (scalar_grid, isovalue, cube_index, sharp_coord);
+      svd_info.location = CENTROID;
+    }
+    else if (num_large_eigenvalues == 0 ) {
+      COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
+      IJK::add_coord_3D(cube_coord, cube_center, sharp_coord);
+      svd_info.location = CUBE_CENTER;
+    }
+  }
+
+  if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
+
+    // Clamp points, to cube.
+    if (!sharpiso_param.flag_allow_conflict && flag_conflict) {
+
+      if (sharpiso_param.flag_clamp_conflict) {
+        // Clamp point to the cube.
+        clamp_point(0, cube_coord, sharp_coord);
+      }
+      else {
+        // Use the centroid.
         compute_isosurface_grid_edge_centroid
           (scalar_grid, isovalue, cube_index, sharp_coord);
         svd_info.location = CENTROID;
-
-        IJK::round16_coord(DIM3, sharp_coord, sharp_coord);  // Round to nearest 16'th
       }
+    }
 
-    if (num_large_eigenvalues == 0 )
-      {
-        COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
-        IJK::add_coord_3D(cube_coord, cube_center, sharp_coord);
-        svd_info.location = CUBE_CENTER;
-      }
   }
+  else {
+    if (sharpiso_param.flag_clamp_far) {
+      // Clamp point to cube + max_dist.
+      clamp_point(sharpiso_param.max_dist, cube_coord, sharp_coord);
+    }
+    else {
+      // Use the centroid.
+      compute_isosurface_grid_edge_centroid
+        (scalar_grid, isovalue, cube_index, sharp_coord);
+      svd_info.location = CENTROID;
+    }
+  }
+
+  if (sharpiso_param.flag_round)
+    { IJK::round16_coord(DIM3, sharp_coord, sharp_coord); }
 }
 
 
@@ -202,10 +216,6 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
   std::vector<GRADIENT_COORD_TYPE> gradient_coord;
   std::vector<SCALAR_TYPE> scalar;
 
-  // Initialize svd_info
-  svd_info.ray_intersect_cube = false;
-  svd_info.is_svd_point_in_cube = false;
-
   get_large_cube_gradients
     (scalar_grid, gradient_grid, cube_index, max_small_mag,
      point_coord, gradient_coord, scalar, num_gradients);
@@ -225,12 +235,11 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube
     IJK::copy_coord_3D(coord, svd_info.ray_initial_point);
 
     //coord of the cube index
-    COORD_TYPE cube_coord[DIM3];
+    GRID_COORD_TYPE cube_coord[DIM3];
     scalar_grid.ComputeCoord(cube_index, cube_coord);
 
     isIntersect = calculate_point_intersect_complex
       (cube_coord, coord, ray_direction, cube_offset2, coord);
-    svd_info.ray_intersect_cube = isIntersect;
     svd_info.location = LOC_SVD;
 
     if (!isIntersect) {
@@ -287,16 +296,14 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_S
     IJK::copy_coord_3D(coord, svd_info.ray_initial_point);
 
     //coord of the cube index
-    COORD_TYPE cube_coord[DIM3];
+    GRID_COORD_TYPE cube_coord[DIM3];
     scalar_grid.ComputeCoord(cube_index, cube_coord);
 
     isIntersect = calculate_point_intersect_complex
       (cube_coord, coord, ray_direction, cube_offset2, coord);
-    svd_info.ray_intersect_cube = true;
     svd_info.location = LOC_SVD;
 
     if (!isIntersect) {
-      svd_info.ray_intersect_cube = false;
       compute_isosurface_grid_edge_centroid
         (scalar_grid, isovalue, cube_index, coord);
       svd_info.location = CENTROID;
@@ -350,16 +357,14 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood
     IJK::copy_coord_3D(coord, svd_info.ray_initial_point);
 
     //coord of the cube index
-    COORD_TYPE cube_coord[DIM3];
+    GRID_COORD_TYPE cube_coord[DIM3];
     scalar_grid.ComputeCoord(cube_index, cube_coord);
 
     isIntersect = calculate_point_intersect_complex
       (cube_coord, coord, ray_direction, cube_offset2, coord);
-    svd_info.ray_intersect_cube = true;
     svd_info.location = LOC_SVD;
 
     if (!isIntersect) {
-      svd_info.ray_intersect_cube = false;
       compute_isosurface_grid_edge_centroid
         (scalar_grid, isovalue, cube_index, coord);
       svd_info.location = CENTROID;
@@ -372,85 +377,56 @@ void SHARPISO::svd_compute_sharp_vertex_neighborhood
   }
 }
 
-/// Compute sharp isosurface vertex on the ray
-void SHARPISO::compute_vertex_on_ray
+/// Compute sharp isosurface vertex on the line
+/// @param flag_conflict True if sharp_coord conflicts with other cube.
+void SHARPISO::compute_vertex_on_line
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX cube_index,
+ const GRID_COORD_TYPE cube_coord[DIM3],
  const SCALAR_TYPE isovalue,
- const SHARP_ISOVERT_PARAM & sharp_isovert_param,
- const COORD_TYPE ray_origin[DIM3],
- const COORD_TYPE ray_direction[DIM3],
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
+ const COORD_TYPE line_origin[DIM3],
+ const COORD_TYPE line_direction[DIM3],
  COORD_TYPE sharp_coord[DIM3],
- bool & flag_use_centroid,
+ bool & flag_conflict,
  SVD_INFO & svd_info)
 {
-  // Compute coord of the cube.
-  COORD_TYPE cube_coord[DIM3];
-  scalar_grid.ComputeCoord(cube_index, cube_coord);
+  const SIGNED_COORD_TYPE max_dist = sharpiso_param.max_dist;
 
-  // if there are 2 sing vals then the coord acts as the ray origin
-  const SIGNED_COORD_TYPE ray_intersection_cube_offset =
-    sharp_isovert_param.ray_intersection_cube_offset;
-  bool isIntersect = false;
-  isIntersect = calculate_point_intersect_complex
-    (cube_coord, ray_origin, ray_direction,
-     ray_intersection_cube_offset);
+  // default
+  flag_conflict = false;
 
-  if (isIntersect) {
+  // Compute the closest point (L2 distance) on the line to sharp_coord.
+  compute_closest_point_to_cube_center
+    (cube_coord, line_origin, line_direction, sharp_coord);
 
-    //compute the l2 (shortest distance)
-    COORD_TYPE closest_point[DIM3]={0.0};
-    compute_closest_point_to_cube_center
-      (cube_coord, ray_origin, ray_direction, closest_point);
+  if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
 
-    IJK::copy_coord_3D(closest_point, sharp_coord);
-    IJK::round16_coord(DIM3, sharp_coord, sharp_coord);  // Round to nearest 16'th
-    svd_info.location = LOC_SVD;
-    svd_info.is_svd_point_in_cube = true;
+    snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
+    if (check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
+  
+      if (sharpiso_param.use_Linf_dist) {
+        // Use Linf distance instead of L1 distance.
+        compute_closest_point_to_cube_center_linf
+          (cube_coord, line_origin, line_direction, sharp_coord);
 
-    if (!scalar_grid.CubeContainsPoint(cube_index, sharp_coord)) {
-      //check if the isosurface intersects the new_icube
-      VERTEX_INDEX new_icube = get_cube_containing_point(scalar_grid, sharp_coord);
-
-      if (IJK::is_gt_cube_min_le_cube_max(scalar_grid, new_icube, isovalue))
-        {
-          //check for the linf distance
-          COORD_TYPE linf_point[DIM3]={0.0};
-
-          compute_closest_point_to_cube_center_linf
-            (cube_coord, ray_origin, ray_direction, linf_point);
-          IJK::copy_coord_3D(linf_point, sharp_coord);
-          IJK::round16_coord(DIM3, sharp_coord, sharp_coord);  // Round to nearest 16'th
-          if (!scalar_grid.CubeContainsPoint(cube_index, sharp_coord)) {
-            VERTEX_INDEX new_icube2 =
-              get_cube_containing_point(scalar_grid, sharp_coord);
-            // if the cube is occupied or the linf point lies in the same
-            // cube as the l2 point shifft to centroid
-            if (IJK::is_gt_cube_min_le_cube_max
-                (scalar_grid, new_icube2, isovalue) || new_icube2 == new_icube) {
-              svd_info.location = CENTROID;
-              flag_use_centroid = true;
-              svd_info.is_svd_point_in_cube = false;
-            }
-          }
-        }
+        snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
+        if (check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) 
+          { flag_conflict = true; }
+      }
+      else {
+        flag_conflict = true;
+      }
     }
   }
-  else
-    {
-      // there  is no intersect.
-      svd_info.location = CENTROID;
-      flag_use_centroid = true;
-    }
+  else {
+    flag_conflict = true;
+  }
 }
 
-/// ???? DOES THIS COMMENT BELONG TO THE PRECEDING OR NEXT ALGORITHM???
-/// Return cube containing point.
-/// @pre Assumes coord is within grid.
 
 /// Compute sharp isosurface vertex using linear interpolation on grid edges.
-/// Version with sharp_isovert_param.
+/// Version with sharpiso_param.
 void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -458,10 +434,9 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
  const EIGENVALUE_TYPE max_small_eigenvalue,
- const SCALAR_TYPE cube_offset2,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
- const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
  SVD_INFO & svd_info)
 {
   NUM_TYPE num_gradients = 0;
@@ -482,7 +457,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
   bool cube_create = shFindPoint
     (&(gradient_coord[0]), &(scalar[0]), isovalue, use_cmplx_interp,
      max_small_eigenvalue, eigenvalues, num_large_eigenvalues,
-     svd_info, sharp_isovert_param.max_dist, coord);
+     svd_info, sharpiso_param.max_dist, coord);
 
   COORD_TYPE cube_coord[DIM3];
   COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
@@ -501,7 +476,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
 
 
 /// Compute sharp isosurface vertex using linear interpolation on grid edges.
-/// Version without sharp_isovert_param.
+/// Version without sharpiso_param.
 void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -509,7 +484,6 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
  const EIGENVALUE_TYPE max_small_eigenvalue,
- const SCALAR_TYPE cube_offset2,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info)
@@ -552,7 +526,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
 
 /// Compute sharp isosurface vertex by computing intersection of grid edges
 ///   and the isosurface using edge endpoint gradients.
-/// Version without sharp_isovert_param.
+/// Version without sharpiso_param.
 void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -560,7 +534,6 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
  const EIGENVALUE_TYPE max_small_eigenvalue,
- const SCALAR_TYPE cube_offset2,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info)
@@ -601,7 +574,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
 
 /// Compute sharp isosurface vertex by computing intersection of grid edges
 ///   and the isosurface using edge endpoint gradients.
-/// Version with sharp_isovert_param.
+/// Version with sharpiso_param.
 void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -609,10 +582,9 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_mag,
  const EIGENVALUE_TYPE max_small_eigenvalue,
- const SCALAR_TYPE cube_offset2,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
- const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
  SVD_INFO & svd_info)
 {
   NUM_TYPE num_gradients = 0;
@@ -632,7 +604,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
   bool cube_create = shFindPoint
     (&(gradient_coord[0]), &(scalar[0]), isovalue, use_cmplx_interp,
      max_small_eigenvalue, eigenvalues, num_large_eigenvalues,
-     svd_info, sharp_isovert_param.max_dist, coord);
+     svd_info, sharpiso_param.max_dist, coord);
 
   COORD_TYPE cube_coord[DIM3];
   COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
@@ -847,20 +819,21 @@ void SHARPISO::subgrid_calculate_iso_vertex_in_cube
 // **************************************************
 // CLAMP POINTS TO MAX DIST
 // **************************************************
+
 // When the sharp point is in global coordinates.
 void  SHARPISO::clamp_point
 ( const float threshold_cube_offset,
-  COORD_TYPE * cube_coord,
-  COORD_TYPE * shpoint)
+  GRID_COORD_TYPE cube_coord[DIM3],
+  COORD_TYPE point[DIM3])
 {
-  for (int i=0;i<3;i++)
+  for (int i=0; i<DIM3; i++)
     {
-      float p = shpoint[i] -cube_coord[i];
+      float p = point[i] -cube_coord[i];
       if (p < (-threshold_cube_offset)){
-        shpoint[i] = cube_coord[i] - threshold_cube_offset;
+        point[i] = cube_coord[i] - threshold_cube_offset;
       }
       if (p > 1+threshold_cube_offset){
-        shpoint[i]=  cube_coord[i] + 1.0 + threshold_cube_offset;
+        point[i]=  cube_coord[i] + 1.0 + threshold_cube_offset;
       }
     }
   
@@ -868,16 +841,16 @@ void  SHARPISO::clamp_point
 // when the sharp point is in local coordinates
 void  SHARPISO::clamp_point
 ( const float threshold_cube_offset,
-  COORD_TYPE * shpoint)
+  COORD_TYPE point[DIM3])
 {
-  for (int i=0;i<3;i++)
+  for (int i=0; i<DIM3; i++)
     {
 
-      if (shpoint[i]< (-threshold_cube_offset)){
-        shpoint[i] = - threshold_cube_offset;
+      if (point[i]< (-threshold_cube_offset)){
+        point[i] = - threshold_cube_offset;
       }
-      if (shpoint[i] > 1.0 +threshold_cube_offset){
-        shpoint[i]=  1.0 + threshold_cube_offset;
+      if (point[i] > 1.0 +threshold_cube_offset){
+        point[i]=  1.0 + threshold_cube_offset;
       }
     }
   
@@ -890,7 +863,7 @@ void  SHARPISO::clamp_point
 
 /// Return true if (Linf) distance from coord to cube is at most
 bool is_dist_to_cube_le
-(const COORD_TYPE * coord, const COORD_TYPE * cube_coord,
+(const COORD_TYPE coord[DIM3], const GRID_COORD_TYPE cube_coord[DIM3],
  const SCALAR_TYPE max_dist)
 {
   for (int d=0; d<DIM3; d++) {
@@ -921,6 +894,73 @@ VERTEX_INDEX get_cube_containing_point
   return(cube_index);
 }
 
+// Snap coordinate to cube.
+void snap_to_cube
+(const GRID_COORD_TYPE cube_coord[DIM3],
+ const COORD_TYPE snap_dist, COORD_TYPE coord[DIM3])
+{
+  for (int d = 0; d < DIM3; d++) {
+    if (coord[d] < cube_coord[d]) {
+      if (coord[d] + snap_dist >= cube_coord[d]) 
+        { coord[d] = cube_coord[d]; }
+    }
+    else {
+      GRID_COORD_TYPE right_coord = cube_coord[d]+1;
+      if (coord[d] > right_coord) {
+        if (coord[d] <= right_coord+snap_dist) 
+          { coord[d] = right_coord; }
+      }
+    }
+  }
+}
+
+
+// **************************************************
+// Check for conflict
+// **************************************************
+
+/// Return true if cube contains point.
+/// *** MOVE TO IJKGRID. ***
+bool cube_contains_point
+(const GRID_COORD_TYPE cube_coord[DIM3],
+ const COORD_TYPE point_coord[DIM3])
+{
+  for (int d = 0; d < DIM3; d++) {
+    if (point_coord[d] < cube_coord[d])
+      { return(false); }
+    if (point_coord[d] > cube_coord[d]+1)
+      { return(false); }
+  }
+
+  return(true);
+}
+
+/// Return true if point lies in an occupied cube
+///   other than the one given by cube_coord[].
+bool check_conflict
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const GRID_COORD_TYPE cube_coord[DIM3], 
+ const COORD_TYPE point_coord[DIM3]) 
+{
+  if (cube_contains_point(cube_coord, point_coord)) {
+    // Point is in cube.  No conflict.
+    return(false);
+  }
+
+  if (scalar_grid.ContainsPoint(point_coord)) {
+    // Point is inside grid.
+    VERTEX_INDEX icube2 = get_cube_containing_point(scalar_grid, point_coord);
+
+    if (IJK::is_gt_cube_min_le_cube_max(scalar_grid, icube2, isovalue)) {
+      // Isosurface intersects icube2. Conflict.
+      return(true);
+    }
+  }
+
+  // No conflict.
+  return(false);
+}
 
 // **************************************************
 // SHARP_ISOVERT_PARAM
@@ -930,8 +970,14 @@ VERTEX_INDEX get_cube_containing_point
 void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 {
   use_lindstrom = false;
+  flag_allow_conflict = false;
+  flag_clamp_conflict = false;
+  flag_clamp_far = false;
+  flag_recompute_eigen2 = true;
+  flag_round = true;
+  use_Linf_dist = true;
   max_dist = 1.0;
-  ray_intersection_cube_offset = 0;
+  snap_dist = 1.0/16.0;
   max_small_eigenvalue = 0.1;
 }
 
@@ -942,11 +988,10 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 /// Set ray information.
 void SVD_INFO::SetRayInfo
 (const COORD_TYPE origin[DIM3], const COORD_TYPE direction[DIM3],
- const COORD_TYPE intersect[DIM3],
- const bool flag_intersects_cube)
+ const COORD_TYPE intersect[DIM3])
+
 {
   IJK::copy_coord_3D(origin, ray_initial_point);
   IJK::copy_coord_3D(direction, ray_direction);
   IJK::copy_coord_3D(intersect, ray_cube_intersection);
-  ray_intersect_cube = flag_intersects_cube;
 }

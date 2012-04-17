@@ -161,10 +161,7 @@ void ISODUAL3D::dual_contouring
  // merge_data = internal data structure for merging identical edges
  // isodual_info = information about running time and grid cubes and edges
 {
-  COORD_TYPE cube_offset = 0.0;
   PROCEDURE_ERROR error("dual_contouring");
-
-
 
   clock_t t0 = clock();
 
@@ -182,6 +179,7 @@ void ISODUAL3D::dual_contouring
   clock_t t2 = clock();
 
   if (vertex_position_method == GRADIENT_POSITIONING) {
+    COORD_TYPE cube_offset = 0.0;
     position_dual_isovertices_using_gradients
       (scalar_grid, gradient_grid, isovalue, cube_offset,
       iso_vlist, vertex_coord);
@@ -190,14 +188,12 @@ void ISODUAL3D::dual_contouring
 
     //EDGE SIMPLE
     position_dual_isovertices_using_edge_intersection_simple
-      (scalar_grid, gradient_grid, isovalue, cube_offset,
-      iso_vlist, vertex_coord);
+      (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);
   }
   else if (vertex_position_method == EDGE_COMPLEX) {
     //EDGE COMPLEX
     position_dual_isovertices_using_edge_intersection_complex
-      (scalar_grid, gradient_grid, isovalue, cube_offset,
-      iso_vlist, vertex_coord);
+      (scalar_grid, gradient_grid, isovalue, iso_vlist, vertex_coord);
   }
   else {
     // default
@@ -244,8 +240,6 @@ void ISODUAL3D::dual_contouring
     isodual_param.use_only_cube_gradients;
   const SIGNED_COORD_TYPE grad_selection_cube_offset =
     isodual_param.grad_selection_cube_offset;
-  const SIGNED_COORD_TYPE ray_intersection_cube_offset =
-    isodual_param.ray_intersection_cube_offset;
 
   clock_t t0 = clock();
 
@@ -271,13 +265,13 @@ void ISODUAL3D::dual_contouring
 
     //EDGE SIMPLE
     position_dual_isovertices_using_edge_intersection_simple
-      (scalar_grid, gradient_grid, isovalue, ray_intersection_cube_offset,
+      (scalar_grid, gradient_grid, isovalue,
       iso_vlist, isodual_param, vertex_coord);
   }
   else if (vertex_position_method == EDGE_COMPLEX) {
     //EDGE COMPLEX
     position_dual_isovertices_using_edge_intersection_complex
-      (scalar_grid, gradient_grid, isovalue, ray_intersection_cube_offset,
+      (scalar_grid, gradient_grid, isovalue,
       iso_vlist,isodual_param, vertex_coord);
   }
   else {

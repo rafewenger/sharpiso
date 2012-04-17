@@ -113,7 +113,7 @@ void output_gradients
  const NUM_TYPE num_points);
 void output_svd_results
 (std::ostream & output, 
- const COORD_TYPE cube_coord[DIM3],
+ const GRID_COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE sharp_coord[DIM3],
  const EIGENVALUE_TYPE eigenvalues[DIM3], const NUM_TYPE num_large_eigenvalues,
  const EIGENVALUE_TYPE eigenvalue_tolerance, SVD_INFO & svd_info);
@@ -164,7 +164,6 @@ int main(int argc, char **argv)
   IJK::ERROR error;
   // accumulate information from svd_calls
   SVD_INFO svd_info;
-  svd_info.ray_intersect_cube = false;
   svd_info.location = LOC_NONE;
 
   try {
@@ -247,7 +246,7 @@ int main(int argc, char **argv)
           cout << endl;
         }
         else {
-          COORD_TYPE cube_coord[DIM3];
+          GRID_COORD_TYPE cube_coord[DIM3];
 
           compute_iso_vertex_using_svd
             (scalar_grid, gradient_grid, cube_index, isovalue,
@@ -339,8 +338,6 @@ void compute_iso_vertex_using_svd
 {
   SIGNED_COORD_TYPE grad_selection_cube_offset =
     sharp_isovert_param.grad_selection_cube_offset;
-  SIGNED_COORD_TYPE ray_intersection_cube_offset =
-    sharp_isovert_param.ray_intersection_cube_offset;
   GRADIENT_COORD_TYPE max_small_mag =
     sharp_isovert_param.max_small_magnitude;
   GRADIENT_COORD_TYPE max_small_eigenvalue =
@@ -350,14 +347,14 @@ void compute_iso_vertex_using_svd
   if (flag_svd_edges_simple) {
     svd_compute_sharp_vertex_in_cube_edge_based_simple
       (scalar_grid, gradient_grid, cube_index, isovalue,
-       max_small_mag, max_small_eigenvalue, ray_intersection_cube_offset,
+       max_small_mag, max_small_eigenvalue, 
        sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
   }
   else if (flag_svd_edges_cmplx) {
 
     svd_compute_sharp_vertex_in_cube_edge_based_cmplx
       (scalar_grid, gradient_grid, cube_index, isovalue,
-       max_small_mag, max_small_eigenvalue, ray_intersection_cube_offset,
+       max_small_mag, max_small_eigenvalue, 
        sharp_coord, eigenvalues,
        num_large_eigenvalues, svd_info);
   }
@@ -448,7 +445,7 @@ void output_gradients
 
 void output_svd_results
 (std::ostream & output,
- const COORD_TYPE cube_coord[DIM3],
+ const GRID_COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE sharp_coord[DIM3],
  const EIGENVALUE_TYPE eigenvalues[DIM3],
  const NUM_TYPE num_large_eigenvalues,
@@ -508,18 +505,6 @@ void output_svd_results
     output <<"  Vertex on ray: ";
     print_coord3D(output, closest_point);
     output << endl;
-      
-    if (svd_info.ray_intersect_cube)
-      { output << "  Ray intersects cube." << endl; }
-    else
-      { output << "  Ray does not intersect cube." << endl; }
-  }
-
-  if (!use_only_cube_gradients && use_selected_gradients) {
-    if (svd_info.is_svd_point_in_cube)
-      { output << "Cube contains SVD point." << endl; }
-    else
-      { output << "Cube does not contain SVD point." << endl; }
   }
 
 }
@@ -755,8 +740,6 @@ void report_sharp_param(const SHARP_ISOVERT_PARAM & sharp_param)
 {
   cout << "Gradient selection cube offset: "
        << sharp_param.grad_selection_cube_offset << endl;
-  cout << "Ray intersection cube offset: "
-       << sharp_param.ray_intersection_cube_offset << endl;
   cout << "Maximum small eigenvalue: "
        << sharp_param.max_small_eigenvalue << endl;
   cout << "Max (Linf) distance from cube to isosurface vertex: "
@@ -887,8 +870,7 @@ void usage_error()
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -dist2vert | -vertex <vertex_index> | -vc \"vertex coordinates\"" << endl;
     cerr << "  -max_eigen <value>" << endl;
-    cerr << "  -gradS_offset <value> | -rayI_offset <value> | -max_dist <value>"
-         << endl;
+    cerr << "  -gradS_offset <value> | -max_dist <value>" << endl;
     cerr << "  -listg | -list_subgrid" << endl;
     exit(10);
 }
@@ -936,7 +918,6 @@ void parse_command_line(int argc, char **argv)
   bool use_intersected_edge_endpoint_gradients(false);
   bool use_gradients_determining_edge_intersections(false);
   SIGNED_COORD_TYPE grad_selection_cube_offset(0);
-  SIGNED_COORD_TYPE ray_intersection_cube_offset(0.3);
 
   if (argc == 1) { usage_error(); }
 
@@ -1051,10 +1032,6 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-rayI") {
       flag_use_lindstrom = false;
     }
-    else if (s == "-rayI_offset") {
-      ray_intersection_cube_offset = get_float(iarg, argc, argv);
-      iarg++;
-    }
     else if (s == "-max_dist") {
       sharp_isovert_param.max_dist = get_float(iarg, argc, argv);
       iarg++;
@@ -1143,8 +1120,6 @@ void parse_command_line(int argc, char **argv)
     use_intersected_edge_endpoint_gradients;
   sharp_isovert_param.use_gradients_determining_edge_intersections =
     use_gradients_determining_edge_intersections;
-  sharp_isovert_param.ray_intersection_cube_offset = 
-    ray_intersection_cube_offset;
   sharp_isovert_param.grad_selection_cube_offset = grad_selection_cube_offset;
   sharp_isovert_param.use_lindstrom = flag_use_lindstrom;
 }

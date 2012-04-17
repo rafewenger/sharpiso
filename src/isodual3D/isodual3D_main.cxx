@@ -103,7 +103,6 @@ int main(int argc, char **argv)
     // set DUAL datastructures and flags
     ISODUAL_DATA isodual_data;
     isodual_data.grad_selection_cube_offset = 0.1;
-    isodual_data.ray_intersection_cube_offset = 0.3;
 
     if (flag_gradient) {
       isodual_data.SetGrids
