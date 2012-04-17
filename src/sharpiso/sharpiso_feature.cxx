@@ -104,6 +104,8 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
        num_large_eigenvalues, eigenvalues, cube_center, sharp_coord);
     
     if (!sharpiso_param.flag_allow_conflict) {
+
+      snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
       flag_conflict = 
         check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord);
     }
