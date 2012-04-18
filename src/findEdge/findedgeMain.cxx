@@ -134,7 +134,12 @@ int main(int argc, char **argv)
 		ijkinOFF(in, dimension, mesh_dimension,
 			vertex_coord, num_vertices, simplex_vert, num_simplices);
 		in.close();
-		
+		// checj mesh dimension 
+		if (mesh_dimension != 2)
+		{
+		  cout <<"The input must be a triangle mesh."<<endl;
+		  exit (10);
+		}
 		output_mesh_info();
 		cerr <<"File output to "<< out_filename<<endl;
 	}
@@ -393,8 +398,7 @@ void memory_exhaustion()
 
 void parse_command_line(int argc, char **argv)
 {
-
-	if (argc == 1) {usage_error();}
+	if (argc!=3) {usage_error();}
 	int iarg=1;
 	while (iarg < argc && argv[iarg][0]=='-')
 	{
@@ -413,5 +417,6 @@ void parse_command_line(int argc, char **argv)
 void usage_error()
 {
 	cerr << "Usage: findedge -o {outputfile name ending in .line} {angle} {input filename}" << endl;
+	cerr << "help : angle and input_filename  are required input"<<endl;
 	exit(10);
 }
