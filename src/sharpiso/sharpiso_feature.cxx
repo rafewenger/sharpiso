@@ -981,6 +981,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   max_dist = 1.0;
   snap_dist = 1.0/16.0;
   max_small_eigenvalue = 0.1;
+  separation_distance = 0.1;
 }
 
 // **************************************************

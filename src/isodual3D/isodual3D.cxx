@@ -5,7 +5,7 @@
 
 /*
 IJK: Isosurface Jeneration Kode
-Copyright (C) 2011 Rephael Wenger
+Copyright (C) 2011,2012 Rephael Wenger
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -278,6 +278,13 @@ void ISODUAL3D::dual_contouring
     // default
     position_dual_isovertices_centroid
       (scalar_grid, isovalue, iso_vlist, vertex_coord);
+  }
+
+
+  if (isodual_param.flag_reposition) {
+    reposition_dual_isovertices
+      (scalar_grid, gradient_grid, isovalue, isodual_param,
+       iso_vlist, &(vertex_coord.front()));
   }
 
   clock_t t3 = clock();

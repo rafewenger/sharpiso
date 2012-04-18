@@ -48,7 +48,8 @@ namespace {
   typedef enum
     {SUBSAMPLE_PARAM, SUPERSAMPLE_PARAM,
      GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
-     MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, 
+     MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM,
+     REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
      ALLOW_CONFLICT_PARAM, CLAMP_CONFLICT_PARAM, CLAMP_FAR_PARAM,
      RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,
      USE_LINDSTROM,HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
@@ -58,6 +59,7 @@ namespace {
     {"-subsample", "-supersample",
      "-gradient", "-position", "-trimesh", "-uniform_trimesh",
      "-max_eigen", "-max_dist", "-gradS_offset", 
+     "-reposition", "-no_reposition", "-sepdist",
      "-allow_conflict", "-clamp_conflict","-clamp_far", 
      "-recompute_eigen2", "-no_recompute_eigen2",
      "-lindstrom", "-help", "-off", "-iv", "-out_param",
@@ -267,6 +269,19 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
     case GRAD_S_OFFSET_PARAM:
       io_info.grad_selection_cube_offset = get_float(iarg, argc, argv);
       iarg++;
+      break;
+
+    case SEPDIST_PARAM:
+      io_info.separation_distance = get_float(iarg, argc, argv);
+      iarg++;
+      break;
+
+    case REPOSITION_PARAM:
+      io_info.flag_reposition = true;
+      break;
+
+    case NO_REPOSITION_PARAM:
+      io_info.flag_reposition = false;
       break;
 
     case USE_LINDSTROM:
@@ -1133,6 +1148,7 @@ namespace {
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
   cerr << "  [-max_eigen {max}]" << endl;
   cerr << "  [-max_dist {D}] [-gradS_offset {offset}]" << endl;
+  cerr << "  [-reposition | -no_reposition]" << endl;
   cerr << "  [-lindstrom]" << endl;
   cerr << "  [-allow_conflict] [-clamp_conflict] [-clamp_far]" << endl;
   cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
@@ -1367,6 +1383,8 @@ void ISODUAL3D::set_isodual_data
   isodual_data.use_lindstrom = io_info.use_lindstrom;
   isodual_data.max_small_eigenvalue = io_info.max_small_eigenvalue;
   isodual_data.max_dist = io_info.max_dist;
+  isodual_data.separation_distance = io_info.separation_distance;
+  isodual_data.flag_reposition = io_info.flag_reposition;
   isodual_data.grad_selection_cube_offset =
     io_info.grad_selection_cube_offset;
   isodual_data.flag_convert_quad_to_tri = io_info.flag_convert_quad_to_tri;

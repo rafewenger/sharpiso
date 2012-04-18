@@ -198,6 +198,19 @@ namespace ISODUAL3D {
     std::vector<COORD_TYPE> & coord);
 
   // **************************************************
+  // Reposition routine
+  // **************************************************
+
+  /// Reposition to separate isosurface vertices
+  void reposition_dual_isovertices
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & vlist,
+   COORD_TYPE * isovert_coord);
+
+  // **************************************************
   // Compute routines
   // **************************************************
 
@@ -206,21 +219,6 @@ namespace ISODUAL3D {
     (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
     const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
     COORD_TYPE * coord);
-  /*
-  /// Compute dual isosurface vertex using edges simple
-  void compute_dual_isovertex_using_edges_simple
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-  const GRADIENT_GRID_BASE & gradient_grid,
-  const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
-  COORD_TYPE * coord);
-
-  /// Compute dual isosurface vertex using edges complex
-  void compute_dual_isovertex_using_edges_complex
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-  const GRADIENT_GRID_BASE & gradient_grid,
-  const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
-  COORD_TYPE * coord);
-  */
 };
 
 #endif

@@ -289,7 +289,10 @@ namespace SHARPISO {
     /// Normalized eigenvalues with value less than max_small_eigenvalue
     ///   are set to zero.
     EIGENVALUE_TYPE max_small_eigenvalue;
-    
+
+    /// Minimum separation distance between isosurface vertices.
+    COORD_TYPE separation_distance;
+
     /// Constructor
     SHARP_ISOVERT_PARAM() { Init(); };
   };

@@ -22,6 +22,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "isodual3D_position.h"
 #include "ijkinterpolate.txx"
+#include "ijkcoord.txx"
+#include "ijkgrid_macros.h"
 
 #include "sharpiso_types.h"
 #include "sharpiso_feature.h"
@@ -206,7 +208,9 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
 }
 
 
-// ********************* POSITION DUAL ISOVERTICES USING EDGE INTERSECTION SIMPLE *************** /
+// **************************************************
+// Position using interpolation along grid edge
+// **************************************************
 
 /// Position dual isosurface vertices using SVD and edge intersection simple
 //  This function is called from isodual.cxx
@@ -304,9 +308,11 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_simple
        eigenvalues, num_large_eigenvalues, isodual_param,svd_info);
 
   }
-};
+}
 
-// ********************* POSITION DUAL ISOVERTICES USING EDGE INTERSECTION COMPLEX *************** /
+// **************************************************
+// Position using edge endpoint gradients
+// **************************************************
 
 /// Position dual isosurface vertices using SVD and edge intersection complex
 void ISODUAL3D::position_dual_isovertices_using_edge_intersection_complex
@@ -407,7 +413,8 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_complex
        num_large_eigenvalues, isodual_param, svd_info);
 
   }
-};
+}
+
 // **************************************************
 // Compute routines
 // **************************************************
@@ -471,3 +478,169 @@ void ISODUAL3D::compute_isosurface_grid_edge_centroid
 
     IJK::copy_coord(dimension, vcoord, coord);
 }
+
+// **************************************************
+// Reposition close isosurface vertices
+// **************************************************
+
+namespace {
+
+  typedef IJK::SCALAR_GRID_BASE<SHARPISO_GRID, VERTEX_INDEX>
+  INDEX_GRID_BASE;
+  typedef IJK::SCALAR_GRID<SHARPISO_GRID, VERTEX_INDEX>
+  INDEX_GRID;
+  typedef IJK::BOOL_GRID_BASE<SHARPISO_GRID>
+  SHARPISO_BOOL_GRID_BASE;
+  typedef IJK::BOOL_GRID<SHARPISO_GRID>
+  SHARPISO_BOOL_GRID;
+
+  void set_vertex_locations
+  (const std::vector<ISO_VERTEX_INDEX> & vlist,
+   INDEX_GRID_BASE & vloc, SHARPISO_BOOL_GRID_BASE & isovert_flag)
+  {
+    isovert_flag.SetAll(false);
+    for (VERTEX_INDEX i = 0; i < vlist.size(); i++) {
+      VERTEX_INDEX iv = vlist[i];
+      vloc.Set(iv, i);
+      isovert_flag.Set(iv, true);
+    }
+  }
+
+  /// Returns true if \a s is greater than min scalar value of facet vertices
+  ///   and \a s is less then or equal to max scalar value of facet vertices.
+  /// @param scalar_grid Scalar grid.
+  /// @pre GRID_TYPE must have member function FacetVertex(iv0,d)
+  /// @pre scalar_grid.Dimension() > 0 so scalar_grid.NumCubeVertices() > 0.
+  /// @param s Scalar value
+  template <typename GRID_TYPE, typename ITYPE, typename DTYPE, 
+            typename STYPE>
+  bool is_gt_facet_min_le_facet_max
+  (const GRID_TYPE & scalar_grid, const ITYPE iv0, const DTYPE orth_dir,
+   const STYPE s)
+  {
+    typedef typename GRID_TYPE::VERTEX_INDEX_TYPE VTYPE;
+    typedef typename GRID_TYPE::NUMBER_TYPE NTYPE;
+
+    if (scalar_grid.Scalar(iv0) < s) {
+      for (NTYPE k = 1; k < scalar_grid.NumFacetVertices(); k++) {
+        VTYPE iv1 = scalar_grid.FacetVertex(iv0, orth_dir, k);
+        if (scalar_grid.Scalar(iv1) >= s)
+          { return(true); }
+      }
+    }
+    else {
+      for (NTYPE k = 1; k < scalar_grid.NumCubeVertices(); k++) {
+        VTYPE iv1 = scalar_grid.FacetVertex(iv0, orth_dir, k);
+        if (scalar_grid.Scalar(iv1) < s)
+          { return(true); }
+      }
+    }
+
+    return(false);
+  }
+
+  void get_cubes_around_interior_edge
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const VERTEX_INDEX iv0, const int dir,
+   VERTEX_INDEX & jv0, VERTEX_INDEX & jv1,
+   VERTEX_INDEX & jv2, VERTEX_INDEX & jv3)
+  {
+    int dir1 = (dir+1)%DIM3;
+    int dir2 = (dir+2)%DIM3;
+    jv2 = iv0;
+    jv3 = scalar_grid.PrevVertex(iv0, dir2);
+    jv1 = scalar_grid.PrevVertex(iv0, dir1);
+    jv0 = scalar_grid.PrevVertex(jv1, dir2);
+  }
+
+  void reposition_close_isovertices
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const COORD_TYPE sep_dist_squared,
+   const ISODUAL_PARAM & isodual_param,
+   const VERTEX_INDEX iv0, const VERTEX_INDEX jloc0,
+   const VERTEX_INDEX iv1, const VERTEX_INDEX jloc1,
+   COORD_TYPE * isovert_coord)
+  {
+    COORD_TYPE distance_squared;
+    IJK::compute_distance_squared
+      (DIM3, isovert_coord+jloc0*DIM3, isovert_coord+jloc1*DIM3, 
+       distance_squared);
+
+    if (distance_squared < sep_dist_squared) {
+      ISODUAL3D::compute_isosurface_grid_edge_centroid
+        (scalar_grid, isovalue, iv0, isovert_coord+jloc0*DIM3);
+    }
+  }
+
+}
+
+/// Reposition to separate isosurface vertices
+void ISODUAL3D::reposition_dual_isovertices
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const ISODUAL_PARAM & isodual_param,
+ const std::vector<ISO_VERTEX_INDEX> & vlist,
+ COORD_TYPE * isovert_coord)
+{
+  INDEX_GRID vloc;
+  SHARPISO_BOOL_GRID isovert_flag;
+  GRID_COORD_TYPE v0coord[DIM3];
+
+  COORD_TYPE separation_distance = isodual_param.separation_distance;
+  COORD_TYPE sep_dist_squared = separation_distance*separation_distance;
+  
+  vloc.SetSize(scalar_grid);
+  isovert_flag.SetSize(scalar_grid);
+
+  set_vertex_locations(vlist, vloc, isovert_flag);
+
+  for (VERTEX_INDEX i0 = 0; i0 < vlist.size(); i0++) {
+    VERTEX_INDEX iv0 = vlist[i0];
+
+    scalar_grid.ComputeCoord(iv0, v0coord);
+
+    for (int d = 0; d < DIM3; d++) {
+
+      if (v0coord[d]+1 < scalar_grid.AxisSize(d)) {
+        VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, d);
+
+        if (isovert_flag.Scalar(iv1)) {
+          if (is_gt_facet_min_le_facet_max
+              (scalar_grid, iv1, d, isovalue)) {
+            VERTEX_INDEX i1 = vloc.Scalar(iv1);
+
+            reposition_close_isovertices
+              (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
+               isodual_param, iv0, i0, iv1, i1, isovert_coord);
+          }
+        }
+      }
+    }
+  }
+
+  IJK_FOR_EACH_INTERIOR_GRID_EDGE(iv0, dir, scalar_grid, VERTEX_INDEX) {
+    VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, dir);
+
+    if (IJK::is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
+      VERTEX_INDEX jv0, jv1, jv2, jv3;
+      get_cubes_around_interior_edge
+        (scalar_grid, iv0, dir, jv0, jv1, jv2, jv3);
+      VERTEX_INDEX j0 = vloc.Scalar(jv0);
+      VERTEX_INDEX j1 = vloc.Scalar(jv1);
+      VERTEX_INDEX j2 = vloc.Scalar(jv2);
+      VERTEX_INDEX j3 = vloc.Scalar(jv3);
+
+      reposition_close_isovertices
+        (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
+         isodual_param, jv0, j0, jv2, j2, isovert_coord);
+      reposition_close_isovertices
+        (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
+         isodual_param, jv1, j1, jv3, j3, isovert_coord);
+    }
+  }
+  
+}
+
