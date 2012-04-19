@@ -142,6 +142,13 @@ namespace {
       io_info.use_selected_gradients = true;
       io_info.use_intersected_edge_endpoint_gradients = true;
     }
+    else if (str == "gradCD"){
+      io_info.vertex_position_method = GRADIENT_POSITIONING;
+      io_info.use_only_cube_gradients = true;
+      io_info.use_selected_gradients = false;
+      io_info.use_intersected_edge_endpoint_gradients = false;
+      io_info.use_gradients_determining_edge_intersections = true;
+    }
     else if (str == "gradNIE"){
       io_info.vertex_position_method = GRADIENT_POSITIONING;
       io_info.use_only_cube_gradients = false;
@@ -1144,7 +1151,10 @@ namespace {
   {
   cerr << "OPTIONS:" << endl;
   cerr << "  [-subsample S] [-supersample S]" << endl;
-  cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|gradIE|gradIES|gradNIE|gradNIES|gradES|gradEC}]" << endl;
+  cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|"
+       << endl
+       << "              gradIE|gradIES|gradCD|gradNIE|gradNIES|" << endl
+       << "              gradES|gradEC}]" << endl;
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
   cerr << "  [-max_eigen {max}]" << endl;
   cerr << "  [-max_dist {D}] [-gradS_offset {offset}]" << endl;
@@ -1203,6 +1213,11 @@ void ISODUAL3D::help()
        << endl;
   cout << "       on selected gradients at endpoints of intersected cube edges."
        << endl;
+  cout << "  -position gradCD: Position isosurface vertices using svd"
+       << endl;
+  cout << "       using gradients determining intersections of cube edge"
+       << endl
+       << "       and isosurface." << endl;
   cout << "  -position gradNIE: Position isosurface vertices using svd"
        << endl;
   cout << "       on gradients at endpoints of intersected cube" << endl;

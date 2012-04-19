@@ -65,6 +65,7 @@ bool flag_dist2vert(false);
 bool flag_cube_set(false);
 bool flag_vertex_set(false);
 bool flag_use_lindstrom(false);
+bool flag_edge_intersection(false);
 
 // compute isosurface vertices
 void compute_iso_vertex_using_svd
@@ -865,7 +866,8 @@ void usage_error()
     cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\""
     << endl;
     cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS |" << endl;
-    cerr << "   -gradIE | -gradIES | -gradNIE | -gradNIES | -gradES | -gradEC ]" << endl;
+    cerr << "   -gradIE | -gradIES | -gradNIE | -gradNIES | -gradCD |" << endl;
+    cerr << "   -gradES | -gradEC ]" << endl;
     cerr << "  [-lindstrom | -rayI]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -dist2vert | -vertex <vertex_index> | -vc \"vertex coordinates\"" << endl;
@@ -974,11 +976,13 @@ void parse_command_line(int argc, char **argv)
       flag_svd_edges_simple = true;
       flag_use_lindstrom = true;    // *** CURRENTLY ONLY LINDSTROM
       use_gradients_determining_edge_intersections = true;
+      flag_edge_intersection = true;
     }
     else if (s == "-gradEC") {
       flag_svd_edges_cmplx = true;
       flag_use_lindstrom = true;    // *** CURRENTLY ONLY LINDSTROM
       use_gradients_determining_edge_intersections = true;
+      flag_edge_intersection = true;
     }
     else if (s == "-centroid") {
       flag_centroid = true;
@@ -1021,6 +1025,12 @@ void parse_command_line(int argc, char **argv)
       use_only_cube_gradients = false;
       use_selected_gradients = true;
       use_intersected_edge_endpoint_gradients = true;
+    }
+    else if (s == "-gradCD") {
+      use_only_cube_gradients = true;
+      use_selected_gradients = false;
+      use_gradients_determining_edge_intersections = true;
+      flag_edge_intersection = false;
     }
     else if (s == "-gradS_offset") {
       grad_selection_cube_offset = get_float(iarg, argc, argv);
@@ -1149,6 +1159,9 @@ void help()
   cerr << "  -gradIES: Use gradients at endpoints of intersected cube edges."
        << endl;
   cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
+  cerr << "  -gradCD: Use gradients determining intersections of isosurface"
+       << endl
+       << "           and cube edges." << endl;
   cerr << "  -gradNIE: Use gradients at endpoints of intersected cube edges"
        << endl
        << "              and intersected cube edges in neighboring cubes."
