@@ -866,8 +866,8 @@ void usage_error()
     cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\""
     << endl;
     cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS |" << endl;
-    cerr << "   -gradIE | -gradIES | -gradNIE | -gradNIES | -gradCD |" << endl;
-    cerr << "   -gradES | -gradEC ]" << endl;
+    cerr << "   -gradIE | -gradIES | -gradNIE | -gradNIES |" << endl;
+    cerr << "   -gradCD | -gradCDdup | -gradES | -gradEC ]" << endl;
     cerr << "  [-lindstrom | -rayI]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
     cerr << "  -dist2vert | -vertex <vertex_index> | -vc \"vertex coordinates\"" << endl;
@@ -919,8 +919,9 @@ void parse_command_line(int argc, char **argv)
   bool use_selected_gradients(true);
   bool use_intersected_edge_endpoint_gradients(false);
   bool use_gradients_determining_edge_intersections(false);
-  SIGNED_COORD_TYPE grad_selection_cube_offset(0);
+  bool allow_duplicates(false);
   bool flag_round(true);
+  SIGNED_COORD_TYPE grad_selection_cube_offset(0);
 
   if (argc == 1) { usage_error(); }
 
@@ -1035,6 +1036,13 @@ void parse_command_line(int argc, char **argv)
       use_gradients_determining_edge_intersections = true;
       flag_edge_intersection = false;
     }
+    else if (s == "-gradCDdup") {
+      use_only_cube_gradients = true;
+      use_selected_gradients = false;
+      use_gradients_determining_edge_intersections = true;
+      flag_edge_intersection = false;
+      allow_duplicates = true;
+    }
     else if (s == "-gradS_offset") {
       grad_selection_cube_offset = get_float(iarg, argc, argv);
       iarg++;
@@ -1139,9 +1147,10 @@ void parse_command_line(int argc, char **argv)
     use_intersected_edge_endpoint_gradients;
   sharp_isovert_param.use_gradients_determining_edge_intersections =
     use_gradients_determining_edge_intersections;
-  sharp_isovert_param.grad_selection_cube_offset = grad_selection_cube_offset;
   sharp_isovert_param.use_lindstrom = flag_use_lindstrom;
+  sharp_isovert_param.allow_duplicates = allow_duplicates;
   sharp_isovert_param.flag_round = flag_round;
+  sharp_isovert_param.grad_selection_cube_offset = grad_selection_cube_offset;
 }
 
 void help()
@@ -1172,6 +1181,10 @@ void help()
   cerr << "  -gradCD: Use gradients determining intersections of isosurface"
        << endl
        << "           and cube edges." << endl;
+  cerr << "  -gradCDdup: Use gradients determining intersections of isosurface"
+       << endl
+       << "           and cube edges." << endl;
+  cerr << "           Allow duplicates." << endl;
   cerr << "  -gradNIE: Use gradients at endpoints of intersected cube edges"
        << endl
        << "              and intersected cube edges in neighboring cubes."

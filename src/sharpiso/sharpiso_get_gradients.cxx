@@ -228,45 +228,66 @@ void SHARPISO::get_gradients
 
   if (sharpiso_param.use_only_cube_gradients) {
 
-    // NOTE: This vertex_list is an array.
-    VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D];
-    bool vertex_flag[NUM_CUBE_VERTICES3D];
-    NUM_TYPE num_vertices(0);
+    if (!sharpiso_param.allow_duplicates) {
 
-    // initialize vertex_flag
-    for (NUM_TYPE i = 0; i < NUM_CUBE_VERTICES3D; i++)
-      { vertex_flag[i] = true; }
+      // NOTE: This vertex_list is an array.
+      VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D];
+      bool vertex_flag[NUM_CUBE_VERTICES3D];
+      NUM_TYPE num_vertices(0);
 
-    if (sharpiso_param.use_intersected_edge_endpoint_gradients) {
-      get_intersected_cube_edge_endpoints
-        (scalar_grid, cube_index, isovalue, vertex_list, num_vertices);
-    }
-    else if (sharpiso_param.use_gradients_determining_edge_intersections) {
-      get_cube_vertices_determining_edge_intersections
-        (scalar_grid, gradient_grid, cube_index, isovalue, zero_tolerance,
-         vertex_list, num_vertices);
+      // initialize vertex_flag
+      for (NUM_TYPE i = 0; i < NUM_CUBE_VERTICES3D; i++)
+        { vertex_flag[i] = true; }
+
+      if (sharpiso_param.use_intersected_edge_endpoint_gradients) {
+        get_intersected_cube_edge_endpoints
+          (scalar_grid, cube_index, isovalue, vertex_list, num_vertices);
+      }
+      else if (sharpiso_param.use_gradients_determining_edge_intersections) {
+        get_cube_vertices_determining_edge_intersections
+          (scalar_grid, gradient_grid, cube_index, isovalue, zero_tolerance,
+           vertex_list, num_vertices);
+      }
+      else {
+        get_cube_vertices(scalar_grid, cube_index, vertex_list);
+        num_vertices = NUM_CUBE_VERTICES3D;
+      }
+
+      deselect_vertices_with_small_gradients
+        (gradient_grid, vertex_list, num_vertices, max_small_mag_squared,
+         vertex_flag);
+
+      if (sharpiso_param.use_selected_gradients) {
+
+        scalar_grid.ComputeCoord(cube_index, cube_coord);
+
+        deselect_vertices_based_on_isoplanes
+          (scalar_grid, gradient_grid, cube_coord, cube_111,
+           isovalue, vertex_list, num_vertices, vertex_flag);
+      }
+
+      get_selected_vertex_gradients
+        (scalar_grid, gradient_grid, vertex_list, num_vertices, vertex_flag,
+         point_coord, gradient_coord, scalar, num_gradients);
     }
     else {
-      get_cube_vertices(scalar_grid, cube_index, vertex_list);
-      num_vertices = NUM_CUBE_VERTICES3D;
+      // NOTE: This vertex_list is a C++ vector.
+      std::vector<VERTEX_INDEX> vertex_list;
+
+      get_cube_vertices_determining_edgeI_allow_duplicates
+        (scalar_grid, gradient_grid, cube_index, isovalue, zero_tolerance,
+         vertex_list);
+
+      IJK::ARRAY<bool> vertex_flag(vertex_list.size(), true);
+
+      get_selected_vertex_gradients
+        (scalar_grid, gradient_grid, vertex_list, vertex_flag.Ptr(),
+         point_coord, gradient_coord, scalar, num_gradients);
+
+      deselect_vertices_with_small_gradients
+        (gradient_grid, vertex_list, max_small_mag_squared, 
+         vertex_flag.Ptr());
     }
-
-    deselect_vertices_with_small_gradients
-      (gradient_grid, vertex_list, num_vertices, max_small_mag_squared,
-       vertex_flag);
-
-    if (sharpiso_param.use_selected_gradients) {
-
-      scalar_grid.ComputeCoord(cube_index, cube_coord);
-
-      deselect_vertices_based_on_isoplanes
-        (scalar_grid, gradient_grid, cube_coord, cube_111,
-         isovalue, vertex_list, num_vertices, vertex_flag);
-    }
-
-    get_selected_vertex_gradients
-      (scalar_grid, gradient_grid, vertex_list, num_vertices, vertex_flag,
-       point_coord, gradient_coord, scalar, num_gradients);
   }
   else {
 
@@ -283,6 +304,7 @@ void SHARPISO::get_gradients
 
     IJK::ARRAY<bool> vertex_flag(vertex_list.size());
 
+    // *** SHOULD USE IJK::ARRAY to initialize
     // initialize vertex_flag
     for (NUM_TYPE i = 0; i < vertex_list.size(); i++)
       { vertex_flag[i] = true; }
@@ -582,8 +604,10 @@ void get_gradient_determining_edge_intersection
       for (VERTEX_INDEX k = 0; k < scalar_grid.NumFacetVertices(); k++) {
         VERTEX_INDEX iv0 = scalar_grid.FacetVertex(cube_index, d, k);
         VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, d);
+        /* OBSOLETE
         SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
         SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
+        */
 
         if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
 
@@ -832,6 +856,41 @@ void SHARPISO::get_cube_vertices_determining_edge_intersections
 
       vertex_list[num_vertices] = iv;
       num_vertices++;
+    }
+  }
+
+}
+
+/// Get cube vertices determining the intersection of isosurface and edges.
+/// Allow duplicate gradients.
+/// @param zero_tolerance No division by numbers less than or equal 
+///        to zero_tolerance.
+/// @pre zero_tolerance must be non-negative.
+void SHARPISO::get_cube_vertices_determining_edgeI_allow_duplicates
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index, const SCALAR_TYPE isovalue,
+ const GRADIENT_COORD_TYPE zero_tolerance,
+ std::vector<VERTEX_INDEX> & vertex_list)
+{
+  typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;
+
+  const DTYPE dimension = scalar_grid.Dimension();
+
+  for (DTYPE d = 0; d < dimension; d++) {
+    for (VERTEX_INDEX k = 0; k < scalar_grid.NumFacetVertices(); k++) {
+      VERTEX_INDEX iv0 = scalar_grid.FacetVertex(cube_index, d, k);
+      VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, d);
+
+      if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
+
+        VERTEX_INDEX iv2;
+        get_gradient_determining_edge_intersection
+          (scalar_grid, gradient_grid, isovalue, iv0, iv1, d,
+           zero_tolerance, iv2);
+
+        vertex_list.push_back(iv2);
+      }
     }
   }
 
@@ -1099,6 +1158,7 @@ void SHARPISO::GET_GRADIENTS_PARAM::Init()
   use_selected_gradients = true;
   use_intersected_edge_endpoint_gradients = false;
   use_gradients_determining_edge_intersections = false;
+  allow_duplicates = false;
   grad_selection_cube_offset = 0;
   max_small_magnitude = 0.0;
   zero_tolerance = 0.0000001;

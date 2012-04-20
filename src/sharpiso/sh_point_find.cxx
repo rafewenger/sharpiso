@@ -163,6 +163,7 @@ void set_pt_intersect
         }
         else if(e.p2.scalar<isovalue && isovalue<=s_lambda){
           lambda2=(isovalue-e.p2.scalar)/(s_lambda-e.p2.scalar);
+
           if (lambda2 > 1.0 || lambda2 < 0.0) {
             use_simple_interp = true;
           }
