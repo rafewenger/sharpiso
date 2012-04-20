@@ -920,6 +920,7 @@ void parse_command_line(int argc, char **argv)
   bool use_intersected_edge_endpoint_gradients(false);
   bool use_gradients_determining_edge_intersections(false);
   SIGNED_COORD_TYPE grad_selection_cube_offset(0);
+  bool flag_round(true);
 
   if (argc == 1) { usage_error(); }
 
@@ -976,11 +977,13 @@ void parse_command_line(int argc, char **argv)
       flag_svd_edges_simple = true;
       flag_use_lindstrom = true;    // *** CURRENTLY ONLY LINDSTROM
       use_gradients_determining_edge_intersections = true;
+      use_selected_gradients = false;
       flag_edge_intersection = true;
     }
     else if (s == "-gradEC") {
       flag_svd_edges_cmplx = true;
       flag_use_lindstrom = true;    // *** CURRENTLY ONLY LINDSTROM
+      use_selected_gradients = false;
       use_gradients_determining_edge_intersections = true;
       flag_edge_intersection = true;
     }
@@ -1045,6 +1048,12 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-max_dist") {
       sharp_isovert_param.max_dist = get_float(iarg, argc, argv);
       iarg++;
+    }
+    else if (s == "-no_round") {
+      flag_round = false;
+    }
+    else if (s == "-round") {
+      flag_round = true;
     }
     else if (s == "-max_eigen") {
       sharp_isovert_param.max_small_eigenvalue = get_float(iarg, argc, argv);
@@ -1132,6 +1141,7 @@ void parse_command_line(int argc, char **argv)
     use_gradients_determining_edge_intersections;
   sharp_isovert_param.grad_selection_cube_offset = grad_selection_cube_offset;
   sharp_isovert_param.use_lindstrom = flag_use_lindstrom;
+  sharp_isovert_param.flag_round = flag_round;
 }
 
 void help()

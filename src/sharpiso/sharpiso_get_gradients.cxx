@@ -547,11 +547,11 @@ void get_gradient_determining_edge_intersection
   const GRADIENT_COORD_TYPE g0 = gradient_grid.Vector(iv0, dir);
   const GRADIENT_COORD_TYPE g1 = gradient_grid.Vector(iv1, dir);
   const GRADIENT_COORD_TYPE gdiff = g0 - g1;
-    
+
   iv2 = iv0;
   if (abs(gdiff) <= zero_tolerance) { return; }
 
-  const SCALAR_TYPE s2 = g0*(g1+s1-s0)/gdiff;
+  const SCALAR_TYPE s2 = g0*(s1-s0-g1)/gdiff + s0;
 
   if (s0 <= s1) {
     if (isovalue < s2) { iv2 = iv0; }
@@ -586,7 +586,7 @@ void get_gradient_determining_edge_intersection
         SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
 
         if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
-    
+
           VERTEX_INDEX icorner0 = grid_222.FacetVertex(0, d, k);
           VERTEX_INDEX icorner1 = grid_222.NextVertex(icorner0, d);
 
