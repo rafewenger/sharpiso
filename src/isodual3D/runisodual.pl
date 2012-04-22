@@ -31,6 +31,7 @@ run_isodual3D($isovalue, $infile, "gradC");
 run_isodual3D($isovalue, $infile, "gradIE");
 run_isodual3D($isovalue, $infile, "gradIES");
 run_isodual3D($isovalue, $infile, "gradCD");
+run_isodual3D($isovalue, $infile, "gradCDdup");
 run_isodual3D($isovalue, $infile, "gradN");
 run_isodual3D($isovalue, $infile, "gradNS");
 run_isodual3D($isovalue, $infile, "gradNIE");
@@ -49,7 +50,7 @@ sub usage_error {
 sub run_isodual3D {
 
   scalar(@_) == 3 ||
-    die "Error in sub runisodual. Requires 4 parameters.\n";
+    die "Error in sub runisodual. Requires 3 parameters.\n";
 
   my $isovalue = $_[0];
   my $input_filename = $_[1];

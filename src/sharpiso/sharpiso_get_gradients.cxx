@@ -21,7 +21,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #include "sharpiso_get_gradients.h"
 
 #include "ijkcoord.txx"
@@ -280,13 +279,13 @@ void SHARPISO::get_gradients
 
       IJK::ARRAY<bool> vertex_flag(vertex_list.size(), true);
 
-      get_selected_vertex_gradients
-        (scalar_grid, gradient_grid, vertex_list, vertex_flag.Ptr(),
-         point_coord, gradient_coord, scalar, num_gradients);
-
       deselect_vertices_with_small_gradients
         (gradient_grid, vertex_list, max_small_mag_squared, 
          vertex_flag.Ptr());
+
+      get_selected_vertex_gradients
+        (scalar_grid, gradient_grid, vertex_list, vertex_flag.Ptr(),
+         point_coord, gradient_coord, scalar, num_gradients);
     }
   }
   else {
@@ -571,9 +570,10 @@ void get_gradient_determining_edge_intersection
   const GRADIENT_COORD_TYPE gdiff = g0 - g1;
 
   iv2 = iv0;
-  if (abs(gdiff) <= zero_tolerance) { return; }
+  if (fabs(gdiff) <= zero_tolerance) { return; }
 
-  const SCALAR_TYPE s2 = g0*(s1-s0-g1)/gdiff + s0;
+  const SCALAR_TYPE t = (s1-s0-g1)/gdiff;
+  const SCALAR_TYPE s2 = g0*t + s0;
 
   if (s0 <= s1) {
     if (isovalue < s2) { iv2 = iv0; }
@@ -583,6 +583,7 @@ void get_gradient_determining_edge_intersection
     if (isovalue < s2) { iv2 = iv1; }
     else { iv2 = iv0; }
   }
+
 }
 
   void flag_cube_gradients_determining_edge_intersections
@@ -604,10 +605,6 @@ void get_gradient_determining_edge_intersection
       for (VERTEX_INDEX k = 0; k < scalar_grid.NumFacetVertices(); k++) {
         VERTEX_INDEX iv0 = scalar_grid.FacetVertex(cube_index, d, k);
         VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, d);
-        /* OBSOLETE
-        SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
-        SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
-        */
 
         if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
 

@@ -1033,12 +1033,14 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-gradCD") {
       use_only_cube_gradients = true;
       use_selected_gradients = false;
+      use_intersected_edge_endpoint_gradients = false;
       use_gradients_determining_edge_intersections = true;
       flag_edge_intersection = false;
     }
     else if (s == "-gradCDdup") {
       use_only_cube_gradients = true;
       use_selected_gradients = false;
+      use_intersected_edge_endpoint_gradients = false;
       use_gradients_determining_edge_intersections = true;
       flag_edge_intersection = false;
       allow_duplicates = true;

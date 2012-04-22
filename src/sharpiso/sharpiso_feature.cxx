@@ -102,7 +102,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
       (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
        num_gradients, isovalue, max_small_eigenvalue,
        num_large_eigenvalues, eigenvalues, cube_center, sharp_coord);
-    
+
     if (!sharpiso_param.flag_allow_conflict) {
 
       snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);

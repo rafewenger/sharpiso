@@ -149,6 +149,14 @@ namespace {
       io_info.use_intersected_edge_endpoint_gradients = false;
       io_info.use_gradients_determining_edge_intersections = true;
     }
+    else if (str == "gradCDdup"){
+      io_info.vertex_position_method = GRADIENT_POSITIONING;
+      io_info.use_only_cube_gradients = true;
+      io_info.use_selected_gradients = false;
+      io_info.use_intersected_edge_endpoint_gradients = false;
+      io_info.use_gradients_determining_edge_intersections = true;
+      io_info.allow_duplicates = true;
+    }
     else if (str == "gradNIE"){
       io_info.vertex_position_method = GRADIENT_POSITIONING;
       io_info.use_only_cube_gradients = false;
@@ -1408,6 +1416,9 @@ void ISODUAL3D::set_isodual_data
   isodual_data.flag_clamp_conflict = io_info.flag_clamp_conflict;
   isodual_data.flag_clamp_far = io_info.flag_clamp_far;
   isodual_data.flag_recompute_eigen2 = io_info.flag_recompute_eigen2;
+  isodual_data.allow_duplicates = io_info.allow_duplicates;
+  isodual_data.use_gradients_determining_edge_intersections =
+    io_info.use_gradients_determining_edge_intersections;
 }
 
 void ISODUAL3D::set_io_info
