@@ -4,7 +4,7 @@ Reads all the .line files in the folder and runs findEdgeCount on them
 
 '''
 import read_data_module
-import plot_results
+#import plot_results
 import sys
 
 import sys
@@ -93,6 +93,7 @@ for files in glob.glob('*.line'):
 
 #print 'graph_data',graph_data
 if graph==1:
-	plot_results. plot_direct(graph_data,labels)
+	print 'results'
+	#plot_results. plot_direct(graph_data,labels)
 
 
