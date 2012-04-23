@@ -177,12 +177,14 @@ int main(int argc, char **argv)
     IJK::GRID_NRRD_IN<NUM_TYPE,AXIS_SIZE_TYPE> nrrd_in_scalar;
     nrrd_in_scalar.ReadScalarGrid
       (scalar_filename, scalar_grid,  error);
+    if (nrrd_in_scalar.ReadFailed()) { throw(error); }
 
     GRADIENT_GRID gradient_grid;
     IJK::GRID_NRRD_IN<NUM_TYPE,AXIS_SIZE_TYPE> nrrd_in_gradient;
 
     nrrd_in_gradient.ReadVectorGrid
       (gradient_filename, gradient_grid, error);
+    if (nrrd_in_gradient.ReadFailed()) { throw(error); }
 
     if (!check_gradient_grid(gradient_grid, error))
       { throw error; };
