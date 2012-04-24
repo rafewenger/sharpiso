@@ -165,21 +165,10 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
 
   if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
 
-    // Clamp points, to cube.
-    if (!sharpiso_param.flag_allow_conflict && flag_conflict) {
-
-      if (sharpiso_param.flag_clamp_conflict) {
-        // Clamp point to the cube.
-        clamp_point(0, cube_coord, sharp_coord);
-      }
-      else {
-        // Use the centroid.
-        compute_isosurface_grid_edge_centroid
-          (scalar_grid, isovalue, cube_index, sharp_coord);
-        svd_info.location = CENTROID;
-      }
+    if (flag_conflict) {
+      process_conflict(scalar_grid, cube_index, cube_coord, isovalue,
+                       sharpiso_param, sharp_coord, svd_info);
     }
-
   }
   else {
     if (sharpiso_param.flag_clamp_far) {
@@ -627,6 +616,18 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
     svd_info.location = CUBE_CENTER;
   }
 
+  if (!sharpiso_param.flag_allow_conflict) {
+
+    snap_to_cube(cube_coord, sharpiso_param.snap_dist, coord);
+    bool flag_conflict = 
+      check_conflict(scalar_grid, isovalue, cube_coord, coord);
+
+    if (flag_conflict) {
+      process_conflict(scalar_grid, cube_index, cube_coord, isovalue,
+                       sharpiso_param, coord, svd_info);
+    }
+  }
+
   // Clamp point to cube + max_dist.
   clamp_point(sharpiso_param.max_dist, cube_coord, coord);
 
@@ -830,45 +831,62 @@ void SHARPISO::subgrid_calculate_iso_vertex_in_cube
 
 
 // **************************************************
-// CLAMP POINTS TO MAX DIST
+// ROUTINES TO MOVE POINTS
 // **************************************************
 
-// When the sharp point is in global coordinates.
-void  SHARPISO::clamp_point
-( const float threshold_cube_offset,
-  GRID_COORD_TYPE cube_coord[DIM3],
-  COORD_TYPE point[DIM3])
+// Clamp to cube cube_coord[]
+void SHARPISO::clamp_point
+(const float cube_offset,
+ const GRID_COORD_TYPE cube_coord[DIM3],
+ COORD_TYPE point[DIM3])
 {
-  for (int i=0; i<DIM3; i++)
-    {
-      float p = point[i] -cube_coord[i];
-      if (p < (-threshold_cube_offset)){
-        point[i] = cube_coord[i] - threshold_cube_offset;
-      }
-      if (p > 1+threshold_cube_offset){
-        point[i]=  cube_coord[i] + 1.0 + threshold_cube_offset;
-      }
-    }
-  
-}
-// when the sharp point is in local coordinates
-void  SHARPISO::clamp_point
-( const float threshold_cube_offset,
-  COORD_TYPE point[DIM3])
-{
-  for (int i=0; i<DIM3; i++)
-    {
-
-      if (point[i]< (-threshold_cube_offset)){
-        point[i] = - threshold_cube_offset;
-      }
-      if (point[i] > 1.0 +threshold_cube_offset){
-        point[i]=  1.0 + threshold_cube_offset;
-      }
-    }
-  
+  for (int i=0; i<DIM3; i++) {
+    float p = point[i] - cube_coord[i];
+    if (p < (-cube_offset))
+      { point[i] = cube_coord[i] - cube_offset; }
+    if (p > 1+cube_offset)
+      { point[i]=  cube_coord[i] + 1.0 + cube_offset; }
+  }
 }
 
+// Clamp to unit cube (0,0,0) to (1,1,1).
+void SHARPISO::clamp_point
+(const float cube_offset,
+ COORD_TYPE point[DIM3])
+{
+  for (int i=0; i<DIM3; i++) {
+    if (point[i]< (-cube_offset))
+      { point[i] = -cube_offset; }
+    if (point[i] > 1.0 + cube_offset)
+      { point[i]=  1.0 + cube_offset; }
+  }
+}
+
+void SHARPISO::process_conflict
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX cube_index,
+ const GRID_COORD_TYPE cube_coord[DIM3],
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
+ COORD_TYPE iso_coord[DIM3],
+ SVD_INFO & svd_info)
+{
+  // Clamp points, to cube.
+  if (!sharpiso_param.flag_allow_conflict) {
+
+    if (sharpiso_param.flag_clamp_conflict) {
+      // Clamp point to the cube.
+      clamp_point(0, cube_coord, iso_coord);
+    }
+    else {
+      // Use the centroid.
+      compute_isosurface_grid_edge_centroid
+        (scalar_grid, isovalue, cube_index, iso_coord);
+      svd_info.location = CENTROID;
+    }
+  }
+
+}
 
 // **************************************************
 // MISC ROUTINES

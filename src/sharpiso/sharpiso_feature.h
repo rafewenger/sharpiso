@@ -250,16 +250,25 @@ namespace SHARPISO {
    COORD_TYPE * coord);
 
   // **************************************************
-  // CLAMP POINTS TO threshold_cube_offset
+  // ROUTINES TO MOVE POINTS
   // **************************************************
 
-  // clamp point : shpoint in the global coord 
+  /// Clamp to cube cube_coord[]
   void  clamp_point
-	  (const float threshold_cube_offset, GRID_COORD_TYPE cube_coord[DIM3],
-      COORD_TYPE point[DIM3]);
-	// clamp point: shpoint in the local coord
-	void  clamp_point
-	  (const float threshold_cube_offset, COORD_TYPE shpoint[DIM3]);
+  (const float offset,  const GRID_COORD_TYPE cube_coord[DIM3], 
+   COORD_TYPE point[DIM3]);
+  /// Clamp to unit cube (0,0,0) to (1,1,1).
+	void  clamp_point(const float offset, COORD_TYPE point[DIM3]);
+
+  /// Move point which lies in an occupied grid cube.
+  void process_conflict
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const VERTEX_INDEX cube_index,
+   const GRID_COORD_TYPE cube_coord[DIM3],
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & sharpiso_param,
+   COORD_TYPE iso_coord[DIM3],
+   SVD_INFO & svd_info);
 
   // **************************************************
   // SHARP_ISOVERT_PARAM
