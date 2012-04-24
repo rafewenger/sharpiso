@@ -498,7 +498,7 @@ void compute_cube_vertex
  const RowVectorXf b,
  MatrixXf &singular_values,
  const float  err_tolerance,
- int &num_singular_vals,
+ int & num_large_sval,
  const RowVectorXf centroid,
  float * sharp_point)
 {
@@ -506,22 +506,24 @@ void compute_cube_vertex
   JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
   //compute the singular values for the matrix
   singular_values  = svd.singularValues();
-  //Compute the sigma interms of the tolerance
-  MatrixXf sigma(3,3);
-  sigma << 0,0,0,0,0,0,0,0,0;
+  int num_sval = singular_values.rows();
+  //Compute the sigma in terms of the tolerance
   RowVectorXf cube_center(3);
   cube_center<<0.5,0.5,0.5;
 
-  num_singular_vals = 0;
+  MatrixXf sigma(num_sval, num_sval);
+  sigma.setZero(num_sval, num_sval);
+
+  num_large_sval = 0;
 
   // maximum of the singular values
   float max = singular_values.maxCoeff();
   float max_times_err_tol = err_tolerance*max;
-  for (int i=0; i<DIM3; i++) {
+  for (int i=0; i<num_sval; i++) {
     if(max > 0.0)
       if ( singular_values(i) > max_times_err_tol ) {
         //increment the number of singular values of A
-        num_singular_vals++;
+        num_large_sval++;
         //sigma(i,i) is updated to 1 / the singular value,
         //only if it is more than the error tolerance
         sigma(i,i) = 1.0/singular_values(i);
@@ -532,8 +534,9 @@ void compute_cube_vertex
     svd.matrixU().transpose()*(b.transpose() - A*centroid.transpose());
 
   for (int i=0;i<3;i++)
-    sharp_point[i]=point(i);
+    { sharp_point[i]=point(i); }
 }
+
 // FUNCTION compute the pseudo inverse of A using the TOP 2 singular values.
 // helper function to compute_A_inverse.
 // it calculates the sigma interms of the given tolerance
