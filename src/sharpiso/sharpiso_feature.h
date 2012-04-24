@@ -270,6 +270,15 @@ namespace SHARPISO {
    COORD_TYPE iso_coord[DIM3],
    SVD_INFO & svd_info);
 
+  void process_far_point
+    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+     const VERTEX_INDEX cube_index,
+     const GRID_COORD_TYPE cube_coord[DIM3],
+     const SCALAR_TYPE isovalue,
+     const SHARP_ISOVERT_PARAM & sharpiso_param,
+     COORD_TYPE iso_coord[DIM3],
+     SVD_INFO & svd_info);
+
   // **************************************************
   // SHARP_ISOVERT_PARAM
   // **************************************************

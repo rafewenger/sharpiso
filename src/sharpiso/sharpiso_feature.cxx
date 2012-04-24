@@ -171,16 +171,8 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
     }
   }
   else {
-    if (sharpiso_param.flag_clamp_far) {
-      // Clamp point to cube + max_dist.
-      clamp_point(sharpiso_param.max_dist, cube_coord, sharp_coord);
-    }
-    else {
-      // Use the centroid.
-      compute_isosurface_grid_edge_centroid
-        (scalar_grid, isovalue, cube_index, sharp_coord);
-      svd_info.location = CENTROID;
-    }
+    process_far_point(scalar_grid, cube_index, cube_coord, isovalue,
+                      sharpiso_param, sharp_coord, svd_info);
   }
 
   if (sharpiso_param.flag_round)
@@ -616,17 +608,25 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
     svd_info.location = CUBE_CENTER;
   }
 
-  if (!sharpiso_param.flag_allow_conflict) {
+  if (is_dist_to_cube_le(coord, cube_coord, sharpiso_param.max_dist)) {
 
-    snap_to_cube(cube_coord, sharpiso_param.snap_dist, coord);
-    bool flag_conflict = 
-      check_conflict(scalar_grid, isovalue, cube_coord, coord);
+    if (!sharpiso_param.flag_allow_conflict) {
 
-    if (flag_conflict) {
-      process_conflict(scalar_grid, cube_index, cube_coord, isovalue,
-                       sharpiso_param, coord, svd_info);
+      snap_to_cube(cube_coord, sharpiso_param.snap_dist, coord);
+      bool flag_conflict = 
+        check_conflict(scalar_grid, isovalue, cube_coord, coord);
+
+      if (flag_conflict) {
+        process_conflict(scalar_grid, cube_index, cube_coord, isovalue,
+                         sharpiso_param, coord, svd_info);
+      }
     }
   }
+  else {
+    process_far_point(scalar_grid, cube_index, cube_coord, isovalue,
+                      sharpiso_param, coord, svd_info);
+  }
+
 
   // Clamp point to cube + max_dist.
   clamp_point(sharpiso_param.max_dist, cube_coord, coord);
@@ -871,7 +871,6 @@ void SHARPISO::process_conflict
  COORD_TYPE iso_coord[DIM3],
  SVD_INFO & svd_info)
 {
-  // Clamp points, to cube.
   if (!sharpiso_param.flag_allow_conflict) {
 
     if (sharpiso_param.flag_clamp_conflict) {
@@ -886,6 +885,27 @@ void SHARPISO::process_conflict
     }
   }
 
+}
+
+void SHARPISO::process_far_point
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX cube_index,
+ const GRID_COORD_TYPE cube_coord[DIM3],
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
+ COORD_TYPE iso_coord[DIM3],
+ SVD_INFO & svd_info)
+{
+  if (sharpiso_param.flag_clamp_far) {
+    // Clamp point to cube + max_dist.
+    clamp_point(sharpiso_param.max_dist, cube_coord, iso_coord);
+  }
+  else {
+    // Use the centroid.
+    compute_isosurface_grid_edge_centroid
+      (scalar_grid, isovalue, cube_index, iso_coord);
+    svd_info.location = CENTROID;
+  }
 }
 
 // **************************************************
