@@ -112,17 +112,18 @@ namespace ISODUAL3D {
   class OUTPUT_INFO {
 
   protected:
+    bool flag_output_tri_mesh;
+    int num_vertices_per_isopoly;
+
     void Init();
 
   public:
     std::string output_filename;
     int dimension;
-    int num_vertices_per_isopoly;
     SCALAR_TYPE isovalue[2];
     bool nowrite_flag;
     bool use_stdout;
     bool flag_silent;
-    bool flag_output_tri_mesh;
     OUTPUT_FORMAT output_format;
     COORD_ARRAY grid_spacing;
     int grow_factor;
@@ -130,6 +131,13 @@ namespace ISODUAL3D {
 
     OUTPUT_INFO() { Init(); };
     ~OUTPUT_INFO() { Init(); };
+
+    // Set functions
+    void SetOutputTriMesh(const bool flag);
+
+    // Get functions
+    bool OutputTriMesh() const;
+    NUM_TYPE NumVerticesPerIsopoly() const;
   };
 
 // **************************************************

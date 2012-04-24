@@ -585,7 +585,7 @@ void ISODUAL3D::output_dual_isosurface
  const DUAL_ISOSURFACE & dual_isosurface,
  const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
 {
-  if (output_info.flag_output_tri_mesh) {
+  if (output_info.OutputTriMesh()) {
     output_tri_isosurface
     (output_info, isodual_data,
      dual_isosurface.vertex_coord, dual_isosurface.tri_vert,
@@ -694,7 +694,7 @@ void ISODUAL3D::write_dual_quad_mesh
  const vector<COORD_TYPE> & vertex_coord, const vector<VERTEX_INDEX> & plist)
 {
   const int dimension = output_info.dimension;
-  const int numv_per_simplex = output_info.num_vertices_per_isopoly;
+  const int numv_per_simplex = output_info.NumVerticesPerIsopoly();
   const bool use_stdout = output_info.use_stdout;
   ofstream output_file;
   ERROR error_mcube("write_dual_mesh");
@@ -771,7 +771,7 @@ void ISODUAL3D::write_dual_mesh_color
  const COLOR_TYPE * front_color, const COLOR_TYPE * back_color)
 {
   const int dimension = output_info.dimension;
-  const int numv_per_simplex = output_info.num_vertices_per_isopoly;
+  const int numv_per_simplex = output_info.NumVerticesPerIsopoly();
   const bool use_stdout = output_info.use_stdout;
 
   ofstream output_file;
@@ -1070,7 +1070,7 @@ void ISODUAL3D::report_iso_info
  const ISODUAL_INFO & isodual_info)
 {
   const int dimension = output_info.dimension;
-  const int numv_per_simplex = output_info.num_vertices_per_isopoly;
+  const int numv_per_simplex = output_info.NumVerticesPerIsopoly();
 
   const char * indent4 = "    ";
   string grid_element_name = "cubes";
@@ -1087,8 +1087,8 @@ void ISODUAL3D::report_iso_info
   int ipercent = int(100*percent);
   cout << "  Isovalue " << output_info.isovalue[0] << ".  "
        << numv << " isosurface vertices.  ";
-  if (output_info.flag_output_tri_mesh) {
-    cout << 2*num_poly << " isosurface triangles." << endl;
+  if (output_info.OutputTriMesh()) {
+    cout << num_poly << " isosurface triangles." << endl;
   }
   else {
     cout << num_poly << " isosurface quadrilaterals." << endl;
@@ -1311,17 +1311,17 @@ void ISODUAL3D::OUTPUT_INFO::Init()
 {
   output_filename = "";
   dimension = 3;
-  num_vertices_per_isopoly = 4;
   isovalue[0] = 0;
   isovalue[1] = 0;
   nowrite_flag = false;
   use_stdout = false;
   flag_silent = false;
-  flag_output_tri_mesh = false;
   output_format = OFF;
   grow_factor = 1;
   shrink_factor = 1;
   grid_spacing.resize(3,1);
+
+  SetOutputTriMesh(false);
 }
 
 namespace {
@@ -1437,7 +1437,8 @@ void ISODUAL3D::set_output_info
   output_info.nowrite_flag = io_info.nowrite_flag;
   output_info.use_stdout = io_info.use_stdout;
   output_info.flag_silent = io_info.flag_silent;
-  output_info.flag_output_tri_mesh = io_info.flag_convert_quad_to_tri;
+
+  output_info.SetOutputTriMesh(io_info.flag_convert_quad_to_tri);
 
   output_info.grow_factor = 1;
   if (io_info.flag_subsample)
@@ -1536,4 +1537,28 @@ NRRD_INFO::~NRRD_INFO()
 void NRRD_INFO::Clear()
 {
   dimension = 0;
+}
+
+// **************************************************
+// Class OUTPUT_INFO member functions
+// **************************************************
+
+void ISODUAL3D::OUTPUT_INFO::SetOutputTriMesh(const bool flag)
+{
+  flag_output_tri_mesh = flag;
+
+  if (flag_output_tri_mesh) 
+    { num_vertices_per_isopoly = 3; }
+  else
+    { num_vertices_per_isopoly = 4; }
+}
+
+bool ISODUAL3D::OUTPUT_INFO::OutputTriMesh() const
+{
+  return(flag_output_tri_mesh);
+}
+
+NUM_TYPE ISODUAL3D::OUTPUT_INFO::NumVerticesPerIsopoly() const
+{
+  return(num_vertices_per_isopoly);
 }
