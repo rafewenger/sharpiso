@@ -474,6 +474,10 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
     IJK::add_coord(DIM3, cube_coord, cube_center, coord);
     svd_info.location = CUBE_CENTER;
   }
+
+
+  if (sharpiso_param.flag_round)
+    { IJK::round16_coord(DIM3, coord, coord); }
 }
 
 
@@ -621,6 +625,9 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
     IJK::add_coord(DIM3, cube_coord, cube_center, coord);
     svd_info.location = CUBE_CENTER;
   }
+
+  if (sharpiso_param.flag_round)
+    { IJK::round16_coord(DIM3, coord, coord); }
 }
 
 
