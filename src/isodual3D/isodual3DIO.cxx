@@ -1398,27 +1398,8 @@ void ISODUAL3D::set_isodual_data
   }
 
   // Set data structures in isodual_data
+  isodual_data.SHARP_ISOVERT_PARAM::Set(io_info);
   isodual_data.SetVertexPositionMethod(io_info.vertex_position_method);
-  isodual_data.SetUseSelectedGradients(io_info.use_selected_gradients);
-  isodual_data.SetUseOnlyCubeGradients(io_info.use_only_cube_gradients);
-  isodual_data.SetUseIntersectedEdgeEndpointGradients
-    (io_info.use_intersected_edge_endpoint_gradients);
-  isodual_data.use_lindstrom = io_info.use_lindstrom;
-  isodual_data.max_small_eigenvalue = io_info.max_small_eigenvalue;
-  isodual_data.max_dist = io_info.max_dist;
-  isodual_data.separation_distance = io_info.separation_distance;
-  isodual_data.flag_reposition = io_info.flag_reposition;
-  isodual_data.grad_selection_cube_offset =
-    io_info.grad_selection_cube_offset;
-  isodual_data.flag_convert_quad_to_tri = io_info.flag_convert_quad_to_tri;
-  isodual_data.quad_tri_method = io_info.quad_tri_method;
-  isodual_data.flag_allow_conflict = io_info.flag_allow_conflict;
-  isodual_data.flag_clamp_conflict = io_info.flag_clamp_conflict;
-  isodual_data.flag_clamp_far = io_info.flag_clamp_far;
-  isodual_data.flag_recompute_eigen2 = io_info.flag_recompute_eigen2;
-  isodual_data.allow_duplicates = io_info.allow_duplicates;
-  isodual_data.use_gradients_determining_edge_intersections =
-    io_info.use_gradients_determining_edge_intersections;
 }
 
 void ISODUAL3D::set_io_info

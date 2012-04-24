@@ -985,6 +985,17 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 }
 
 // **************************************************
+// Class SHARP_ISOVERT_PARAM member functions
+// **************************************************
+
+/// Set
+void SHARP_ISOVERT_PARAM::Set(const SHARP_ISOVERT_PARAM & param)
+{
+  *this = param;
+}
+
+
+// **************************************************
 // SVD_INFO
 // **************************************************
 

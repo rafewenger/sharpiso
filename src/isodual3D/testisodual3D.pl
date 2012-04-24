@@ -127,6 +127,10 @@ sub compare_executables_all_options {
   print "\n";
   compare_executables("-position gradIE");
   print "\n";
+  compare_executables("-position gradCD");
+  print "\n";
+  compare_executables("-position gradCDdup");
+  print "\n";
 }
 
 sub compare_executables {

@@ -295,6 +295,9 @@ namespace SHARPISO {
 
     /// Constructor
     SHARP_ISOVERT_PARAM() { Init(); };
+
+    /// Set
+    void Set(const SHARP_ISOVERT_PARAM & param);
   };
   
   // **************************************************
