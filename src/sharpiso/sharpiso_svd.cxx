@@ -12,7 +12,6 @@
 
 using namespace std;
 using namespace SHARPISO;
-//const int DIM(3);
 
 // FUNCTION PROTOTYPES
 

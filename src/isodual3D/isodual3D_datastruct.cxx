@@ -99,6 +99,13 @@ void ISODUAL_PARAM::SetUseIntersectedEdgeEndpointGradients
   this->use_intersected_edge_endpoint_gradients = flag;
 }
 
+/// Set
+void ISODUAL_PARAM::Set
+(const ISODUAL_PARAM & param)
+{
+  *this = param;
+}
+
 /// Return true if gradient data required.
 bool ISODUAL_PARAM::GradientsRequired() const
 {

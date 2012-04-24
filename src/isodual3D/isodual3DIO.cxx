@@ -1398,7 +1398,7 @@ void ISODUAL3D::set_isodual_data
   }
 
   // Set data structures in isodual_data
-  isodual_data.SHARP_ISOVERT_PARAM::Set(io_info);
+  isodual_data.Set(io_info);
   isodual_data.SetVertexPositionMethod(io_info.vertex_position_method);
 }
 

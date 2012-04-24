@@ -133,6 +133,9 @@ namespace ISODUAL3D {
     void SetUseIntersectedEdgeEndpointGradients    
       (const bool flag);
 
+    /// Set
+    void Set(const ISODUAL_PARAM & param);
+
     /// Return interpolation type.
     INTERPOLATION_TYPE InterpolationType() const
       { return(interpolation_type); };
