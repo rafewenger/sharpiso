@@ -180,18 +180,10 @@ void construct_isosurface
         convert_quad_to_tri_split_max_angle
           (DIM3, dual_isosurface.vertex_coord, dual_isosurface.isopoly_vert,
            isodual_data.max_small_magnitude, dual_isosurface.tri_vert);
-
-        // *** DEBUG ***
-        using namespace std;
-        cerr << "Called convert_quad_to_tri_split_max_angle" << endl;
       }
       else {
         convert_quad_to_tri
           (dual_isosurface.isopoly_vert, dual_isosurface.tri_vert);
-
-        // *** DEBUG ***
-        using namespace std;
-        cerr << "Called convert_quad_to_tri" << endl;
       }
     }
 
