@@ -459,7 +459,7 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
   bool cube_create = shFindPoint
     (&(gradient_coord[0]), &(scalar[0]), isovalue, use_cmplx_interp,
      max_small_eigenvalue, eigenvalues, num_large_eigenvalues,
-     svd_info, sharpiso_param.max_dist, coord);
+     svd_info, coord);
 
   COORD_TYPE cube_coord[DIM3];
   COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
@@ -610,12 +610,13 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
   bool cube_create = shFindPoint
     (&(gradient_coord[0]), &(scalar[0]), isovalue, use_cmplx_interp,
      max_small_eigenvalue, eigenvalues, num_large_eigenvalues,
-     svd_info, sharpiso_param.max_dist, coord);
+     svd_info, coord);
 
-  COORD_TYPE cube_coord[DIM3];
+
   COORD_TYPE cube_center[DIM3] = {0.5,0.5,0.5};
-
+  GRID_COORD_TYPE cube_coord[DIM3];
   scalar_grid.ComputeCoord(cube_index, cube_coord);
+
   //check if cube creation failed.
   if(cube_create) {
     IJK::add_coord(DIM3, cube_coord, coord, coord);
@@ -625,6 +626,9 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
     IJK::add_coord(DIM3, cube_coord, cube_center, coord);
     svd_info.location = CUBE_CENTER;
   }
+
+  // Clamp point to cube + max_dist.
+  clamp_point(sharpiso_param.max_dist, cube_coord, coord);
 
   if (sharpiso_param.flag_round)
     { IJK::round16_coord(DIM3, coord, coord); }

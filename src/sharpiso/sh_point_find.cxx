@@ -277,43 +277,5 @@ bool shFindPoint
     (cb, EIGEN_VALUE_CUTOFF, eigenvalues, num_large_eigenvalues,
     svd_info, shpoint);
   return true;
-};
+}
 
-// Exact same as above but does clamping of the points outside the cube to the cube faces
-bool shFindPoint
-(const GRADIENT_COORD_TYPE gradients[],
- const  SCALAR_TYPE  scalar_vals[],
- const  SCALAR_TYPE  isovalue,
- const  bool use_cmplx_interp,
- const  SCALAR_TYPE   EIGEN_VALUE_CUTOFF,
- float eigenvalues[DIM3],
- int &num_large_eigenvalues,
- SVD_INFO &svd_info,
- const float threshold_cube_offset, // this drives the clamping 
- COORD_TYPE *shpoint)
-{
-  //setup sh_cube.
-  CUBE cb;
-  bool cubeSetup(true);
-  cubeSetup = sh_cube::setup_shCube (cb, gradients, isovalue, scalar_vals);
-
-  for (int i = 0; i < DIM3; i++)
-  { eigenvalues[i] = 0; }
-
-  num_large_eigenvalues = 0;
-
-  if (!cubeSetup) { return false; }
-
-  //setup edge_intercepts.
-  setup_edgeIntercepts
-    (cb, isovalue, use_cmplx_interp);
-
-  // find point calculations
-  findPoint
-	  (cb, EIGEN_VALUE_CUTOFF, eigenvalues, num_large_eigenvalues,
-	  svd_info, shpoint);
-	  
-   clamp_point (threshold_cube_offset, shpoint);
-
-  return true;
-};
