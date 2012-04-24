@@ -52,7 +52,9 @@ namespace {
      REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
      ALLOW_CONFLICT_PARAM, CLAMP_CONFLICT_PARAM, CLAMP_FAR_PARAM,
      RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,
-     USE_LINDSTROM,HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
+     USE_LINDSTROM_PARAM,
+     ROUND_PARAM, NO_ROUND_PARAM,
+     HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
      OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
      NOWRITE_PARAM, SILENT_PARAM, TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
@@ -62,7 +64,9 @@ namespace {
      "-reposition", "-no_reposition", "-sepdist",
      "-allow_conflict", "-clamp_conflict","-clamp_far", 
      "-recompute_eigen2", "-no_recompute_eigen2",
-     "-lindstrom", "-help", "-off", "-iv", "-out_param",
+     "-lindstrom",
+     "-round", "-no_round",
+     "-help", "-off", "-iv", "-out_param",
      "-o", "-stdout",
      "-nowrite", "-s", "-time", "-unknown"};
 
@@ -299,7 +303,7 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
       io_info.flag_reposition = false;
       break;
 
-    case USE_LINDSTROM:
+    case USE_LINDSTROM_PARAM:
       io_info.use_lindstrom =true;
       break;
 
@@ -321,6 +325,14 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 
     case NO_RECOMPUTE_EIGEN2_PARAM:
       io_info.flag_recompute_eigen2 = false;
+      break;
+
+    case ROUND_PARAM:
+      io_info.flag_round = true;
+      break;
+
+    case NO_ROUND_PARAM:
+      io_info.flag_round = false;
       break;
     
     case OFF_PARAM:

@@ -131,6 +131,12 @@ sub compare_executables_all_options {
   print "\n";
   compare_executables("-position gradCDdup");
   print "\n";
+  compare_executables("-position centroid -trimesh");
+  print "\n";
+  compare_executables("-position gradEC -trimesh");
+  print "\n";
+  compare_executables("-position gradNS -trimesh");
+  print "\n";
 }
 
 sub compare_executables {
