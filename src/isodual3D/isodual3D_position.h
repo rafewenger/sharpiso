@@ -33,7 +33,7 @@ namespace ISODUAL3D {
 
 
   // **************************************************
-  // Position routines
+  // Position using only scalar data
   // **************************************************
 
   /// Position dual isosurface vertices in cube centers
@@ -62,35 +62,9 @@ namespace ISODUAL3D {
     const std::vector<ISO_VERTEX_INDEX> & vlist,
     std::vector<COORD_TYPE> & coord);
 
-  /// Position dual isosurface vertices using gradients
-  void position_dual_isovertices_using_gradients
-    (const ISODUAL_SCALAR_GRID_BASE & grid,
-    const GRADIENT_GRID_BASE & gradient_grid,
-    const SCALAR_TYPE isovalue,
-    const SCALAR_TYPE cube_offset2,
-    const std::vector<ISO_VERTEX_INDEX> & vlist,
-    COORD_TYPE * coord);
-
-  /// Position dual isosurface vertices using gradients
-  void position_dual_isovertices_using_gradients
-    (const ISODUAL_SCALAR_GRID_BASE & grid,
-    const GRADIENT_GRID_BASE & gradient_grid,
-    const SCALAR_TYPE isovalue,
-    const bool use_selected_gradients,
-    const bool use_only_cube_gradients,
-    const SIGNED_COORD_TYPE cube_offset,
-    const SCALAR_TYPE cube_offset2,
-    const std::vector<ISO_VERTEX_INDEX> & vlist, COORD_TYPE * coord);
-
-  /// Position dual isosurface vertices using gradients
-  void position_dual_isovertices_using_gradients
-    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-    const GRADIENT_GRID_BASE & gradient_grid,
-    const SCALAR_TYPE isovalue,
-    const ISODUAL_PARAM & isodual_param,
-    const std::vector<ISO_VERTEX_INDEX> & vlist,
-    COORD_TYPE * coord);
-
+  // **************************************************
+  // Position using gradients and svd
+  // **************************************************
 
   /// Position dual isosurface vertices using gradients
   void position_dual_isovertices_using_gradients
@@ -104,27 +78,6 @@ namespace ISODUAL3D {
 
   /// Position dual isosurface vertices using gradients
   void position_dual_isovertices_using_gradients
-    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-    const GRADIENT_GRID_BASE & gradient_grid,
-    const SCALAR_TYPE isovalue,
-    const bool use_selected_gradients,
-    const bool use_only_cube_gradients,
-    const SIGNED_COORD_TYPE cube_offset,
-    const SCALAR_TYPE cube_offset2,
-    const std::vector<ISO_VERTEX_INDEX> & vlist,
-    std::vector<COORD_TYPE> & coord);
-
-  /// Position dual isosurface vertices using gradients
-  void position_dual_isovertices_using_gradients
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const SCALAR_TYPE isovalue,
-   const ISODUAL_PARAM & isodual_param,
-   const std::vector<ISO_VERTEX_INDEX> & vlist,
-   std::vector<COORD_TYPE> & coord);
-
-  /// Position dual isosurface vertices using gradients
-  void position_dual_isovertices_using_gradients
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const SCALAR_TYPE isovalue,
@@ -133,13 +86,9 @@ namespace ISODUAL3D {
    std::vector<COORD_TYPE> & coord,
    ISODUAL_INFO & isodual_info);
 
-  /// Position dual isosurface vertices using SVD 
-  /// and edge intersection simple.
-  void position_dual_isovertices_using_edge_intersection_simple
-    (const ISODUAL_SCALAR_GRID_BASE & grid,
-    const GRADIENT_GRID_BASE & gradient_grid,
-    const SCALAR_TYPE isovalue,
-    const std::vector<ISO_VERTEX_INDEX> & vlist, COORD_TYPE * coord);
+  // ********************************************************
+  // Position using gradients interpolated on grid edges.
+  // ********************************************************
 
   /// Position dual isosurface vertices using SVD 
   ///  and edge intersection simple.
@@ -150,39 +99,6 @@ namespace ISODUAL3D {
     const std::vector<ISO_VERTEX_INDEX> & vlist,
     const ISODUAL_PARAM & isodual_param, COORD_TYPE * coord);
 
-  /// Position dual isosurface vertices using SVD and edge intersection complex.
-  void position_dual_isovertices_using_edge_intersection_complex
-    (const ISODUAL_SCALAR_GRID_BASE & grid,
-    const GRADIENT_GRID_BASE & gradient_grid,
-    const SCALAR_TYPE isovalue,
-    const std::vector<ISO_VERTEX_INDEX> & vlist, COORD_TYPE * coord);
-
-  /// Position dual isosurface vertices using SVD and edge intersection complex.
-  void position_dual_isovertices_using_edge_intersection_complex
-    (const ISODUAL_SCALAR_GRID_BASE & grid,
-    const GRADIENT_GRID_BASE & gradient_grid,
-    const SCALAR_TYPE isovalue,
-    const std::vector<ISO_VERTEX_INDEX> & vlist,
-    const ISODUAL_PARAM & isodual_param, COORD_TYPE * coord);
-
-  /// Position dual isosurface vertices using gradients
-  void position_dual_isovertices_using_gradients
-    (const ISODUAL_SCALAR_GRID_BASE & grid,
-    const GRADIENT_GRID_BASE & gradient_grid,
-    const SCALAR_TYPE isovalue,
-    const SCALAR_TYPE cube_offset2,
-    const std::vector<ISO_VERTEX_INDEX> & vlist,
-    std::vector<COORD_TYPE> & coord);
-
-  /// Position dual isosurface vertices using SVD and edge intersection simple
-  //  this one does not have the isodual param
-  void position_dual_isovertices_using_edge_intersection_simple
-    (const ISODUAL_SCALAR_GRID_BASE & grid,
-    const GRADIENT_GRID_BASE & gradient_grid,
-    const SCALAR_TYPE isovalue,
-    const std::vector<ISO_VERTEX_INDEX> & vlist,
-    std::vector<COORD_TYPE> & coord);
-
   /// Position dual isosurface vertices using SVD and edge intersection simple
   void position_dual_isovertices_using_edge_intersection_simple
     (const ISODUAL_SCALAR_GRID_BASE & grid,
@@ -192,13 +108,17 @@ namespace ISODUAL3D {
     const ISODUAL_PARAM & isodual_param,
     std::vector<COORD_TYPE> & coord);
 
-  /// Position dual isosurface vertices using SVD and edge intersection complex
+  // *******************************************************************
+  // Position using gradients determining edge-isosurface intersections.
+  // *******************************************************************
+
+  /// Position dual isosurface vertices using SVD and edge intersection complex.
   void position_dual_isovertices_using_edge_intersection_complex
     (const ISODUAL_SCALAR_GRID_BASE & grid,
     const GRADIENT_GRID_BASE & gradient_grid,
     const SCALAR_TYPE isovalue,
     const std::vector<ISO_VERTEX_INDEX> & vlist,
-    std::vector<COORD_TYPE> & coord);
+    const ISODUAL_PARAM & isodual_param, COORD_TYPE * coord);
 
   /// Position dual isosurface vertices using SVD and edge intersection complex
   void position_dual_isovertices_using_edge_intersection_complex
