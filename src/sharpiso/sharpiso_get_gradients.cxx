@@ -184,6 +184,31 @@ void SHARPISO::get_selected_vertex_gradients
   }
 }
 
+/// Get grid vertex gradients.
+/// @pre point_coord[] is preallocated to size at least num_vertices*DIM3.
+/// @pre gradient_coord[] is preallocated to size at least num_vertices*DIM3.
+/// @pre scalar is preallocated to size at least num_vertices.
+void SHARPISO::get_vertex_gradients
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX vertex_list[], const NUM_TYPE num_vertices,
+ COORD_TYPE point_coord[],
+ GRADIENT_COORD_TYPE gradient_coord[],
+ SCALAR_TYPE scalar[])
+{
+  for (NUM_TYPE i = 0; i < num_vertices; i++) {
+
+    VERTEX_INDEX iv = vertex_list[i];
+    gradient_grid.ComputeCoord(iv, point_coord+i*DIM3);
+
+    std::copy(gradient_grid.VectorPtrConst(iv),
+              gradient_grid.VectorPtrConst(iv)+DIM3,
+              gradient_coord+i*DIM3);
+
+    scalar[i] = scalar_grid.Scalar(iv);
+  }
+}
+
 // Get all 8 cube gradients
 void SHARPISO::get_cube_gradients
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -790,7 +815,6 @@ void SHARPISO::get_cube_vertices
 (const SHARPISO_GRID & grid, const VERTEX_INDEX cube_index,
  VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D])
 {
-
   for (NUM_TYPE k = 0; k < NUM_CUBE_VERTICES3D; k++) 
     { vertex_list[k] = grid.CubeVertex(cube_index, k); }
 }
@@ -965,6 +989,67 @@ void SHARPISO::get_intersected_cube_neighbor_edge_endpoints
     }
   }
 
+}
+
+/// Get selected vertices (vertices where vertex_flag[] is true.)
+/// Reorder vertex list so that selected vertices are first.
+/// @pre Size of vertex_flag[] is at least size of vertex_list[].
+void SHARPISO::get_selected_vertices
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const bool vertex_flag[],
+ const NUM_TYPE num_vertices,
+ VERTEX_INDEX vertex_list[], NUM_TYPE & num_selected)
+{
+  num_selected = num_vertices;
+  NUM_TYPE i = 0;
+  while (i < num_selected) {
+
+    if (vertex_flag[i]) { i++; }
+    else {
+      std::swap(vertex_list[i], vertex_list[num_selected-1]);
+      num_selected--;
+    }
+  }
+}
+
+// **************************************************
+// SORT VERTICES
+// **************************************************
+
+/// Sort vertices based on the distance of the isoplane to point pcoord[].
+void sort_vertices_by_isoplane
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const COORD_TYPE pcoord[DIM3],
+ VERTEX_INDEX vertex_list[], const NUM_TYPE num_vertices)
+{
+  IJK::ARRAY<COORD_TYPE> isoplane_dist(num_vertices);
+  COORD_TYPE vcoord[DIM3];
+
+  for (NUM_TYPE i = 0; i < num_vertices; i++) {
+    VERTEX_INDEX iv = vertex_list[i];
+    scalar_grid.ComputeCoord(iv, vcoord);
+
+    compute_distance_to_gfield_plane
+      (gradient_grid.VectorPtrConst(iv), vcoord, scalar_grid.Scalar(iv),
+       pcoord, isovalue, isoplane_dist[i]);
+  }
+
+  // insertion sort
+  for (NUM_TYPE i = 1; i < num_vertices; i++) {
+    NUM_TYPE j = i;
+    VERTEX_INDEX jv = vertex_list[j];
+    COORD_TYPE jdist = isoplane_dist[j];
+    while (j > 0 && jdist > isoplane_dist[j-1]) {
+      vertex_list[j] = vertex_list[j-1];
+      isoplane_dist[j] = isoplane_dist[j-1];
+    }
+    vertex_list[j] = jv;
+    isoplane_dist[j] = jdist;
+  }
+  
 }
 
 // **************************************************

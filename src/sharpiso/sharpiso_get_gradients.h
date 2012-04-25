@@ -75,6 +75,17 @@ namespace SHARPISO {
    std::vector<SCALAR_TYPE> & scalar,
    NUM_TYPE & num_gradients);
 
+  /// Get grid vertex gradients.
+  /// @pre point_coord[] is preallocated to size at least num_vertices*DIM3.
+  /// @pre gradient_coord[] is preallocated to size at least num_vertices*DIM3.
+  /// @pre scalar is preallocated to size at least num_vertices.
+  void get_vertex_gradients
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX vertex_list[], const NUM_TYPE num_vertices,
+   COORD_TYPE point_coord[], GRADIENT_COORD_TYPE gradient_coord[],
+   SCALAR_TYPE scalar[]);
+
   /// Get all 8 cube gradients
   void get_cube_gradients
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -222,6 +233,17 @@ namespace SHARPISO {
   void get_intersected_cube_neighbor_edge_endpoints
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, const VERTEX_INDEX cube_index,
    const SCALAR_TYPE isovalue, std::vector<VERTEX_INDEX> & vertex_list);
+
+  /// Get selected vertices (vertices where vertex_flag[] is true.)
+  /// Reorder vertex list so that selected vertices are first.
+  /// @pre Size of vertex_flag[] is at least size of vertex_list[].
+  void get_selected_vertices
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const bool vertex_flag[],
+   const NUM_TYPE num_vertices,
+   VERTEX_INDEX vertex_list[], NUM_TYPE & num_selected);
+
 
   // **************************************************
   // SELECTION FUNCTIONS
