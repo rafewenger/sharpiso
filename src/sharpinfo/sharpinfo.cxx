@@ -876,6 +876,7 @@ void usage_error()
     cerr << "  -max_eigen <value>" << endl;
     cerr << "  -gradS_offset <value> | -max_dist <value>" << endl;
     cerr << "  -listg | -list_subgrid" << endl;
+    cerr << "  -no_round | -round <n>" << endl;
     exit(10);
 }
 
@@ -922,7 +923,7 @@ void parse_command_line(int argc, char **argv)
   bool use_intersected_edge_endpoint_gradients(false);
   bool use_gradients_determining_edge_intersections(false);
   bool allow_duplicates(false);
-  bool flag_round(true);
+  bool flag_round(false);
   SIGNED_COORD_TYPE grad_selection_cube_offset(0);
 
   if (argc == 1) { usage_error(); }
@@ -1066,6 +1067,8 @@ void parse_command_line(int argc, char **argv)
     }
     else if (s == "-round") {
       flag_round = true;
+      sharp_isovert_param.round_denominator = get_int(iarg, argc, argv);
+      iarg++;
     }
     else if (s == "-max_eigen") {
       sharp_isovert_param.max_small_eigenvalue = get_float(iarg, argc, argv);
@@ -1223,6 +1226,10 @@ void help()
        << "              at neighboring vertices." << endl;
   cerr << "  -vertex <vertex_index>:  Set vertex." << endl;
   cerr << "  -vc \"vertex coordinates\":  Vertex coordinates."
+       << endl;
+  cout << "  -no_round:  Don't round coordinates." << endl;
+  cout << "  -round <n>: Round coordinates to nearest 1/n." << endl;
+  cout << "              Suggest using n=16,32,64,... or 2^k for some k."
        << endl;
   exit(15);
 }

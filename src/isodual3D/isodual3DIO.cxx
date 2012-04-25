@@ -329,6 +329,8 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 
     case ROUND_PARAM:
       io_info.flag_round = true;
+      io_info.round_denominator = get_int(iarg, argc, argv);
+      iarg++;
       break;
 
     case NO_ROUND_PARAM:
@@ -433,6 +435,13 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
     cerr << "Error.  Can't use both -subsample and -supersample parameters."
          << endl;
     exit(555);
+  }
+
+  if (io_info.flag_round) {
+    if (io_info.round_denominator < 1) {
+      cerr << "Error.  Illegal -round <n> parameter. Integer <n> must be positive." << endl;
+      exit(560);
+    }
   }
 }
 
@@ -1182,6 +1191,7 @@ namespace {
   cerr << "  [-lindstrom]" << endl;
   cerr << "  [-allow_conflict] [-clamp_conflict] [-clamp_far]" << endl;
   cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
+  cerr << "  [-no_round | -round <n>]" << endl;
   cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
        << endl;
   cerr << "  [-help] [-s] [-out_param] [-nowrite] [-time]" << endl;
@@ -1272,6 +1282,10 @@ void ISODUAL3D::help()
   cout << "  -clamp_far: Clamp isosurface vertices at distance greater than max_dist." << endl;
   cout << "  -recompute_eigen2:  Recompute with only 2 eigenvalues to settle conflicts." << endl;
   cout << "  -no_recompute_eigen2:  Don't recompute with only 2 eigenvalues." 
+       << endl;
+  cout << "  -no_round:  Don't round coordinates." << endl;
+  cout << "  -round <n>: Round coordinates to nearest 1/n." << endl;
+  cout << "              Suggest using n=16,32,64,... or 2^k for some k."
        << endl;
   cout << "  -trimesh:   Output triangle mesh." << endl;
   cout << "  -off: Output in geomview OFF format. (Default.)" << endl;

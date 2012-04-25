@@ -17,7 +17,7 @@ my $outfile = "temp.off";
 my $outfile0 = "temp0.off";
 
 # isodual3D arguments which take an input value/string.
-my @isodual3D_options = ( "-subsample",  "-position" );
+my @isodual3D_options = ( "-subsample",  "-position", "-round" );
 
 while (scalar(@proglist) > 0 &&
        $proglist[0] =~ /-.*/) {
@@ -109,33 +109,33 @@ sub usage_error {
 # compare executables with all possible options
 sub compare_executables_all_options {
 
-  compare_executables("-position centroid");
+  compare_executables("-position centroid @input_options");
   print "\n";
-  compare_executables("-position cube_center");
+  compare_executables("-position cube_center @input_options");
   print "\n";
-  compare_executables("-position gradC");
+  compare_executables("-position gradC @input_options");
   print "\n";
-  compare_executables("-position gradCS");
+  compare_executables("-position gradCS @input_options");
   print "\n";
-  compare_executables("-position gradN");
+  compare_executables("-position gradN @input_options");
   print "\n";
-  compare_executables("-position gradNS");
+  compare_executables("-position gradNS @input_options");
   print "\n";
-  compare_executables("-position gradES");
+  compare_executables("-position gradES @input_options");
   print "\n";
-  compare_executables("-position gradEC");
+  compare_executables("-position gradEC @input_options");
   print "\n";
-  compare_executables("-position gradIE");
+  compare_executables("-position gradIE @input_options");
   print "\n";
-  compare_executables("-position gradCD");
+  compare_executables("-position gradCD @input_options");
   print "\n";
-  compare_executables("-position gradCDdup");
+  compare_executables("-position gradCDdup @input_options");
   print "\n";
-  compare_executables("-position centroid -trimesh");
+  compare_executables("-position centroid -trimesh @input_options");
   print "\n";
-  compare_executables("-position gradEC -trimesh");
+  compare_executables("-position gradEC -trimesh @input_options");
   print "\n";
-  compare_executables("-position gradNS -trimesh");
+  compare_executables("-position gradNS -trimesh @input_options");
   print "\n";
 }
 

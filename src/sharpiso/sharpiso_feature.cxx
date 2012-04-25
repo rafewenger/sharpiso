@@ -176,7 +176,8 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
   }
 
   if (sharpiso_param.flag_round)
-    { IJK::round16_coord(DIM3, sharp_coord, sharp_coord); }
+    { IJK::round_coord
+        (sharpiso_param.round_denominator, DIM3, sharp_coord, sharp_coord); }
 }
 
 
@@ -458,7 +459,9 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
 
 
   if (sharpiso_param.flag_round)
-    { IJK::round16_coord(DIM3, coord, coord); }
+    { IJK::round_coord
+        (sharpiso_param.round_denominator, DIM3, coord, coord);
+    }
 }
 
 
@@ -632,7 +635,9 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_cmplx
   clamp_point(sharpiso_param.max_dist, cube_coord, coord);
 
   if (sharpiso_param.flag_round)
-    { IJK::round16_coord(DIM3, coord, coord); }
+    { IJK::round_coord
+        (sharpiso_param.round_denominator, DIM3, coord, coord);
+    }
 }
 
 
@@ -1025,12 +1030,13 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   flag_clamp_conflict = false;
   flag_clamp_far = false;
   flag_recompute_eigen2 = true;
-  flag_round = true;
+  flag_round = false;
   use_Linf_dist = true;
   max_dist = 1.0;
   snap_dist = 1.0/16.0;
   max_small_eigenvalue = 0.1;
   separation_distance = 0.1;
+  round_denominator = 16;
 }
 
 // **************************************************

@@ -311,6 +311,9 @@ namespace SHARPISO {
     /// Minimum separation distance between isosurface vertices.
     COORD_TYPE separation_distance;
 
+    /// Round to nearest 1/round_denominator
+    int round_denominator;
+
     /// Constructor
     SHARP_ISOVERT_PARAM() { Init(); };
 
