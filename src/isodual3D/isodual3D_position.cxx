@@ -138,7 +138,6 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
   }
 }
 
-
 /// Position dual isosurface vertices using gradients
 void ISODUAL3D::position_dual_isovertices_using_gradients
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
@@ -168,6 +167,43 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
       (scalar_grid, gradient_grid, iv, isovalue,
       isodual_param, cube_111, sharp_coord+i*DIM3,
       eigenvalues, num_large_eigenvalues, svd_info);
+  }
+
+}
+
+/// Position dual isosurface vertices using gradients
+void ISODUAL3D::position_dual_isovertices_using_gradients
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const ISODUAL_PARAM & isodual_param,
+ const std::vector<ISO_VERTEX_INDEX> & vlist,
+ COORD_TYPE * sharp_coord,
+ ISODUAL_INFO & isodual_info)
+{
+
+  const SIGNED_COORD_TYPE grad_selection_cube_offset =
+    isodual_param.grad_selection_cube_offset;
+
+  SVD_INFO svd_info;
+  svd_info.location = LOC_NONE;
+
+  EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
+
+  VERTEX_INDEX num_large_eigenvalues;
+
+  OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+
+  for (VERTEX_INDEX i = 0; i < vlist.size(); i++) {
+    VERTEX_INDEX iv = vlist[i];
+
+    svd_compute_sharp_vertex_for_cube
+      (scalar_grid, gradient_grid, iv, isovalue,
+      isodual_param, cube_111, sharp_coord+i*DIM3,
+      eigenvalues, num_large_eigenvalues, svd_info);
+
+    if (svd_info.flag_conflict) 
+      { isodual_info.sharpiso.num_conflict++; }
   }
 
 }
@@ -207,6 +243,23 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
     vlist, &(coord.front()));
 }
 
+/// Position dual isosurface vertices using gradients
+void ISODUAL3D::position_dual_isovertices_using_gradients
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const ISODUAL_PARAM & isodual_param,
+ const std::vector<ISO_VERTEX_INDEX> & vlist,
+ std::vector<COORD_TYPE> & coord,
+ ISODUAL_INFO & isodual_info)
+{
+  const int dimension = scalar_grid.Dimension();
+
+  coord.resize(vlist.size()*dimension);
+  position_dual_isovertices_using_gradients
+    (scalar_grid, gradient_grid, isovalue, isodual_param,
+     vlist, &(coord.front()), isodual_info);
+}
 
 // **************************************************
 // Position using interpolation along grid edge

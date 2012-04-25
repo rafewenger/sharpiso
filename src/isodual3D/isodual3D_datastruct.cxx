@@ -276,7 +276,6 @@ ISODUAL3D::GRID_INFO::GRID_INFO()
 void ISODUAL3D::GRID_INFO::Clear()
 {
   num_cubes = 0;
-
 }
 
 void ISODUAL3D::SCALAR_INFO::Init(const int dimension)
@@ -332,9 +331,19 @@ ISODUAL3D::SCALAR_INFO::~SCALAR_INFO()
   Clear();
 }
 
+ISODUAL3D::SHARPISO_INFO::SHARPISO_INFO()
+{
+  Clear();
+}
+
 ISODUAL3D::ISODUAL_INFO::ISODUAL_INFO()
 {
   Clear();
+}
+
+void ISODUAL3D::SHARPISO_INFO::Clear()
+{
+  num_conflict = 0;
 }
 
 ISODUAL3D::ISODUAL_INFO::ISODUAL_INFO(const int dimension):scalar(dimension)
@@ -347,6 +356,7 @@ void ISODUAL3D::ISODUAL_INFO::Clear()
   grid.Clear();
   scalar.Clear();
   time.Clear();
+  sharpiso.Clear();
 }
 
 // **************************************************

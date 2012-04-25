@@ -259,7 +259,7 @@ void ISODUAL3D::dual_contouring
   if (vertex_position_method == GRADIENT_POSITIONING) {
     position_dual_isovertices_using_gradients
       (scalar_grid, gradient_grid, isovalue, isodual_param,
-      iso_vlist, vertex_coord);
+       iso_vlist, vertex_coord, isodual_info);
   }
   else if (vertex_position_method == EDGE_SIMPLE) {
 

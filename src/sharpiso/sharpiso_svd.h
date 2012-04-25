@@ -46,7 +46,7 @@ void svd_calculate_sharpiso_vertex
 
 
 
-// Calculat the svd based sharp isovertex but force it to have 2 singular values.
+// Calculate the svd based sharp isovertex but force it to have 2 singular values.
 void svd_calculate_sharpiso_vertex_2_svals
 (const COORD_TYPE * vert_coords,
  const GRADIENT_COORD_TYPE * vert_grads,
@@ -88,7 +88,7 @@ void svd_calculate_sharpiso_vertex_using_lindstrom
  
  
 
-// Calculat the svd based sharp isovertex but force it to have 2 singular values.
+// Calculate the svd based sharp isovertex but force it to have 2 singular values.
 void svd_calculate_sharpiso_vertex_2_svals_unit_normals
 (const COORD_TYPE * vert_coords,
  const GRADIENT_COORD_TYPE * vert_grads,

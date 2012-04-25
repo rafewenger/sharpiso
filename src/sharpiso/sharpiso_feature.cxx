@@ -178,6 +178,8 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
   if (sharpiso_param.flag_round)
     { IJK::round_coord
         (sharpiso_param.round_denominator, DIM3, sharp_coord, sharp_coord); }
+
+  svd_info.flag_conflict = flag_conflict;
 }
 
 
@@ -457,11 +459,11 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
     svd_info.location = CUBE_CENTER;
   }
 
-
   if (sharpiso_param.flag_round)
     { IJK::round_coord
         (sharpiso_param.round_denominator, DIM3, coord, coord);
     }
+
 }
 
 

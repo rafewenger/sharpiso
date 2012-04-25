@@ -287,6 +287,20 @@ namespace ISODUAL3D {
   };
 
   // **************************************************
+  // SHARPISO INFO
+  // **************************************************
+
+  /// Sharpiso information.
+  class SHARPISO_INFO {
+
+  public:
+    int num_conflict;
+
+    SHARPISO_INFO();  ///< Constructor.
+    void Clear();     ///< Clear all data.
+  };
+
+  // **************************************************
   // ISODUAL INFO
   // **************************************************
 
@@ -298,6 +312,7 @@ namespace ISODUAL3D {
     GRID_INFO grid;
     SCALAR_INFO scalar;
     ISODUAL_TIME time;
+    SHARPISO_INFO sharpiso;
 
     ISODUAL_INFO();
     ISODUAL_INFO(const int dimension);

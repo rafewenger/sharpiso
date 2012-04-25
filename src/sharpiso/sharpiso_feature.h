@@ -332,6 +332,7 @@ namespace SHARPISO {
     GRADIENT_COORD_TYPE ray_direction[DIM3]; // ray direction
     COORD_TYPE ray_initial_point[DIM3];      // point on ray
     COORD_TYPE ray_cube_intersection[DIM3];
+    bool flag_conflict;
     
     /// Set ray information.
     void SetRayInfo

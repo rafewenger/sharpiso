@@ -1038,9 +1038,9 @@ void ISODUAL3D::rescale_vertex_coord
   rescale_coord(grid_spacing, vertex_coord);
 }
 
-  // **************************************************
-  // REPORT SCALAR FIELD OR ISOSURFACE INFORMATION
-  // **************************************************
+// **************************************************
+// REPORT SCALAR FIELD OR ISOSURFACE INFORMATION
+// **************************************************
 
 void ISODUAL3D::report_num_cubes
 (const ISODUAL_GRID & full_scalar_grid, const IO_INFO & io_info,
@@ -1114,6 +1114,9 @@ void ISODUAL3D::report_iso_info
   else {
     cout << num_poly << " isosurface quadrilaterals." << endl;
   }
+
+  cout << "Number of conflicts: "
+       << isodual_info.sharpiso.num_conflict << endl;
 }
 
   // **************************************************
