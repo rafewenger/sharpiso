@@ -354,11 +354,17 @@ void compute_iso_vertex_using_svd
   }
   else if (flag_svd_edges_cmplx) {
 
+    /* OBSOLETE
     svd_compute_sharp_vertex_in_cube_edge_based_cmplx
       (scalar_grid, gradient_grid, cube_index, isovalue,
        max_small_mag, max_small_eigenvalue, 
        sharp_coord, eigenvalues,
        num_large_eigenvalues, sharp_isovert_param, svd_info);
+    */
+
+    svd_compute_sharp_vertex_in_cube_edge_based_cmplx
+      (scalar_grid, gradient_grid, cube_index, isovalue, sharp_isovert_param,
+       sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
   }
   else {
 
