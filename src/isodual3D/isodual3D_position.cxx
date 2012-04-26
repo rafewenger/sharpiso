@@ -462,30 +462,7 @@ void ISODUAL3D::reposition_dual_isovertices
 
   set_vertex_locations(vlist, vloc, isovert_flag);
 
-  for (VERTEX_INDEX i0 = 0; i0 < vlist.size(); i0++) {
-    VERTEX_INDEX iv0 = vlist[i0];
-
-    scalar_grid.ComputeCoord(iv0, v0coord);
-
-    for (int d = 0; d < DIM3; d++) {
-
-      if (v0coord[d]+1 < scalar_grid.AxisSize(d)) {
-        VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, d);
-
-        if (isovert_flag.Scalar(iv1)) {
-          if (is_gt_facet_min_le_facet_max
-              (scalar_grid, iv1, d, isovalue)) {
-            VERTEX_INDEX i1 = vloc.Scalar(iv1);
-
-            reposition_close_isovertices
-              (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
-               isodual_param, iv0, i0, iv1, i1, isovert_coord, sharp_info);
-          }
-        }
-      }
-    }
-  }
-
+  // Reposition close opposing quad vertices.
   IJK_FOR_EACH_INTERIOR_GRID_EDGE(iv0, dir, scalar_grid, VERTEX_INDEX) {
     VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, dir);
 
