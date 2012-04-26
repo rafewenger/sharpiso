@@ -422,7 +422,8 @@ namespace {
    const ISODUAL_PARAM & isodual_param,
    const VERTEX_INDEX iv0, const VERTEX_INDEX jloc0,
    const VERTEX_INDEX iv1, const VERTEX_INDEX jloc1,
-   COORD_TYPE * isovert_coord)
+   COORD_TYPE * isovert_coord,
+    SHARPISO_INFO & sharp_info)
   {
     COORD_TYPE distance_squared;
     IJK::compute_distance_squared
@@ -432,6 +433,8 @@ namespace {
     if (distance_squared < sep_dist_squared) {
       ISODUAL3D::compute_isosurface_grid_edge_centroid
         (scalar_grid, isovalue, iv0, isovert_coord+jloc0*DIM3);
+
+      sharp_info.num_repositioned_vertices++;
     }
   }
 
@@ -476,9 +479,7 @@ void ISODUAL3D::reposition_dual_isovertices
 
             reposition_close_isovertices
               (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
-               isodual_param, iv0, i0, iv1, i1, isovert_coord);
-
-            sharp_info.num_repositioned_vertices++;
+               isodual_param, iv0, i0, iv1, i1, isovert_coord, sharp_info);
           }
         }
       }
@@ -499,10 +500,10 @@ void ISODUAL3D::reposition_dual_isovertices
 
       reposition_close_isovertices
         (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
-         isodual_param, jv0, j0, jv2, j2, isovert_coord);
+         isodual_param, jv0, j0, jv2, j2, isovert_coord, sharp_info);
       reposition_close_isovertices
         (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
-         isodual_param, jv1, j1, jv3, j3, isovert_coord);
+         isodual_param, jv1, j1, jv3, j3, isovert_coord, sharp_info);
     }
   }
   

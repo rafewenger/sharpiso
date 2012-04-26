@@ -1130,13 +1130,19 @@ void ISODUAL3D::report_iso_info
          << isodual_info.sharpiso.num_sharp_edges << endl;
     cout << "  Number of smooth isosurface vertices: "
          << isodual_info.sharpiso.num_smooth_vertices << endl;
+
+    if (output_info.flag_reposition) {
+      cout << "  Number of repositioned isosurface vertices: "
+           << isodual_info.sharpiso.num_repositioned_vertices << endl;
+    }
+
     cout << endl;
   }
 }
 
-  // **************************************************
-  // REPORT TIMING INFORMATION
-  // **************************************************
+// **************************************************
+// REPORT TIMING INFORMATION
+// **************************************************
 
 void ISODUAL3D::report_isodual_time
 (const INPUT_INFO & input_info, const ISODUAL_TIME & isodual_time,
