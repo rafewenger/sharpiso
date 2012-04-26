@@ -193,7 +193,7 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_simple
     VERTEX_INDEX cube_index(0);
     VERTEX_INDEX num_large_eigenvalues;
 
-    svd_compute_sharp_vertex_in_cube_edge_based_simple
+    svd_compute_sharp_vertex_edgeI_interpolate_gradients
       (scalar_grid, gradient_grid, iv, isovalue,
        isodual_param, sharp_coord+i*dimension,
        eigenvalues, num_large_eigenvalues, svd_info);
@@ -248,15 +248,7 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_complex
     VERTEX_INDEX cube_index(0);
     VERTEX_INDEX num_large_eigenvalues;
 
-    /* OBSOLETE
-    svd_compute_sharp_vertex_in_cube_edge_based_cmplx
-      (scalar_grid, gradient_grid, iv, isovalue,
-       max_small_mag, max_small_eigenvalue, 
-       sharp_coord+i*dimension, eigenvalues,
-       num_large_eigenvalues, isodual_param, svd_info);
-    */
-
-    svd_compute_sharp_vertex_in_cube_edge_based_cmplx
+    svd_compute_sharp_vertex_edgeI_select_gradient
       (scalar_grid, gradient_grid, iv, isovalue, isodual_param,
        sharp_coord+i*dimension, eigenvalues, 
        num_large_eigenvalues, svd_info);

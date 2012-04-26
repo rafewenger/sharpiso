@@ -89,8 +89,9 @@ namespace SHARPISO {
    bool & flag_conflict,
    SVD_INFO & svd_info);
 
-  /// Compute sharp isosurface vertex using simple interpolation on the edges.
-  void svd_compute_sharp_vertex_in_cube_edge_based_simple
+  /// Compute sharp isosurface vertex using edge-isosurface intersections.
+  /// Approximate gradients using linear interpolation on the edges.
+  void svd_compute_sharp_vertex_edgeI_interpolate_gradients
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
@@ -100,9 +101,9 @@ namespace SHARPISO {
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
 
-  /// Compute sharp isosurface vertex using edge intersection.
-  /// Compute edge intersections using endpoint gradients.
-  void svd_compute_sharp_vertex_in_cube_edge_based_cmplx
+  /// Compute sharp isosurface vertex using edge-isosurface intersections.
+  /// Select endpoint gradient which determines edge-isosurface intersection.
+  void svd_compute_sharp_vertex_edgeI_select_gradient
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
