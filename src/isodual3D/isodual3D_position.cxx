@@ -167,9 +167,9 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
 // Position using gradients interpolated on grid edges.
 // ********************************************************
 
-/// Position dual isosurface vertices using SVD and edge intersection simple.
-// this one has the isovert param
-void ISODUAL3D::position_dual_isovertices_using_edge_intersection_simple
+/// Position vertices using SVD on grid edge-isosurface intersections.
+/// Approximate gradients using linear interpolation on the grid edge.
+void ISODUAL3D::position_dual_isovertices_edgeI_interpolate_gradients
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
@@ -201,9 +201,9 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_simple
   }
 }
 
-/// Position dual isosurface vertices using SVD and edge intersection simple
-//  same as above but takes the isodual_param paramter
-void ISODUAL3D::position_dual_isovertices_using_edge_intersection_simple
+/// Position vertices using SVD on grid edge-isosurface intersections.
+/// Approximate gradients using linear interpolation on the grid edge.
+void ISODUAL3D::position_dual_isovertices_edgeI_interpolate_gradients
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
@@ -213,7 +213,7 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_simple
 {
   const int dimension = scalar_grid.Dimension();
   coord.resize(vlist.size()*dimension);
-  position_dual_isovertices_using_edge_intersection_simple
+  position_dual_isovertices_edgeI_interpolate_gradients
     (scalar_grid, gradient_grid, isovalue, vlist, isodual_param, 
      &(coord.front()));
 }
@@ -223,9 +223,9 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_simple
 // Position using gradients determining edge-isosurface intersections.
 // *******************************************************************
 
-/// Position dual isosurface vertices using SVD and edge intersection complex.
-/// this has isodual param 
-void ISODUAL3D::position_dual_isovertices_using_edge_intersection_complex
+/// Position vertices using SVD on grid edge-isosurface intersections.
+/// Select endpoint gradient which determines edge-isosurface intersection.
+void ISODUAL3D::position_dual_isovertices_edgeI_select_gradients
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
@@ -256,9 +256,9 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_complex
   }
 }
 
-/// Position dual isosurface vertices using SVD and edge intersection complex
-//  also has the isodual_param 
-void ISODUAL3D::position_dual_isovertices_using_edge_intersection_complex
+/// Position vertices using SVD on grid edge-isosurface intersections.
+/// Select endpoint gradient which determines edge-isosurface intersection.
+void ISODUAL3D::position_dual_isovertices_edgeI_select_gradients
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
@@ -269,10 +269,9 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_complex
 
    coord.resize(vlist.size()*dimension);
 
-   position_dual_isovertices_using_edge_intersection_complex
+   position_dual_isovertices_edgeI_select_gradients
      (scalar_grid, gradient_grid, isovalue, vlist, isodual_param, 
       &(coord.front()));
-
 }
 
 

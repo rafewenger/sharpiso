@@ -192,15 +192,14 @@ void ISODUAL3D::dual_contouring
        iso_vlist, vertex_coord, isodual_info);
   }
   else if (vertex_position_method == EDGE_SIMPLE) {
-
-    //EDGE SIMPLE
-    position_dual_isovertices_using_edge_intersection_simple
+    position_dual_isovertices_edgeI_interpolate_gradients
       (scalar_grid, gradient_grid, isovalue,
       iso_vlist, isodual_param, vertex_coord);
   }
   else if (vertex_position_method == EDGE_COMPLEX) {
-    //EDGE COMPLEX
-    position_dual_isovertices_using_edge_intersection_complex
+    // Position using SVD on grid edge-isosurface intersections.
+    // Select endpoint gradient which determines edge-isosurface intersection.
+    position_dual_isovertices_edgeI_select_gradients
       (scalar_grid, gradient_grid, isovalue,
       iso_vlist,isodual_param, vertex_coord);
   }

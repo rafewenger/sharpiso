@@ -90,7 +90,7 @@ namespace SHARPISO {
    SVD_INFO & svd_info);
 
   /// Compute sharp isosurface vertex using edge-isosurface intersections.
-  /// Approximate gradients using linear interpolation on the edges.
+  /// Approximate gradients using linear interpolation on the grid edge.
   void svd_compute_sharp_vertex_edgeI_interpolate_gradients
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
