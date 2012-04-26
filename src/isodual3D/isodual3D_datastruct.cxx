@@ -343,8 +343,23 @@ ISODUAL3D::ISODUAL_INFO::ISODUAL_INFO()
 
 void ISODUAL3D::SHARPISO_INFO::Clear()
 {
-  num_conflict = 0;
+  num_conflicts = 0;
+  num_sharp_corners = 0;
+  num_sharp_edges = 0;
+  num_smooth_vertices = 0;
+  num_repositioned_vertices = 0;
 }
+
+// Increment num_sharp_corners or num_sharp_edges or num_smooth_vertices
+//   depending upon the number of large eigenvalues.
+void ISODUAL3D::SHARPISO_INFO::
+IncrementIsoVertexNum(const int num_large_eigenvalues)
+{
+  if (num_large_eigenvalues >= 3) { num_sharp_corners++; }
+  else if (num_large_eigenvalues == 2) { num_sharp_edges++; }
+  else { num_smooth_vertices++; }
+}
+
 
 ISODUAL3D::ISODUAL_INFO::ISODUAL_INFO(const int dimension):scalar(dimension)
 {

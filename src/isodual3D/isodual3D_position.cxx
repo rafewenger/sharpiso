@@ -139,7 +139,8 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
       eigenvalues, num_large_eigenvalues, svd_info);
 
     if (svd_info.flag_conflict) 
-      { isodual_info.sharpiso.num_conflict++; }
+      { isodual_info.sharpiso.num_conflicts++; }
+    isodual_info.sharpiso.IncrementIsoVertexNum(num_large_eigenvalues);
   }
 
 }

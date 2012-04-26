@@ -86,6 +86,7 @@ namespace ISODUAL3D {
     bool report_time_flag;
     bool use_stdout;
     bool nowrite_flag;
+    bool flag_output_alg_info;    ///< Print algorithm information.
     bool flag_silent;
     bool flag_subsample;
     int subsample_resolution;
@@ -108,6 +109,7 @@ namespace ISODUAL3D {
 // OUTPUT INFORMATION
 // **************************************************
 
+  /// *** OUTPUT INFO and IO_INFO SHOULD DERIVE FROM ONE CLASS ***
   /// Output information.
   class OUTPUT_INFO {
 
@@ -122,6 +124,7 @@ namespace ISODUAL3D {
     int dimension;
     SCALAR_TYPE isovalue[2];
     bool nowrite_flag;
+    bool flag_output_alg_info;        ///< Print algorithm information.
     bool use_stdout;
     bool flag_silent;
     OUTPUT_FORMAT output_format;

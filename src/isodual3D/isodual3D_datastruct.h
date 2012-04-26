@@ -294,10 +294,18 @@ namespace ISODUAL3D {
   class SHARPISO_INFO {
 
   public:
-    int num_conflict;
+    int num_conflicts;
+    int num_sharp_corners;
+    int num_sharp_edges;
+    int num_smooth_vertices;
+    int num_repositioned_vertices;
 
     SHARPISO_INFO();  ///< Constructor.
     void Clear();     ///< Clear all data.
+
+    /// Increment num_sharp_corners or num_sharp_edges or num_smooth_vertices
+    ///   depending upon the number of large eigenvalues.
+    void IncrementIsoVertexNum(const int num_large_eigenvalues);
   };
 
   // **************************************************

@@ -56,7 +56,8 @@ namespace {
      ROUND_PARAM, NO_ROUND_PARAM,
      HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
      OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
-     NOWRITE_PARAM, SILENT_PARAM, TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
+     NOWRITE_PARAM, OUTPUT_INFO_PARAM, SILENT_PARAM,
+     TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
     {"-subsample", "-supersample",
      "-gradient", "-position", "-trimesh", "-uniform_trimesh",
@@ -68,7 +69,7 @@ namespace {
      "-round", "-no_round",
      "-help", "-off", "-iv", "-out_param",
      "-o", "-stdout",
-     "-nowrite", "-s", "-time", "-unknown"};
+     "-nowrite", "-info", "-s", "-time", "-unknown"};
 
   PARAMETER get_parameter_token(char * s)
   // convert string s into parameter token
@@ -361,6 +362,10 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 
     case NOWRITE_PARAM:
       io_info.nowrite_flag = true;
+      break;
+
+    case OUTPUT_INFO_PARAM:
+      io_info.flag_output_alg_info = true;
       break;
 
     case SILENT_PARAM:
@@ -1115,8 +1120,18 @@ void ISODUAL3D::report_iso_info
     cout << num_poly << " isosurface quadrilaterals." << endl;
   }
 
-  cout << "Number of conflicts: "
-       << isodual_info.sharpiso.num_conflict << endl;
+  if (output_info.flag_output_alg_info) {
+    cout << endl;
+    cout << "  Number of conflicts: "
+         << isodual_info.sharpiso.num_conflicts << endl;
+    cout << "  Number of sharp corners: "
+         << isodual_info.sharpiso.num_sharp_corners << endl;
+    cout << "  Number of sharp edges: "
+         << isodual_info.sharpiso.num_sharp_edges << endl;
+    cout << "  Number of smooth isosurface vertices: "
+         << isodual_info.sharpiso.num_smooth_vertices << endl;
+    cout << endl;
+  }
 }
 
   // **************************************************
@@ -1197,7 +1212,7 @@ namespace {
   cerr << "  [-no_round | -round <n>]" << endl;
   cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
        << endl;
-  cerr << "  [-help] [-s] [-out_param] [-nowrite] [-time]" << endl;
+  cerr << "  [-help] [-s] [-out_param] [-info] [-nowrite] [-time]" << endl;
   }
 
 }
@@ -1298,8 +1313,9 @@ void ISODUAL3D::help()
   cout << "  -nowrite: Don't write isosurface." << endl;
   cout << "  -time: Output running time." << endl;
   cout << "  -s: Silent mode." << endl;
-  cout << "  -help: Print this help message." << endl;
   cout << "  -out_param: Print isodual3D parameters." << endl;
+  cout << "  -info: Print algorithm information." << endl;
+  cout << "  -help: Print this help message." << endl;
   exit(20);
 }
 
@@ -1321,6 +1337,7 @@ void ISODUAL3D::IO_INFO::Init()
   report_time_flag = false;
   use_stdout = false;
   nowrite_flag = false;
+  flag_output_alg_info = false;
   flag_silent = false;
   flag_subsample = false;
   subsample_resolution = 2;
@@ -1343,6 +1360,7 @@ void ISODUAL3D::OUTPUT_INFO::Init()
   isovalue[0] = 0;
   isovalue[1] = 0;
   nowrite_flag = false;
+  flag_output_alg_info = false;
   use_stdout = false;
   flag_silent = false;
   output_format = OFF;
@@ -1446,6 +1464,7 @@ void ISODUAL3D::set_output_info
   output_info.nowrite_flag = io_info.nowrite_flag;
   output_info.use_stdout = io_info.use_stdout;
   output_info.flag_silent = io_info.flag_silent;
+  output_info.flag_output_alg_info = io_info.flag_output_alg_info;
 
   output_info.SetOutputTriMesh(io_info.flag_convert_quad_to_tri);
 
