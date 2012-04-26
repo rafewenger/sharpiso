@@ -189,7 +189,7 @@ void ISODUAL3D::dual_contouring
   if (vertex_position_method == GRADIENT_POSITIONING) {
     position_dual_isovertices_using_gradients
       (scalar_grid, gradient_grid, isovalue, isodual_param,
-       iso_vlist, vertex_coord, isodual_info);
+       iso_vlist, vertex_coord, isodual_info.sharpiso);
   }
   else if (vertex_position_method == EDGE_SIMPLE) {
     position_dual_isovertices_edgeI_interpolate_gradients
@@ -213,7 +213,7 @@ void ISODUAL3D::dual_contouring
   if (isodual_param.flag_reposition) {
     reposition_dual_isovertices
       (scalar_grid, gradient_grid, isovalue, isodual_param,
-       iso_vlist, &(vertex_coord.front()));
+       iso_vlist, &(vertex_coord.front()), isodual_info.sharpiso);
   }
 
   clock_t t3 = clock();

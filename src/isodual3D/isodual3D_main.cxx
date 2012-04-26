@@ -38,7 +38,7 @@ using namespace std;
 // local subroutines
 void memory_exhaustion();
 void construct_isosurface
-(const IO_INFO & io_info, const ISODUAL_DATA & isodual_data,
+(const INPUT_INFO & input_info, const ISODUAL_DATA & isodual_data,
  ISODUAL_TIME & isodual_time, IO_TIME & io_time);
 
 
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 
   ISODUAL_TIME isodual_time;
   IO_TIME io_time = {0.0, 0.0, 0.0};
-  IO_INFO io_info;
+  INPUT_INFO input_info;
   IJK::ERROR error;
   bool flag_gradient(false);
 
@@ -61,26 +61,26 @@ int main(int argc, char **argv)
 
     std::set_new_handler(memory_exhaustion);
 
-    parse_command_line(argc, argv, io_info);
+    parse_command_line(argc, argv, input_info);
 
     ISODUAL_SCALAR_GRID full_scalar_grid;
     NRRD_INFO nrrd_info;
     read_nrrd_file
-      (io_info.scalar_filename, full_scalar_grid,  nrrd_info, io_time);
+      (input_info.scalar_filename, full_scalar_grid,  nrrd_info, io_time);
 
     GRADIENT_GRID full_gradient_grid;
     NRRD_INFO nrrd_gradient_info;
 
-    if (io_info.GradientsRequired()) {
+    if (input_info.GradientsRequired()) {
 
       string gradient_filename;
 
-      if (io_info.gradient_filename == NULL) {
+      if (input_info.gradient_filename == NULL) {
         construct_gradient_filename
-          (io_info.scalar_filename, gradient_filename);
+          (input_info.scalar_filename, gradient_filename);
       }
       else {
-        gradient_filename = string(io_info.gradient_filename);
+        gradient_filename = string(input_info.gradient_filename);
       }
 
       read_nrrd_file(gradient_filename.c_str(), full_gradient_grid,
@@ -94,11 +94,11 @@ int main(int argc, char **argv)
       }
     }
 
-    if (!check_input(io_info, full_scalar_grid, error))
+    if (!check_input(input_info, full_scalar_grid, error))
       { throw(error); };
 
-    // copy nrrd_info into io_info
-    set_io_info(nrrd_info, io_info);
+    // copy nrrd_info into input_info
+    set_input_info(nrrd_info, input_info);
 
     // set DUAL datastructures and flags
     ISODUAL_DATA isodual_data;
@@ -107,33 +107,33 @@ int main(int argc, char **argv)
     if (flag_gradient) {
       isodual_data.SetGrids
         (full_scalar_grid, full_gradient_grid,
-         io_info.flag_subsample, io_info.subsample_resolution,
-         io_info.flag_supersample, io_info.supersample_resolution);
+         input_info.flag_subsample, input_info.subsample_resolution,
+         input_info.flag_supersample, input_info.supersample_resolution);
     }
     else
     {
       isodual_data.SetScalarGrid
-        (full_scalar_grid, io_info.flag_subsample, io_info.subsample_resolution,
-         io_info.flag_supersample, io_info.supersample_resolution);
+        (full_scalar_grid, input_info.flag_subsample, input_info.subsample_resolution,
+         input_info.flag_supersample, input_info.supersample_resolution);
     }
     // Note: isodual_data.SetScalarGrid or isodual_data.SetGrids
     //       must be called before set_mesh_data.
-    set_isodual_data(io_info, isodual_data, isodual_time);
-    if (io_info.flag_output_param) 
+    set_isodual_data(input_info, isodual_data, isodual_time);
+    if (input_info.flag_output_param) 
       { report_isodual_param(isodual_data); }
 
-    report_num_cubes(full_scalar_grid, io_info, isodual_data);
+    report_num_cubes(full_scalar_grid, input_info, isodual_data);
 
-    construct_isosurface(io_info, isodual_data, isodual_time, io_time);
+    construct_isosurface(input_info, isodual_data, isodual_time, io_time);
 
-    if (io_info.report_time_flag) {
+    if (input_info.report_time_flag) {
 
       time_t end_time;
       time(&end_time);
       double total_elapsed_time = difftime(end_time, start_time);
 
       cout << endl;
-      report_time(io_info, io_time, isodual_time, total_elapsed_time);
+      report_time(input_info, io_time, isodual_time, total_elapsed_time);
     };
 
   }
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 }
 
 void construct_isosurface
-(const IO_INFO & io_info, const ISODUAL_DATA & isodual_data,
+(const INPUT_INFO & input_info, const ISODUAL_DATA & isodual_data,
  ISODUAL_TIME & isodual_time, IO_TIME & io_time)
 {
   const int dimension = isodual_data.ScalarGrid().Dimension();
@@ -161,9 +161,9 @@ void construct_isosurface
   const int num_cubes = isodual_data.ScalarGrid().ComputeNumCubes();
 
   io_time.write_time = 0;
-  for (unsigned int i = 0; i < io_info.isovalue.size(); i++) {
+  for (unsigned int i = 0; i < input_info.isovalue.size(); i++) {
 
-    const SCALAR_TYPE isovalue = io_info.isovalue[i];
+    const SCALAR_TYPE isovalue = input_info.isovalue[i];
 
     DUAL_ISOSURFACE dual_isosurface(num_cube_vertices);
     ISODUAL_INFO isodual_info(dimension);
@@ -188,18 +188,18 @@ void construct_isosurface
     }
 
     OUTPUT_INFO output_info;
-    set_output_info(io_info, i, output_info);
+    set_output_info(input_info, i, output_info);
 
     VERTEX_INDEX num_poly = dual_isosurface.NumIsoPoly();
 
     int grow_factor = 1;
     int shrink_factor = 1;
-    if (io_info.flag_subsample)
-      { grow_factor = io_info.subsample_resolution; }
-    if (io_info.flag_supersample)
-      { shrink_factor = io_info.supersample_resolution; }
+    if (input_info.flag_subsample)
+      { grow_factor = input_info.subsample_resolution; }
+    if (input_info.flag_supersample)
+      { shrink_factor = input_info.supersample_resolution; }
 
-    rescale_vertex_coord(grow_factor, shrink_factor, io_info.grid_spacing,
+    rescale_vertex_coord(grow_factor, shrink_factor, input_info.grid_spacing,
                          dual_isosurface.vertex_coord);
 
     output_dual_isosurface

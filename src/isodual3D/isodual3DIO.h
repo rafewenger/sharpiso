@@ -67,7 +67,6 @@ namespace ISODUAL3D {
 // **************************************************
 // IO INFORMATION
 // **************************************************
-
   /// IO information
   class IO_INFO:public ISODUAL_PARAM {
 
@@ -75,13 +74,11 @@ namespace ISODUAL3D {
     void Init();
 
   public:
-    SCALAR_ARRAY isovalue;        ///< List of isovalues.
-    std::vector<std::string> isovalue_string;
+    int dimension;
     COORD_ARRAY grid_spacing;
     char * scalar_filename;       ///< Input scalar file name.
     char * gradient_filename;     ///< Input gradient file name.
     char * output_filename;
-    std::string isotable_directory;
     OUTPUT_FORMAT output_format;
     bool report_time_flag;
     bool use_stdout;
@@ -96,22 +93,40 @@ namespace ISODUAL3D {
     int region_length;
     bool flag_output_param;
 
+  public:
+    IO_INFO() { Init(); };
+    ~IO_INFO() { Init(); };
+
+    void Set(const IO_INFO & io_info);
+  };
+
+  /// IO information
+  class INPUT_INFO:public IO_INFO {
+
+  protected:
+    void Init();
+    void Clear();
+
+  public:
+    SCALAR_ARRAY isovalue;        ///< List of isovalues.
+    std::vector<std::string> isovalue_string;
+    std::string isotable_directory;
+
     /// List of high resolution arguments,
     ///   e.g., "-highres {coord list}".
     std::vector<std::string> high_resolution_option;
 
   public:
-    IO_INFO() { Init(); };
-    ~IO_INFO() { Init(); };
+    INPUT_INFO() { Init(); };
+    ~INPUT_INFO() { Clear(); };
   };
 
 // **************************************************
 // OUTPUT INFORMATION
 // **************************************************
 
-  /// *** OUTPUT INFO and IO_INFO SHOULD DERIVE FROM ONE CLASS ***
   /// Output information.
-  class OUTPUT_INFO {
+  class OUTPUT_INFO:public IO_INFO {
 
   protected:
     bool flag_output_tri_mesh;
@@ -121,14 +136,7 @@ namespace ISODUAL3D {
 
   public:
     std::string output_filename;
-    int dimension;
-    SCALAR_TYPE isovalue[2];
-    bool nowrite_flag;
-    bool flag_output_alg_info;        ///< Print algorithm information.
-    bool use_stdout;
-    bool flag_silent;
-    OUTPUT_FORMAT output_format;
-    COORD_ARRAY grid_spacing;
+    SCALAR_TYPE isovalue;
     int grow_factor;
     int shrink_factor;
 
@@ -191,11 +199,11 @@ namespace ISODUAL3D {
 // **************************************************
 
   /// Parse the command line.
-  void parse_command_line(int argc, char **argv, IO_INFO & io_info);
+  void parse_command_line(int argc, char **argv, INPUT_INFO & input_info);
 
-  /// Check input information in io_info
+  /// Check input information in input_info
   bool check_input
-    (const IO_INFO & io_info, 
+    (const INPUT_INFO & input_info, 
      const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
      IJK::ERROR & error);
 
@@ -327,19 +335,19 @@ namespace ISODUAL3D {
 // SET ROUTINES
 // **************************************************
 
-  /// Set isodual_data based on io_info.
+  /// Set isodual_data based on input_info.
   /// Precondition: Scalar field in isodual_data must be set before
   ///   this routines is called.
   void set_isodual_data
-    (const IO_INFO & io_info, ISODUAL_DATA & isodual_data, ISODUAL_TIME & isodual_time);
+    (const INPUT_INFO & input_info, ISODUAL_DATA & isodual_data, ISODUAL_TIME & isodual_time);
 
-  /// Copy nrrd_info into io_info.
-  void set_io_info
-    (const NRRD_INFO & nrrd_info, IO_INFO & io_info);
+  /// Copy nrrd_info into input_info.
+  void set_input_info
+    (const NRRD_INFO & nrrd_info, INPUT_INFO & input_info);
 
-  /// Set output_info based on isotable, io_info and isovalue index i.
+  /// Set output_info based on isotable, input_info and isovalue index i.
   void set_output_info
-    (const IO_INFO & io_info, 
+    (const INPUT_INFO & input_info, 
      const int i, OUTPUT_INFO & output_info);
 
   /// Set simplices in alternating cubes to have different colors.
@@ -360,7 +368,7 @@ namespace ISODUAL3D {
 // **************************************************
 
   void report_num_cubes
-    (const ISODUAL_GRID & full_grid, const IO_INFO & io_info, 
+    (const ISODUAL_GRID & full_grid, const INPUT_INFO & input_info, 
      const ISODUAL_DATA & isodual_data);
 
   void report_isodual_param(const ISODUAL_PARAM & isodual_param);
@@ -376,11 +384,11 @@ namespace ISODUAL3D {
 // **************************************************
 
   void report_isodual_time
-    (const IO_INFO & io_info, const ISODUAL_TIME & isodual_time, 
+    (const INPUT_INFO & input_info, const ISODUAL_TIME & isodual_time, 
      const char * mesh_type_string);
 
   void report_time
-    (const IO_INFO & io_info, const IO_TIME & io_time, 
+    (const INPUT_INFO & input_info, const IO_TIME & io_time, 
      const ISODUAL_TIME & isodual_time, const double total_elapsed_time);
 
 // **************************************************

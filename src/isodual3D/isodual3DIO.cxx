@@ -99,86 +99,86 @@ namespace {
   }
 
   // Set vertex position method and flags.
-  void set_vertex_position_method(const char * s, IO_INFO & io_info)
+  void set_vertex_position_method(const char * s, INPUT_INFO & input_info)
   {
     const string str = s;
 
     // set default method
-    io_info.vertex_position_method = CENTROID_EDGE_ISO;
-    io_info.use_only_cube_gradients = false;
-    io_info.use_selected_gradients = true;
-    io_info.use_intersected_edge_endpoint_gradients = false;
+    input_info.vertex_position_method = CENTROID_EDGE_ISO;
+    input_info.use_only_cube_gradients = false;
+    input_info.use_selected_gradients = true;
+    input_info.use_intersected_edge_endpoint_gradients = false;
 
     if (str == "cube_center") {
-      io_info.vertex_position_method = CUBECENTER;
+      input_info.vertex_position_method = CUBECENTER;
     }
     else if (str == "centroid") {
-      io_info.vertex_position_method = CENTROID_EDGE_ISO;
+      input_info.vertex_position_method = CENTROID_EDGE_ISO;
     }
     else if (str == "gradC"){
-      io_info.vertex_position_method = GRADIENT_POSITIONING;
-      io_info.use_only_cube_gradients = true;
-      io_info.use_selected_gradients = false;
+      input_info.vertex_position_method = GRADIENT_POSITIONING;
+      input_info.use_only_cube_gradients = true;
+      input_info.use_selected_gradients = false;
     }
     else if (str == "gradN"){
-      io_info.vertex_position_method = GRADIENT_POSITIONING;
-      io_info.use_only_cube_gradients = false;
-      io_info.use_selected_gradients = false;
+      input_info.vertex_position_method = GRADIENT_POSITIONING;
+      input_info.use_only_cube_gradients = false;
+      input_info.use_selected_gradients = false;
     }
     else if (str == "gradCS"){
-      io_info.vertex_position_method = GRADIENT_POSITIONING;
-      io_info.use_only_cube_gradients = true;
-      io_info.use_selected_gradients = true;
+      input_info.vertex_position_method = GRADIENT_POSITIONING;
+      input_info.use_only_cube_gradients = true;
+      input_info.use_selected_gradients = true;
     }
     else if (str == "gradNS"){
-      io_info.vertex_position_method = GRADIENT_POSITIONING;
-      io_info.use_only_cube_gradients = false;
-      io_info.use_selected_gradients = true;
+      input_info.vertex_position_method = GRADIENT_POSITIONING;
+      input_info.use_only_cube_gradients = false;
+      input_info.use_selected_gradients = true;
     }
     else if (str == "gradIE"){
-      io_info.vertex_position_method = GRADIENT_POSITIONING;
-      io_info.use_only_cube_gradients = true;
-      io_info.use_selected_gradients = false;
-      io_info.use_intersected_edge_endpoint_gradients = true;
+      input_info.vertex_position_method = GRADIENT_POSITIONING;
+      input_info.use_only_cube_gradients = true;
+      input_info.use_selected_gradients = false;
+      input_info.use_intersected_edge_endpoint_gradients = true;
     }
     else if (str == "gradIES"){
-      io_info.vertex_position_method = GRADIENT_POSITIONING;
-      io_info.use_only_cube_gradients = true;
-      io_info.use_selected_gradients = true;
-      io_info.use_intersected_edge_endpoint_gradients = true;
+      input_info.vertex_position_method = GRADIENT_POSITIONING;
+      input_info.use_only_cube_gradients = true;
+      input_info.use_selected_gradients = true;
+      input_info.use_intersected_edge_endpoint_gradients = true;
     }
     else if (str == "gradCD"){
-      io_info.vertex_position_method = GRADIENT_POSITIONING;
-      io_info.use_only_cube_gradients = true;
-      io_info.use_selected_gradients = false;
-      io_info.use_intersected_edge_endpoint_gradients = false;
-      io_info.use_gradients_determining_edge_intersections = true;
+      input_info.vertex_position_method = GRADIENT_POSITIONING;
+      input_info.use_only_cube_gradients = true;
+      input_info.use_selected_gradients = false;
+      input_info.use_intersected_edge_endpoint_gradients = false;
+      input_info.use_gradients_determining_edge_intersections = true;
     }
     else if (str == "gradCDdup"){
-      io_info.vertex_position_method = GRADIENT_POSITIONING;
-      io_info.use_only_cube_gradients = true;
-      io_info.use_selected_gradients = false;
-      io_info.use_intersected_edge_endpoint_gradients = false;
-      io_info.use_gradients_determining_edge_intersections = true;
-      io_info.allow_duplicates = true;
+      input_info.vertex_position_method = GRADIENT_POSITIONING;
+      input_info.use_only_cube_gradients = true;
+      input_info.use_selected_gradients = false;
+      input_info.use_intersected_edge_endpoint_gradients = false;
+      input_info.use_gradients_determining_edge_intersections = true;
+      input_info.allow_duplicates = true;
     }
     else if (str == "gradNIE"){
-      io_info.vertex_position_method = GRADIENT_POSITIONING;
-      io_info.use_only_cube_gradients = false;
-      io_info.use_selected_gradients = false;
-      io_info.use_intersected_edge_endpoint_gradients = true;
+      input_info.vertex_position_method = GRADIENT_POSITIONING;
+      input_info.use_only_cube_gradients = false;
+      input_info.use_selected_gradients = false;
+      input_info.use_intersected_edge_endpoint_gradients = true;
     }
     else if (str == "gradNIES"){
-      io_info.vertex_position_method = GRADIENT_POSITIONING;
-      io_info.use_only_cube_gradients = false;
-      io_info.use_selected_gradients = true;
-      io_info.use_intersected_edge_endpoint_gradients = true;
+      input_info.vertex_position_method = GRADIENT_POSITIONING;
+      input_info.use_only_cube_gradients = false;
+      input_info.use_selected_gradients = true;
+      input_info.use_intersected_edge_endpoint_gradients = true;
     }
     else if (str == "gradES"){
-      io_info.vertex_position_method = EDGE_SIMPLE;
+      input_info.vertex_position_method = EDGE_SIMPLE;
     }
     else if (str == "gradEC"){
-      io_info.vertex_position_method = EDGE_COMPLEX;
+      input_info.vertex_position_method = EDGE_COMPLEX;
     }
     else {
       cerr << "Error in input parameter -position.  Illegal position method: "
@@ -225,7 +225,7 @@ namespace {
 
 }
 
-void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
+void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_info)
 // parse command line
 // control parameters, followed by one or more isovalues,
 // followed by input file name
@@ -241,139 +241,139 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
     switch(param) {
 
     case SUBSAMPLE_PARAM:
-      io_info.subsample_resolution = get_int(iarg, argc, argv);
+      input_info.subsample_resolution = get_int(iarg, argc, argv);
       iarg++;
-      io_info.flag_subsample = true;
+      input_info.flag_subsample = true;
       break;
 
     case SUPERSAMPLE_PARAM:
-      io_info.supersample_resolution = get_int(iarg, argc, argv);
+      input_info.supersample_resolution = get_int(iarg, argc, argv);
       iarg++;
-      io_info.flag_supersample = true;
+      input_info.flag_supersample = true;
       break;
 
     case GRADIENT_PARAM:
       iarg++;
       if (iarg >= argc) usage_error();
-      io_info.gradient_filename = argv[iarg];
+      input_info.gradient_filename = argv[iarg];
       break;
 
     case POSITION_PARAM:
       iarg++;
       if (iarg >= argc) usage_error();
-      set_vertex_position_method(argv[iarg], io_info);
+      set_vertex_position_method(argv[iarg], input_info);
 
       is_vertex_position_method_set = true;
       break;
 
     case TRIMESH_PARAM:
-      io_info.flag_convert_quad_to_tri = true;
-      io_info.quad_tri_method = SPLIT_MAX_ANGLE;
+      input_info.flag_convert_quad_to_tri = true;
+      input_info.quad_tri_method = SPLIT_MAX_ANGLE;
       break;
 
     case UNIFORM_TRIMESH_PARAM:
-      io_info.flag_convert_quad_to_tri = true;
-      io_info.quad_tri_method = UNIFORM_TRI;
+      input_info.flag_convert_quad_to_tri = true;
+      input_info.quad_tri_method = UNIFORM_TRI;
       break;
 
     case MAX_EIGEN_PARAM:
-      io_info.max_small_eigenvalue = get_float(iarg, argc, argv);
+      input_info.max_small_eigenvalue = get_float(iarg, argc, argv);
       iarg++;
       break;
 
     case MAX_DIST_PARAM:
-      io_info.max_dist = get_float(iarg, argc, argv);
+      input_info.max_dist = get_float(iarg, argc, argv);
       iarg++;
       break;
 
     case GRAD_S_OFFSET_PARAM:
-      io_info.grad_selection_cube_offset = get_float(iarg, argc, argv);
+      input_info.grad_selection_cube_offset = get_float(iarg, argc, argv);
       iarg++;
       break;
 
     case SEPDIST_PARAM:
-      io_info.separation_distance = get_float(iarg, argc, argv);
+      input_info.separation_distance = get_float(iarg, argc, argv);
       iarg++;
       break;
 
     case REPOSITION_PARAM:
-      io_info.flag_reposition = true;
+      input_info.flag_reposition = true;
       break;
 
     case NO_REPOSITION_PARAM:
-      io_info.flag_reposition = false;
+      input_info.flag_reposition = false;
       break;
 
     case USE_LINDSTROM_PARAM:
-      io_info.use_lindstrom =true;
+      input_info.use_lindstrom =true;
       break;
 
     case ALLOW_CONFLICT_PARAM:
-      io_info.flag_allow_conflict = true;
+      input_info.flag_allow_conflict = true;
       break;
 
     case CLAMP_CONFLICT_PARAM:
-      io_info.flag_clamp_conflict = true;
+      input_info.flag_clamp_conflict = true;
       break;
 
     case CLAMP_FAR_PARAM:
-      io_info.flag_clamp_far = true;
+      input_info.flag_clamp_far = true;
       break;
 
     case RECOMPUTE_EIGEN2_PARAM:
-      io_info.flag_recompute_eigen2 = true;
+      input_info.flag_recompute_eigen2 = true;
       break;
 
     case NO_RECOMPUTE_EIGEN2_PARAM:
-      io_info.flag_recompute_eigen2 = false;
+      input_info.flag_recompute_eigen2 = false;
       break;
 
     case ROUND_PARAM:
-      io_info.flag_round = true;
-      io_info.round_denominator = get_int(iarg, argc, argv);
+      input_info.flag_round = true;
+      input_info.round_denominator = get_int(iarg, argc, argv);
       iarg++;
       break;
 
     case NO_ROUND_PARAM:
-      io_info.flag_round = false;
+      input_info.flag_round = false;
       break;
     
     case OFF_PARAM:
-      io_info.output_format = OFF;
+      input_info.output_format = OFF;
       break;
 
     case IV_PARAM:
-      io_info.output_format = IV;
+      input_info.output_format = IV;
       break;
 
     case OUTPUT_PARAM_PARAM:
-      io_info.flag_output_param = true;
+      input_info.flag_output_param = true;
       break;
 
     case OUTPUT_FILENAME_PARAM:
       iarg++;
       if (iarg >= argc) usage_error();
-      io_info.output_filename = argv[iarg];
+      input_info.output_filename = argv[iarg];
       break;
 
     case STDOUT_PARAM:
-      io_info.use_stdout = true;
+      input_info.use_stdout = true;
       break;
 
     case NOWRITE_PARAM:
-      io_info.nowrite_flag = true;
+      input_info.nowrite_flag = true;
       break;
 
     case OUTPUT_INFO_PARAM:
-      io_info.flag_output_alg_info = true;
+      input_info.flag_output_alg_info = true;
       break;
 
     case SILENT_PARAM:
-      io_info.flag_silent = true;
+      input_info.flag_silent = true;
       break;
 
     case TIME_PARAM:
-      io_info.report_time_flag = true;
+      input_info.report_time_flag = true;
       break;
 
     case HELP_PARAM:
@@ -403,7 +403,7 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 
   // store isovalues
   for (int j = iarg; j+1 < argc; j++) {
-    io_info.isovalue_string.push_back(argv[j]);
+    input_info.isovalue_string.push_back(argv[j]);
     SCALAR_TYPE value;
 
     istringstream input_string(argv[j]);
@@ -415,35 +415,35 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
       usage_error();
     };
 
-    io_info.isovalue.push_back(value);
+    input_info.isovalue.push_back(value);
   }
 
-  io_info.scalar_filename = argv[argc-1];
+  input_info.scalar_filename = argv[argc-1];
 
-  if (!is_vertex_position_method_set && io_info.gradient_filename == NULL) {
-    io_info.vertex_position_method = GRADIENT_POSITIONING;
+  if (!is_vertex_position_method_set && input_info.gradient_filename == NULL) {
+    input_info.vertex_position_method = GRADIENT_POSITIONING;
   }
 
-  if (io_info.flag_subsample && io_info.subsample_resolution <= 1) {
+  if (input_info.flag_subsample && input_info.subsample_resolution <= 1) {
     cerr << "Error.  Subsample resolution must be an integer greater than 1."
          << endl;
     exit(230);
   };
 
-  if (io_info.output_filename != NULL && io_info.use_stdout) {
+  if (input_info.output_filename != NULL && input_info.use_stdout) {
     cerr << "Error.  Can't use both -o and -stdout parameters."
          << endl;
     exit(230);
   };
 
-  if (io_info.flag_subsample && io_info.flag_supersample) {
+  if (input_info.flag_subsample && input_info.flag_supersample) {
     cerr << "Error.  Can't use both -subsample and -supersample parameters."
          << endl;
     exit(555);
   }
 
-  if (io_info.flag_round) {
-    if (io_info.round_denominator < 1) {
+  if (input_info.flag_round) {
+    if (input_info.round_denominator < 1) {
       cerr << "Error.  Illegal -round <n> parameter. Integer <n> must be positive." << endl;
       exit(560);
     }
@@ -452,18 +452,18 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, IO_INFO & io_info)
 
 // Check input information/flags.
 bool ISODUAL3D::check_input
-(const IO_INFO & io_info,
+(const INPUT_INFO & input_info,
  const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  IJK::ERROR & error)
 {
   // Construct isosurface
-  if (io_info.isovalue.size() > 1 && io_info.use_stdout) {
+  if (input_info.isovalue.size() > 1 && input_info.use_stdout) {
     error.AddMessage
       ("Error.  Cannot use stdout for more than one isovalue.");
     return(false);
   }
 
-  if (io_info.isovalue.size() > 1 && io_info.output_filename != NULL) {
+  if (input_info.isovalue.size() > 1 && input_info.output_filename != NULL) {
     error.AddMessage
       ("Error.  Cannot specify output file for more than one isovalue.");
     return(false);
@@ -1048,21 +1048,21 @@ void ISODUAL3D::rescale_vertex_coord
 // **************************************************
 
 void ISODUAL3D::report_num_cubes
-(const ISODUAL_GRID & full_scalar_grid, const IO_INFO & io_info,
+(const ISODUAL_GRID & full_scalar_grid, const INPUT_INFO & input_info,
  const ISODUAL_DATA & isodual_data)
 {
   const int num_grid_cubes = full_scalar_grid.ComputeNumCubes();
   const int num_cubes_in_isodual_data =
   isodual_data.ScalarGrid().ComputeNumCubes();
 
-  if (!io_info.use_stdout && !io_info.flag_silent) {
+  if (!input_info.use_stdout && !input_info.flag_silent) {
 
-    if (io_info.flag_subsample) {
+    if (input_info.flag_subsample) {
         // subsampled grid
       cout << num_grid_cubes << " grid cubes.  "
       << num_cubes_in_isodual_data << " subsampled grid cubes." << endl;
     }
-    else if (io_info.flag_supersample) {
+    else if (input_info.flag_supersample) {
         // supersample grid
       cout << num_grid_cubes << " grid cubes.  "
       << num_cubes_in_isodual_data << " supersampled grid cubes." << endl;
@@ -1111,7 +1111,7 @@ void ISODUAL3D::report_iso_info
   if (num_grid_cubes > 0)
     { percent = float(num_non_empty_cubes)/float(num_grid_cubes); }
   int ipercent = int(100*percent);
-  cout << "  Isovalue " << output_info.isovalue[0] << ".  "
+  cout << "  Isovalue " << output_info.isovalue << ".  "
        << numv << " isosurface vertices.  ";
   if (output_info.OutputTriMesh()) {
     cout << num_poly << " isosurface triangles." << endl;
@@ -1139,7 +1139,7 @@ void ISODUAL3D::report_iso_info
   // **************************************************
 
 void ISODUAL3D::report_isodual_time
-(const IO_INFO & io_info, const ISODUAL_TIME & isodual_time,
+(const INPUT_INFO & input_info, const ISODUAL_TIME & isodual_time,
  const char * mesh_type_string)
 {
   cout << "CPU time to run Marching Cubes: "
@@ -1156,7 +1156,7 @@ void ISODUAL3D::report_isodual_time
 
 
 void ISODUAL3D::report_time
-(const IO_INFO & io_info, const IO_TIME & io_time,
+(const INPUT_INFO & input_info, const IO_TIME & io_time,
  const ISODUAL_TIME & isodual_time, const double total_elapsed_time)
 {
   const char * ISOSURFACE_STRING = "isosurface";
@@ -1165,14 +1165,14 @@ void ISODUAL3D::report_time
 
   mesh_type_string = ISOSURFACE_STRING;
 
-  cout << "Time to read file " << io_info.scalar_filename << ": "
+  cout << "Time to read file " << input_info.scalar_filename << ": "
   << io_time.read_nrrd_time << " seconds." << endl;
 
   cout << "Time to read " << mesh_type_string << " lookup tables: "
   << io_time.read_table_time << " seconds." << endl;
 
-  report_isodual_time(io_info, isodual_time, mesh_type_string);
-  if (!io_info.nowrite_flag) {
+  report_isodual_time(input_info, isodual_time, mesh_type_string);
+  if (!input_info.nowrite_flag) {
     cout << "Time to write "
     << mesh_type_string << ": "
     << io_time.write_time << " seconds." << endl;
@@ -1320,19 +1320,17 @@ void ISODUAL3D::help()
 }
 
 
-  // **************************************************
-  // CLASS IO_INFO
-  // **************************************************
+// **************************************************
+// CLASS IO_INFO
+// **************************************************
 
-  /// IO information
+/// IO information
 void ISODUAL3D::IO_INFO::Init()
 {
-  isovalue.clear();
-  isovalue_string.clear();
+  dimension = 3;
   scalar_filename = NULL;
   gradient_filename = NULL;
   output_filename = NULL;
-  isotable_directory = "";
   output_format = OFF;
   report_time_flag = false;
   use_stdout = false;
@@ -1347,26 +1345,43 @@ void ISODUAL3D::IO_INFO::Init()
   region_length = 1;
   max_small_eigenvalue = 0.1;
   flag_output_param = false;
+
+  grid_spacing.resize(3,1);
 }
 
-  // **************************************************
-  // class OUTPUT_INFO
-  // **************************************************
+void ISODUAL3D::IO_INFO::Set(const IO_INFO & io_info)
+{
+  *this = io_info;
+}
+
+// **************************************************
+// CLASS INPUT_INFO
+// **************************************************
+
+/// Clear input information
+void ISODUAL3D::INPUT_INFO::Init()
+{
+  Clear();
+}
+
+/// Clear input information
+void ISODUAL3D::INPUT_INFO::Clear()
+{
+  isovalue.clear();
+  isovalue_string.clear();
+  isotable_directory = "";
+}
+
+// **************************************************
+// class OUTPUT_INFO
+// **************************************************
 
 void ISODUAL3D::OUTPUT_INFO::Init()
 {
   output_filename = "";
-  dimension = 3;
-  isovalue[0] = 0;
-  isovalue[1] = 0;
-  nowrite_flag = false;
-  flag_output_alg_info = false;
-  use_stdout = false;
-  flag_silent = false;
-  output_format = OFF;
+  isovalue = 0;
   grow_factor = 1;
   shrink_factor = 1;
-  grid_spacing.resize(3,1);
 
   SetOutputTriMesh(false);
 }
@@ -1392,12 +1407,12 @@ namespace {
   }
 
   string construct_output_filename
-  (const IO_INFO & io_info, const int i)
+  (const INPUT_INFO & input_info, const int i)
   {
   string prefix, suffix;
 
     // create output filename
-  string fname = string(io_info.scalar_filename);
+  string fname = string(input_info.scalar_filename);
 
 #ifndef _WIN32
     // remove path from file name
@@ -1410,11 +1425,11 @@ namespace {
     // construct output filename
   split_string(fname, '.', prefix, suffix);
   if (suffix == "nrrd" || suffix == "nhdr") { ofilename = prefix; }
-  else { ofilename = string(io_info.scalar_filename); }
+  else { ofilename = string(input_info.scalar_filename); }
 
-  ofilename += string(".") + string("isov=") + io_info.isovalue_string[i];
+  ofilename += string(".") + string("isov=") + input_info.isovalue_string[i];
 
-  switch (io_info.output_format) {
+  switch (input_info.output_format) {
     case OFF:
       ofilename += ".off";
       break;
@@ -1434,7 +1449,7 @@ namespace {
   // **************************************************
 
 void ISODUAL3D::set_isodual_data
-(const IO_INFO & io_info, ISODUAL_DATA & isodual_data, ISODUAL_TIME & isodual_time)
+(const INPUT_INFO & input_info, ISODUAL_DATA & isodual_data, ISODUAL_TIME & isodual_time)
 {
   PROCEDURE_ERROR error("set_isodual_data");
 
@@ -1445,53 +1460,43 @@ void ISODUAL3D::set_isodual_data
   }
 
   // Set data structures in isodual_data
-  isodual_data.Set(io_info);
+  isodual_data.Set(input_info);
 }
 
-void ISODUAL3D::set_io_info
-(const NRRD_INFO & nrrd_info, IO_INFO & io_info)
+void ISODUAL3D::set_input_info
+(const NRRD_INFO & nrrd_info, INPUT_INFO & input_info)
 {
-  io_info.grid_spacing.clear();
+  input_info.grid_spacing.clear();
   for (int d = 0; d < nrrd_info.dimension; d++) {
-    io_info.grid_spacing.push_back(nrrd_info.grid_spacing[d]);
+    input_info.grid_spacing.push_back(nrrd_info.grid_spacing[d]);
   }
 }
 
 void ISODUAL3D::set_output_info
-(const IO_INFO & io_info,
+(const INPUT_INFO & input_info,
  const int i, OUTPUT_INFO & output_info)
 {
-  output_info.nowrite_flag = io_info.nowrite_flag;
-  output_info.use_stdout = io_info.use_stdout;
-  output_info.flag_silent = io_info.flag_silent;
-  output_info.flag_output_alg_info = io_info.flag_output_alg_info;
+  // Set data structures in isodual_data
+  output_info.IO_INFO::Set(input_info);
 
-  output_info.SetOutputTriMesh(io_info.flag_convert_quad_to_tri);
+  output_info.SetOutputTriMesh(input_info.flag_convert_quad_to_tri);
 
   output_info.grow_factor = 1;
-  if (io_info.flag_subsample)
-    { output_info.grow_factor = io_info.subsample_resolution; }
+  if (input_info.flag_subsample)
+    { output_info.grow_factor = input_info.subsample_resolution; }
 
   output_info.shrink_factor = 1;
-  if (io_info.flag_supersample)
-    { output_info.shrink_factor = io_info.supersample_resolution; }
+  if (input_info.flag_supersample)
+    { output_info.shrink_factor = input_info.supersample_resolution; }
 
-  output_info.grid_spacing.clear();
-  output_info.grid_spacing.resize(io_info.grid_spacing.size());
-  for (unsigned int j = 0; j < io_info.grid_spacing.size(); j++)
-    { output_info.grid_spacing[j] = io_info.grid_spacing[j]; }
+  output_info.isovalue = input_info.isovalue[i];
 
-  output_info.output_format = io_info.output_format;
-  output_info.isovalue[0] = io_info.isovalue[i];
-  if (i+1 < int(io_info.isovalue.size()))
-    { output_info.isovalue[1] = io_info.isovalue[i+1]; };
-
-  if (io_info.output_filename != NULL) {
-    output_info.output_filename = string(io_info.output_filename);
+  if (input_info.output_filename != NULL) {
+    output_info.output_filename = string(input_info.output_filename);
   }
   else {
     output_info.output_filename =
-    construct_output_filename(io_info, i);
+    construct_output_filename(input_info, i);
   }
 }
 

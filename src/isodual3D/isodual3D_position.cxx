@@ -115,7 +115,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
  const ISODUAL_PARAM & isodual_param,
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  COORD_TYPE * sharp_coord,
- ISODUAL_INFO & isodual_info)
+ SHARPISO_INFO & sharp_info)
 {
 
   const SIGNED_COORD_TYPE grad_selection_cube_offset =
@@ -139,8 +139,8 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
       eigenvalues, num_large_eigenvalues, svd_info);
 
     if (svd_info.flag_conflict) 
-      { isodual_info.sharpiso.num_conflicts++; }
-    isodual_info.sharpiso.IncrementIsoVertexNum(num_large_eigenvalues);
+      { sharp_info.num_conflicts++; }
+    sharp_info.IncrementIsoVertexNum(num_large_eigenvalues);
   }
 
 }
@@ -154,14 +154,14 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
  const ISODUAL_PARAM & isodual_param,
  const std::vector<ISO_VERTEX_INDEX> & vlist,
  std::vector<COORD_TYPE> & coord,
- ISODUAL_INFO & isodual_info)
+ SHARPISO_INFO & sharp_info)
 {
   const int dimension = scalar_grid.Dimension();
 
   coord.resize(vlist.size()*dimension);
   position_dual_isovertices_using_gradients
     (scalar_grid, gradient_grid, isovalue, isodual_param,
-     vlist, &(coord.front()), isodual_info);
+     vlist, &(coord.front()), sharp_info);
 }
 
 // ********************************************************
@@ -444,7 +444,8 @@ void ISODUAL3D::reposition_dual_isovertices
  const SCALAR_TYPE isovalue,
  const ISODUAL_PARAM & isodual_param,
  const std::vector<ISO_VERTEX_INDEX> & vlist,
- COORD_TYPE * isovert_coord)
+ COORD_TYPE * isovert_coord,
+ SHARPISO_INFO & sharp_info)
 {
   INDEX_GRID vloc;
   SHARPISO_BOOL_GRID isovert_flag;
@@ -476,6 +477,8 @@ void ISODUAL3D::reposition_dual_isovertices
             reposition_close_isovertices
               (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
                isodual_param, iv0, i0, iv1, i1, isovert_coord);
+
+            sharp_info.num_repositioned_vertices++;
           }
         }
       }
