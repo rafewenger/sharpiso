@@ -90,18 +90,14 @@ namespace SHARPISO {
    SVD_INFO & svd_info);
 
   /// Compute sharp isosurface vertex using simple interpolation on the edges.
-  // *** REDUNDANT PARAMETERS: max_small_mag, max_small_eigenvalue
-  // *** MOVE SHARP_ISOVERT_PARAM before output parameters
   void svd_compute_sharp_vertex_in_cube_edge_based_simple
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
    const SCALAR_TYPE isovalue,
-   const GRADIENT_COORD_TYPE max_small_mag,
-   const EIGENVALUE_TYPE max_small_eigenvalue,
+   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
    COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
-   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
    SVD_INFO & svd_info);
 
   /// Compute sharp isosurface vertex using edge intersection.

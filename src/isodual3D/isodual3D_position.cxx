@@ -195,8 +195,8 @@ void ISODUAL3D::position_dual_isovertices_using_edge_intersection_simple
 
     svd_compute_sharp_vertex_in_cube_edge_based_simple
       (scalar_grid, gradient_grid, iv, isovalue,
-       max_small_mag, max_small_eigenvalue,sharp_coord+i*dimension,
-       eigenvalues, num_large_eigenvalues, isodual_param,svd_info);
+       isodual_param, sharp_coord+i*dimension,
+       eigenvalues, num_large_eigenvalues, svd_info);
 
   }
 }

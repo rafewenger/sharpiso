@@ -237,17 +237,17 @@ void SHARPISO::svd_compute_sharp_vertex_in_cube_edge_based_simple
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
- const GRADIENT_COORD_TYPE max_small_mag,
- const EIGENVALUE_TYPE max_small_eigenvalue,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
  COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
- const SHARP_ISOVERT_PARAM & sharpiso_param,
  SVD_INFO & svd_info)
 {
   NUM_TYPE num_gradients = 0;
   std::vector<COORD_TYPE> point_coord;
   GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3];
   SCALAR_TYPE scalar[NUM_CUBE_VERTICES3D];
+ const EIGENVALUE_TYPE max_small_eigenvalue =
+   sharpiso_param.max_small_eigenvalue;
 
   get_cube_gradients
     (scalar_grid, gradient_grid, cube_index,
