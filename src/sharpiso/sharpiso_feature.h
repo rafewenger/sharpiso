@@ -203,12 +203,12 @@ namespace SHARPISO {
     void Init();
     
   public:
-    bool use_lindstrom;            ///< If true, use Lindstrom formula
     bool flag_allow_conflict;      ///< If true, allow conflicts
     bool flag_clamp_conflict;      ///< If true, clamp conflicts to cube.
     bool flag_clamp_far;           ///< If true, clamp far points.
     bool flag_recompute_eigen2;    ///< If true, recompute with 2 eigenvalues.
     bool flag_round;               ///< Round output coordinates.
+    bool use_lindstrom;            ///< If true, use Lindstrom formula
     bool use_Linf_dist;            ///< If true, use Linf dist.
 
     /// Maximum (Linf) distance from cube to isosurface vertex

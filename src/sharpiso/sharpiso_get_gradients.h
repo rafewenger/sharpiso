@@ -129,6 +129,21 @@ namespace SHARPISO {
    std::vector<SCALAR_TYPE> & scalar,
    NUM_TYPE & num_gradients);
   
+  /// Get gradients.
+  /// Gradients are sorted in increasing distance from cube center.
+  /// @param sharpiso_param Determines which gradients are selected.
+  void get_gradients_sort
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const GET_GRADIENTS_PARAM & sharpiso_param,
+   const OFFSET_CUBE_111 & cube_111,
+   std::vector<COORD_TYPE> & point_coord,
+   std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+   std::vector<SCALAR_TYPE> & scalar,
+   NUM_TYPE & num_gradients);
+
   /// Get large gradients at cube vertices.
   void get_large_cube_gradients
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -265,6 +280,14 @@ namespace SHARPISO {
    const COORD_TYPE pcoord[DIM3],
    VERTEX_INDEX vertex_list[], const NUM_TYPE num_vertices);
 
+  /// Sort vertices based on the distance of the isoplane to point pcoord[].
+  void sort_vertices_by_isoplane
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const COORD_TYPE pcoord[DIM3],
+   std::vector<VERTEX_INDEX> & vertex_list);
+
   // **************************************************
   // SELECTION FUNCTIONS
   // **************************************************
@@ -342,6 +365,7 @@ namespace SHARPISO {
     bool use_intersected_edge_endpoint_gradients;
     bool use_gradients_determining_edge_intersections;
     bool allow_duplicates;
+    bool flag_sort;                ///< Sort gradients.
     SIGNED_COORD_TYPE grad_selection_cube_offset;
     GRADIENT_COORD_TYPE zero_tolerance;
 
