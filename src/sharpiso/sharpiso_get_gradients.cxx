@@ -256,12 +256,8 @@ void SHARPISO::get_gradients
 
       // NOTE: This vertex_list is an array.
       VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D];
-      bool vertex_flag[NUM_CUBE_VERTICES3D];
       NUM_TYPE num_vertices(0);
-
-      // initialize vertex_flag
-      for (NUM_TYPE i = 0; i < NUM_CUBE_VERTICES3D; i++)
-        { vertex_flag[i] = true; }
+      IJK::ARRAY<bool> vertex_flag(NUM_CUBE_VERTICES3D, true);
 
       if (sharpiso_param.use_intersected_edge_endpoint_gradients) {
         get_intersected_cube_edge_endpoints
@@ -279,7 +275,7 @@ void SHARPISO::get_gradients
 
       deselect_vertices_with_small_gradients
         (gradient_grid, vertex_list, num_vertices, max_small_mag_squared,
-         vertex_flag);
+         vertex_flag.Ptr());
 
       if (sharpiso_param.use_selected_gradients) {
 
@@ -287,12 +283,13 @@ void SHARPISO::get_gradients
 
         deselect_vertices_based_on_isoplanes
           (scalar_grid, gradient_grid, cube_coord, cube_111,
-           isovalue, vertex_list, num_vertices, vertex_flag);
+           isovalue, vertex_list, num_vertices, vertex_flag.Ptr());
       }
 
       get_selected_vertex_gradients
-        (scalar_grid, gradient_grid, vertex_list, num_vertices, vertex_flag,
-         point_coord, gradient_coord, scalar, num_gradients);
+        (scalar_grid, gradient_grid, vertex_list, num_vertices, 
+         vertex_flag.Ptr(), point_coord, gradient_coord, scalar, 
+         num_gradients);
     }
     else {
       // NOTE: This vertex_list is a C++ vector.
@@ -326,12 +323,7 @@ void SHARPISO::get_gradients
       get_cube_neighbor_vertices(scalar_grid, cube_index, vertex_list);
     }
 
-    IJK::ARRAY<bool> vertex_flag(vertex_list.size());
-
-    // *** SHOULD USE IJK::ARRAY to initialize
-    // initialize vertex_flag
-    for (NUM_TYPE i = 0; i < vertex_list.size(); i++)
-      { vertex_flag[i] = true; }
+    IJK::ARRAY<bool> vertex_flag(vertex_list.size(), true);
 
     deselect_vertices_with_small_gradients
       (gradient_grid, vertex_list, max_small_mag_squared, 
@@ -1018,7 +1010,7 @@ void SHARPISO::get_selected_vertices
 // **************************************************
 
 /// Sort vertices based on the distance of the isoplane to point pcoord[].
-void sort_vertices_by_isoplane
+void SHARPISO::sort_vertices_by_isoplane
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,

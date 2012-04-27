@@ -246,6 +246,18 @@ namespace SHARPISO {
 
 
   // **************************************************
+  // SORT VERTICES
+  // **************************************************
+
+  /// Sort vertices based on the distance of the isoplane to point pcoord[].
+  void sort_vertices_by_isoplane
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const COORD_TYPE pcoord[DIM3],
+   VERTEX_INDEX vertex_list[], const NUM_TYPE num_vertices);
+
+  // **************************************************
   // SELECTION FUNCTIONS
   // **************************************************
 
