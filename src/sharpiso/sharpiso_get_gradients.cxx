@@ -121,6 +121,124 @@ namespace {
     }
   }
 
+  /// Delete unflagged list elements of list[] where flag[i] is true.
+  /// Alters list[] and list_length.
+  template <typename T>
+  void get_flagged_list_elements
+  (const bool flag[], T list[], NUM_TYPE & list_length)
+  {
+    NUM_TYPE new_list_length = 0;
+    for (NUM_TYPE i = 0; i < list_length; i++) {
+      if (flag[i]) {
+        list[new_list_length] = list[i];
+        new_list_length++;
+      }
+    }
+
+    list_length = new_list_length;
+  }
+
+  /// Get selected vertices
+  void get_selected_vertices
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const GET_GRADIENTS_PARAM & sharpiso_param,
+   const OFFSET_CUBE_111 & cube_111,
+   const int num_vertices,
+   VERTEX_INDEX vertex_list[],
+   NUM_TYPE & num_selected)
+  {
+    const GRADIENT_COORD_TYPE max_small_mag = 
+      sharpiso_param.max_small_magnitude;
+    const GRADIENT_COORD_TYPE max_small_mag_squared = 
+      max_small_mag * max_small_mag;
+
+    // static so not reallocated at each call
+    static GRID_COORD_TYPE cube_coord[DIM3];
+
+    IJK::ARRAY<bool> vertex_flag(num_vertices, true);
+
+    deselect_vertices_with_small_gradients
+      (gradient_grid, vertex_list, num_vertices, max_small_mag_squared,
+       vertex_flag.Ptr());
+
+    if (sharpiso_param.use_selected_gradients) {
+
+      scalar_grid.ComputeCoord(cube_index, cube_coord);
+
+      deselect_vertices_based_on_isoplanes
+        (scalar_grid, gradient_grid, cube_coord, cube_111,
+         isovalue, vertex_list, num_vertices, vertex_flag.Ptr());
+    }
+
+    num_selected = num_vertices;
+    get_flagged_list_elements
+      (vertex_flag.PtrConst(), vertex_list, num_selected);
+  }
+
+  /// Get selected vertices.
+  /// Resizes vector vertex_list.
+  void get_selected_vertices
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const GET_GRADIENTS_PARAM & sharpiso_param,
+   const OFFSET_CUBE_111 & cube_111,
+   std::vector<VERTEX_INDEX> & vertex_list)
+  {
+    int num_selected;
+
+    get_selected_vertices
+      (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param, cube_111, 
+       vertex_list.size(), &(vertex_list[0]), num_selected);
+    vertex_list.resize(num_selected);
+  }
+
+  /// Get cube vertices indicating selected gradients.
+  /// @param sharpiso_param Determines which gradients are selected.
+  /// @pre No duplicates allowed.
+  void get_cube_vertices_with_selected_gradients
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const GET_GRADIENTS_PARAM & sharpiso_param,
+   const OFFSET_CUBE_111 & cube_111,
+   VERTEX_INDEX cube_vertex_list[NUM_CUBE_VERTICES3D],
+   NUM_TYPE & num_selected)
+  {
+    const GRADIENT_COORD_TYPE zero_tolerance = 
+      sharpiso_param.zero_tolerance;
+
+    // NOTE: cube_vertex_list is an array.
+    // static so not reallocated at each call
+    static GRID_COORD_TYPE cube_coord[DIM3];
+
+    NUM_TYPE num_vertices(0);
+    IJK::ARRAY<bool> vertex_flag(NUM_CUBE_VERTICES3D, true);
+
+    if (sharpiso_param.use_intersected_edge_endpoint_gradients) {
+      get_intersected_cube_edge_endpoints
+        (scalar_grid, cube_index, isovalue, cube_vertex_list, num_vertices);
+    }
+    else if (sharpiso_param.use_gradients_determining_edge_intersections) {
+      get_cube_vertices_determining_edge_intersections
+        (scalar_grid, gradient_grid, cube_index, isovalue, zero_tolerance,
+         cube_vertex_list, num_vertices);
+    }
+    else {
+      get_cube_vertices(scalar_grid, cube_index, cube_vertex_list);
+      num_vertices = NUM_CUBE_VERTICES3D;
+    }
+
+    get_selected_vertices
+      (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
+       cube_111, num_vertices, cube_vertex_list, num_selected);
+  }
+
 }
 
 // Get selected grid vertex gradients.
@@ -187,7 +305,7 @@ void SHARPISO::get_selected_vertex_gradients
 /// Get grid vertex gradients.
 /// @pre point_coord[] is preallocated to size at least num_vertices*DIM3.
 /// @pre gradient_coord[] is preallocated to size at least num_vertices*DIM3.
-/// @pre scalar is preallocated to size at least num_vertices.
+/// @pre scalar[] is preallocated to size at least num_vertices.
 void SHARPISO::get_vertex_gradients
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -209,6 +327,44 @@ void SHARPISO::get_vertex_gradients
   }
 }
 
+/// Get grid vertex gradients.
+void SHARPISO::get_vertex_gradients
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX vertex_list[], const NUM_TYPE num_vertices,
+ std::vector<COORD_TYPE> & point_coord,
+ std::vector<GRADIENT_COORD_TYPE>  & gradient_coord,
+ std::vector<SCALAR_TYPE> & scalar)
+{
+  point_coord.resize(num_vertices*DIM3);
+  gradient_coord.resize(num_vertices*DIM3);
+  scalar.resize(num_vertices);
+
+  get_vertex_gradients
+    (scalar_grid, gradient_grid, vertex_list, num_vertices,
+     &(point_coord[0]), &(gradient_coord[0]), &(scalar[0]));
+}
+
+/// Get grid vertex gradients.
+void SHARPISO::get_vertex_gradients
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const std::vector<VERTEX_INDEX> & vertex_list,
+ std::vector<COORD_TYPE> & point_coord,
+ std::vector<GRADIENT_COORD_TYPE>  & gradient_coord,
+ std::vector<SCALAR_TYPE> & scalar)
+{
+  const NUM_TYPE num_vertices = vertex_list.size();
+
+  point_coord.resize(num_vertices*DIM3);
+  gradient_coord.resize(num_vertices*DIM3);
+  scalar.resize(num_vertices);
+
+  get_vertex_gradients
+    (scalar_grid, gradient_grid, &(vertex_list[0]), num_vertices,
+     &(point_coord[0]), &(gradient_coord[0]), &(scalar[0]));
+}
+
 // Get all 8 cube gradients
 void SHARPISO::get_cube_gradients
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -228,8 +384,7 @@ void SHARPISO::get_cube_gradients
 }
 
 /// Get gradients.
-/// @param sharp_isovert_param Parameters to determine
-///   which gradients are selected.
+/// @param sharpiso_param Determines which gradients are selected.
 void SHARPISO::get_gradients
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -254,65 +409,36 @@ void SHARPISO::get_gradients
 
     if (!sharpiso_param.allow_duplicates) {
 
-      // NOTE: This vertex_list is an array.
-      VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D];
-      NUM_TYPE num_vertices(0);
-      IJK::ARRAY<bool> vertex_flag(NUM_CUBE_VERTICES3D, true);
+      // NOTE: cube_vertex_list is an array.
+      VERTEX_INDEX cube_vertex_list[NUM_CUBE_VERTICES3D];
 
-      if (sharpiso_param.use_intersected_edge_endpoint_gradients) {
-        get_intersected_cube_edge_endpoints
-          (scalar_grid, cube_index, isovalue, vertex_list, num_vertices);
-      }
-      else if (sharpiso_param.use_gradients_determining_edge_intersections) {
-        get_cube_vertices_determining_edge_intersections
-          (scalar_grid, gradient_grid, cube_index, isovalue, zero_tolerance,
-           vertex_list, num_vertices);
-      }
-      else {
-        get_cube_vertices(scalar_grid, cube_index, vertex_list);
-        num_vertices = NUM_CUBE_VERTICES3D;
-      }
-
-      deselect_vertices_with_small_gradients
-        (gradient_grid, vertex_list, num_vertices, max_small_mag_squared,
-         vertex_flag.Ptr());
-
-      if (sharpiso_param.use_selected_gradients) {
-
-        scalar_grid.ComputeCoord(cube_index, cube_coord);
-
-        deselect_vertices_based_on_isoplanes
-          (scalar_grid, gradient_grid, cube_coord, cube_111,
-           isovalue, vertex_list, num_vertices, vertex_flag.Ptr());
-      }
-
-      get_selected_vertex_gradients
-        (scalar_grid, gradient_grid, vertex_list, num_vertices, 
-         vertex_flag.Ptr(), point_coord, gradient_coord, scalar, 
-         num_gradients);
+      get_cube_vertices_with_selected_gradients
+        (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
+         cube_111, cube_vertex_list, num_gradients);
+      get_vertex_gradients
+        (scalar_grid, gradient_grid, cube_vertex_list, num_gradients, 
+         point_coord, gradient_coord, scalar);
     }
     else {
-      // NOTE: This vertex_list is a C++ vector.
+      // NOTE: vertex_list is a C++ vector.
       std::vector<VERTEX_INDEX> vertex_list;
 
       get_cube_vertices_determining_edgeI_allow_duplicates
         (scalar_grid, gradient_grid, cube_index, isovalue, zero_tolerance,
          vertex_list);
 
-      IJK::ARRAY<bool> vertex_flag(vertex_list.size(), true);
-
-      deselect_vertices_with_small_gradients
-        (gradient_grid, vertex_list, max_small_mag_squared, 
-         vertex_flag.Ptr());
-
-      get_selected_vertex_gradients
-        (scalar_grid, gradient_grid, vertex_list, vertex_flag.Ptr(),
-         point_coord, gradient_coord, scalar, num_gradients);
+      get_selected_vertices
+        (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
+         cube_111, vertex_list);
+      get_vertex_gradients
+        (scalar_grid, gradient_grid, vertex_list,
+         point_coord, gradient_coord, scalar);
+      num_gradients = vertex_list.size();
     }
   }
   else {
 
-    // NOTE: This vertex_list is a C++ vector.
+    // NOTE: vertex_list is a C++ vector.
     std::vector<VERTEX_INDEX> vertex_list;
 
     if (sharpiso_param.use_intersected_edge_endpoint_gradients) {
@@ -323,24 +449,13 @@ void SHARPISO::get_gradients
       get_cube_neighbor_vertices(scalar_grid, cube_index, vertex_list);
     }
 
-    IJK::ARRAY<bool> vertex_flag(vertex_list.size(), true);
-
-    deselect_vertices_with_small_gradients
-      (gradient_grid, vertex_list, max_small_mag_squared, 
-       vertex_flag.Ptr());
-
-    if (sharpiso_param.use_selected_gradients) {
-
-      scalar_grid.ComputeCoord(cube_index, cube_coord);
-
-      deselect_vertices_based_on_isoplanes
-        (scalar_grid, gradient_grid, cube_coord, cube_111,
-         isovalue, vertex_list, vertex_flag.Ptr());
-    }
-
-    get_selected_vertex_gradients
-      (scalar_grid, gradient_grid, vertex_list, vertex_flag.Ptr(),
-       point_coord, gradient_coord, scalar, num_gradients);
+    get_selected_vertices
+      (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
+       cube_111, vertex_list);
+    get_vertex_gradients
+      (scalar_grid, gradient_grid, vertex_list,
+       point_coord, gradient_coord, scalar);
+    num_gradients = vertex_list.size();
   }
 }
 
@@ -981,28 +1096,6 @@ void SHARPISO::get_intersected_cube_neighbor_edge_endpoints
     }
   }
 
-}
-
-/// Get selected vertices (vertices where vertex_flag[] is true.)
-/// Reorder vertex list so that selected vertices are first.
-/// @pre Size of vertex_flag[] is at least size of vertex_list[].
-void SHARPISO::get_selected_vertices
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const bool vertex_flag[],
- const NUM_TYPE num_vertices,
- VERTEX_INDEX vertex_list[], NUM_TYPE & num_selected)
-{
-  num_selected = num_vertices;
-  NUM_TYPE i = 0;
-  while (i < num_selected) {
-
-    if (vertex_flag[i]) { i++; }
-    else {
-      std::swap(vertex_list[i], vertex_list[num_selected-1]);
-      num_selected--;
-    }
-  }
 }
 
 // **************************************************
