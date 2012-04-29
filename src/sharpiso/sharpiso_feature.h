@@ -75,6 +75,22 @@ namespace SHARPISO {
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
 
+  /// Compute sharp isosurface vertex using singular valued decomposition.
+  /// Use line-cube intersection to compute sharp isosurface vertex
+  ///    when number of eigenvalues is 2.
+  /// Use centroid to compute isosurface vertex when number of eigenvalues is 1.
+  void svd_compute_sharp_vertex_for_cube_lc_intersection
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & sharpiso_param,
+   const OFFSET_CUBE_111 & cube_111,
+   COORD_TYPE sharp_coord[DIM3],
+   EIGENVALUE_TYPE eigenvalues[DIM3],
+   NUM_TYPE & num_large_eigenvalues,
+   SVD_INFO & svd_info);
+
   /// Compute sharp isosurface vertex on the line
   /// @param flag_conflict True if sharp_coord conflicts with other cube.
   void compute_vertex_on_line
@@ -253,6 +269,10 @@ namespace SHARPISO {
   
   /// Information returned from svd calculations.
   class SVD_INFO {
+
+  protected:
+    void Init();
+
   public:
     LOC_TYPE location;                       // location type
     GRADIENT_COORD_TYPE ray_direction[DIM3]; // ray direction
@@ -264,6 +284,8 @@ namespace SHARPISO {
     void SetRayInfo
     (const COORD_TYPE origin[DIM3], const COORD_TYPE direction[DIM3],
      const COORD_TYPE intersect[DIM3]);
+
+    SVD_INFO() { Init(); };
 	};
   
   
