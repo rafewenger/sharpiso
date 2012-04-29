@@ -137,7 +137,7 @@ namespace SHARPISO {
   // TEMPLATE ROUTINES TO COMPUTE DISTANCE
   // **************************************************
 
-  /// Compute distance from point to plane defined by gradient field.
+  /// Compute signed distance from point to plane defined by gradient field.
   /// @param gfield_gradient[] Gradient over entire gradient field.
   /// @pre Magnitude of gfield_gradient[] must be greater than zero.
   /// @param gfield_point[] Point in the gradient field.
@@ -147,7 +147,7 @@ namespace SHARPISO {
   /// @param[out] distance Distance from point[] to plane.
   template <typename CTYPE0, typename CTYPE1, typename CTYPE2,
             typename STYPE0, typename STYPE1, typename DIST_TYPE>
-  void compute_distance_to_gfield_plane
+  void compute_signed_distance_to_gfield_plane
   (const CTYPE0 gfield_gradient[DIM3], const CTYPE1 gfield_point[DIM3],
    const STYPE0 gfield_point_scalar, const CTYPE2 point[DIM3],
    const STYPE1 plane_scalar, DIST_TYPE & distance)
@@ -165,6 +165,28 @@ namespace SHARPISO {
       gfield_gradient[2]*(point[2]-gfield_point[2]) +
       gfield_point_scalar - plane_scalar;
     distance = distance/gradient_magnitude;
+  }
+
+  /// Compute (non-negative) distance from point to plane 
+  ///   defined by gradient field.
+  /// @param gfield_gradient[] Gradient over entire gradient field.
+  /// @pre Magnitude of gfield_gradient[] must be greater than zero.
+  /// @param gfield_point[] Point in the gradient field.
+  /// @param gfield_point_scalar Scalar value at gfield_point.
+  /// @param point[] Compute distance from point to plane.
+  /// @param plane_scalar Scalar value of plane in gradient field.
+  /// @param[out] distance Distance from point[] to plane.
+  template <typename CTYPE0, typename CTYPE1, typename CTYPE2,
+            typename STYPE0, typename STYPE1, typename DIST_TYPE>
+  void compute_distance_to_gfield_plane
+  (const CTYPE0 gfield_gradient[DIM3], const CTYPE1 gfield_point[DIM3],
+   const STYPE0 gfield_point_scalar, const CTYPE2 point[DIM3],
+   const STYPE1 plane_scalar, DIST_TYPE & distance)
+  {
+    compute_signed_distance_to_gfield_plane
+      (gfield_gradient, gfield_point, gfield_point_scalar, point,
+       plane_scalar, distance);
+    distance = std::fabs(distance);
   }
 
 };

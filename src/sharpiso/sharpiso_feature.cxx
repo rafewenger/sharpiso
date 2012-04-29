@@ -83,7 +83,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
 
   get_gradients
     (scalar_grid, gradient_grid, cube_index, isovalue,
-     sharpiso_param, cube_111,
+     sharpiso_param, cube_111, sharpiso_param.flag_sort_gradients,
      point_coord, gradient_coord, scalar, num_gradients);
 
   GRADIENT_COORD_TYPE line_direction[DIM3];
@@ -389,7 +389,7 @@ void SHARPISO::subgrid_compute_sharp_vertex_in_cube
 
   get_gradients
     (scalar_grid, gradient_grid, cube_index, isovalue,
-     get_gradients_param, cube_111,
+     get_gradients_param, cube_111, false,
      point_coord, gradient_coord, scalar, num_gradients);
 
   IJK::ARRAY<GRID_COORD_TYPE> cube_coord(DIM3);

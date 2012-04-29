@@ -22,6 +22,7 @@
  */
 
 
+#include <iomanip>
 #include <iostream>
 
 #include "ijkcoord.txx"
@@ -56,7 +57,7 @@ std::vector<COORD_TYPE> location;
 bool flag_location_set(false);
 bool flag_isovalue_set(false);
 bool flag_centroid(false);
-SHARP_ISOVERT_PARAM sharp_isovert_param;
+SHARP_ISOVERT_PARAM sharpiso_param;
 bool flag_list_eigen(false);
 bool flag_svd_gradients(true); //default
 bool flag_svd_edges_simple(false);
@@ -111,7 +112,9 @@ void output_gradients
  const std::vector<COORD_TYPE> & point_coord,
  const std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
  const std::vector<SCALAR_TYPE> & scalar,
- const NUM_TYPE num_points);
+ const NUM_TYPE num_points,
+ const SCALAR_TYPE isovalue,
+ const COORD_TYPE cube_center[DIM3]);
 void output_svd_results
 (std::ostream & output, 
  const GRID_COORD_TYPE cube_coord[DIM3],
@@ -139,7 +142,7 @@ void output_cube_eigenvalues
  const SHARPISO_SCALAR_GRID & scalar_grid,
  const GRADIENT_GRID & gradient_grid,
  const SCALAR_TYPE isovalue,
- const SHARP_ISOVERT_PARAM & sharp_isovert_param);
+ const SHARP_ISOVERT_PARAM & sharpiso_param);
 
 void output_centroid_results
 (std::ostream & output, const COORD_TYPE coord[DIM3]);
@@ -213,21 +216,29 @@ int main(int argc, char **argv)
 
     if (flag_list_gradients || flag_isovalue_set || flag_location_set) {
       GRADIENT_COORD_TYPE max_small_mag =
-        sharp_isovert_param.max_small_magnitude;
+        sharpiso_param.max_small_magnitude;
       GRADIENT_COORD_TYPE max_small_eigenvalue =
-        sharp_isovert_param.max_small_eigenvalue;
+        sharpiso_param.max_small_eigenvalue;
 
       OFFSET_CUBE_111 cube_111
-        (sharp_isovert_param.grad_selection_cube_offset);
+        (sharpiso_param.grad_selection_cube_offset);
 
       get_gradients
         (scalar_grid, gradient_grid, cube_index, isovalue,
-         sharp_isovert_param, cube_111,
+         sharpiso_param, cube_111, sharpiso_param.flag_sort_gradients,
          point_coord, gradient_coord, scalar, num_gradients);
 
       if (flag_list_gradients) {
+        COORD_TYPE cube_center[DIM3];
+  
+        scalar_grid.ComputeCoord(cube_index, cube_center);
+
+        for (int d = 0; d < DIM3; d++)
+          { cube_center[d] += 0.5; }
+
         output_gradients
-          (cout, point_coord, gradient_coord, scalar, num_gradients);
+          (cout, point_coord, gradient_coord, scalar, num_gradients, 
+           isovalue, cube_center);
         cout << endl;
       }
 
@@ -264,7 +275,7 @@ int main(int argc, char **argv)
              max_small_eigenvalue, svd_info);
           cout << endl;
 
-          report_sharp_param(sharp_isovert_param);
+          report_sharp_param(sharpiso_param);
           cout << endl;
         }
 
@@ -282,7 +293,7 @@ int main(int argc, char **argv)
         SCALAR_TYPE max_abs_scalar_error;
         compute_iso_vertex_using_subgrid
           (scalar_grid, gradient_grid, cube_index, isovalue,
-           sharp_isovert_param, subgrid_axis_size,
+           sharpiso_param, subgrid_axis_size,
            sharp_coord, scalar_stdev, max_abs_scalar_error);
 
         output_subgrid_results
@@ -302,7 +313,7 @@ int main(int argc, char **argv)
     if (flag_list_eigen) {
 
       output_cube_eigenvalues
-        (cout, scalar_grid, gradient_grid, isovalue, sharp_isovert_param);
+        (cout, scalar_grid, gradient_grid, isovalue, sharpiso_param);
 
     }
 
@@ -340,21 +351,21 @@ void compute_iso_vertex_using_svd
  SVD_INFO & svd_info)
 {
   SIGNED_COORD_TYPE grad_selection_cube_offset =
-    sharp_isovert_param.grad_selection_cube_offset;
+    sharpiso_param.grad_selection_cube_offset;
   GRADIENT_COORD_TYPE max_small_mag =
-    sharp_isovert_param.max_small_magnitude;
+    sharpiso_param.max_small_magnitude;
   GRADIENT_COORD_TYPE max_small_eigenvalue =
-    sharp_isovert_param.max_small_eigenvalue;
+    sharpiso_param.max_small_eigenvalue;
 
 
   if (flag_svd_edges_simple) {
     svd_compute_sharp_vertex_edgeI_interpolate_gradients
-      (scalar_grid, gradient_grid, cube_index, isovalue, sharp_isovert_param,
+      (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
        sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
   }
   else if (flag_svd_edges_cmplx) {
     svd_compute_sharp_vertex_edgeI_select_gradient
-      (scalar_grid, gradient_grid, cube_index, isovalue, sharp_isovert_param,
+      (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
        sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
   }
   else {
@@ -362,7 +373,7 @@ void compute_iso_vertex_using_svd
     OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
     svd_compute_sharp_vertex_for_cube
       (scalar_grid, gradient_grid, cube_index, isovalue,
-       sharp_isovert_param, cube_111,
+       sharpiso_param, cube_111,
        sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
   }
 
@@ -380,7 +391,7 @@ void compute_iso_vertex_using_subgrid
  SCALAR_TYPE & max_abs_scalar_error)
 {
   SIGNED_COORD_TYPE grad_selection_cube_offset =
-    sharp_isovert_param.grad_selection_cube_offset;
+    sharpiso_param.grad_selection_cube_offset;
 
   OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
 
@@ -399,13 +410,13 @@ void output_cube_coordinates
  const SHARPISO_SCALAR_GRID & scalar_grid,
  const VERTEX_INDEX icube)
 {
-    GRID_COORD_TYPE coord[DIM3];
-    scalar_grid.ComputeCoord(icube, coord);
+  GRID_COORD_TYPE coord[DIM3];
+  scalar_grid.ComputeCoord(icube, coord);
 
-    output << "Cube " << icube << ".";
-    output << "  Coordinates: ";
-    IJK::ijkgrid_output_coord(output, DIM3, coord);
-    output << ".";
+  output << "Cube " << icube << ".";
+  output << "  Coordinates: ";
+  IJK::ijkgrid_output_coord(output, DIM3, coord);
+  output << ".";
 }
 
 void output_gradients
@@ -413,21 +424,30 @@ void output_gradients
  const COORD_TYPE * point_coord,
  const GRADIENT_COORD_TYPE * gradient_coord,
  const SCALAR_TYPE * scalar,
- const NUM_TYPE num_points)
+ const NUM_TYPE num_points,
+ const SCALAR_TYPE isovalue,
+ const COORD_TYPE cube_center[DIM3])
 {
-    using namespace std;
+  using namespace std;
 
-    for (NUM_TYPE i = 0; i < num_points; i++) {
-        output << "Point " << i << " ";
-        IJK::ijkgrid_output_coord(output, DIM3, point_coord + i*DIM3);
-        output << ":  Scalar " << scalar[i];
-        output << " Gradient ";
-        IJK::ijkgrid_output_coord(output, DIM3, gradient_coord + i*DIM3);
-        GRADIENT_COORD_TYPE magnitude;
-        IJK::compute_magnitude(DIM3, gradient_coord + i*DIM3, magnitude);
-        output << "  Magnitude " << magnitude;
-        output << endl;
-    }
+  for (NUM_TYPE i = 0; i < num_points; i++) {
+    GRADIENT_COORD_TYPE magnitude;
+    IJK::compute_magnitude(DIM3, gradient_coord + i*DIM3, magnitude);
+
+    COORD_TYPE distance;
+    compute_signed_distance_to_gfield_plane
+      (gradient_coord+i*DIM3, point_coord+i*DIM3, scalar[i], cube_center,
+       isovalue, distance);
+
+    output << "Point " << setw(2)  << i << " ";
+    IJK::ijkgrid_output_coord(output, DIM3, point_coord + i*DIM3);
+    output << ":  Scalar " << scalar[i];
+    output << " Grad ";
+    IJK::ijkgrid_output_coord(output, DIM3, gradient_coord + i*DIM3);
+    output << "  Mag " << magnitude;
+    output << "  Dist " << distance;
+    output << endl;
+  }
 }
 
 void output_gradients
@@ -435,11 +455,13 @@ void output_gradients
  const std::vector<COORD_TYPE> & point_coord,
  const std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
  const std::vector<SCALAR_TYPE> & scalar,
- const NUM_TYPE num_points)
+ const NUM_TYPE num_points,
+ const SCALAR_TYPE isovalue,
+ const COORD_TYPE cube_center[DIM3])
 {
-    output_gradients(output, &(point_coord[0]), &(gradient_coord[0]),
-                     &(scalar[0]), num_points);
-
+  output_gradients(output, &(point_coord[0]), &(gradient_coord[0]),
+                   &(scalar[0]), num_points, isovalue, cube_center);
+ 
 }
 
 void output_svd_results
@@ -453,8 +475,8 @@ void output_svd_results
 {
   COORD_TYPE closest_point[DIM3];
 
-  bool use_only_cube_gradients = sharp_isovert_param.use_only_cube_gradients;
-  bool use_selected_gradients = sharp_isovert_param.use_selected_gradients;
+  bool use_only_cube_gradients = sharpiso_param.use_only_cube_gradients;
+  bool use_selected_gradients = sharpiso_param.use_selected_gradients;
 
   
   output << "SVD: Sharp coordinates ";
@@ -649,7 +671,7 @@ void output_dist2vert
   // Skip zero magnitude gradients.
   if (gradient_magnitude <= 0) { return; }
 
-  compute_distance_to_gfield_plane
+  compute_signed_distance_to_gfield_plane
     (gfield_gradient, gfield_point, gfield_point_scalar, point, plane_scalar,
      distance);
 
@@ -708,7 +730,7 @@ void output_cube_eigenvalues
  const SHARPISO_SCALAR_GRID & scalar_grid,
  const GRADIENT_GRID & gradient_grid,
  const SCALAR_TYPE isovalue,
- const SHARP_ISOVERT_PARAM & sharp_isovert_param)
+ const SHARP_ISOVERT_PARAM & sharpiso_param)
 {
   COORD_TYPE sharp_coord[DIM3];
   EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
@@ -716,7 +738,7 @@ void output_cube_eigenvalues
   SVD_INFO svd_info;
 
   const SIGNED_COORD_TYPE grad_selection_cube_offset =
-    sharp_isovert_param.grad_selection_cube_offset;
+    sharpiso_param.grad_selection_cube_offset;
 
   OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
 
@@ -724,7 +746,7 @@ void output_cube_eigenvalues
 
     svd_compute_sharp_vertex_for_cube
       (scalar_grid, gradient_grid, icube, isovalue,
-       sharp_isovert_param, cube_111,
+       sharpiso_param, cube_111,
        sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
     output_cube_coordinates(output, scalar_grid, icube);
 
@@ -918,9 +940,6 @@ void parse_command_line(int argc, char **argv)
   bool use_selected_gradients(true);
   bool use_intersected_edge_endpoint_gradients(false);
   bool use_gradients_determining_edge_intersections(false);
-  bool allow_duplicates(false);
-  bool flag_round(false);
-  SIGNED_COORD_TYPE grad_selection_cube_offset(0);
 
   if (argc == 1) { usage_error(); }
 
@@ -972,6 +991,9 @@ void parse_command_line(int argc, char **argv)
     }
     else if (s == "-list_eigen") {
       flag_list_eigen = true;
+    }
+    else if (s == "-sortg") {
+      sharpiso_param.flag_sort_gradients = true;
     }
     else if (s == "-gradES") {
       flag_svd_edges_simple = true;
@@ -1042,10 +1064,10 @@ void parse_command_line(int argc, char **argv)
       use_intersected_edge_endpoint_gradients = false;
       use_gradients_determining_edge_intersections = true;
       flag_edge_intersection = false;
-      allow_duplicates = true;
+      sharpiso_param.allow_duplicates = true;
     }
     else if (s == "-gradS_offset") {
-      grad_selection_cube_offset = get_float(iarg, argc, argv);
+      sharpiso_param.grad_selection_cube_offset = get_float(iarg, argc, argv);
       iarg++;
     }
     else if (s == "-lindstrom") {
@@ -1055,19 +1077,19 @@ void parse_command_line(int argc, char **argv)
       flag_use_lindstrom = false;
     }
     else if (s == "-max_dist") {
-      sharp_isovert_param.max_dist = get_float(iarg, argc, argv);
+      sharpiso_param.max_dist = get_float(iarg, argc, argv);
       iarg++;
     }
     else if (s == "-no_round") {
-      flag_round = false;
+      sharpiso_param.flag_round = false;
     }
     else if (s == "-round") {
-      flag_round = true;
-      sharp_isovert_param.round_denominator = get_int(iarg, argc, argv);
+      sharpiso_param.flag_round = true;
+      sharpiso_param.round_denominator = get_int(iarg, argc, argv);
       iarg++;
     }
     else if (s == "-max_eigen") {
-      sharp_isovert_param.max_small_eigenvalue = get_float(iarg, argc, argv);
+      sharpiso_param.max_small_eigenvalue = get_float(iarg, argc, argv);
       iarg++;
     }
     else if (s == "-help") {
@@ -1132,28 +1154,25 @@ void parse_command_line(int argc, char **argv)
     exit(15);
   }
 
-  if (grad_selection_cube_offset <= -1) {
+  if (sharpiso_param.grad_selection_cube_offset <= -1) {
     cerr << "Error in option -gradS_offset." << endl;
     cerr << "  Grad selection cube offset must be at least -1." << endl;
     exit(15);
   }
 
-  if (grad_selection_cube_offset > 1) {
+  if (sharpiso_param.grad_selection_cube_offset > 1) {
     cerr << "Error in option -gradS_offset." << endl;
     cerr << "  Grad selection cube offset must be at most 1." << endl;
     exit(15);
   }
 
-  sharp_isovert_param.use_only_cube_gradients = use_only_cube_gradients;
-  sharp_isovert_param.use_selected_gradients = use_selected_gradients;
-  sharp_isovert_param.use_intersected_edge_endpoint_gradients = 
+  sharpiso_param.use_only_cube_gradients = use_only_cube_gradients;
+  sharpiso_param.use_selected_gradients = use_selected_gradients;
+  sharpiso_param.use_intersected_edge_endpoint_gradients = 
     use_intersected_edge_endpoint_gradients;
-  sharp_isovert_param.use_gradients_determining_edge_intersections =
+  sharpiso_param.use_gradients_determining_edge_intersections =
     use_gradients_determining_edge_intersections;
-  sharp_isovert_param.use_lindstrom = flag_use_lindstrom;
-  sharp_isovert_param.allow_duplicates = allow_duplicates;
-  sharp_isovert_param.flag_round = flag_round;
-  sharp_isovert_param.grad_selection_cube_offset = grad_selection_cube_offset;
+  sharpiso_param.use_lindstrom = flag_use_lindstrom;
 }
 
 void help()
@@ -1216,6 +1235,8 @@ void help()
   cerr << "  -max_dist <V>:  Maximum distance from cube to isosurface vertex."
        << endl;
   cerr << "  -listg: List gradients." << endl;
+  cerr << "  -sortg: Sort gradients by distance of isoplane to cube center."
+       << endl;
   cerr << "  -list_subgrid:  List all scalar values at vertices of subgrid." << endl;
   cerr << "  -dist2vert: Distance from vertex to planes defined by gradients" 
        << endl

@@ -115,8 +115,9 @@ namespace SHARPISO {
    SCALAR_TYPE scalar[NUM_CUBE_VERTICES3D]);
   
   /// Get gradients in cube and neighboring cubes.
-  /// @param sharp_isovert_param Parameters to determine 
-  ///   which gradients are selected.
+  /// @param sharpiso_param Determines which gradients are selected.
+  /// @param flag_sort If true, sort gradients.  
+  ///        Overrides flag_sort in sharpiso_param.
   void get_gradients
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -124,6 +125,7 @@ namespace SHARPISO {
    const SCALAR_TYPE isovalue,
    const GET_GRADIENTS_PARAM & get_gradients_param,
    const OFFSET_CUBE_111 & cube_111,
+   const bool flag_sort,
    std::vector<COORD_TYPE> & point_coord,
    std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
    std::vector<SCALAR_TYPE> & scalar,
@@ -288,6 +290,24 @@ namespace SHARPISO {
    const COORD_TYPE pcoord[DIM3],
    std::vector<VERTEX_INDEX> & vertex_list);
 
+  /// Sort vertices based on the distance of the isoplane distance 
+  ///   to cube center.
+  void sort_vertices_by_isoplane_dist2cc
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX cube_index,
+   VERTEX_INDEX vertex_list[], const NUM_TYPE num_vertices);
+
+  /// Sort vertices based on the distance of the isoplane distance 
+  ///   to cube center.
+  void sort_vertices_by_isoplane_dist2cc
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX cube_index,
+   std::vector<VERTEX_INDEX> & vertex_list);
+
   // **************************************************
   // SELECTION FUNCTIONS
   // **************************************************
@@ -365,7 +385,7 @@ namespace SHARPISO {
     bool use_intersected_edge_endpoint_gradients;
     bool use_gradients_determining_edge_intersections;
     bool allow_duplicates;
-    bool flag_sort;                ///< Sort gradients.
+    bool flag_sort_gradients;               ///< Sort gradients.
     SIGNED_COORD_TYPE grad_selection_cube_offset;
     GRADIENT_COORD_TYPE zero_tolerance;
 
