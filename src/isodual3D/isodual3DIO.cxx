@@ -54,6 +54,7 @@ namespace {
      RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,
      REMOVEG_PARAM, NO_REMOVEG_PARAM,
      CENTROID_EIGEN1_PARAM, NO_CENTROID_EIGEN1_PARAM,
+     LINF_PARAM, NO_LINF_PARAM,
      USE_LINDSTROM_PARAM,
      ROUND_PARAM, NO_ROUND_PARAM,
      HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
@@ -69,6 +70,7 @@ namespace {
      "-recompute_eigen2", "-no_recompute_eigen2",
      "-removeg", "-no_removeg",
      "-centroid_eigen1", "-no_centroid_eigen1",
+     "-Linf", "-no_Linf",
      "-lindstrom",
      "-round", "-no_round",
      "-help", "-off", "-iv", "-out_param",
@@ -306,6 +308,14 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 
     case NO_REPOSITION_PARAM:
       input_info.flag_reposition = false;
+      break;
+
+    case LINF_PARAM:
+      input_info.use_Linf_dist = true;
+      break;
+
+    case NO_LINF_PARAM:
+      input_info.use_Linf_dist = false;
       break;
 
     case USE_LINDSTROM_PARAM:

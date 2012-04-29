@@ -889,12 +889,17 @@ void usage_error()
     cerr << "   -gradIE | -gradIES | -gradNIE | -gradNIES |" << endl;
     cerr << "   -gradCD | -gradCDdup | -gradES | -gradEC ]" << endl;
     cerr << "  [-lindstrom | -rayI]" << endl;
+    cerr << "  [-allow_conflict] [-clamp_conflict] [-clamp_far]" << endl;
+    cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
+    cerr << "  [-removeg | -no_removeg]"
+         << " [-centroid_eigen1 | -no_centroid_eigen1] [-no_Linf]" << endl;
+    cerr << "  -no_round | -round <n>" << endl;
     cerr << "  -coord \"point coord\"" << endl;
-    cerr << "  -dist2vert | -vertex <vertex_index> | -vc \"vertex coordinates\"" << endl;
+    cerr << "  -dist2vert | -vertex <vertex_index>"
+         << " | -vc \"vertex coordinates\"" << endl;
     cerr << "  -max_eigen <value>" << endl;
     cerr << "  -gradS_offset <value> | -max_dist <value>" << endl;
     cerr << "  -listg | -list_subgrid" << endl;
-    cerr << "  -no_round | -round <n>" << endl;
     exit(10);
 }
 
@@ -1087,6 +1092,36 @@ void parse_command_line(int argc, char **argv)
       sharpiso_param.flag_round = true;
       sharpiso_param.round_denominator = get_int(iarg, argc, argv);
       iarg++;
+    }
+    else if (s == "-allow_conflict") {
+      sharpiso_param.flag_allow_conflict = true;
+    }
+    else if (s == "-clamp_conflict") {
+      sharpiso_param.flag_clamp_conflict = true;
+    }
+    else if (s == "-clamp_far") {
+      sharpiso_param.flag_clamp_far = true;
+    }
+    else if (s == "-recompute_eigen2") {
+      sharpiso_param.flag_recompute_eigen2 = true;
+    }
+    else if (s == "-no_recompute_eigen2") {
+      sharpiso_param.flag_recompute_eigen2 = false;
+    }
+    else if (s == "-removeg") {
+      sharpiso_param.flag_remove_gradients = true;
+    }
+    else if (s == "-no_removeg") {
+      sharpiso_param.flag_remove_gradients = false;
+    }
+    else if (s == "-centroid_eigen1") {
+      sharpiso_param.flag_centroid_eigen1 = true;
+    }
+    else if (s == "-no_centroid_eigen1") {
+      sharpiso_param.flag_centroid_eigen1 = false;
+    }
+    else if (s == "-no_Linf") {
+      sharpiso_param.use_Linf_dist = false;
     }
     else if (s == "-max_eigen") {
       sharpiso_param.max_small_eigenvalue = get_float(iarg, argc, argv);
