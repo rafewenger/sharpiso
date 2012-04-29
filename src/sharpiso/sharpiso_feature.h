@@ -62,19 +62,19 @@ namespace SHARPISO {
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
 
-  /// Compute sharp isosurface vertex on the ray
-  void compute_vertex_on_ray
+  /// Compute sharp isosurface vertex using singular valued decomposition.
+  /// Use Lindstrom's formula.
+  void svd_compute_sharp_vertex_for_cube_lindstrom
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
    const SCALAR_TYPE isovalue,
    const SHARP_ISOVERT_PARAM & sharp_isovert_param,
-   const COORD_TYPE ray_origin[DIM3],
-   const COORD_TYPE ray_direction[DIM3],
-   COORD_TYPE sharp_coord[DIM3],
-   bool & flag_use_centroid,
+   const OFFSET_CUBE_111 & cube_111,
+   COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
+   NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
-  
+
   /// Compute sharp isosurface vertex on the line
   /// @param flag_conflict True if sharp_coord conflicts with other cube.
   void compute_vertex_on_line
@@ -170,8 +170,21 @@ namespace SHARPISO {
   void  clamp_point
   (const float offset,  const GRID_COORD_TYPE cube_coord[DIM3], 
    COORD_TYPE point[DIM3]);
+
   /// Clamp to unit cube (0,0,0) to (1,1,1).
 	void  clamp_point(const float offset, COORD_TYPE point[DIM3]);
+
+  /// Postprocess isosurface vertex coordinates.
+  /// Depending on flags in sharpiso_param, move far points,
+  ///   move points in occupied grid cubes, and round coordinates.
+  void postprocess_isovert_location
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const VERTEX_INDEX cube_index,
+   const GRID_COORD_TYPE cube_coord[DIM3],
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & sharpiso_param,
+   COORD_TYPE iso_coord[DIM3],
+   SVD_INFO & svd_info);
 
   /// Move point which lies in an occupied grid cube.
   void process_conflict

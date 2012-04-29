@@ -163,25 +163,64 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
     }
   }
 
-  if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
-
-    if (flag_conflict) {
-      process_conflict(scalar_grid, cube_index, cube_coord, isovalue,
-                       sharpiso_param, sharp_coord, svd_info);
-    }
-  }
-  else {
-    process_far_point(scalar_grid, cube_index, cube_coord, isovalue,
-                      sharpiso_param, sharp_coord, svd_info);
-  }
-
-  if (sharpiso_param.flag_round)
-    { IJK::round_coord
-        (sharpiso_param.round_denominator, DIM3, sharp_coord, sharp_coord); }
-
-  svd_info.flag_conflict = flag_conflict;
+  postprocess_isovert_location
+    (scalar_grid, cube_index, cube_coord, isovalue, sharpiso_param, 
+     sharp_coord, svd_info);
 }
 
+/// Compute sharp isosurface vertex using singular valued decomposition.
+/// Use Lindstrom's formula.
+void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
+ const OFFSET_CUBE_111 & cube_111,
+ COORD_TYPE sharp_coord[DIM3],
+ EIGENVALUE_TYPE eigenvalues[DIM3],
+ NUM_TYPE & num_large_eigenvalues,
+ SVD_INFO & svd_info)
+{
+  const EIGENVALUE_TYPE max_small_eigenvalue =
+    sharpiso_param.max_small_eigenvalue;
+
+  NUM_TYPE num_gradients = 0;
+  std::vector<COORD_TYPE> point_coord;
+  std::vector<GRADIENT_COORD_TYPE> gradient_coord;
+  std::vector<SCALAR_TYPE> scalar;
+
+  // Compute coord of the cube.
+  GRID_COORD_TYPE cube_coord[DIM3];
+  scalar_grid.ComputeCoord(cube_index, cube_coord);
+
+  get_gradients
+    (scalar_grid, gradient_grid, cube_index, isovalue,
+     sharpiso_param, cube_111, sharpiso_param.flag_sort_gradients,
+     point_coord, gradient_coord, scalar, num_gradients);
+
+  GRADIENT_COORD_TYPE line_direction[DIM3];
+  bool flag_conflict = false;
+
+  svd_info.location = LOC_SVD;
+
+  // svd_calculate_sharpiso vertex using lindstrom
+  COORD_TYPE default_center[DIM3] = {0.5,0.5,0.5};
+  COORD_TYPE cube_center[DIM3];
+  IJK::add_coord_3D(cube_coord, default_center, cube_center);
+
+  svd_calculate_sharpiso_vertex_using_lindstrom
+    (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
+     num_gradients, isovalue, max_small_eigenvalue,
+     num_large_eigenvalues, eigenvalues, cube_center, sharp_coord);
+
+  if (!sharpiso_param.flag_allow_conflict) {
+
+    snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
+    flag_conflict = 
+      check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord);
+  }
+}
 
 /// Compute sharp isosurface vertex on the line
 /// @param flag_conflict True if sharp_coord conflicts with other cube.
@@ -588,6 +627,42 @@ void SHARPISO::clamp_point
     if (point[i] > 1.0 + cube_offset)
       { point[i]=  1.0 + cube_offset; }
   }
+}
+
+void SHARPISO::postprocess_isovert_location
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX cube_index,
+ const GRID_COORD_TYPE cube_coord[DIM3],
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
+ COORD_TYPE iso_coord[DIM3],
+ SVD_INFO & svd_info)
+{
+  const COORD_TYPE max_dist = sharpiso_param.max_dist;
+
+  if (is_dist_to_cube_le(iso_coord, cube_coord, max_dist)) {
+
+    if (!sharpiso_param.flag_allow_conflict) {
+      bool flag_conflict;
+      snap_to_cube(cube_coord, sharpiso_param.snap_dist, iso_coord);
+      flag_conflict = 
+        check_conflict(scalar_grid, isovalue, cube_coord, iso_coord);
+
+      if (flag_conflict) {
+        process_conflict(scalar_grid, cube_index, cube_coord, isovalue,
+                         sharpiso_param, iso_coord, svd_info);
+        svd_info.flag_conflict = true;
+      }
+    }
+  }
+  else {
+    process_far_point(scalar_grid, cube_index, cube_coord, isovalue,
+                      sharpiso_param, iso_coord, svd_info);
+  }
+
+  if (sharpiso_param.flag_round)
+    { IJK::round_coord
+        (sharpiso_param.round_denominator, DIM3, iso_coord, iso_coord); }
 }
 
 void SHARPISO::process_conflict
