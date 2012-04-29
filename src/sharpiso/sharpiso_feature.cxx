@@ -173,6 +173,26 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 /// Use line-cube intersection to compute sharp isosurface vertex
 ///    when number of eigenvalues is 2.
 /// Use centroid to compute isosurface vertex when number of eigenvalues is 1.
+void local_svd_compute_sharp_vertex_for_cube_lc_intersection
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const GRID_COORD_TYPE cube_coord[DIM3],
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
+ const std::vector<COORD_TYPE> & point_coord,
+ const std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+ const std::vector<SCALAR_TYPE> & scalar,
+ const NUM_TYPE num_gradients,
+ COORD_TYPE sharp_coord[DIM3],
+ EIGENVALUE_TYPE eigenvalues[DIM3],
+ NUM_TYPE & num_large_eigenvalues,
+ SVD_INFO & svd_info);
+
+/// Compute sharp isosurface vertex using singular valued decomposition.
+/// Use line-cube intersection to compute sharp isosurface vertex
+///    when number of eigenvalues is 2.
+/// Use centroid to compute isosurface vertex when number of eigenvalues is 1.
 void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -207,10 +227,94 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
   svd_info.location = LOC_SVD;
   svd_info.flag_conflict = false;
 
+  local_svd_compute_sharp_vertex_for_cube_lc_intersection
+    (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue, 
+     sharpiso_param, point_coord, gradient_coord, scalar, num_gradients,
+     sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+
+  if (!sharpiso_param.flag_allow_conflict) {
+    if (sharpiso_param.flag_remove_gradients ) {
+      snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
+
+      if (check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
+        svd_info.flag_conflict = true;
+
+        point_coord.clear();
+        gradient_coord.clear();
+        scalar.clear();
+
+        // get gradients sorted by distance to cube center.
+        get_gradients
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           sharpiso_param, cube_111, true,
+           point_coord, gradient_coord, scalar, num_gradients);
+
+        // Decrease number of gradients.
+        NUM_TYPE numg2 = num_gradients - 1;
+        while (numg2 > 0 && 
+               check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord) &&
+               num_large_eigenvalues > 1) {
+
+          local_svd_compute_sharp_vertex_for_cube_lc_intersection
+            (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue, 
+             sharpiso_param, point_coord, gradient_coord, scalar, numg2,
+             sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+
+          numg2--;
+        }
+      }
+    }
+    else if (sharpiso_param.flag_reselect_gradients) {
+      if (!sharpiso_param.use_only_cube_gradients) {
+        SHARP_ISOVERT_PARAM param2 = sharpiso_param;
+        param2.use_only_cube_gradients = true;
+
+        // get only cube gradients
+        get_gradients
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           param2, cube_111, sharpiso_param.flag_sort_gradients,
+           point_coord, gradient_coord, scalar, num_gradients);
+
+        local_svd_compute_sharp_vertex_for_cube_lc_intersection
+          (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue, 
+           sharpiso_param, point_coord, gradient_coord, scalar, num_gradients,
+           sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+      }
+    }
+  }
+
+  postprocess_isovert_location
+    (scalar_grid, cube_index, cube_coord, isovalue, sharpiso_param, 
+     sharp_coord, svd_info);
+}
+
+/// Compute sharp isosurface vertex using singular valued decomposition.
+/// Use line-cube intersection to compute sharp isosurface vertex
+///    when number of eigenvalues is 2.
+/// Use centroid to compute isosurface vertex when number of eigenvalues is 1.
+void local_svd_compute_sharp_vertex_for_cube_lc_intersection
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const GRID_COORD_TYPE cube_coord[DIM3],
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
+ const std::vector<COORD_TYPE> & point_coord,
+ const std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+ const std::vector<SCALAR_TYPE> & scalar,
+ const NUM_TYPE num_gradients,
+ COORD_TYPE sharp_coord[DIM3],
+ EIGENVALUE_TYPE eigenvalues[DIM3],
+ NUM_TYPE & num_large_eigenvalues,
+ SVD_INFO & svd_info)
+{
+  const EIGENVALUE_TYPE max_eigen = sharpiso_param.max_small_eigenvalue;
+  const COORD_TYPE max_dist = sharpiso_param.max_dist;
+  GRADIENT_COORD_TYPE line_direction[DIM3];
+
   svd_calculate_sharpiso_vertex_unit_normals
     (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]), 
-     num_gradients, isovalue, 
-     max_small_eigenvalue, num_large_eigenvalues, 
+     num_gradients, isovalue, max_eigen, num_large_eigenvalues, 
      eigenvalues, sharp_coord, line_direction);
     
   if (num_large_eigenvalues == 3) {
@@ -223,8 +327,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
 
         svd_calculate_sharpiso_vertex_2_svals_unit_normals
           (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]), 
-           num_gradients, isovalue, 
-           max_small_eigenvalue, num_large_eigenvalues,
+           num_gradients, isovalue, max_eigen, num_large_eigenvalues,
            eigenvalues, sharp_coord, line_direction);
       }
     }
@@ -252,11 +355,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
     svd_info.location = CUBE_CENTER;
   }
 
-  postprocess_isovert_location
-    (scalar_grid, cube_index, cube_coord, isovalue, sharpiso_param, 
-     sharp_coord, svd_info);
 }
-
 
 /// Compute sharp isosurface vertex on the line
 /// @param flag_conflict True if sharp_coord conflicts with other cube.
@@ -866,6 +965,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   flag_recompute_eigen2 = true;
   flag_round = false;
   flag_remove_gradients = false;
+  flag_reselect_gradients = false;
   flag_centroid_eigen1 = false;
   use_Linf_dist = true;
   max_dist = 1.0;

@@ -53,6 +53,7 @@ namespace {
      ALLOW_CONFLICT_PARAM, CLAMP_CONFLICT_PARAM, CLAMP_FAR_PARAM,
      RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,
      REMOVEG_PARAM, NO_REMOVEG_PARAM,
+     RESELECT_GRAD_PARAM, NO_RESELECT_GRAD_PARAM,
      CENTROID_EIGEN1_PARAM, NO_CENTROID_EIGEN1_PARAM,
      LINF_PARAM, NO_LINF_PARAM,
      USE_LINDSTROM_PARAM,
@@ -69,6 +70,7 @@ namespace {
      "-allow_conflict", "-clamp_conflict","-clamp_far", 
      "-recompute_eigen2", "-no_recompute_eigen2",
      "-removeg", "-no_removeg",
+     "-reselectg", "-no_reselectg",
      "-centroid_eigen1", "-no_centroid_eigen1",
      "-Linf", "-no_Linf",
      "-lindstrom",
@@ -348,6 +350,14 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 
     case NO_REMOVEG_PARAM:
       input_info.flag_remove_gradients = false;
+      break;
+
+    case RESELECT_GRAD_PARAM:
+      input_info.flag_reselect_gradients = true;
+      break;
+
+    case NO_RESELECT_GRAD_PARAM:
+      input_info.flag_reselect_gradients = false;
       break;
 
     case CENTROID_EIGEN1_PARAM:
@@ -1245,8 +1255,8 @@ namespace {
   cerr << "  [-lindstrom]" << endl;
   cerr << "  [-allow_conflict] [-clamp_conflict] [-clamp_far]" << endl;
   cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
-  cerr << "  [-removeg | -no_removeg] [-centroid_eigen1 | -no_centroid_eigen1]"
-       << endl;
+  cerr << "  [-removeg | -no_removeg] [-reselectg | -no_reselectg]" << endl;
+  cerr << "  [-centroid_eigen1 | -no_centroid_eigen1]" << endl;
   cerr << "  [-no_round | -round <n>]" << endl;
   cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
        << endl;
