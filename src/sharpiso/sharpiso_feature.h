@@ -237,6 +237,8 @@ namespace SHARPISO {
     bool flag_clamp_far;           ///< If true, clamp far points.
     bool flag_recompute_eigen2;    ///< If true, recompute with 2 eigenvalues.
     bool flag_round;               ///< Round output coordinates.
+    bool flag_remove_gradients;    ///< Remove gradients to resolve conflicts
+    bool flag_centroid_eigen1;     ///< Use centroid for 1 or fewer eigenvalues
     bool use_lindstrom;            ///< If true, use Lindstrom formula
     bool use_Linf_dist;            ///< If true, use Linf dist.
 

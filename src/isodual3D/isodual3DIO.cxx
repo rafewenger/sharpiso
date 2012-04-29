@@ -52,6 +52,8 @@ namespace {
      REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
      ALLOW_CONFLICT_PARAM, CLAMP_CONFLICT_PARAM, CLAMP_FAR_PARAM,
      RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,
+     REMOVEG_PARAM, NO_REMOVEG_PARAM,
+     CENTROID_EIGEN1_PARAM, NO_CENTROID_EIGEN1_PARAM,
      USE_LINDSTROM_PARAM,
      ROUND_PARAM, NO_ROUND_PARAM,
      HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
@@ -65,6 +67,8 @@ namespace {
      "-reposition", "-no_reposition", "-sepdist",
      "-allow_conflict", "-clamp_conflict","-clamp_far", 
      "-recompute_eigen2", "-no_recompute_eigen2",
+     "-removeg", "-no_removeg",
+     "-centroid_eigen1", "-no_centroid_eigen1",
      "-lindstrom",
      "-round", "-no_round",
      "-help", "-off", "-iv", "-out_param",
@@ -326,6 +330,22 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 
     case NO_RECOMPUTE_EIGEN2_PARAM:
       input_info.flag_recompute_eigen2 = false;
+      break;
+
+    case REMOVEG_PARAM:
+      input_info.flag_remove_gradients = true;
+      break;
+
+    case NO_REMOVEG_PARAM:
+      input_info.flag_remove_gradients = false;
+      break;
+
+    case CENTROID_EIGEN1_PARAM:
+      input_info.flag_centroid_eigen1 = true;
+      break;
+
+    case NO_CENTROID_EIGEN1_PARAM:
+      input_info.flag_centroid_eigen1 = false;
       break;
 
     case ROUND_PARAM:
@@ -1215,6 +1235,8 @@ namespace {
   cerr << "  [-lindstrom]" << endl;
   cerr << "  [-allow_conflict] [-clamp_conflict] [-clamp_far]" << endl;
   cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
+  cerr << "  [-removeg | -no_removeg] [-centroid_eigen1 | -no_centroid_eigen1]"
+       << endl;
   cerr << "  [-no_round | -round <n>]" << endl;
   cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
        << endl;
@@ -1307,6 +1329,10 @@ void ISODUAL3D::help()
   cout << "  -recompute_eigen2:  Recompute with only 2 eigenvalues to settle conflicts." << endl;
   cout << "  -no_recompute_eigen2:  Don't recompute with only 2 eigenvalues." 
        << endl;
+  cout << "  -removeg:  Remove gradients to resolve conflicts." << endl;
+  cout << "  -no_removeg: Don't remove gradients to resolve conflicts." << endl;
+  cout << "  -centroid_eigen1: Use centroid with one large eigenvalue." << endl;
+  cout << "  -no_centroid_eigen1:  Don't use centroid." << endl;
   cout << "  -no_round:  Don't round coordinates." << endl;
   cout << "  -round <n>: Round coordinates to nearest 1/n." << endl;
   cout << "              Suggest using n=16,32,64,... or 2^k for some k."

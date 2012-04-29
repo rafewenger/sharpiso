@@ -125,6 +125,45 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
      num_gradients, isovalue, max_small_eigenvalue,
      num_large_eigenvalues, eigenvalues, cube_center, sharp_coord);
 
+  if (!sharpiso_param.flag_allow_conflict && 
+      sharpiso_param.flag_remove_gradients ) {
+    snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
+
+    if (check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
+      svd_info.flag_conflict = true;
+
+      point_coord.clear();
+      gradient_coord.clear();
+      scalar.clear();
+
+      // get gradients sorted by distance to cube center.
+      get_gradients
+        (scalar_grid, gradient_grid, cube_index, isovalue,
+         sharpiso_param, cube_111, true,
+         point_coord, gradient_coord, scalar, num_gradients);
+
+      // Decrease number of gradients.
+      NUM_TYPE numg2 = num_gradients - 1;
+      while (numg2 > 0 && 
+             check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
+
+        svd_calculate_sharpiso_vertex_using_lindstrom
+          (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
+           numg2, isovalue, max_small_eigenvalue,
+           num_large_eigenvalues, eigenvalues, cube_center, sharp_coord);
+        numg2--;
+      }
+    }
+  }
+
+  if (sharpiso_param.flag_centroid_eigen1) {
+    if (num_large_eigenvalues <= 1) {
+      compute_isosurface_grid_edge_centroid
+        (scalar_grid, isovalue, cube_index, sharp_coord);
+      svd_info.location = CENTROID;
+    }
+  }
+
   postprocess_isovert_location
     (scalar_grid, cube_index, cube_coord, isovalue, sharpiso_param, 
      sharp_coord, svd_info);
@@ -826,6 +865,8 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   flag_clamp_far = false;
   flag_recompute_eigen2 = true;
   flag_round = false;
+  flag_remove_gradients = false;
+  flag_centroid_eigen1 = false;
   use_Linf_dist = true;
   max_dist = 1.0;
   snap_dist = 1.0/16.0;
