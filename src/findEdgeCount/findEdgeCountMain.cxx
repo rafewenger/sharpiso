@@ -30,6 +30,7 @@ int main(int argc, char **argv)
     parse_command_line(argc, argv);
 
     ifstream in(input_filename, ios::in);
+    compute_output_fn ();
     if (!in.good()) {
       cerr << "Unable to open file " << input_filename << "." << endl;
       exit(30);
@@ -45,13 +46,12 @@ int main(int argc, char **argv)
       edge_endpoint, num_edges, vert_degree);
     if ( !flag_op_to_file){
       // output the edge information 
-      output_vert_degree( num_vertices, vert_degree);
+      output_vert_degree( num_vertices, vert_degree, output_fn);
     }
     else 
     {
       //compute the output file name
-      //compute_output_fn ();
-      output_vert_degree_2_file (num_vertices, vert_degree);
+      output_vert_degree_2_file (num_vertices, vert_degree, output_fn);
     }
 
   }
@@ -90,13 +90,6 @@ void usage_error()
 
 void parse_command_line(int argc, char **argv)
 {
-  /*
-  int iarg = 1;
-
-  if (argc != 2) { usage_error(); }
-
-  input_filename = argv[1];
-  */
   if (argc == 1)  {usage_error();}
   int iarg=1;
   while (iarg<argc && argv[iarg][0]=='-')
@@ -120,5 +113,5 @@ void compute_output_fn ()
   string infile = input_filename;
   found=infile.find_last_of(".");
   output_fn = infile.substr(0,found);
-  output_fn += ".txt";
+  //output_fn += ".txt";
 }
