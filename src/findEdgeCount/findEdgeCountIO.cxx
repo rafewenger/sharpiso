@@ -30,7 +30,7 @@ void output_edges
 }
 
 void output_vert_degree
-( const int numv, vector <int> &vert_degree)
+( const int numv, vector <int> &vert_degree, const string &fname)
 {
   vector <int> deg_one;
   vector <int> deg_two;
@@ -57,7 +57,7 @@ void output_vert_degree
     }
   }
 
-
+  cout <<"file name : "<<fname <<endl;
   cout <<"Vertices with degree 0              ["<<cnt0<<"]" << endl;
   cout <<"Vertices with degree 1              ["<<cnt1<<"]" << endl;
   cout <<"Vertices with degree 2              ["<<cnt2<<"]" << endl;
@@ -108,6 +108,43 @@ void output_vert_degree_2_file
 
 
 void output_vert_degree_2_file 
+(const int numv, vector <int> &vert_degree, const string &fname )
+{
+
+ vector <int> deg_one;
+  vector <int> deg_two;
+  vector <int> deg_threeandmore;  
+  for (int i=0;i<numv;i++)
+  {
+    if (vert_degree[i] == 0)
+      cnt0++;
+    else if (vert_degree[i] == 1){
+      //deg_one.push_back(i);
+      cnt1++;
+    }
+    else if (vert_degree[i] == 2){
+      //deg_two.push_back(i);
+      cnt2++;
+    }
+    else if (vert_degree[i] == 3){
+      //deg_threeandmore.push_back(i);
+      cnt3++;
+    }
+    else 
+    {
+      cntMoreThan3++;
+    }
+  }
+
+  cout <<fname<<" "<< cnt0 <<" " <<  cnt1 << " "
+	   << cnt2 <<" " << cnt3 <<" "
+	   << cntMoreThan3 <<" "
+	   << cnt1 + cnt3 + cntMoreThan3<<" "
+	   << cnt1+cnt2+cnt3+cntMoreThan3<<" "
+	   << numv<<endl; 
+}
+/*
+void output_vert_degree_2_file 
 (const int numv, vector <int> &vert_degree,const string output_fn)
 {
   ofstream fout;   // declare an output file stream
@@ -156,4 +193,4 @@ void output_vert_degree_2_file
     <<numv<<endl;
   // close file stream fout
   fout.close();
-};
+};*/

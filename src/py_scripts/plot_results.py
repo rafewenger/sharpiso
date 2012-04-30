@@ -1,6 +1,7 @@
 '''
 	script to read data and plot it
 '''
+#!/usr/bin/env python
 import read_data_module
 import matplotlib.pyplot as plt
 import numpy
@@ -38,7 +39,7 @@ def plot_from_file(fname):
 def plot_direct(data,LABELS):
 	# plot a BAR GRAPH
 	x_len=len(data)
-	ind=numpy.arange(x_len)
+	
 	#convert from string to int
 	data = map(float, data)
 	WIDTH=0.35
