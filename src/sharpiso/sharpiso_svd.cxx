@@ -532,26 +532,6 @@ void compute_cube_vertex
   compute_sigma(singular_values, err_tolerance, num_sval,
                 sigma, num_large_sval);
 
-  /* OBSOLETE
-  sigma.setZero(num_sval, num_sval);
-
-  num_large_sval = 0;
-
-  // maximum of the singular values
-  float max = singular_values.maxCoeff();
-  float max_times_err_tol = err_tolerance*max;
-  for (int i=0; i<num_sval; i++) {
-    if(max > 0.0)
-      if ( singular_values(i) > max_times_err_tol ) {
-        //increment the number of singular values of A
-        num_large_sval++;
-        //sigma(i,i) is updated to 1 / the singular value,
-        //only if it is more than the error tolerance
-        sigma(i,i) = 1.0/singular_values(i);
-      }
-  }
-  */
-
   MatrixXf point = centroid.transpose() + svd.matrixV()*sigma*
     svd.matrixU().transpose()*(b.transpose() - A*centroid.transpose());
 
