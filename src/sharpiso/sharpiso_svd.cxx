@@ -497,7 +497,7 @@ void compute_A_pseudoinverse
  int & num_large_singular,
  MatrixXf &pseudoinverseA)
 {
-  //compute the singular values for the matrix
+  // Compute the singular values for the matrix
   JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
   singular_values  = svd.singularValues();
   int num_sval = singular_values.rows();
@@ -546,33 +546,20 @@ void  compute_A_pseudoinverse_top_2
 (const MatrixXf A,
  MatrixXf &singular_values,
  const float  err_tolerance,
- int &num_singular_vals,
+ int & num_large_singular,
  MatrixXf & inA)
 {
+  // Compute the singular values for the matrix
   JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
-  //compute the singular values for the matrix
   singular_values  = svd.singularValues();
-  //Compute the sigma interms of the tolerance
-  MatrixXf sigma(3,3);
-  sigma << 0,0,0,0,0,0,0,0,0;
+  int num_sval = singular_values.rows();
 
-  num_singular_vals = 0;
-  int max_num_svals = 2; // find the top 2 singular value based solution
+  // Compute sigma using only large singular values.
+  // Use at most two singular values.
+  MatrixXf sigma(num_sval, num_sval);
+  compute_sigma(singular_values, err_tolerance, 2,
+                sigma, num_large_singular);
 
-  // maximum of the singular values
-  float max = singular_values.maxCoeff();
-  float max_times_err_tol = err_tolerance*max;
-  // Compute for the top 2 singular values.
-  for (int i=0; i<max_num_svals; i++) {
-    if(max > 0.0 )
-      if ( singular_values(i) > max_times_err_tol ) {
-        //increment the number of singular values of A
-        num_singular_vals++;
-        //sigma(i,i) is updated to 1 / the singular value,
-        //only if it is more than the error tolerance
-        sigma(i,i) = 1.0/singular_values(i);
-      }
-  }
   inA =  svd.matrixV()*sigma.transpose()*svd.matrixU().transpose();
 }
 

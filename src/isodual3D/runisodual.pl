@@ -10,7 +10,7 @@ my $allpositions = 0;
 my @count_files;
 
 # isodual3D arguments which take an input value/string.
-my @isodual3D_options = ( "-subsample",  "-position", "-round" );
+my @isodual3D_options = ( "-subsample",  "-position", "-round", "-max_dist" );
 
 my @input_options;
 while (scalar(@input_list) > 0 &&

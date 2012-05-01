@@ -20,7 +20,7 @@ my %data_flag;
 my $use_all_data = 0;
 
 # isodual3D arguments which take an input value/string.
-my @isodual3D_options = ( "-subsample",  "-position", "-round" );
+my @isodual3D_options = ( "-subsample",  "-position", "-round", "-max_dist" );
 
 while (scalar(@proglist) > 0 &&
        $proglist[0] =~ /-.*/) {
