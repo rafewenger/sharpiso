@@ -38,10 +38,7 @@ if args.key!=None:
 #print 'files',args.input_files
 cc.run_commands(cmd_list)
 
-print 'cmd ', cmd_list
-
 #RUN FIND EDGE ON THE FILES
-
 fe_cmd_list=cc.create_find_edge_command_from_cmd_list(cmd_list) 
 cc.run_commands(fe_cmd_list)
 

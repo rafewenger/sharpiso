@@ -35,16 +35,15 @@ def create_iso_command(args):
           cgrad_file.insert(len(cgrad_file)-1,'cgrad')
           cmd.append('.'.join(cgrad_file))
          cmd.append('-trimesh')
+         cmd.append('-s')
          cmd.append('-position')
          cmd.append(pos)
          cmd.append('-o')
-         fl=files.split('.')
-         
+         fl=files.split('.')    
          fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.off'
-         
+         fl_name=df.temp_loc+fl_name
          cmd.append(fl_name)
          cmd.append(iso)
-         #DEBUG cmd.append(files)
          print 'data ', df.data_loc+files
          cmd.append(df.data_loc+files)
          print 'cmd',cmd        
@@ -93,7 +92,9 @@ def create_iso_command_with_key(args,key):
          cmd.append(pos)
          cmd.append('-o')
          fl=files.split('.')
-         cmd.append('.'.join(fl[:(len(fl)-1)])+'.'+key+'.'+pos+'.'+iso+'.off')
+         fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.off'
+         fl_name=df.temp_loc.fl_name
+         cmd.append(fl_name)
          cmd.append(iso)
          #DEBUGcmd.append(files)
          cmd.append(df.data_loc+files)
@@ -114,7 +115,10 @@ def create_find_edge_command(args):
         cmd=['./findedge']
         cmd.append('140')
         fl=files.split('.')
-        cmd.append('.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.off')
+        fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.off'
+        fl_name=df.temp_loc.fl_name
+        cmd.append(fl_name)
+        #cmd.append('.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.off')
         print cmd
         cmd_list.append(cmd)
   return cmd_list
@@ -145,7 +149,10 @@ def create_find_edge_count_command(args):
         cmd=['./findEdgeCount']
         cmd.append('-fp')
         fl=files.split('.')
-        cmd.append('.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.line')
+        fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.line'
+        fl_name=df.temp_loc.fl_name
+        cmd.append(fl_name)
+        #cmd.append('.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.line')
         print cmd
         cmd_list.append(cmd)
   return cmd_list
@@ -181,5 +188,6 @@ Run a list of commands using the check output function
 def run_commands_out_to_file(cmd_list,fi):
   for cmd in cmd_list:
     p2=subprocess.check_output(cmd)
+    print 'p2',p2
     print >>fi,p2
 
