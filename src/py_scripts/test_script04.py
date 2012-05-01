@@ -1,5 +1,5 @@
+#!/home/3/bhattaca/bin/python
 #test script4 this is the latest version 
- #!/home/3/bhattaca/bin python
 
 import cmd_line
 import create_command
@@ -48,6 +48,7 @@ cc.run_commands(fe_cmd_list)
 #print to a file
 f=open ('output.txt','w')
 fec_cmd_list=cc.create_find_edge_COUNT_command_from_cmd_list(cmd_list)
+print "fec_cmd_list: ", fec_cmd_list
 cc.run_commands_out_to_file(fec_cmd_list,f)
 
 

@@ -16,6 +16,9 @@ my $isoval_offset = 0;
 my $outfile = "temp.off";
 my $outfile0 = "temp0.off";
 
+my %data_flag;
+my $use_all_data = 0;
+
 # isodual3D arguments which take an input value/string.
 my @isodual3D_options = ( "-subsample",  "-position", "-round" );
 
@@ -33,6 +36,21 @@ while (scalar(@proglist) > 0 &&
     $veryfastflag = 1; 
     next;
   };
+
+  if ($new_option eq "-flange") {
+    $data_flag{flange} = 1;
+    next;
+  }
+
+  if ($new_option eq "-annulus") {
+    $data_flag{annulus} = 1;
+    next;
+  }
+
+  if ($new_option eq "-twocubes") {
+    $data_flag{twocubes} = 1;
+    next;
+  }
 
   if ($new_option eq "-offset") {
     $isoval_offset = shift(@proglist);
@@ -58,30 +76,76 @@ if (scalar(@proglist) < 1) { usage_error(); };
 
 my %testdata;
 
-$testdata{cube_A20}{fname} = "cube3D.A20x.nrrd";
-$testdata{cube_A20}{isovalue} = [ 4.9, 5, 5.5 ];
+if ((scalar keys %data_flag) == 0) {
+  # use all data
+  $use_all_data = 1;
+}
 
-$testdata{cube_B20}{fname} = "cube3D.B20x.nrrd";
-$testdata{cube_B20}{isovalue} = [ 5, 5.5];
 
-$testdata{twocubes_A21}{fname} = "twocubes3D.A21x.nrrd";
-$testdata{twocubes_A21}{isovalue} = [ 4, 4.5 ];
+if ($use_all_data) {
+  $testdata{cube_A20}{fname} = "cube3D.A20x.nrrd";
+  $testdata{cube_A20}{isovalue} = [ 4.9, 5, 5.5 ];
 
-$testdata{annulus_A31}{fname} = "annulus3D.A31x.nrrd";
-$testdata{annulus_A31}{isovalue} = [ 4, 4.5 ];
+  $testdata{cube_B20}{fname} = "cube3D.B20x.nrrd";
+  $testdata{cube_B20}{isovalue} = [ 5, 5.5];
+}
 
-$testdata{annulus_B31}{fname} = "annulus3D.B31x.nrrd";
-$testdata{annulus_B31}{isovalue} = [ 4, 4.5 ];
+if ($use_all_data || defined($data_flag{twocubes})) {
+  $testdata{twocubes_A21}{fname} = "twocubes3D.A21x.nrrd";
+  $testdata{twocubes_A21}{isovalue} = [ 4, 4.5 ];
 
-$testdata{annulus_C31}{fname} = "annulus3D.C31x.nrrd";
-$testdata{annulus_C31}{isovalue} = [ 4, 4.5 ];
+  $testdata{twocubes_B21}{fname} = "twocubes3D.B21x.nrrd";
+  $testdata{twocubes_B21}{isovalue} = [ 4, 4.5 ];
+}
+
+if ($use_all_data || defined($data_flag{annulus})) {
+
+  $testdata{annulus_A31}{fname} = "annulus3D.A31x.nrrd";
+  $testdata{annulus_A31}{isovalue} = [ 4, 4.5 ];
+
+  $testdata{annulus_B31}{fname} = "annulus3D.B31x.nrrd";
+  $testdata{annulus_B31}{isovalue} = [ 4, 4.1, 4.5 ];
+
+  $testdata{annulus_C31}{fname} = "annulus3D.C31x.nrrd";
+  $testdata{annulus_C31}{isovalue} = [ 4, 4.5 ];
+
+  $testdata{annulus_D31}{fname} = "annulus3D.D31x.nrrd";
+  $testdata{annulus_D31}{isovalue} = [ 4, 4.5 ];
+
+  $testdata{annulus_E31}{fname} = "annulus3D.E31x.nrrd";
+  $testdata{annulus_E31}{isovalue} = [ 4, 4.5 ];
+
+  $testdata{annulus_F31}{fname} = "annulus3D.F31x.nrrd";
+  $testdata{annulus_F31}{isovalue} = [ 4, 4.5 ];
+}
+
+if ($use_all_data || defined($data_flag{flange})) {
+
+  $testdata{flange_A61}{fname} = "flange3D.A61x.nrrd";
+  $testdata{flange_A61}{isovalue} = [ 4, 4.5 ];
+
+  $testdata{flange_B61}{fname} = "flange3D.B61x.nrrd";
+  $testdata{flange_B61}{isovalue} = [ 4, 4.5 ];
+
+  $testdata{flange_C61}{fname} = "flange3D.C61x.nrrd";
+  $testdata{flange_C61}{isovalue} = [ 4, 4.5 ];
+
+  $testdata{flange_D61}{fname} = "flange3D.D61x.nrrd";
+  $testdata{flange_D61}{isovalue} = [ 4, 4.5 ];
+
+  $testdata{flange_E61}{fname} = "flange3D.E61x.nrrd";
+  $testdata{flange_E61}{isovalue} = [ 4, 4.5 ];
+
+  $testdata{flange_F61}{fname} = "flange3D.F61x.nrrd";
+  $testdata{flange_F61}{isovalue} = [ 4, 4.5 ];
+}
 
 
 my $prog0 = shift(@proglist);
 
 if (scalar(@proglist) == 0) {
 
-  usage_error();
+  run_isodual3D_count_sharp_edges(@input_options);
 }
 else {
 
@@ -104,6 +168,26 @@ if (-e "$outfile") { system "rm $outfile"; }
 sub usage_error {
  print "Usage: testisodual3D.pl [OPTIONS] {prog1} {prog2} [{prog3} ...]";
  exit(10);
+}
+
+# run isodual3D and count number of sharp edges
+sub run_isodual3D_count_sharp_edges {
+
+  my @option_list = ("-trimesh", "@_");
+
+  foreach my $tdata (keys %testdata) {
+
+    my $tfile = "$testdir"."/"."$testdata{$tdata}{fname}";
+    my @isovalue_list = @{$testdata{$tdata}{isovalue}};
+    foreach my $isoval (@isovalue_list) {
+
+      $isoval = $isoval + $isoval_offset;
+      run_isodual3D($prog0, $tfile, "$outfile0", \@option_list, $isoval);
+
+      count_sharp_edges("$outfile0");
+    }
+  }
+
 }
 
 # compare executables with all possible options
@@ -178,6 +262,32 @@ sub run_isodual3D {
   system("$command_line") == 0 ||
     die "Program isodual3D abnormally terminated.\n";
 
+}
+
+# count number of sharp edges
+sub count_sharp_edges {
+
+  scalar(@_) != 0 ||
+    die "Error in sub count_sharp_edges. Requires one parameter.\n";
+
+  my $output_filename = $_[0];
+
+  my $line_filename = $output_filename;
+  $line_filename =~ s/.off/.line/;
+  my $count_filename = $output_filename;
+  $count_filename =~ s/.off/.count/;
+
+  my $command_line = "findedge 140 $output_filename";
+  # print "$command_line\n";
+  system("$command_line >& /dev/null") == 0 ||
+    die "Program findedge abnormally terminated.\n";
+
+  $command_line = "findEdgeCount $line_filename > $count_filename";
+  # print "$command_line\n";
+  system("$command_line") == 0 ||
+    die "Program findedge abnormally terminated.\n";
+
+  system("fgrep \"degree 1 or 3\" $count_filename");
 }
 
 sub diff_files {
