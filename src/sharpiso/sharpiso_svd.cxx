@@ -6,9 +6,12 @@
 *  Copyright 2011 Ohio State University. All rights reserved.
 *
 */
-#include "sharpiso_svd.h"
+
 #include<iostream>
 #include<vector>
+#include <cmath>
+
+#include "sharpiso_svd.h"
 
 using namespace std;
 using namespace SHARPISO;
@@ -453,39 +456,57 @@ void compute_B_normalize
   }
 }
 
+// Compute sigma using only large singular values
+// Precondition: sigma is a square kxk matrix where k=singular_values.rows().
+void compute_sigma(const MatrixXf & singular_values,
+                   const EIGENVALUE_TYPE error_tolerance,
+                   const int max_num_singular,
+                   MatrixXf & sigma,
+                   int & num_large_singular)
+{
+  int num_sval = singular_values.rows();
+
+  // Initialize
+  num_large_singular = 0;
+  sigma.setZero(num_sval, num_sval);
+
+  EIGENVALUE_TYPE max_sval = singular_values.maxCoeff();
+  EIGENVALUE_TYPE scaled_error_tolerance = error_tolerance * max_sval;
+
+  if (scaled_error_tolerance <= 0) { return; }
+
+  int max_num_sval = std::min(num_sval, max_num_singular);
+
+  for (int i = 0; i < max_num_sval; i++) {
+    if (singular_values(i) > scaled_error_tolerance) {
+      num_large_singular++;
+      sigma(i,i) = 1.0/singular_values(i);
+    }
+  }
+
+}
+
 // FUNCTION compute the pseudo inverse of A
 // helper function to compute_A_inverse.
 // it calculates the sigma interms of the given tolerance
 // debug change this to error type.
 void compute_A_pseudoinverse
 (const MatrixXf A,
- MatrixXf &singular_values,
+ MatrixXf & singular_values,
  const float  err_tolerance,
- int &num_singular_vals,
+ int & num_large_singular,
  MatrixXf &pseudoinverseA)
 {
-  JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
   //compute the singular values for the matrix
+  JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
   singular_values  = svd.singularValues();
-  //Compute the sigma interms of the tolerance
-  MatrixXf sigma(3,3);
-  sigma << 0,0,0,0,0,0,0,0,0;
+  int num_sval = singular_values.rows();
 
-  num_singular_vals = 0;
+  // Compute sigma using only large singular values
+  MatrixXf sigma(num_sval, num_sval);
+  compute_sigma(singular_values, err_tolerance, num_sval,
+                sigma, num_large_singular);
 
-  // maximum of the singular values
-  float max = singular_values.maxCoeff();
-  float max_times_err_tol = err_tolerance*max;
-  for (int i=0; i<DIM3; i++) {
-    if(max > 0.0)
-      if ( singular_values(i) > max_times_err_tol ) {
-        //increment the number of singular values of A
-        num_singular_vals++;
-        //sigma(i,i) is updated to 1 / the singular value,
-        //only if it is more than the error tolerance
-        sigma(i,i) = 1.0/singular_values(i);
-      }
-  }
   pseudoinverseA = svd.matrixV()*sigma.transpose()*svd.matrixU().transpose();
 }
 
@@ -501,16 +522,17 @@ void compute_cube_vertex
  const RowVectorXf centroid,
  float * sharp_point)
 {
-
+  // Compute the singular values for the matrix
   JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
-  //compute the singular values for the matrix
   singular_values  = svd.singularValues();
   int num_sval = singular_values.rows();
-  //Compute the sigma in terms of the tolerance
-  RowVectorXf cube_center(3);
-  cube_center<<0.5,0.5,0.5;
 
+  // Compute sigma using only large singular values
   MatrixXf sigma(num_sval, num_sval);
+  compute_sigma(singular_values, err_tolerance, num_sval,
+                sigma, num_large_sval);
+
+  /* OBSOLETE
   sigma.setZero(num_sval, num_sval);
 
   num_large_sval = 0;
@@ -528,6 +550,7 @@ void compute_cube_vertex
         sigma(i,i) = 1.0/singular_values(i);
       }
   }
+  */
 
   MatrixXf point = centroid.transpose() + svd.matrixV()*sigma*
     svd.matrixU().transpose()*(b.transpose() - A*centroid.transpose());
