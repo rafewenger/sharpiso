@@ -166,6 +166,16 @@ void ISODUAL_DATA::SupersampleScalarGrid
   is_scalar_grid_set = true;
 }
 
+/// Subsample gradient grid
+/// Rescale gradients by multiplying them by the subsample_resolution.
+void ISODUAL_DATA::SubsampleGradientGrid
+(const GRADIENT_GRID_BASE & gradient_grid2, const int subsample_resolution)
+{
+  gradient_grid.Subsample(gradient_grid2, subsample_resolution);
+  gradient_grid.ScalarMultiply(subsample_resolution);
+  is_gradient_grid_set = true;
+}
+
 // Copy, subsample or supersample scalar grid.
 void ISODUAL_DATA::SetScalarGrid
 (const ISODUAL_SCALAR_GRID_BASE & full_scalar_grid,
@@ -208,8 +218,8 @@ void ISODUAL_DATA::SetGrids
   }
 
   if (flag_subsample) {
-    error.AddMessage("Subsampling of gradient grid is not yet implemented.");
-    throw error;
+    SubsampleScalarGrid(full_scalar_grid, subsample_resolution);
+    SubsampleGradientGrid(full_gradient_grid, subsample_resolution);
   }
   else if (flag_supersample) {
     error.AddMessage("Supersampling of gradient grid is not yet implemented.");

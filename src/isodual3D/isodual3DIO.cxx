@@ -46,7 +46,7 @@ using namespace std;
 namespace {
 
   typedef enum
-    {SUBSAMPLE_PARAM, SUPERSAMPLE_PARAM,
+    {SUBSAMPLE_PARAM, 
      GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
      MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM,
      REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
@@ -63,7 +63,7 @@ namespace {
      NOWRITE_PARAM, OUTPUT_INFO_PARAM, SILENT_PARAM,
      TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
-    {"-subsample", "-supersample",
+    {"-subsample", 
      "-gradient", "-position", "-trimesh", "-uniform_trimesh",
      "-max_eigen", "-max_dist", "-gradS_offset", 
      "-reposition", "-no_reposition", "-sepdist",
@@ -252,12 +252,6 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
       input_info.subsample_resolution = get_int(iarg, argc, argv);
       iarg++;
       input_info.flag_subsample = true;
-      break;
-
-    case SUPERSAMPLE_PARAM:
-      input_info.supersample_resolution = get_int(iarg, argc, argv);
-      iarg++;
-      input_info.flag_supersample = true;
       break;
 
     case GRADIENT_PARAM:
@@ -1243,7 +1237,7 @@ namespace {
   void options_msg()
   {
   cerr << "OPTIONS:" << endl;
-  cerr << "  [-subsample S] [-supersample S]" << endl;
+  cerr << "  [-subsample S]" << endl;
   cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|"
        << endl
        << "              gradIE|gradIES|gradCD|gradNIE|gradNIES|" << endl

@@ -174,6 +174,10 @@ namespace ISODUAL3D {
     void SubsampleScalarGrid        /// Subsample scalar_grid.
       (const ISODUAL_SCALAR_GRID_BASE & scalar_grid2, 
        const int subsample_resolution);
+    void SubsampleGradientGrid
+      (const GRADIENT_GRID_BASE & gradient_grid2, 
+       const int subsample_resolution);
+
     void SupersampleScalarGrid      /// Supersample scalar_grid.
       (const ISODUAL_SCALAR_GRID_BASE & scalar_grid2, 
        const int supersample_resolution);
