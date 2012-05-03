@@ -92,8 +92,8 @@ def create_iso_command_with_key(args,key):
          cmd.append(pos)
          cmd.append('-o')
          fl=files.split('.')
-         fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.off'
-         fl_name=df.temp_loc.fl_name
+         fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+key+'.'+iso+'.off'
+         fl_name=df.temp_loc+fl_name
          cmd.append(fl_name)
          cmd.append(iso)
          #DEBUGcmd.append(files)
@@ -188,6 +188,5 @@ Run a list of commands using the check output function
 def run_commands_out_to_file(cmd_list,fi):
   for cmd in cmd_list:
     p2=subprocess.check_output(cmd)
-    print 'p2',p2
     print >>fi,p2
 

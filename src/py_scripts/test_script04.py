@@ -34,8 +34,8 @@ if args.key!=None:
   '''  
   cmd_list_with_key=cc.create_iso_command_with_key(args,args.key)
   cmd_list=cmd_list + cmd_list_with_key
-  
-#print 'files',args.input_files
+
+
 cc.run_commands(cmd_list)
 
 #RUN FIND EDGE ON THE FILES
@@ -49,14 +49,22 @@ cc.run_commands(fe_cmd_list)
 f=open ('output.txt','w')
 fec_cmd_list=cc.create_find_edge_COUNT_command_from_cmd_list(cmd_list)
 print "fec_cmd_list: ", fec_cmd_list
+
 cc.run_commands_out_to_file(fec_cmd_list,f)
+
+
+#sort the data
+f=open ('output.txt','r')
+data_read=f.readlines()
+
 
 
 
 #CHART DATA
 
-f=open('output.txt','r')
-print 'reading from file ...'
-data=f.readlines()
-chart_data.plot_data(data)
 
+
+#f=open('output.txt','r')
+#print 'reading from file ...'
+#data=f.readlines()
+#chart_data.plot_data(data)
