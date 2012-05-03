@@ -50,7 +50,9 @@ namespace {
      GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
      MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM,
      REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
-     ALLOW_CONFLICT_PARAM, CLAMP_CONFLICT_PARAM, CLAMP_FAR_PARAM,
+     ALLOW_CONFLICT_PARAM, 
+     CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
+     CLAMP_FAR_PARAM, CENTROID_FAR_PARAM,
      RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,
      REMOVEG_PARAM, NO_REMOVEG_PARAM,
      RESELECT_GRAD_PARAM, NO_RESELECT_GRAD_PARAM,
@@ -67,7 +69,8 @@ namespace {
      "-gradient", "-position", "-trimesh", "-uniform_trimesh",
      "-max_eigen", "-max_dist", "-gradS_offset", 
      "-reposition", "-no_reposition", "-sepdist",
-     "-allow_conflict", "-clamp_conflict","-clamp_far", 
+     "-allow_conflict", "-clamp_conflict", "-centroid_conflict",
+     "-clamp_far", "-centroid_far",
      "-recompute_eigen2", "-no_recompute_eigen2",
      "-removeg", "-no_removeg",
      "-reselectg", "-no_reselectg",
@@ -326,8 +329,16 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
       input_info.flag_clamp_conflict = true;
       break;
 
+    case CENTROID_CONFLICT_PARAM:
+      input_info.flag_clamp_conflict = false;
+      break;
+
     case CLAMP_FAR_PARAM:
       input_info.flag_clamp_far = true;
+      break;
+
+    case CENTROID_FAR_PARAM:
+      input_info.flag_clamp_far = false;
       break;
 
     case RECOMPUTE_EIGEN2_PARAM:
@@ -1247,7 +1258,8 @@ namespace {
   cerr << "  [-max_dist {D}] [-gradS_offset {offset}]" << endl;
   cerr << "  [-reposition | -no_reposition]" << endl;
   cerr << "  [-lindstrom]" << endl;
-  cerr << "  [-allow_conflict] [-clamp_conflict] [-clamp_far]" << endl;
+  cerr << "  [-allow_conflict] [-clamp_conflict] [-centroid_conflict]" << endl;
+  cerr << "  [-clamp_far] [-centroid_far]" << endl;
   cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
   cerr << "  [-removeg | -no_removeg] [-reselectg | -no_reselectg]" << endl;
   cerr << "  [-centroid_eigen1 | -no_centroid_eigen1]" << endl;
@@ -1338,8 +1350,14 @@ void ISODUAL3D::help()
        << endl;
   cout << "  -allow_conflict:  Allow more than one isosurface vertex in a cube."
        << endl;
-  cout << "  -clamp_conflict:  Settle conflicts by clamping to cube." << endl;
-  cout << "  -clamp_far: Clamp isosurface vertices at distance greater than max_dist." << endl;
+  cout << "  -clamp_conflict:  Settle conflicts by clamping to cube."
+       << " (Default.)"  << endl;
+  cout << "  -centroid_conflict:  Settle conflicts by using centroid."
+       << endl;
+  cout << "  -clamp_far: Clamp isosurface vertices at distance greater"
+       << " than max_dist." << endl;
+  cout << "  -centroid_far: Revert to centroid when isosurface vertices are"
+       << endl << " at distance greater than max_dist." << endl;
   cout << "  -recompute_eigen2:  Recompute with only 2 eigenvalues to settle conflicts." << endl;
   cout << "  -no_recompute_eigen2:  Don't recompute with only 2 eigenvalues." 
        << endl;

@@ -960,7 +960,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 {
   use_lindstrom = false;
   flag_allow_conflict = false;
-  flag_clamp_conflict = false;
+  flag_clamp_conflict = true;
   flag_clamp_far = false;
   flag_recompute_eigen2 = true;
   flag_round = false;
