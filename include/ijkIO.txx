@@ -41,14 +41,21 @@ namespace IJK {
   namespace {
 
     /// Output vertex coordinates
-    template <class CTYPE> void ijkoutVertexCoord
+    template <typename CTYPE> void ijkoutVertexCoord
     (std::ostream & out, const int dim, const CTYPE * coord, const int numv);
 
     /// Output polygon vertices
-    template <class VTYPE> void ijkoutPolygonVertices
+    template <typename VTYPE> void ijkoutPolygonVertices
     (std::ostream & out, const int numv_per_polygon,
      const VTYPE * poly_vert, const int nump);
 
+
+    /// Output vector endpoint coordinates.
+    template <typename CTYPE0, typename CTYPE1, typename CTYPE2> 
+    void ijkoutVectorEndpoints
+    (std::ostream & out, const int dim, 
+     const CTYPE0 * point_coord, const CTYPE1 * dir_coord, 
+     const int num_vectors, const CTYPE2 scale);
   }
 
   // ******************************************
@@ -56,7 +63,7 @@ namespace IJK {
   // ******************************************
 
   /// Output OpenInventor .iv file.
-  template <class CTYPE, class VTYPE> void ijkoutIV
+  template <typename CTYPE, typename VTYPE> void ijkoutIV
   (std::ostream & out, const int dim, const CTYPE * coord, const int numv,
    const VTYPE * tri, const int numt)
     // out = output stream
@@ -68,8 +75,10 @@ namespace IJK {
   {
     IJK::PROCEDURE_ERROR error("ijkoutIV");
 
-    if (dim != 3)
-      throw error("Illegal dimension.  OpenInventor files are only for dimension 3.");
+    if (dim != 3) {
+      throw error
+        ("Illegal dimension.  OpenInventor files are only for dimension 3.");
+    }
 
     out << "#Inventor V2.1 ascii" << std::endl;
     out << std::endl;
@@ -122,7 +131,7 @@ namespace IJK {
   }
 
   /// Output OpenInventor .iv file to standard output.
-  template <class CTYPE, class VTYPE> void ijkoutIV
+  template <typename CTYPE, typename VTYPE> void ijkoutIV
   (const int dim, const CTYPE * coord, const int numv,
    const VTYPE * tri, const int numt)
     // output OpenInventor .iv format to standard output
@@ -136,7 +145,7 @@ namespace IJK {
   }
 
   /// Output OpenInventor .iv file.
-  template <class CTYPE, class VTYPE> void ijkoutIV
+  template <typename CTYPE, typename VTYPE> void ijkoutIV
   (std::ostream & out, const int dim, const std::vector<CTYPE> & coord,
    const std::vector<VTYPE> & simplex_vert)
   {
@@ -145,7 +154,7 @@ namespace IJK {
   }
 
   /// Output OpenInventor .iv file to standard output.
-  template <class CTYPE, class VTYPE> void ijkoutIV
+  template <typename CTYPE, typename VTYPE> void ijkoutIV
   (const int dim, const std::vector<CTYPE> & coord,
    const std::vector<VTYPE> & simplex_vert)
   {
@@ -167,7 +176,7 @@ namespace IJK {
   /// @param simplex_vert = Array of simplex vertices.
   ///        simplex_vert[numv_per_simplex*j+k] = k'th vertex of simplex j.
   /// @param nums = Number of simplices
-  template <class CTYPE, class VTYPE> void ijkoutOFF
+  template <typename CTYPE, typename VTYPE> void ijkoutOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,
    const CTYPE * coord, const int numv,
    const VTYPE * simplex_vert, const int nums)
@@ -189,7 +198,7 @@ namespace IJK {
   }
 
   /// Output Geomview .off file to standard output.
-  template <class CTYPE, class VTYPE> void ijkoutOFF
+  template <typename CTYPE, typename VTYPE> void ijkoutOFF
   (const int dim, const int numv_per_simplex,
    const CTYPE * coord, const int numv,
    const VTYPE * simplex_vert, const int nums)
@@ -200,7 +209,7 @@ namespace IJK {
 
   /// \brief Output Geomview .off file.
   /// Every simplex has \a dim vertices.
-  template <class CTYPE, class VTYPE> void ijkoutOFF
+  template <typename CTYPE, typename VTYPE> void ijkoutOFF
   (std::ostream & out, const int dim, const CTYPE * coord, const int numv,
    const VTYPE * simplex_vert, const int nums)
     // set numv_per_simplex to dim
@@ -210,7 +219,7 @@ namespace IJK {
 
   /// Output Geomview .off file to standard output.
   /// Every simplex has \a dim vertices.
-  template <class CTYPE, class VTYPE> void ijkoutOFF
+  template <typename CTYPE, typename VTYPE> void ijkoutOFF
   (const int dim, const CTYPE * coord, const int numv,
    const VTYPE * simplex_vert, const int nums)
     // output Geomview OFF format to standard output
@@ -221,20 +230,21 @@ namespace IJK {
 
 
   /// Output Geomview .off file.
-  template <class CTYPE, class VTYPE> void ijkoutOFF
+  template <typename CTYPE, typename VTYPE> void ijkoutOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,
    const std::vector<CTYPE> & coord,
    const std::vector<VTYPE> & simplex_vert)
     // output Geomview OFF files
     // vector input format
   {
-    ijkoutOFF(out, dim, numv_per_simplex, vector2pointer(coord), coord.size()/dim,
-              vector2pointer(simplex_vert), simplex_vert.size()/numv_per_simplex);
+    ijkoutOFF
+      (out, dim, numv_per_simplex, vector2pointer(coord), coord.size()/dim,
+       vector2pointer(simplex_vert), simplex_vert.size()/numv_per_simplex);
   }
 
   /// Output Geomview .off file.
   /// Every simplex has \a dim vertices.
-  template <class CTYPE, class VTYPE> void ijkoutOFF
+  template <typename CTYPE, typename VTYPE> void ijkoutOFF
   (std::ostream & out, const int dim, const std::vector<CTYPE> & coord,
    const std::vector<VTYPE> & simplex_vert)
     // output Geomview OFF files
@@ -247,7 +257,7 @@ namespace IJK {
 
 
   /// Output Geomview .off file to standard output.
-  template <class CTYPE, class VTYPE> void ijkoutOFF
+  template <typename CTYPE, typename VTYPE> void ijkoutOFF
   (const int dim, const int numv_per_simplex, const std::vector<CTYPE> & coord,
    const std::vector<VTYPE> & simplex_vert)
     // output Geomview OFF format to standard output
@@ -258,7 +268,7 @@ namespace IJK {
 
   /// Output Geomview .off file to standard output.
   /// Every simplex has \a dim vertices.
-  template <class CTYPE, class VTYPE> void ijkoutOFF
+  template <typename CTYPE, typename VTYPE> void ijkoutOFF
   (const int dim, const std::vector<CTYPE> & coord,
    const std::vector<VTYPE> & simplex_vert)
     // output Geomview OFF format to standard output
@@ -270,7 +280,7 @@ namespace IJK {
   }
 
   /// Output Geomview .off file. Color vertices.
-  template <class T, class colorT> void ijkoutColorVertOFF
+  template <typename T, typename colorT> void ijkoutColorVertOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,   
    const T * coord, const int numv,
    const int * simplex_vert, const int nums,
@@ -333,7 +343,7 @@ namespace IJK {
   }
 
   /// Output Geomview .off file to standard output. Color vertices.
-  template <class T, class colorT> void ijkoutColorVertOFF
+  template <typename T, typename colorT> void ijkoutColorVertOFF
   (const int dim, const int numv_per_simplex,
    const T * coord, const int numv,
    const int * simplex_vert, const int nums,
@@ -345,7 +355,8 @@ namespace IJK {
   }
 
   /// Output Geomview .off file. Color vertices.
-  template <class CTYPE, class VTYPE, class colorT> void ijkoutColorVertOFF
+  template <typename CTYPE, typename VTYPE, typename colorT> 
+  void ijkoutColorVertOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,   
    const std::vector<CTYPE> & coord,
    const std::vector<VTYPE> & simplex_vert,
@@ -358,7 +369,7 @@ namespace IJK {
   }
 
   /// Output Geomview .off file. Color simplices.
-  template <class T, class colorT> void ijkoutColorFacesOFF
+  template <typename T, typename colorT> void ijkoutColorFacesOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,
    const T * coord, const int numv,
    const int * simplex_vert, const int nums,
@@ -421,7 +432,7 @@ namespace IJK {
   }
 
   /// Output Geomview .off file to standard output. Color simplices.
-  template <class T, class colorT> void ijkoutColorFacesOFF
+  template <typename T, typename colorT> void ijkoutColorFacesOFF
   (const int dim, const int numv_per_simplex, 
    const T * coord, const int numv,
    const int * simplex_vert, const int nums,
@@ -433,7 +444,8 @@ namespace IJK {
   }
 
   /// Output Geomview .off file. Color simplices.
-  template <class CTYPE, class VTYPE, class colorT> void ijkoutColorFacesOFF
+  template <typename CTYPE, typename VTYPE, typename colorT> 
+  void ijkoutColorFacesOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,   
    const std::vector<CTYPE> & coord,
    const std::vector<VTYPE> & simplex_vert,
@@ -446,7 +458,8 @@ namespace IJK {
   }
 
   /// Output Geomview .off file. Output vertex normals.
-  template <class CTYPE, class NTYPE, class VTYPE> void ijkoutNormalsOFF
+  template <typename CTYPE, typename NTYPE, typename VTYPE> 
+  void ijkoutNormalsOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,
    const CTYPE * coord, const NTYPE * normal, const int numv,
    const VTYPE * simplex_vert, const int nums)
@@ -494,7 +507,8 @@ namespace IJK {
   }
 
   /// Output Geomview .off file. Output vertex normals.
-  template <class CTYPE, class NTYPE, class VTYPE> void ijkoutNormalsOFF
+  template <typename CTYPE, typename NTYPE, typename VTYPE> 
+  void ijkoutNormalsOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,
    const std::vector<CTYPE> & coord,
    const std::vector<NTYPE> & normal,
@@ -518,7 +532,7 @@ namespace IJK {
   /// @param nums = Number of simplices
   /// @param flag_reorder_vertices = Flag for reordering vertices.
   ///        If true, output vertices in counter-clockwise order around quad.
-  template <class CTYPE, class VTYPE> void ijkoutQuadOFF
+  template <typename CTYPE, typename VTYPE> void ijkoutQuadOFF
   (std::ostream & out, const int dim,
    const CTYPE * coord, const int numv,
    const VTYPE * quad_vert, const int numq,
@@ -542,7 +556,7 @@ namespace IJK {
   }
 
   /// Output quadrilaterals in Geomview .off format to standard output.
-  template <class CTYPE, class VTYPE> void ijkoutQuadOFF
+  template <typename CTYPE, typename VTYPE> void ijkoutQuadOFF
   (const int dim,
    const CTYPE * coord, const int numv,
    const VTYPE * quad_vert, const int numq,
@@ -552,8 +566,8 @@ namespace IJK {
   }
 
   /// Output quadrilaterals to Geomview .off
-  /// Vector input format
-  template <class CTYPE, class VTYPE> void ijkoutQuadOFF
+  /// C++ STL vector input format
+  template <typename CTYPE, typename VTYPE> void ijkoutQuadOFF
   (std::ostream & out, const int dim,
    const std::vector<CTYPE> & coord, const std::vector<VTYPE> & quad_vert,
    const bool flag_reorder_vertices)
@@ -566,8 +580,8 @@ namespace IJK {
   }
 
   /// Output quadrilaterals in Geomview .off format to standard output.
-  /// Vector input format
-  template <class CTYPE, class VTYPE> void ijkoutQuadOFF
+  /// C++ STL vector input format
+  template <typename CTYPE, typename VTYPE> void ijkoutQuadOFF
   (const int dim,
    const std::vector<CTYPE> & coord, const std::vector<VTYPE> & quad_vert,
    const bool flag_reorder_vertices)
@@ -580,7 +594,7 @@ namespace IJK {
   // ******************************************
 
   /// Output Geomview .line file.
-  template <class CTYPE, class VTYPE> void ijkoutLINE
+  template <typename CTYPE, typename VTYPE> void ijkoutLINE
   (std::ostream & out, const int dim, 
    const CTYPE * coord, const int numv,
    const VTYPE * edge_vert, const int nume)
@@ -614,11 +628,11 @@ namespace IJK {
   }
 
   /// Output Geomview .line file.
-  template <class CTYPE, class VTYPE> void ijkoutLINE
+  template <typename CTYPE, typename VTYPE> void ijkoutLINE
   (std::ostream & out, const int dim,
    const std::vector<CTYPE> & coord, const std::vector<VTYPE> & edge_vert)
-    // output Geomview LINE file
-    // vector input format
+  // output Geomview LINE file
+  // vector input format
   {
     const int NUM_EDGE_ENDPOINTS = 2;
     IJK::PROCEDURE_ERROR error("ijkoutLINE");
@@ -643,8 +657,29 @@ namespace IJK {
                vector2pointer(edge_vert), edge_vert.size()/NUM_EDGE_ENDPOINTS);
   }
 
+  /// Output Geomview .line file color header
+  template <typename COLOR_TYPE> 
+  void ijkoutColorLINEheader
+  (std::ostream & out, const int dim, const int numv, const int nume,
+   const COLOR_TYPE rgba[4])
+  {
+    IJK::PROCEDURE_ERROR error("ijkoutColorLINE");
+
+    if (dim == 3) { out << "LINEC" << std::endl; }
+    else if (dim == 4) { out << "4LINEC" << std::endl;}
+    else {
+      error.AddMessage("Only dimensions 3 and 4 permitted for LINE output.");
+      throw error;
+    };
+
+    out << rgba[0] << " " << rgba[1] << " " 
+        << rgba[2] << " " << rgba[3] << std::endl;
+    out << numv << " " << nume << std::endl;
+  }
+
+
   /// Output Geomview .line file with color
-  template <class CTYPE, class VTYPE, class COLOR_TYPE> 
+  template <typename CTYPE, typename VTYPE, typename COLOR_TYPE> 
   void ijkoutColorLINE
   (std::ostream & out, const int dim, const CTYPE * coord, const int numv,
    const VTYPE * edge_vert, const int nume, const COLOR_TYPE rgba[4])
@@ -659,16 +694,7 @@ namespace IJK {
     const int NUM_EDGE_ENDPOINTS = 2;
     IJK::PROCEDURE_ERROR error("ijkoutColorLINE");
 
-    if (dim == 3) { out << "LINEC" << std::endl; }
-    else if (dim == 4) { out << "4LINEC" << std::endl;}
-    else {
-      error.AddMessage("Only dimensions 3 and 4 permitted for LINE output.");
-      throw error;
-    };
-
-    out << rgba[0] << " " << rgba[1] << " " 
-        << rgba[2] << " " << rgba[3] << std::endl;
-    out << numv << " " << nume << std::endl;
+    ijkoutColorLINEheader(out, dim, numv, nume, rgba);
 
     ijkoutVertexCoord(out, dim, coord, numv);
     out << std::endl;
@@ -681,8 +707,8 @@ namespace IJK {
   }
 
   /// Output Geomview .line file.
-  /// Vector input format
-  template <class CTYPE, class VTYPE, class COLOR_TYPE> 
+  /// STL vector input format
+  template <typename CTYPE, typename VTYPE, typename COLOR_TYPE> 
   void ijkoutColorLINE
   (std::ostream & out, const int dim,
    const std::vector<CTYPE> & coord, const std::vector<VTYPE> & edge_vert,
@@ -710,6 +736,57 @@ namespace IJK {
     ijkoutColorLINE
       (out, dim, vector2pointer(coord), coord.size()/dim,
        vector2pointer(edge_vert), edge_vert.size()/NUM_EDGE_ENDPOINTS, rgba);
+  }
+
+  /// Output vectors to Geomview .line file.
+  /// @param num_vectors Number of vectors
+  /// @param scale Multiply all vectors by scale.
+  template <typename CTYPE0, typename CTYPE1, typename CTYPE2, 
+            typename COLOR_TYPE> 
+  void ijkoutVectorsLINE
+  (std::ostream & out, const int dim, 
+   const CTYPE0 * point_coord, const CTYPE1 * dir_coord, 
+   const int num_vectors, const CTYPE2 scale, const COLOR_TYPE rgba[4])
+  {
+    ijkoutColorLINEheader(out, dim, 2*num_vectors, num_vectors, rgba);
+
+    ijkoutVectorEndpoints
+      (out, dim, point_coord, dir_coord, num_vectors, scale);
+
+    // Output line segments
+    for (int iv = 0; iv < num_vectors; iv++) 
+      { out << 2*iv << " " << 2*iv+1 << std::endl; }
+  }
+
+  /// Output vectors to Geomview .line file.
+  /// @param num_vectors Number of vectors
+  /// @param scale Multiply all vectors by scale.
+  template <typename CTYPE0, typename CTYPE1, typename CTYPE2, 
+            typename COLOR_TYPE> 
+  void ijkoutVectorsLINE
+  (std::ostream & out, const int dim, 
+   const std::vector<CTYPE0> & point_coord, 
+   const std::vector<CTYPE1> & dir_coord, 
+   const CTYPE2 scale, const COLOR_TYPE rgba[4])
+  {
+    IJK::PROCEDURE_ERROR error("ijkoutVectorsLINE");
+
+    if (dim <= 0) {
+      error.AddMessage("Illegal dimension: ", dim, ".");
+      throw error;
+    }
+
+    if (point_coord.size() != dir_coord.size()) {
+      error.AddMessage
+        ("Error.  Number of points does not equal number of directions.");
+      error.AddMessage("Number of points: ", point_coord.size()/dim, ".");
+      error.AddMessage("Number of directions: ", dir_coord.size()/dim, ".");
+      throw error;
+    }
+
+    ijkoutVectorsLINE
+      (out, dim, vector2pointer(point_coord), vector2pointer(dir_coord),
+       point_coord.size()/dim, scale, rgba);
   }
 
   // ******************************************
@@ -794,7 +871,7 @@ namespace IJK {
   /// @param coord = Array of coordinates. 
   ///        coord[dim*i+k] = k'th coordinate of vertex i (k < dim).
   /// @pre Array coord[] is preallocated with size at least \a numv * \a dim.
-  template <class T> void ijkinOFFcoord
+  template <typename T> void ijkinOFFcoord
   (std::istream & in, const int dim, const int numv, T * & coord)
   {
     IJK::PROCEDURE_ERROR error("ijkinOFFcoord");
@@ -833,7 +910,7 @@ namespace IJK {
   ///            k'th vertex index of simplex js.
   /// @pre Array simplex_vert[] has been preallocated
   ///      with size at least \a numv_per_simplex * \a (js+1).
-  template <class T> void ijkinOFFsimplexVert
+  template <typename T> void ijkinOFFsimplexVert
   (std::istream & in, const int js, const int numv_per_simplex, 
    T * & simplex_vert)
   {
@@ -855,7 +932,7 @@ namespace IJK {
   ///            k'th vertex index of simplex js.
   /// @pre Array simplex_vert[] has been preallocated
   ///      with size at least \a numv_per_simplex * \a (js+1).
-  template <class T> void ijkinOFFsimplex
+  template <typename T> void ijkinOFFsimplex
   (std::istream & in, const int ifirst, const int nums, 
    const int numv_per_simplex, T * & simplex_vert)
   {
@@ -896,7 +973,7 @@ namespace IJK {
   ///        simplex_vert[dim*j+k] = k'th vertex index of simplex j.
   /// @param nums = Number of simplices.
   /// @pre All simplices have the same dimension.
-  template <class T> void ijkinOFF
+  template <typename T> void ijkinOFF
   (std::istream & in, int & dim, int & mesh_dim,
    T * & coord, int & numv, int * & simplex_vert, int & nums)
   {
@@ -932,7 +1009,7 @@ namespace IJK {
   }
 
   /// Read Geomview .off file from standard input.
-  template <class T> void ijkinOFF
+  template <typename T> void ijkinOFF
   (int & dim, int & mesh_dim,
    T * & coord, int & numv, int * & simplex_vert, int & nums)
     // input Geomview OFF format to standard input
@@ -961,7 +1038,7 @@ namespace IJK {
   ///        simplex_vert[dim*j+k] = k'th vertex index of simplex j.
   /// @param nums = Number of simplices.
   /// @pre All simplices have the same dimension.
-  template <class T> void ijkinOFF
+  template <typename T> void ijkinOFF
   (std::istream & in, int & dim, T * & coord, int & numv,
    int * & simplex_vert, int & nums)
   {
@@ -988,7 +1065,7 @@ namespace IJK {
 
   /// \brief Read Geomview .off file where each simplex has dimension \a dim-1 
   ///   from standard input.
-  template <class T> void ijkinOFF
+  template <typename T> void ijkinOFF
   (int & dim, T * & coord, int & numv, int * & simplex_vert, int & nums)
   {
     ijkinOFF(std::cin, dim, coord, numv, simplex_vert, nums);
@@ -1062,7 +1139,7 @@ namespace IJK {
   ///        edge_enpdoint[2*je+k] = index of k'th endpoint of edge je.
   /// @pre Array edge_endpoint[] has been preallocated
   ///      with size at least 2 * \a nume.
-  template <class T> void ijkinLINEedge
+  template <typename T> void ijkinLINEedge
   (std::istream & in, const int nume, T * & edge_endpoint)
   {
     IJK::PROCEDURE_ERROR error("ijkinLINEedge");
@@ -1090,7 +1167,7 @@ namespace IJK {
   /// @param edge_endpoint = Array of edge endpoints. 
   ///        edge_endpoint[dim*j+k] = Vertex index of endpoint k of edge j.
   /// @param nume = Number of edges.
-  template <class T> void ijkinLINE
+  template <typename T> void ijkinLINE
   (std::istream & in, int & dim, T * & coord, int & numv, 
    int * & edge_endpoint, int & nume)
   {
@@ -1126,7 +1203,7 @@ namespace IJK {
   ///                if false, output segments individually
   /// @param flag_metric: if true, output "Metric" as units
   ///              if false, output "Inches"
-  template <class CTYPE, class VTYPE, class SCALE_TYPE> void ijkoutFIG
+  template <typename CTYPE, typename VTYPE, typename SCALE_TYPE> void ijkoutFIG
   (std::ostream & out, const int dim, const CTYPE * coord, const int numv,
    const VTYPE * seg, const int nums, const SCALE_TYPE scale_coord,
    const bool flag_polyline = false, const bool flag_metric = false)
@@ -1183,7 +1260,8 @@ namespace IJK {
   }
 
   // Output Fig polygonal lines.
-  template <class CTYPE, class VTYPE, class SCALE_TYPE> void ijkoutFIGpolyline
+  template <typename CTYPE, typename VTYPE, typename SCALE_TYPE> 
+  void ijkoutFIGpolyline
   (std::ostream & out, const int dim, const CTYPE * coord, const int numv,
    const VTYPE * seg, const int nums, const SCALE_TYPE scale_coord)
   {
@@ -1271,7 +1349,7 @@ namespace IJK {
     /// @param coord[] Array of vertex coordinates.
     ///                coord[dim*i+k] = k'th coordinate of vertex j  (k < dim).
     /// @param numv Number of vertices.
-    template <class CTYPE> void ijkoutVertexCoord
+    template <typename CTYPE> void ijkoutVertexCoord
     (std::ostream & out, const int dim, const CTYPE * coord, const int numv)
     {
       for (int iv = 0; iv < numv; iv++) {
@@ -1290,7 +1368,7 @@ namespace IJK {
     /// @param poly_vert[] Array of simplex vertices.
     ///        poly_vert[dim*j+k] = k'th vertex index of polygon j.
     /// @param nump Number of polygons.
-    template <class VTYPE> void ijkoutPolygonVertices
+    template <typename VTYPE> void ijkoutPolygonVertices
     (std::ostream & out, const int numv_per_polygon,
      const VTYPE * poly_vert, const int nump)
     {
@@ -1312,7 +1390,7 @@ namespace IJK {
     /// @param numq Number of quadrilaterals.
     ///  @param flag_reorder_vertices = if true, change vertex order to be
     ///                         counter-clockwise around quad.
-    template <class VTYPE> void ijkoutQuadVertices
+    template <typename VTYPE> void ijkoutQuadVertices
     (std::ostream & out, const VTYPE * quad_vert, const int numq,
      const bool flag_reorder_vertices)
     {
@@ -1332,6 +1410,33 @@ namespace IJK {
         ijkoutPolygonVertices(out, NUMV_PER_QUAD, quad_vert, numq);
       }
 
+    }
+
+    /// Output vector endpoint coordinates.
+    /// @param out Output stream.
+    template <typename CTYPE0, typename CTYPE1, typename CTYPE2> 
+    void ijkoutVectorEndpoints
+    (std::ostream & out, const int dim, 
+     const CTYPE0 * point_coord, const CTYPE1 * dir_coord, 
+     const int num_vectors, const CTYPE2 scale)
+    {
+      for (int iv = 0; iv < num_vectors; iv++) {
+
+        // Output point iv.
+        for (int d = 0; d < dim; d++) {
+          out << point_coord[iv*dim + d];
+          if (d < dim-1) { out << " "; }
+          else { out << std::endl; };
+        }
+
+        // Output coordinates of (point iv)+(direction iv)
+        for (int d = 0; d < dim; d++) {
+          int j = iv*dim + d;
+          out << (point_coord[j] + dir_coord[j]*scale);
+          if (d < dim-1) { out << " "; }
+          else { out << std::endl; };
+        }
+      }
     }
 
   }
