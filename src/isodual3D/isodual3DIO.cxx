@@ -1452,24 +1452,6 @@ void ISODUAL3D::OUTPUT_INFO::Init()
 
 namespace {
 
-  /// split string at last occurrence of character c into prefix and suffix
-  void split_string(const string & s, const char c,
-                    string & prefix, string & suffix)
-  {
-  string::size_type i = s.rfind(c);
-  if (i == string::npos) {
-    prefix = s;
-    suffix = "";
-  }
-  else {
-    if (i > 0) { prefix = s.substr(0,i); }
-    else { prefix = ""; };
-
-    if (i+1 < s.length()) { suffix = s.substr(i+1, s.length()-i-1); }
-    else { suffix = ""; };
-  }
-  }
-
   string construct_output_filename
   (const INPUT_INFO & input_info, const int i)
   {

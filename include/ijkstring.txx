@@ -28,13 +28,13 @@
 #include <vector>
 
 
-/// ijk templates for converting strings to values/arrays.
+/// ijk templates for manipulating strings.
 namespace IJK {
 
 
-// **************************************************
-// Convert strings to numeric values/arrays.
-// **************************************************
+  // **************************************************
+  // Convert strings to numeric values/arrays.
+  // **************************************************
 
   namespace {
 
@@ -91,6 +91,36 @@ namespace IJK {
       { return(false); }
     else
       { return(true); }
+  }
+
+  // **************************************************
+  // Split string into prefix and suffix.
+  // **************************************************
+
+  template <typename STRING_TYPE>
+  void split_string(const STRING_TYPE & s, const char c,
+                    STRING_TYPE & prefix, STRING_TYPE & suffix)
+  // split string at last occurrence of character c into prefix and suffix
+  {
+    typename STRING_TYPE::size_type i = s.rfind(c);
+    if (i == STRING_TYPE::npos) {
+      prefix = s;
+      suffix = "";
+    }
+    else {
+      if (i > 0) { prefix = s.substr(0,i); }
+      else { prefix = ""; };
+
+      if (i+1 < s.length()) { suffix = s.substr(i+1, s.length()-i-1); }
+      else { suffix = ""; };
+    }
+  }
+
+  template <typename STRING_TYPE>
+  void split_string(const char * s, const char c,
+                    STRING_TYPE & prefix, STRING_TYPE & suffix)
+  {
+    split_string(STRING_TYPE(s), c, prefix, suffix);
   }
 
 }

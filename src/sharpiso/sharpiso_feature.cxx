@@ -268,6 +268,11 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
       if (!sharpiso_param.use_only_cube_gradients) {
         SHARP_ISOVERT_PARAM param2 = sharpiso_param;
         param2.use_only_cube_gradients = true;
+        param2.use_gradients_determining_edge_intersections = true;
+
+        point_coord.clear();
+        gradient_coord.clear();
+        scalar.clear();
 
         // get only cube gradients
         get_gradients
