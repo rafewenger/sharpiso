@@ -139,17 +139,9 @@ void compute_dist_for_v
   vector_magnitude (grad_u, DIM3,  mag_u);
   vector_magnitude (grad_u, DIM3,  mag_v);
   compute_distance_to_gfield_plane
-  (grad_u, coord_u, scalar_grid.Scalar(u), coord_iv, scalar_grid.Scalar(iv), distance);    
-  /*
-   //debug 
-   cout <<" dist     "<<distance<<endl;
-   cout <<" grad_u  ("<<grad_u[0]<<","<<grad_u[1]<<","<<grad_u[2]<<")"<<endl;
-   cout <<" grad_iv  ("<<grad_iv[0]<<","<<grad_iv[1]<<","<<grad_iv[2]<<")"<<endl;
-   cout <<" coord_u ("<<coord_u[0]<<","<<coord_u[1]<<","<<coord_u[2]<<")"<<endl;
-   cout <<" coord_iv("<<coord_iv[0]<<","<<coord_iv[1]<<","<<coord_iv[2]<<")"<<endl;
-   cout <<" scalar_u("<<scalar_grid.Scalar(u)<<") scalar v("<<scalar_grid.Scalar(iv)<<")"<<endl;
-   */
-   };
+  (grad_u, coord_u, scalar_grid.Scalar(u), coord_iv, scalar_grid.Scalar(iv), distance);
+
+};
 
 
 //local function to calculate the weighted distance
@@ -163,6 +155,7 @@ void f
   weighted_dist = lambda*exp(-dist_sq/(mu*mu));
   
 }
+
 // Local function 
 // Upgrade the gdiff based on the calculated distance
 void update_gdiff 
@@ -184,6 +177,7 @@ void update_gdiff
     gdiff[d] = gdiff[d] + weighted_dist*(grad_u[d] - grad_iv[d]);
   }
 }
+
 // Function to update all the gradients from the temporary gradient_grid
 // to the original gradient grid.
 void update_all_gradients
