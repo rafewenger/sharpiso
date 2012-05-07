@@ -41,8 +41,10 @@ def create_iso_command(args):
          cmd.append('-o')
          if args.create_files==True:
           fl=files.split('.')    
-          fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.off'
-          #debug add the key here
+          if args.key!=None:
+            fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+args.key+'.'+iso+'.off'
+          else:
+            fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.off'
           fl_name=df.temp_loc+fl_name
           cmd.append(fl_name)
          else:
@@ -59,8 +61,10 @@ def create_iso_command(args):
          cmd.append('140')
          if args.create_files==True:
           fl=files.split('.')
-          # debug add the key here
-          fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.off'
+          if args.key!=None:
+            fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+args.key+'.'+iso+'.off'
+          else:
+            fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.off'
           fl_name=df.temp_loc+fl_name
           cmd.append(fl_name)
          else:
@@ -74,8 +78,10 @@ def create_iso_command(args):
          cmd.append('-fp')
          if args.create_files==True:
           fl=files.split('.')
-          # debug add the key here
-          fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.line'
+          if args.key!=None:
+            fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+args.key+'.'+iso+'.line'
+          else:
+            fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso+'.line'
           fl_name=df.temp_loc+fl_name
           cmd.append(fl_name)
          else:
@@ -84,8 +90,10 @@ def create_iso_command(args):
          p2=subprocess.check_output(cmd)
          
          fl=files.split('.')
-         # debug add the key here
-         fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso
+         if args.key!=None:
+            fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+args.key+'.'+iso
+         else:
+            fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso
          fl_name=df.temp_loc+fl_name
          ot=p2.split()
          print >>fi, fl_name,ot[1]

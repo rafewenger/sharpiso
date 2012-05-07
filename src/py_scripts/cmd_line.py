@@ -9,6 +9,7 @@ def parse_command_line():
   parser.add_argument('-cgradient',  action='store_true')
   parser.add_argument('-max_eigen')
   parser.add_argument('-max_dist')
+  parser.add_argument('-create_files',action='store_true')
   parser.add_argument('-key')
   parser.add_argument('-reposition',action='store_true')
   parser.add_argument('-lindstrom',action='store_true')
