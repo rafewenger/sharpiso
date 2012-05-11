@@ -27,6 +27,8 @@ def create_iso_command(args):
           cmd.append('-clamp_conflict')
          if args.clamp_far ==True:
           cmd.append('-clamp_far')
+         if args.centroid_far ==True:
+          cmd.append('-centroid_far') 
          if args.recompute_eigen2==True:
           cmd.append('-recompute_eigen2')
          if args.cgradient==True:
@@ -78,6 +80,8 @@ def create_iso_command_with_key(args,key):
           cmd.append('-clamp_conflict')
          if args.clamp_far ==True:
           cmd.append('-clamp_far')
+         if args.centroid_far ==True:
+          cmd.append('-centroid_far') 
          if args.recompute_eigen2==True:
           cmd.append('-recompute_eigen2')
          if args.cgradient==True:

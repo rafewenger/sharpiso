@@ -27,6 +27,8 @@ def create_iso_command(args):
           cmd.append('-clamp_conflict')
          if args.clamp_far ==True:
           cmd.append('-clamp_far')
+         if args.centroid_far ==True:
+          cmd.append('-centroid_far') 
          if args.recompute_eigen2==True:
           cmd.append('-recompute_eigen2')
          if args.cgradient==True:
@@ -50,9 +52,9 @@ def create_iso_command(args):
          else:
           cmd.append('out.off')
          cmd.append(iso)
-         print 'data ', df.data_loc+files
+         #print 'data ', df.data_loc+files
          cmd.append(df.data_loc+files)
-         print 'cmd',cmd       
+         #print 'cmd',cmd       
          cmd_list.append(cmd)
          p2=subprocess.call(cmd)
          
@@ -69,7 +71,7 @@ def create_iso_command(args):
           cmd.append(fl_name)
          else:
           cmd.append('out.off')
-         print 'findedge',cmd
+         #print 'findedge',cmd
          p2=subprocess.call(cmd)
          # findedge end
          
@@ -86,7 +88,7 @@ def create_iso_command(args):
           cmd.append(fl_name)
          else:
           cmd.append('out.line')
-         print 'findedgecount',cmd
+         #print 'findedgecount',cmd
          p2=subprocess.check_output(cmd)
          
          fl=files.split('.')
@@ -94,11 +96,10 @@ def create_iso_command(args):
             fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+args.key+'.'+iso
          else:
             fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso
-         fl_name=df.temp_loc+fl_name
          ot=p2.split()
          print >>fi, fl_name,ot[1]
          # findedge count end
          
          
   return cmd_list      
-         
+

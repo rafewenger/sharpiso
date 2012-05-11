@@ -27,6 +27,8 @@ def create_iso_command(args):
           cmd.append('-clamp_conflict')
          if args.clamp_far ==True:
           cmd.append('-clamp_far')
+         if args.centroid_far ==True:
+          cmd.append('-centroid_far') 
          if args.recompute_eigen2==True:
           cmd.append('-recompute_eigen2')
          if args.cgradient==True:
@@ -94,11 +96,10 @@ def create_iso_command(args):
             fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+args.key+'.'+iso
          else:
             fl_name ='.'.join(fl[:(len(fl)-1)])+'.'+pos+'.'+iso
-         fl_name=df.temp_loc+fl_name
          ot=p2.split()
          print >>fi, fl_name,ot[1]
          # findedge count end
          
          
   return cmd_list      
-         
+
