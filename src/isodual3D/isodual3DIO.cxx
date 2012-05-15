@@ -756,9 +756,9 @@ void ISODUAL3D::output_dual_isosurface_color_alternating
    isodual_info, io_time);
 }
 
-  // **************************************************
-  // WRITE_DUAL_MESH
-  // **************************************************
+// **************************************************
+// WRITE_DUAL_MESH
+// **************************************************
 
 void ISODUAL3D::write_dual_quad_mesh
 (const OUTPUT_INFO & output_info,
@@ -902,13 +902,11 @@ void ISODUAL3D::write_dual_mesh_color
   io_time.write_time += wall_time.getElapsed();
 }
 
-/// Convert dual quadrilateral meshes to triangles and write mesh.
+/// Write dual isosurface triangular mesh.
 /// @param output_info Output information.
 /// @param vertex_coord List of vertex coordinates.
-/// @param quad_vert[] List of quadrilateral vertices.
-///        quad_vert[4*i+k] is k'th quadrilateral vertices.
-///        Quadrilateral vertices are listed in order:
-///            Lower-Left, Lower-Right, Upper-Left, Upper-Right
+/// @param tri_vert[] List of triangle vertices.
+///        tri_vert[3*i+k] is k'th vertex of triangle i.
 void ISODUAL3D::write_dual_tri_mesh
 (const OUTPUT_INFO & output_info,
  const std::vector<COORD_TYPE> & vertex_coord,
@@ -959,12 +957,12 @@ void ISODUAL3D::write_dual_tri_mesh
 void ISODUAL3D::write_dual_tri_mesh
 (const OUTPUT_INFO & output_info,
  const vector<COORD_TYPE> & vertex_coord,
- const vector<VERTEX_INDEX> & quad_vert,
+ const vector<VERTEX_INDEX> & tri_vert,
  IO_TIME & io_time)
 {
   ELAPSED_TIME wall_time;
 
-  write_dual_tri_mesh(output_info, vertex_coord, quad_vert);
+  write_dual_tri_mesh(output_info, vertex_coord, tri_vert);
 
   io_time.write_time += wall_time.getElapsed();
 }

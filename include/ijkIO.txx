@@ -145,6 +145,7 @@ namespace IJK {
   }
 
   /// Output OpenInventor .iv file.
+  /// C++ STL vector format for coord[] and simplex_vert[].
   template <typename CTYPE, typename VTYPE> void ijkoutIV
   (std::ostream & out, const int dim, const std::vector<CTYPE> & coord,
    const std::vector<VTYPE> & simplex_vert)
@@ -154,6 +155,7 @@ namespace IJK {
   }
 
   /// Output OpenInventor .iv file to standard output.
+  /// C++ STL vector format for coord[] and simplex_vert[].
   template <typename CTYPE, typename VTYPE> void ijkoutIV
   (const int dim, const std::vector<CTYPE> & coord,
    const std::vector<VTYPE> & simplex_vert)
@@ -230,6 +232,7 @@ namespace IJK {
 
 
   /// Output Geomview .off file.
+  /// C++ STL vector format for coord[] and simplex_vert[].
   template <typename CTYPE, typename VTYPE> void ijkoutOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,
    const std::vector<CTYPE> & coord,
@@ -244,6 +247,7 @@ namespace IJK {
 
   /// Output Geomview .off file.
   /// Every simplex has \a dim vertices.
+  /// C++ STL vector format for coord[] and simplex_vert[].
   template <typename CTYPE, typename VTYPE> void ijkoutOFF
   (std::ostream & out, const int dim, const std::vector<CTYPE> & coord,
    const std::vector<VTYPE> & simplex_vert)
@@ -257,17 +261,17 @@ namespace IJK {
 
 
   /// Output Geomview .off file to standard output.
+  /// C++ STL vector format for coord[] and simplex_vert[].
   template <typename CTYPE, typename VTYPE> void ijkoutOFF
   (const int dim, const int numv_per_simplex, const std::vector<CTYPE> & coord,
    const std::vector<VTYPE> & simplex_vert)
-    // output Geomview OFF format to standard output
-    // vector input format
   {
     ijkoutOFF(std::cout, dim, numv_per_simplex, coord, simplex_vert);
   }
 
   /// Output Geomview .off file to standard output.
   /// Every simplex has \a dim vertices.
+  /// C++ STL vector format for coord[] and simplex_vert[].
   template <typename CTYPE, typename VTYPE> void ijkoutOFF
   (const int dim, const std::vector<CTYPE> & coord,
    const std::vector<VTYPE> & simplex_vert)
@@ -355,6 +359,7 @@ namespace IJK {
   }
 
   /// Output Geomview .off file. Color vertices.
+  /// C++ STL vector format for coord[] and simplex_vert[].
   template <typename CTYPE, typename VTYPE, typename colorT> 
   void ijkoutColorVertOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,   
@@ -444,6 +449,7 @@ namespace IJK {
   }
 
   /// Output Geomview .off file. Color simplices.
+  /// C++ STL vector format for coord[] and simplex_vert[].
   template <typename CTYPE, typename VTYPE, typename colorT> 
   void ijkoutColorFacesOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,   
@@ -507,6 +513,7 @@ namespace IJK {
   }
 
   /// Output Geomview .off file. Output vertex normals.
+  /// C++ STL vector format for coord[], normal[] and simplex_vert[].
   template <typename CTYPE, typename NTYPE, typename VTYPE> 
   void ijkoutNormalsOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,
@@ -566,7 +573,7 @@ namespace IJK {
   }
 
   /// Output quadrilaterals to Geomview .off
-  /// C++ STL vector input format
+  /// C++ STL vector format for coord[] and quad_vert[].
   template <typename CTYPE, typename VTYPE> void ijkoutQuadOFF
   (std::ostream & out, const int dim,
    const std::vector<CTYPE> & coord, const std::vector<VTYPE> & quad_vert,
@@ -580,7 +587,7 @@ namespace IJK {
   }
 
   /// Output quadrilaterals in Geomview .off format to standard output.
-  /// C++ STL vector input format
+  /// C++ STL vector format for coord[] and quad_vert[].
   template <typename CTYPE, typename VTYPE> void ijkoutQuadOFF
   (const int dim,
    const std::vector<CTYPE> & coord, const std::vector<VTYPE> & quad_vert,
@@ -628,6 +635,7 @@ namespace IJK {
   }
 
   /// Output Geomview .line file.
+  /// C++ STL vector format for coord[] and edge_vert[].
   template <typename CTYPE, typename VTYPE> void ijkoutLINE
   (std::ostream & out, const int dim,
    const std::vector<CTYPE> & coord, const std::vector<VTYPE> & edge_vert)
@@ -707,7 +715,7 @@ namespace IJK {
   }
 
   /// Output Geomview .line file.
-  /// STL vector input format
+  /// C++ STL vector format for coord[] and edge_vert[].
   template <typename CTYPE, typename VTYPE, typename COLOR_TYPE> 
   void ijkoutColorLINE
   (std::ostream & out, const int dim,
@@ -761,6 +769,7 @@ namespace IJK {
   /// Output vectors to Geomview .line file.
   /// @param num_vectors Number of vectors
   /// @param scale Multiply all vectors by scale.
+  /// C++ STL vector format for point_coord[] and dir_coord[].
   template <typename CTYPE0, typename CTYPE1, typename CTYPE2, 
             typename COLOR_TYPE> 
   void ijkoutVectorsLINE
@@ -872,7 +881,7 @@ namespace IJK {
   ///        coord[dim*i+k] = k'th coordinate of vertex i (k < dim).
   /// @pre Array coord[] is preallocated with size at least \a numv * \a dim.
   template <typename T> void ijkinOFFcoord
-  (std::istream & in, const int dim, const int numv, T * & coord)
+  (std::istream & in, const int dim, const int numv, T * coord)
   {
     IJK::PROCEDURE_ERROR error("ijkinOFFcoord");
 
@@ -899,6 +908,22 @@ namespace IJK {
     }
   }
 
+  /// \brief Read coordinates from Geomview .off file.
+  template <typename T> void ijkinOFFcoord
+  (std::istream & in, const int dim, const int numv, std::vector<T> & coord)
+  {
+    IJK::PROCEDURE_ERROR error("ijkinOFFcoord");
+
+    if (dim < 1) {
+      coord.clear();
+      return;
+    }
+
+    coord.resize(dim*numv);
+
+    ijkinOFFcoord(in, dim, numv, &(coord[0]));
+  }
+
   /// \brief Read simplex vertices of simplex \a js from Geomview .off file.
   ///
   /// Ignores any color information.
@@ -912,12 +937,25 @@ namespace IJK {
   ///      with size at least \a numv_per_simplex * \a (js+1).
   template <typename T> void ijkinOFFsimplexVert
   (std::istream & in, const int js, const int numv_per_simplex, 
-   T * & simplex_vert)
+   T * simplex_vert)
   {
     for (int k = 0; k < numv_per_simplex; k++) 
       { in >> simplex_vert[js*numv_per_simplex + k]; }
     gobble_line(in);
   }
+
+  /// \brief Read simplex vertices of simplex \a js from Geomview .off file.
+  /// C++ STL vector format for simplex_vert[].
+  /// @pre C++ vector simplex_vert[] has size at least 
+  ///        \a numv_per_simplex * \a (js+1).
+  template <typename T> void ijkinOFFsimplexVert
+  (std::istream & in, const int js, const int numv_per_simplex, 
+   std::vector<T> & simplex_vert)
+  {
+    ijkinOFFsimplexVert(in, js, numv_per_simplex,
+                        &(simplex_vert.front()) + js*numv_per_simplex);
+  }
+
 
   /// \brief Read \a nums simplex vertices starting at simplex \a ifirst
   ///        from Geomview .off file.
@@ -934,7 +972,7 @@ namespace IJK {
   ///      with size at least \a numv_per_simplex * \a (js+1).
   template <typename T> void ijkinOFFsimplex
   (std::istream & in, const int ifirst, const int nums, 
-   const int numv_per_simplex, T * & simplex_vert)
+   const int numv_per_simplex, T * simplex_vert)
   {
     IJK::PROCEDURE_ERROR error("ijkinOFFsimplex");
 
@@ -959,6 +997,20 @@ namespace IJK {
       }
     }
   }
+
+  /// \brief Read \a nums simplex vertices starting at simplex \a ifirst
+  ///        from Geomview .off file.
+  /// C++ STL vector format for simplex_vert[].
+  /// @pre C++ vector simplex_vert[] has been preallocated
+  ///      with size at least \a numv_per_simplex * \a (js+1).
+  template <typename T> void ijkinOFFsimplex
+  (std::istream & in, const int ifirst, const int nums, 
+   const int numv_per_simplex, std::vector<T> & simplex_vert)
+  {
+    ijkinOFFsimplex(in, ifirst, nums, numv_per_simplex,
+                    &(simplex_vert.front()));
+  }
+
 
   /// \brief Read Geomview .off file.
   ///
@@ -1004,6 +1056,44 @@ namespace IJK {
       // read in first simplex
       ijkinOFFsimplexVert(in, 0, num_simplex_vert, simplex_vert);
 
+      ijkinOFFsimplex(in, 1, nums-1, num_simplex_vert, simplex_vert);
+    };
+  }
+
+  /// \brief Read Geomview .off file.
+  /// C++ STL vector format for coord[] and simplex_vert[].
+  template <typename T> void ijkinOFF
+  (std::istream & in, int & dim, int & mesh_dim,
+   std::vector<T> & coord, std::vector<int> & simplex_vert)
+  {
+    int numv, nums, nume;
+
+    IJK::PROCEDURE_ERROR error("ijkinOFF");
+
+    coord.clear();
+    simplex_vert.clear();
+
+    mesh_dim = 0;            // default mesh dimension
+
+    ijkinOFFheader(in, dim, numv, nums, nume);
+
+    ijkinOFFcoord(in, dim, numv, coord);
+
+    if (nums > 0) {
+      // use first simplex to set mesh dimension
+      int num_simplex_vert = 0;
+      in >> num_simplex_vert;
+      if (num_simplex_vert > 0) { 
+        mesh_dim = num_simplex_vert-1; 
+      }
+      else { mesh_dim = 0; };
+
+      simplex_vert.resize(nums*num_simplex_vert);
+
+      // read vertices of first simplex
+      ijkinOFFsimplexVert(in, 0, num_simplex_vert, simplex_vert);
+
+      // read remaining simplex vertices
       ijkinOFFsimplex(in, 1, nums-1, num_simplex_vert, simplex_vert);
     };
   }

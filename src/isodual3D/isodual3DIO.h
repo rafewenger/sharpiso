@@ -287,10 +287,17 @@ namespace ISODUAL3D {
 // WRITE_DUAL_MESH
 // **************************************************
 
+  /// Write dual isosurface quadrilateral mesh.
+  /// @param output_info Output information.
+  /// @param vertex_coord List of vertex coordinates.
+  /// @param quad_vert[] List of triangle vertices.
+  ///        quad_vert[4*i+k] is k'th vertex of triangle i.
+  ///        Quadrilateral vertices are listed in order:
+  ///            Lower-Left, Lower-Right, Upper-Left, Upper-Right
   void write_dual_quad_mesh
     (const OUTPUT_INFO & output_info,
      const std::vector<COORD_TYPE> & vertex_coord, 
-     const std::vector<VERTEX_INDEX> & slist);
+     const std::vector<VERTEX_INDEX> & quad_vert);
 
   void write_dual_quad_mesh
     (const OUTPUT_INFO & output_info,
@@ -311,24 +318,22 @@ namespace ISODUAL3D {
      const COLOR_TYPE * front_color, const COLOR_TYPE * back_color,
      IO_TIME & io_time);
 
-  /// Convert dual quadrilateral meshes to triangles and write mesh.
+  /// Write dual isosurface triangular mesh.
   /// @param output_info Output information.
   /// @param vertex_coord List of vertex coordinates.
-  /// @param quad_vert[] List of quadrilateral vertices.
-  ///        quad_vert[4*i+k] is k'th quadrilateral vertices.
-  ///        Quadrilateral vertices are listed in order:
-  ///            Lower-Left, Lower-Right, Upper-Left, Upper-Right
+  /// @param tri_vert[] List of triangle vertices.
+  ///        tri_vert[3*i+k] is k'th vertex of triangle i.
   void write_dual_tri_mesh
   (const OUTPUT_INFO & output_info,
    const std::vector<COORD_TYPE> & vertex_coord, 
    const std::vector<VERTEX_INDEX> & quad_vert);
 
-  /// Convert dual quadrilateral meshes to triangles and write mesh.
-  /// Time write operation.
+  /// Write dual isosurface triangular mesh.
+  /// Record write time.
   void write_dual_tri_mesh
   (const OUTPUT_INFO & output_info,
    const std::vector<COORD_TYPE> & vertex_coord, 
-   const std::vector<VERTEX_INDEX> & quad_vert,
+   const std::vector<VERTEX_INDEX> & tri_vert,
    IO_TIME & io_time);
 
 // **************************************************
