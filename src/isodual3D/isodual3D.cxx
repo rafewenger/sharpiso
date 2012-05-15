@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
 #include "ijktime.txx"
+#include "ijkisopoly.txx"
+
 #include "isodual3D.h"
 #include "isodual3D_extract.h"
 #include "isodual3D_position.h"
@@ -160,8 +162,7 @@ void ISODUAL3D::dual_contouring
  // merge_data = internal data structure for merging identical edges
  // isodual_info = information about running time and grid cubes and edges
 {
-  PROCEDURE_ERROR error("dual_contouring");
-
+  const int dimension = scalar_grid.Dimension();
   const VERTEX_POSITION_METHOD vertex_position_method =
     isodual_param.vertex_position_method;
   const bool use_selected_gradients =
@@ -170,53 +171,99 @@ void ISODUAL3D::dual_contouring
     isodual_param.use_only_cube_gradients;
   const SIGNED_COORD_TYPE grad_selection_cube_offset =
     isodual_param.grad_selection_cube_offset;
+  const bool allow_multiple_iso_vertices =
+    isodual_param.allow_multiple_iso_vertices;
+  PROCEDURE_ERROR error("dual_contouring");
 
-  clock_t t0 = clock();
+  clock_t t0, t1, t2, t3;
+  t0 = clock();
 
   isopoly_vert.clear();
   vertex_coord.clear();
   isodual_info.time.Clear();
 
   std::vector<ISO_VERTEX_INDEX> isopoly;
-  extract_dual_isopoly
-    (scalar_grid, isovalue, isopoly, isodual_info);
-  clock_t t1 = clock();
 
-  std::vector<ISO_VERTEX_INDEX> iso_vlist;
-  merge_identical(isopoly, iso_vlist, isopoly_vert, merge_data);
-  clock_t t2 = clock();
+  if (allow_multiple_iso_vertices) {
 
-  if (vertex_position_method == GRADIENT_POSITIONING) {
-    position_dual_isovertices_using_gradients
-      (scalar_grid, gradient_grid, isovalue, isodual_param,
-       iso_vlist, vertex_coord, isodual_info.sharpiso);
-  }
-  else if (vertex_position_method == EDGE_SIMPLE) {
-    position_dual_isovertices_edgeI_interpolate_gradients
-      (scalar_grid, gradient_grid, isovalue,
-      iso_vlist, isodual_param, vertex_coord);
-  }
-  else if (vertex_position_method == EDGE_COMPLEX) {
-    // Position using SVD on grid edge-isosurface intersections.
-    // Select endpoint gradient which determines edge-isosurface intersection.
-    position_dual_isovertices_edgeI_select_gradients
-      (scalar_grid, gradient_grid, isovalue,
-      iso_vlist,isodual_param, vertex_coord);
+    bool flag_opposite_vertices(true);
+    IJKDUALTABLE::ISODUAL_CUBE_TABLE 
+      isodual_table(dimension, flag_opposite_vertices);
+
+    std::vector<FACET_VERTEX_INDEX> facet_vertex;
+    extract_dual_isopoly
+      (scalar_grid, isovalue, isopoly, facet_vertex, isodual_info);
+
+    t1 = clock();
+
+    std::vector<ISO_VERTEX_INDEX> cube_list;
+    std::vector<ISO_VERTEX_INDEX> isopoly_cube;      
+    merge_identical(isopoly, cube_list, isopoly_cube, merge_data);
+
+    std::vector<ISO_VERTEX_INDEX> iso_vlist_cube;
+    std::vector<FACET_VERTEX_INDEX> iso_vlist_facet;
+
+    IJK::split_dual_isovert
+      (scalar_grid, isodual_table, isovalue, 
+       cube_list, isopoly_cube, facet_vertex,
+       iso_vlist_cube, iso_vlist_facet, isopoly_vert);
+
+    t2 = clock();
+
+    if (vertex_position_method == GRADIENT_POSITIONING) {
+      position_dual_isovertices_using_gradients
+        (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
+         iso_vlist_cube, iso_vlist_facet, vertex_coord, isodual_info.sharpiso);
+    }
+    else {
+      error.AddMessage("Programming error. Positioning method error.");
+      error.AddMessage("  Positioning does not allow multiple isosurface vertices in a cube.");
+      throw error;
+    }
   }
   else {
-    // default
-    position_dual_isovertices_centroid
-      (scalar_grid, isovalue, iso_vlist, vertex_coord);
+
+
+    extract_dual_isopoly
+      (scalar_grid, isovalue, isopoly, isodual_info);
+    t1 = clock();
+
+    std::vector<ISO_VERTEX_INDEX> iso_vlist;
+    merge_identical(isopoly, iso_vlist, isopoly_vert, merge_data);
+    t2 = clock();
+
+    if (vertex_position_method == GRADIENT_POSITIONING) {
+      position_dual_isovertices_using_gradients
+        (scalar_grid, gradient_grid, isovalue, isodual_param,
+         iso_vlist, vertex_coord, isodual_info.sharpiso);
+    }
+    else if (vertex_position_method == EDGE_SIMPLE) {
+      position_dual_isovertices_edgeI_interpolate_gradients
+        (scalar_grid, gradient_grid, isovalue,
+         iso_vlist, isodual_param, vertex_coord);
+    }
+    else if (vertex_position_method == EDGE_COMPLEX) {
+      // Position using SVD on grid edge-isosurface intersections.
+      // Select endpoint gradient which determines edge-isosurface intersection.
+      position_dual_isovertices_edgeI_select_gradients
+        (scalar_grid, gradient_grid, isovalue,
+         iso_vlist,isodual_param, vertex_coord);
+    }
+    else {
+      // default
+      position_dual_isovertices_centroid
+        (scalar_grid, isovalue, iso_vlist, vertex_coord);
+    }
+
+    if (isodual_param.flag_reposition) {
+      reposition_dual_isovertices
+        (scalar_grid, gradient_grid, isovalue, isodual_param,
+         iso_vlist, &(vertex_coord.front()), isodual_info.sharpiso);
+    }
+
   }
 
-
-  if (isodual_param.flag_reposition) {
-    reposition_dual_isovertices
-      (scalar_grid, gradient_grid, isovalue, isodual_param,
-       iso_vlist, &(vertex_coord.front()), isodual_info.sharpiso);
-  }
-
-  clock_t t3 = clock();
+  t3 = clock();
 
   // store times
   clock2seconds(t1-t0, isodual_info.time.extract);

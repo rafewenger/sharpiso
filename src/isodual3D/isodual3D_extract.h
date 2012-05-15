@@ -28,8 +28,8 @@
 
 namespace ISODUAL3D {
 
-  /// Extract isosurface polytopes
-  /// Returns list representing isosurface polytopes
+  /// Extract dual isosurface polytopes.
+  /// Returns list of isosurface polytope vertices.
   /// @param scalar_grid = scalar grid data
   /// @param isovalue = isosurface scalar value
   /// @param iso_poly[] = vector of isosurface polygope vertices
@@ -39,6 +39,21 @@ namespace ISODUAL3D {
     (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
      const SCALAR_TYPE isovalue, std::vector<ISO_VERTEX_INDEX> & iso_poly,
      ISODUAL_INFO & isodual_info);
+
+  /// Extract dual isosurface polytopes.
+  /// Returns list of isosurface polytope vertices.
+  /// Return locations of isosurface vertices on each facet.
+  /// @param scalar_grid = scalar grid data
+  /// @param isovalue = isosurface scalar value
+  /// @param iso_poly[] = vector of isosurface polygope vertices
+  ///   iso_simplices[numv_per_poly*ip+k] = 
+  ///     cube containing k'th vertex of polytope ip.
+  void extract_dual_isopoly
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue, std::vector<ISO_VERTEX_INDEX> & iso_poly,
+   std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+   ISODUAL_INFO & isodual_info);
+
 }
 
 #endif

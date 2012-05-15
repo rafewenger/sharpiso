@@ -62,6 +62,7 @@ void ISODUAL_PARAM::Init()
   use_selected_gradients = true;
   grad_selection_cube_offset = 0;
   max_small_eigenvalue = 0.1;
+  allow_multiple_iso_vertices = false;
 }
 
 /// Set type of interpolation

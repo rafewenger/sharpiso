@@ -29,6 +29,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "isodual3D_types.h"
 #include "isodual3D_datastruct.h"
 
+#include "ijkdualtable.h"
+
 namespace ISODUAL3D {
 
 
@@ -84,6 +86,30 @@ namespace ISODUAL3D {
    const ISODUAL_PARAM & isodual_param,
    const std::vector<ISO_VERTEX_INDEX> & vlist,
    std::vector<COORD_TYPE> & coord,
+   SHARPISO_INFO & sharp_info);
+
+  /// Position dual isosurface vertices using gradients
+  void position_dual_isovertices_using_gradients
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_facet,
+   COORD_TYPE * sharp_coord,
+   SHARPISO_INFO & sharp_info);
+
+  /// Position dual isosurface vertices using gradients
+  void position_dual_isovertices_using_gradients
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_facet,
+   std::vector<COORD_TYPE> & sharp_coord,
    SHARPISO_INFO & sharp_info);
 
   // ********************************************************
