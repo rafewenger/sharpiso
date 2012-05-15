@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2009 Rephael Wenger
+  Copyright (C) 2009,2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,8 @@
 #define _IJKISOPOLY_
 
 #include "ijk.txx"
+#include "ijkcube.txx"
+
 
 namespace IJK {
 
@@ -382,6 +384,273 @@ namespace IJK {
     }
   }
 
+  // **************************************************
+  // EXTRACT DUAL ISOSURFACE POLYTOPE AROUND EDGE
+  // **************************************************
+
+  /// Extract dual isosurface polytope around an edge.
+  /// @pre Edge (iend0, iend1) is an interior edge with direction \a edge_dir.
+  template <typename GRID_TYPE, typename VTYPE,
+            typename DTYPE, typename ISOV_TYPE>
+  void extract_dual_isopoly_around_edge
+  (const GRID_TYPE & grid, const VTYPE iend0, const VTYPE iend1, 
+   const DTYPE edge_dir, std::vector<ISOV_TYPE> & iso_poly)
+  {
+    typedef typename GRID_TYPE::NUMBER_TYPE NUM_TYPE;
+    
+    const NUM_TYPE num_facet_vertices = grid.NumFacetVertices();
+
+    if (num_facet_vertices == 0) { return; };
+
+    VTYPE iv0 = 
+      iend0 - grid.FacetVertexIncrement(edge_dir,num_facet_vertices-1);
+
+    for (NUM_TYPE k = 0; k < num_facet_vertices; k++) 
+      { iso_poly.push_back(grid.FacetVertex(iv0, edge_dir, k)); }
+  }
+
+  /// Extract dual isosurface polytope around an edge.
+  /// Return location of isosurface vertex on facet.
+  /// @pre Edge (iend0, iend1) is an interior edge with direction \a edge_dir.
+  template <typename GRID_TYPE, typename VTYPE,
+            typename DTYPE, typename ISOV_TYPE, typename FACETV_TYPE>
+  void extract_dual_isopoly_around_edge
+  (const GRID_TYPE & grid, const VTYPE iend0, const VTYPE iend1, 
+   const DTYPE edge_dir, 
+   std::vector<ISOV_TYPE> & iso_poly,   std::vector<FACETV_TYPE> & facet_vertex)
+  {
+    typedef typename GRID_TYPE::NUMBER_TYPE NUM_TYPE;
+
+    const NUM_TYPE num_facet_vertices = grid.NumFacetVertices();
+
+    if (num_facet_vertices == 0) { return; };
+
+    VTYPE iv0 = 
+      iend0 - grid.FacetVertexIncrement(edge_dir,num_facet_vertices-1);
+
+    for (NUM_TYPE k = 0; k < num_facet_vertices; k++) {
+      iso_poly.push_back(grid.FacetVertex(iv0, edge_dir, k)); 
+      facet_vertex.push_back(edge_dir*num_facet_vertices+k);
+    }
+  }
+
+  /// Extract dual isosurface polytope around an edge, reverse orientation.
+  /// @pre Edge (iend0, iend1) is an interior edge with direction \a edge_dir.
+  template <typename GRID_TYPE, typename VTYPE,
+            typename DTYPE, typename ISOV_TYPE>
+  void extract_dual_isopoly_around_edge_reverse_orient
+  (const GRID_TYPE & grid, const VTYPE iend0, const VTYPE iend1, 
+   const DTYPE edge_dir, std::vector<ISOV_TYPE> & iso_poly)
+  {
+    typedef typename GRID_TYPE::NUMBER_TYPE NUM_TYPE;
+
+    const NUM_TYPE num_facet_vertices = grid.NumFacetVertices();
+    const NUM_TYPE half_num_facet_vertices = num_facet_vertices/2;
+
+    if (num_facet_vertices == 0) { return; };
+
+    VTYPE iv0 = 
+      iend0 - grid.FacetVertexIncrement(edge_dir,num_facet_vertices-1);
+
+    // Add last half_num_facet_vertices vertices first.
+    for (NUM_TYPE k = half_num_facet_vertices; k < num_facet_vertices; k++) 
+      { iso_poly.push_back(grid.FacetVertex(iv0, edge_dir, k)); }
+
+    for (NUM_TYPE k = 0; k < half_num_facet_vertices; k++) 
+      { iso_poly.push_back(grid.FacetVertex(iv0, edge_dir, k)); }
+  }
+
+  /// Extract dual isosurface polytope around an edge, reverse orientation.
+  /// Return location of isosurface vertex on facet.
+  /// @pre Edge (iend0, iend1) is an interior edge with direction \a edge_dir.
+  template <typename GRID_TYPE, typename VTYPE,
+            typename DTYPE, typename ISOV_TYPE, typename FACETV_TYPE>
+  void extract_dual_isopoly_around_edge_reverse_orient
+  (const GRID_TYPE & grid, const VTYPE iend0, const VTYPE iend1, 
+   const DTYPE edge_dir,
+   std::vector<ISOV_TYPE> & iso_poly, std::vector<FACETV_TYPE> & facet_vertex)
+  {
+    typedef typename GRID_TYPE::NUMBER_TYPE NUM_TYPE;
+
+    const NUM_TYPE num_facet_vertices = grid.NumFacetVertices();
+    const NUM_TYPE half_num_facet_vertices = num_facet_vertices/2;
+
+    if (num_facet_vertices == 0) { return; };
+
+    VTYPE iv0 = 
+      iend0 - grid.FacetVertexIncrement(edge_dir,num_facet_vertices-1);
+
+    // Add last half_num_facet_vertices vertices first.
+    for (NUM_TYPE k = half_num_facet_vertices; 
+         k < num_facet_vertices; k++) {
+      iso_poly.push_back(grid.FacetVertex(iv0, edge_dir, k)); 
+      facet_vertex.push_back(edge_dir*num_facet_vertices+k);
+    }
+
+    for (NUM_TYPE k = 0; k < half_num_facet_vertices; k++) {
+      iso_poly.push_back(grid.FacetVertex(iv0, edge_dir, k)); 
+      facet_vertex.push_back(edge_dir*num_facet_vertices+k);
+    }
+  }
+
+  /// Extract dual isosurface polytope around bipolar edge.
+  /// Checks that edge is bipolar.
+  /// Returns list of isosurface polytope vertices.
+  /// @param scalar_grid = scalar grid data
+  /// @param isovalue = isosurface scalar value
+  /// @param iso_poly[] = vector of isosurface polygope vertices
+  ///   iso_simplices[numv_per_poly*ip+k] = 
+  ///     cube containing k'th vertex of polytope ip.
+  template <typename GRID_TYPE, typename SCALAR_TYPE, 
+            typename VTYPE, typename DTYPE, typename ISOV_TYPE>
+  void extract_dual_isopoly_around_bipolar_edge
+  (const GRID_TYPE & scalar_grid, const SCALAR_TYPE isovalue, 
+   const VTYPE iend0, const DTYPE edge_dir,
+   std::vector<ISOV_TYPE> & iso_poly)
+  {
+    VTYPE iend1 = scalar_grid.NextVertex(iend0, edge_dir);
+
+    bool is_end0_positive = true;
+    if (scalar_grid.Scalar(iend0) < isovalue) 
+      { is_end0_positive = false; };
+
+    bool is_end1_positive = true;
+    if (scalar_grid.Scalar(iend1) < isovalue) 
+      { is_end1_positive = false; };
+
+    if (!is_end0_positive && is_end1_positive) {
+      extract_dual_isopoly_around_edge
+        (scalar_grid, iend0, iend1, edge_dir, iso_poly);
+    }
+    else if (is_end0_positive && !is_end1_positive) {
+      extract_dual_isopoly_around_edge_reverse_orient
+        (scalar_grid, iend0, iend1, edge_dir, iso_poly);
+    }
+  }
+
+  /// Extract dual isosurface polytope around bipolar edge.
+  /// Checks that edge is bipolar.
+  /// Returns list of isosurface polytope vertices.
+  /// Return locations of isosurface vertices on each facet.
+  /// @param scalar_grid = scalar grid data
+  /// @param isovalue = isosurface scalar value
+  /// @param iso_poly[] = vector of isosurface polygope vertices
+  ///   iso_simplices[numv_per_poly*ip+k] = 
+  ///     cube containing k'th vertex of polytope ip.
+  /// @param facet_vertex[i] = Edge of cube containing iso_poly[i].
+  template <typename GRID_TYPE, typename SCALAR_TYPE, 
+            typename VTYPE, typename DTYPE,
+            typename ISOV_TYPE, typename FACETV_TYPE>
+  void extract_dual_isopoly_around_bipolar_edge
+  (const GRID_TYPE & scalar_grid, const SCALAR_TYPE isovalue, 
+   const VTYPE iend0, const DTYPE edge_dir,
+   std::vector<ISOV_TYPE> & iso_poly,
+   std::vector<FACETV_TYPE> & facet_vertex)
+  {
+    VTYPE iend1 = scalar_grid.NextVertex(iend0, edge_dir);
+
+    bool is_end0_positive = true;
+    if (scalar_grid.Scalar(iend0) < isovalue) 
+      { is_end0_positive = false; };
+
+    bool is_end1_positive = true;
+    if (scalar_grid.Scalar(iend1) < isovalue) 
+      { is_end1_positive = false; };
+
+    if (!is_end0_positive && is_end1_positive) {
+      extract_dual_isopoly_around_edge
+        (scalar_grid, iend0, iend1, edge_dir, iso_poly, facet_vertex);
+    }
+    else if(is_end0_positive && !is_end1_positive) {
+      extract_dual_isopoly_around_edge_reverse_orient
+        (scalar_grid, iend0, iend1, edge_dir, iso_poly, facet_vertex);
+    }
+
+  }
+
+
+  // **************************************************
+  // SPLIT DUAL ISOSURFACE VERTICES
+  // **************************************************
+
+  /// Split dual isosurface vertices.
+  template <typename GRID_TYPE, typename ISODUAL_TABLE,
+            typename SCALAR_TYPE, 
+            typename CINDEX_TYPE0, typename CINDEX_TYPE1,
+            typename CINDEX_TYPE2, 
+            typename FACETV_TYPE0, typename FACETV_TYPE1,
+            typename ISOV_TYPE>
+  void split_dual_isovert
+  (const GRID_TYPE & scalar_grid, const ISODUAL_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const std::vector<CINDEX_TYPE0> & cube_list, 
+   const std::vector<CINDEX_TYPE1> & isopoly_cube, 
+   const std::vector<FACETV_TYPE0> & facet_vertex,
+   std::vector<CINDEX_TYPE2> & iso_vlist_cube, 
+   std::vector<FACETV_TYPE1> & iso_vlist_facet, 
+   std::vector<ISOV_TYPE> & isopoly)
+  {
+    typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
+    typedef typename GRID_TYPE::VERTEX_INDEX_TYPE VTYPE;
+    typedef typename GRID_TYPE::NUMBER_TYPE NUM_TYPE;
+    typedef typename ISODUAL_TABLE::TABLE_INDEX TABLE_INDEX;
+
+    const DTYPE dimension = scalar_grid.Dimension();
+    const NUM_TYPE num_cube_vertices = scalar_grid.NumCubeVertices();
+    const NUM_TYPE num_facet_vertices = scalar_grid.NumFacetVertices();
+    std::vector<TABLE_INDEX> cube_table_index;
+    std::vector<FACETV_TYPE0> num_isov;
+    std::vector<ISOV_TYPE> first_cube_isov;
+    num_isov.resize(cube_list.size());
+    first_cube_isov.resize(cube_list.size());
+    IJK::CUBE_FACE_INFO<DTYPE,NUM_TYPE,NUM_TYPE> cube(dimension);
+
+    cube_table_index.resize(cube_list.size());
+    ISOV_TYPE total_num_isov = 0;
+    for (ISOV_TYPE i = 0; i < cube_list.size(); i++) {
+      TABLE_INDEX it;
+      compute_isotable_index
+        (scalar_grid.ScalarPtrConst(), isovalue, cube_list[i],
+         scalar_grid.CubeVertexIncrement(), num_cube_vertices, it);
+
+      cube_table_index[i] = it;
+      num_isov[i] = isodual_table.NumIsoVertices(it);
+      total_num_isov += num_isov[i];
+    }
+
+    iso_vlist_cube.resize(total_num_isov);
+    iso_vlist_facet.resize(total_num_isov);
+
+    ISOV_TYPE k = 0;
+    for (ISOV_TYPE i = 0; i < cube_list.size(); i++) {
+      first_cube_isov[i] = k;
+      for (FACETV_TYPE0 j = 0; j < num_isov[i]; j++) {
+        iso_vlist_cube[k+j] = cube_list[i];
+        iso_vlist_facet[k+j] = j;
+      }
+      k = k+num_isov[i];
+    }
+
+    isopoly.resize(isopoly_cube.size());
+
+    for (ISOV_TYPE i = 0; i < isopoly_cube.size(); i++) {
+      ISOV_TYPE k = isopoly_cube[i];
+      TABLE_INDEX it = cube_table_index[k];
+
+      // Compute index of facet vertex opposite to facet_vertex[i]
+      int facet_vertex_i = facet_vertex[i];
+      int ifacet = cube.FacetIndex(facet_vertex_i);
+      int j = facet_vertex_i - ifacet*num_facet_vertices;
+      int opposite_vertex = (num_facet_vertices-1) - j;
+      opposite_vertex += (ifacet*num_facet_vertices);
+
+      isopoly[i] = first_cube_isov[k] + 
+        isodual_table.IncidentIsoVertex(it, opposite_vertex);
+
+    }
+  }
+
 }
+
 
 #endif
