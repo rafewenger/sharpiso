@@ -377,6 +377,7 @@ void SHARPISO::compute_vertex_on_line
  SVD_INFO & svd_info)
 {
   const SIGNED_COORD_TYPE max_dist = sharpiso_param.max_dist;
+  static COORD_TYPE Linf_coord[DIM3];
 
   // default
   flag_conflict = false;
@@ -393,11 +394,15 @@ void SHARPISO::compute_vertex_on_line
       if (sharpiso_param.use_Linf_dist) {
         // Use Linf distance instead of L1 distance.
         compute_closest_point_to_cube_center_linf
-          (cube_coord, line_origin, line_direction, sharp_coord);
+          (cube_coord, line_origin, line_direction, Linf_coord);
 
-        snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
-        if (check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) 
+        snap_to_cube(cube_coord, sharpiso_param.snap_dist, Linf_coord);
+        if (check_conflict(scalar_grid, isovalue, cube_coord, Linf_coord)) 
           { flag_conflict = true; }
+        else {
+          // No conflict.  Use Linf coord.
+          IJK::copy_coord_3D(Linf_coord, sharp_coord);
+        }
       }
       else {
         flag_conflict = true;

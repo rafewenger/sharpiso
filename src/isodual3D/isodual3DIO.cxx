@@ -1262,6 +1262,7 @@ namespace {
        << "              gradIE|gradIES|gradCD|gradNIE|gradNIES|" << endl
        << "              gradES|gradEC}]" << endl;
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
+  cerr << "  [-single_isov | -multi_isov]" << endl;
   cerr << "  [-max_eigen {max}]" << endl;
   cerr << "  [-max_dist {D}] [-gradS_offset {offset}]" << endl;
   cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
@@ -1348,6 +1349,8 @@ void ISODUAL3D::help()
        << endl;
   cout << "       Use complex choice to compute isosurface-edge intersections." << endl;
   cout << "  -gradient {gradient_nrrd_filename}: Read gradients from gradient nrrd file." << endl;
+  cout << "  -single_isov: Each intersected cube generates a single isosurface vertex." << endl;
+  cout << "  -multi_isov:  An intersected cube may generate multiple isosurface vertices."  << endl;
   cerr << "  -max_eigen {max}: Set maximum small eigenvalue to max."
        << endl;
   cerr << "  -max_dist {D}:    Set max Linf distance from cube to isosurface vertex." 
@@ -1364,8 +1367,9 @@ void ISODUAL3D::help()
        << endl;
   cout << "  -clamp_far: Clamp isosurface vertices at distance greater"
        << " than max_dist." << endl;
-  cout << "  -centroid_far: Revert to centroid when isosurface vertices are"
-       << endl << " at distance greater than max_dist." << endl;
+  cout << "  -centroid_far: Revert to centroid when an isosurface vertex is"
+       << endl 
+       << "                 at distance greater than max_dist." << endl;
   cout << "  -recompute_eigen2:  Recompute with only 2 eigenvalues to settle conflicts." << endl;
   cout << "  -no_recompute_eigen2:  Don't recompute with only 2 eigenvalues." 
        << endl;
