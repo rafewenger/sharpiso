@@ -24,6 +24,7 @@
 #ifndef _IJKCOORD_
 #define _IJKCOORD_
 
+#include <algorithm>
 #include <cmath>
 
 /// Coordinate arithmetic functions.

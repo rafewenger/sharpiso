@@ -141,7 +141,7 @@ int main(int argc, char **argv)
 		  exit (10);
 		}
 		output_mesh_info();
-		cerr <<"File output to "<< out_filename<<endl;
+		//cerr <<"File output to "<< out_filename<<endl;
 	}
 	catch (ERROR error) {
 		if (error.NumMessages() == 0) {

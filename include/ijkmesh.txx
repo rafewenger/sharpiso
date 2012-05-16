@@ -25,6 +25,7 @@
 #define _IJKMESH_
 
 #include "ijk.txx"
+#include <algorithm>
 #include <vector>
 
 namespace IJK {

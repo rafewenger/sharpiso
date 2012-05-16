@@ -1,7 +1,8 @@
-#../ijkgenscalar2 -grad -dim 3 -asize 100 -field annulus -dir "3 1 1" -center "50.1 50.2 50.3" -ratio 1 -radius 20 annulus21.nrrd
+
 import subprocess as sp
 
 args =['../ijkgenscalar2', '-grad', '-dim', '3', '-asize', '100']
+cgrad=['../cgradient']
 dirs=['1 0 0 ','1 1 0 ','1 1 1','2 1 0','2 1 1','2 2 1','3 1 0','3 1 1','3 2 0','3 2 1','3 2 2','3 3 1','3 3 2']
 cntrs=['50 50 50','50.1 50.2 50.3','50.2 50.3 50.4','50.3 50.4 50.5']
 fi=open ('data_sheet.txt','w')
@@ -27,6 +28,11 @@ for cen in cntrs:
     n=n+1
     print >>fi, flname, 'dir ',str(di),' center ',str(cen)
     p1=sp.call(temp2)
+    ctemp=cgrad[:]
+    ctemp.append(flname)
+    cgrad_fname='annulus'+str(n-1)+'.cgrad'+'.nrrd'
+    ctemp.append(cgrad_fname)
+    p2=sp.call(ctemp)
     
 n=1    
 # flange data set    
@@ -49,6 +55,11 @@ for cen in cntrs:
     n=n+1
     print >>fi, flname, 'dir ',str(di),' center ',str(cen)
     p1=sp.call(temp2)
+    ctemp=cgrad[:]
+    ctemp.append(flname)
+    cgrad_fname='flange'+str(n-1)+'.cgrad'+'.nrrd'
+    ctemp.append(cgrad_fname)
+    p2=sp.call(ctemp)
     
     
 n=1    
@@ -73,4 +84,8 @@ for cen in cntrs1:
     n=n+1
     print >>fi, flname, 'dir ',str(di),' center ',str(cen)
     p1=sp.call(temp2)
-    
+    ctemp=cgrad[:]
+    ctemp.append(flname)
+    cgrad_fname='two_cubes'+str(n-1)+'.cgrad'+'.nrrd'
+    ctemp.append(cgrad_fname)
+    p2=sp.call(ctemp)

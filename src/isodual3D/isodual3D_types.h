@@ -48,6 +48,9 @@ namespace ISODUAL3D {
   /// Vertex and edge indices must have the same type.
   typedef VERTEX_INDEX EDGE_INDEX;
 
+  /// Facet vertex index type.
+  typedef unsigned char FACET_VERTEX_INDEX;
+
 // **************************************************
 // ARRAY TYPES
 // **************************************************

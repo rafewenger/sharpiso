@@ -35,7 +35,7 @@ def create_iso_command(args):
           cmd.append('-gradient')
           cgrad_file=files.split('.')
           cgrad_file.insert(len(cgrad_file)-1,'cgrad')
-          cmd.append('.'.join(cgrad_file))
+          cmd.append(df.data_loc+'.'.join(cgrad_file))
          cmd.append('-trimesh')
          cmd.append('-s')
          cmd.append('-position')
@@ -54,7 +54,7 @@ def create_iso_command(args):
          cmd.append(iso)
          #print 'data ', df.data_loc+files
          cmd.append(df.data_loc+files)
-         #print 'cmd',cmd       
+         print 'cmd',cmd       
          cmd_list.append(cmd)
          p2=subprocess.call(cmd)
          
@@ -99,7 +99,7 @@ def create_iso_command(args):
          ot=p2.split()
          print >>fi, fl_name,ot[1]
          # findedge count end
+        
          
-         
-  return cmd_list      
+  #return cmd_list      
 

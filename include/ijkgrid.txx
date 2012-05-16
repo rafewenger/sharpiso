@@ -105,6 +105,8 @@ namespace IJK {
     VTYPE ComputeVertexIndex(const std::vector<GTYPE> coord) const;
     template <class GTYPE>
     void ComputeCoord(const VTYPE iv, GTYPE * coord) const;
+    template <class GTYPE>
+    void ComputeCubeCenterCoord(const VTYPE iv, GTYPE * coord) const;
     template <class BTYPE>
     void ComputeBoundaryBits(const VTYPE iv, BTYPE & boundary_bits) const;
 
@@ -3222,13 +3224,30 @@ namespace IJK {
   /// Compute coordinates of given vertex.
   /// @param iv  Vertex index.
   /// @param[out] coord  Array: <em>coord[d]</em> = d'th coordinate of vertex.
-  /// @pre Array <em>coord[]</em> is preallocated to length at least \a Dimension().
+  /// @pre Array <em>coord[]</em> is preallocated to length 
+  ///      at least \a Dimension().
   template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
   template <class GTYPE>
   void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
   ComputeCoord(const VTYPE iv, GTYPE * coord) const
   {
     compute_coord(iv, Dimension(), AxisSize(), coord);
+  }
+
+  /// Compute coordinates of given cube center.
+  ///   Cube center coord is (vertex coord) + (0.5,0.5,...,0.5).
+  /// @param iv  Index of primary vertex of cube.
+  /// @param[out] coord  Array: <em>coord[d]</em> = d'th coordinate of vertex.
+  /// @pre Array <em>coord[]</em> is preallocated to length 
+  ///      at least \a Dimension().
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
+  template <class GTYPE>
+  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  ComputeCubeCenterCoord(const VTYPE iv, GTYPE * coord) const
+  {
+    ComputeCoord(iv, coord);
+    for (DTYPE d = 0; d < Dimension(); d++)
+      { coord[d] += 0.5; }
   }
 
   /// Compute bits identifying which boundary contains vertex \a iv.

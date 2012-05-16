@@ -74,7 +74,7 @@ namespace IJK {
     NTYPE NumEdges() const                ///< Number of cube edges.
     { return(num_edges); }
     NTYPE NumFacets() const               ///< Number of cube facets. 
-    { return(num_vertices); }
+    { return(num_facets); }
     NTYPE NumFacetVertices() const        ///< Number of cube facet vertices. 
     { return(num_facet_vertices); }
     NTYPE NumDiagonals() const            ///< Number of cube diagonals.
@@ -87,6 +87,72 @@ namespace IJK {
     NTYPE OppositeVertex                  ///< Index of vertex opposite iv
     (const NTYPE iv) const
     { return(MaxVertexIndex()-iv); }
+
+    /// Return neighbor of vertex \a iv0.
+    /// @param dir Edge direction.
+    /// @param iv0 Vertex.
+    NTYPE VertexNeighbor
+    (const NTYPE iv0, const DTYPE dir)
+    {
+      int mask = (1L << dir);
+      return((iv0^mask));
+    };
+
+  };
+
+  // **************************************************
+  // TEMPLATE CLASS CUBE_FACE_INFO
+  // **************************************************
+
+  /// Information about cube faces
+  template <typename DTYPE, typename NTYPE, typename VTYPE>
+  class CUBE_FACE_INFO:public CUBE_INFO<DTYPE,NTYPE> {
+
+  protected:
+    VTYPE * facet_vertex;
+    VTYPE * edge_endpoint;
+
+    void Init();
+    void Init(const int dimension);
+    void FreeAll();
+
+    /// Set facet vertices and edge endpoints.
+    void SetFaces();
+
+    /// Set facet vertices.
+    void SetFacetVertices();
+
+    /// Set edge endoints.
+    /// @pre Array facet_vertex[] should be set before edge_endpoint[].
+    void SetEdgeEndpoints();
+
+  public:
+    CUBE_FACE_INFO();
+    CUBE_FACE_INFO(const DTYPE dimension);
+    ~CUBE_FACE_INFO() { FreeAll(); };
+
+    // set functions
+    template <typename DTYPE2>
+    void SetDimension                     ///< Set cube dimension
+    (const DTYPE2 dimension);
+
+    /// Return edge endpoint.
+    /// @param ie Edge index.
+    /// @param iend Endpoint (0 or 1).
+    VTYPE EdgeEndpoint(const VTYPE ie, const NTYPE iend) const
+    { return(edge_endpoint[2*ie+iend]); };
+
+    /// Return facet vertex.
+    /// @param ifacet Facet index. 
+    ///    Facet is orthogonal to axis (ifacet%dimension).
+    ///    If ifacet < dimension, facet contains vertex 0.
+    //     If ifacet >= dimension, facet contains largest vertex.
+    VTYPE FacetVertex(const NTYPE ifacet, const NTYPE k) const
+    { return(facet_vertex[ifacet*this->NumFacetVertices()+k]); };
+
+    /// Return facet index.
+    VTYPE FacetIndex(const VTYPE facet_vertex_index)
+    { return(int(facet_vertex_index)/int(this->NumFacetVertices())); }
   };
 
   // **************************************************
@@ -545,6 +611,157 @@ namespace IJK {
     this->num_facets = compute_num_cube_facets(dimension);
     this->num_edges = compute_num_cube_edges(dimension);
     this->num_facet_vertices = num_vertices/2;
+  }
+
+  // **************************************************
+  // TEMPLATE CLASS CUBE_FACE_INFO MEMBER FUNCTIONS
+  // **************************************************
+
+  /// Constructor.
+  template <typename DTYPE, typename NTYPE, typename VTYPE> 
+  CUBE_FACE_INFO<DTYPE,NTYPE,VTYPE>::
+  CUBE_FACE_INFO(const DTYPE dimension):CUBE_INFO<DTYPE,NTYPE>(dimension)
+  {
+    Init(dimension);
+  }
+
+  /// Constructor
+  template <typename DTYPE, typename NTYPE, typename VTYPE> 
+  CUBE_FACE_INFO<DTYPE,NTYPE,VTYPE>::CUBE_FACE_INFO()
+  {
+    Init();
+  }
+
+  // Initialize
+  template <typename DTYPE, typename NTYPE, typename VTYPE> 
+  void CUBE_FACE_INFO<DTYPE,NTYPE,VTYPE>::Init()
+  {
+    facet_vertex = NULL;
+    edge_endpoint = NULL;
+  }
+
+  // Initialize
+  template <typename DTYPE, typename NTYPE, typename VTYPE> 
+  void CUBE_FACE_INFO<DTYPE,NTYPE,VTYPE>::Init(const int dimension)
+  {
+    facet_vertex = NULL;
+    edge_endpoint = NULL;
+
+    SetDimension(dimension);
+  }
+
+  // Free all arrays
+  template <typename DTYPE, typename NTYPE, typename VTYPE> 
+  void CUBE_FACE_INFO<DTYPE,NTYPE,VTYPE>::FreeAll()
+  {
+    if (facet_vertex != NULL) {
+      delete [] facet_vertex;
+      facet_vertex = NULL;
+    }
+
+    if (edge_endpoint != NULL) {
+      delete [] edge_endpoint;
+      edge_endpoint = NULL;
+    }
+  }
+
+
+  // Set dimension.
+  template <typename DTYPE, typename NTYPE, typename VTYPE> 
+  template <typename DTYPE2>
+  void CUBE_FACE_INFO<DTYPE,NTYPE,VTYPE>::SetDimension
+  (const DTYPE2 dimension)
+  {
+    FreeAll();
+    CUBE_INFO<DTYPE,NTYPE>::SetDimension(dimension);
+    facet_vertex = new VTYPE[this->NumFacetVertices()*this->NumFacets()];
+    edge_endpoint = new VTYPE[this->NumEdges()*2];
+
+    SetFacetVertices();
+    SetEdgeEndpoints();
+  }
+
+  // Set facet vertices.
+  template <typename DTYPE, typename NTYPE, typename VTYPE> 
+  void CUBE_FACE_INFO<DTYPE,NTYPE,VTYPE>::SetFacetVertices()
+  {
+    const DTYPE dimension = this->Dimension();
+    const NTYPE num_cube_vertices = this->NumVertices();
+    const NTYPE num_facet_vertices = this->NumFacetVertices();
+    IJK::PROCEDURE_ERROR error("SetFacetVertices");
+
+    if (dimension < 1) { return; };
+
+    if (facet_vertex == NULL) {
+      error.AddMessage("Programming error.  Array facet_vertex[] not allocated.");
+      throw error;
+    }
+
+    for (NTYPE ifacet = 0; ifacet < this->NumFacets(); ifacet++) {
+
+      DTYPE orth_dir = ifacet%dimension;
+
+      // Multiply by s mod (num_cube_vertices-1) to compute vertex index.
+      NTYPE s = 2;
+      for (DTYPE d = 0; d < orth_dir; d++)
+        { s = s*2; };
+      s = s%(num_cube_vertices-1);
+
+      NTYPE i0 = ifacet*num_facet_vertices;
+
+      if (ifacet < dimension) {
+
+        for (NTYPE i = 0; i < num_facet_vertices; i++) 
+          { facet_vertex[i0+i] = (i*s)%(num_cube_vertices-1); }
+      }
+      else {
+
+        // Translate by t mod num_cube_vertices to compute vertex index.
+        NTYPE t = 1;
+        for (DTYPE d = 0; d < orth_dir; d++)
+          { t = t*2; };
+
+        for (NTYPE i = 0; i < num_facet_vertices; i++) 
+          { facet_vertex[i0+i] = ((i*s)%(num_cube_vertices-1))+t; }
+
+        // Swap subfacets to get consistent facet orientation.
+        if (num_facet_vertices > 1) {
+          NTYPE num_subfacet_vertices = num_facet_vertices/2;
+          for (NTYPE i = 0; i < num_subfacet_vertices; i++) {
+            std::swap(facet_vertex[i0+i], 
+                      facet_vertex[i0+i+num_subfacet_vertices]);
+          }
+        }
+      }
+    }
+
+  }
+
+  // Set edge endpoints.
+  // @pre Array facet_vertex[] should be set before edge_endpoints[].
+  template <typename DTYPE, typename NTYPE, typename VTYPE> 
+  void CUBE_FACE_INFO<DTYPE,NTYPE,VTYPE>::SetEdgeEndpoints()
+  {
+    const DTYPE dimension = this->Dimension();
+    IJK::PROCEDURE_ERROR error("SetEdgeEndpoints");
+
+    if (dimension < 1) { return; };
+
+    if (edge_endpoint == NULL) {
+      error.AddMessage("Programming error.  Array edge_endpoint[] not allocated.");
+      throw error;
+    }
+
+    for (DTYPE d = 0; d < dimension; d++) {
+      for (NTYPE i = 0; i < this->NumFacetVertices(); i++) {
+        NTYPE j = d*this->NumFacetVertices()+i;
+        VTYPE iv0 = FacetVertex(d, i);
+        edge_endpoint[2*j] = iv0;
+        VTYPE iv1 = VertexNeighbor(iv0, d);
+        edge_endpoint[2*j+1] = iv1;
+      }
+    }
+
   }
 
   // **************************************************
