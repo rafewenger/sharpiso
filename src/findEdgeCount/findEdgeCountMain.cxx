@@ -19,6 +19,7 @@ int dimension(3);
 int num_vertices(0);
 int num_edges(0);
 bool  flag_op_to_file = false;
+bool flag_print_edges = false;
 // miscellaneous routines
 void usage_error();
 void parse_command_line(int argc, char **argv);
@@ -53,6 +54,8 @@ int main(int argc, char **argv)
       //compute the output file name
       output_vert_degree_2_file (num_vertices, vert_degree, output_fn);
     }
+    if (flag_print_edges)
+    print_edge_info(num_vertices, vert_degree);
 
   }
   catch (ERROR & error) {
@@ -79,7 +82,8 @@ int main(int argc, char **argv)
 
 void usage_msg()
 {
-  cerr << "Usage: findedgecount -fp <.line file>" << endl;
+  cerr << "Usage: findedgecount -e -fp <.line file>" << endl;
+  cerr <<" -e prints the vertices which have deg 1 , 3 or >3"<<endl;
 }
 
 void usage_error()
@@ -99,6 +103,17 @@ void parse_command_line(int argc, char **argv)
     {
       flag_op_to_file = true;
       iarg++;   
+    }
+    else if (s=="-e")
+    {
+    flag_print_edges=true;
+    iarg++;
+    }
+    else
+    {
+    cout <<"There is no option called ["<<argv[iarg]<<"] exiting program!!"<<endl;
+    iarg++;
+    exit(0);
     }
   }
   input_filename = argv[iarg];

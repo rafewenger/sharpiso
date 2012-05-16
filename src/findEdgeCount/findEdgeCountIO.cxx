@@ -7,6 +7,7 @@
 #include <cstdlib>     // function exit() is in cstdlib
 #include <fstream>     // class ofstream() is in fstream
 #include <string>  
+#include <iomanip>
 #include"findEdgeCountIO.h"
 
 // global variables 
@@ -14,8 +15,12 @@ int cnt0(0),cnt1(0),cnt2(0),cnt3(0); // number of vertices with degree one or  3
 int cntMoreThan3(0); 
 
 void output_edges
-(const int dim, const COORD_TYPE * coord, const int numv,
- const VERTEX_INDEX * edge_vert, const int nume)
+(const int dim, 
+ const COORD_TYPE * coord,
+ const int numv,
+ const VERTEX_INDEX * edge_vert,
+ const int nume,
+ vector<int> vert_degree)
 {
   for (int i = 0; i < nume; i++) {
     VERTEX_INDEX iv0 = edge_vert[2*i];
@@ -25,8 +30,25 @@ void output_edges
     print_list(cout, coord+iv0*dim, dim);
     cout << " ";
     print_list(cout, coord+iv1*dim, dim);
-    cout << "]" << endl;
+    cout << "]"<< endl;
   }
+}
+
+
+void print_edge_info(int numv,vector <int> vert_degree)
+{
+  // header
+  cout <<"\n"<<setw(4)<<"vert"<<setw(5)<<"dg1"<<setw(5)
+  <<"dg3"<<setw(5)<<"dg>3"<<endl;
+   for (int i=0;i<numv;i++)
+ { 
+  if (vert_degree[i]==1) 
+  cout <<setw(4)<<i<<setw(4)<<vert_degree[i]<<endl;
+  else if (vert_degree[i]==3)
+  cout <<setw(4)<<i<<setw(8)<<vert_degree[i]<<endl;
+  else if (vert_degree[i]>3)
+  cout <<setw(4)<<i<<setw(12)<<vert_degree[i]<<endl;
+ }
 }
 
 void output_vert_degree
