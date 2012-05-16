@@ -1183,6 +1183,10 @@ void ISODUAL3D::report_iso_info
          << isodual_info.sharpiso.num_sharp_edges << endl;
     cout << "  Number of smooth isosurface vertices: "
          << isodual_info.sharpiso.num_smooth_vertices << endl;
+    if (output_info.use_Linf_dist) {
+      cout << "  Number of vertices at min Linf distance to cube center: "
+           << isodual_info.sharpiso.num_Linf_iso_vertex_locations << endl;
+    }
 
     if (output_info.flag_reposition) {
       cout << "  Number of repositioned isosurface vertices: "

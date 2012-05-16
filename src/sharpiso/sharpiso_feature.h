@@ -102,7 +102,6 @@ namespace SHARPISO {
    const COORD_TYPE line_origin[DIM3],
    const COORD_TYPE line_direction[DIM3],
    COORD_TYPE sharp_coord[DIM3],
-   bool & flag_conflict,
    SVD_INFO & svd_info);
 
   /// Compute sharp isosurface vertex using edge-isosurface intersections.
@@ -282,6 +281,7 @@ namespace SHARPISO {
     COORD_TYPE ray_initial_point[DIM3];      // point on ray
     COORD_TYPE ray_cube_intersection[DIM3];
     bool flag_conflict;
+    bool flag_Linf_iso_vertex_location;
     
     /// Set ray information.
     void SetRayInfo

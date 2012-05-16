@@ -143,6 +143,9 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
 
     if (svd_info.flag_conflict) 
       { sharp_info.num_conflicts++; }
+    else if (svd_info.flag_Linf_iso_vertex_location)
+      { sharp_info.num_Linf_iso_vertex_locations++; }
+
     sharp_info.IncrementIsoVertexNum(num_large_eigenvalues);
   }
 

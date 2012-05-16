@@ -114,6 +114,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 
   svd_info.location = LOC_SVD;
   svd_info.flag_conflict = false;
+  svd_info.flag_Linf_iso_vertex_location = false;
 
   // svd_calculate_sharpiso vertex using lindstrom
   COORD_TYPE default_center[DIM3] = {0.5,0.5,0.5};
@@ -226,6 +227,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
 
   svd_info.location = LOC_SVD;
   svd_info.flag_conflict = false;
+  svd_info.flag_Linf_iso_vertex_location = false;
 
   local_svd_compute_sharp_vertex_for_cube_lc_intersection
     (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue, 
@@ -346,7 +348,7 @@ void local_svd_compute_sharp_vertex_for_cube_lc_intersection
 
     compute_vertex_on_line
       (scalar_grid, gradient_grid, cube_coord, isovalue, sharpiso_param,
-       line_origin, line_direction, sharp_coord, flag_conflict, svd_info);
+       line_origin, line_direction, sharp_coord, svd_info);
     svd_info.SetRayInfo(line_origin, line_direction, sharp_coord);
   }
   else if (num_large_eigenvalues  == 1) {
@@ -373,14 +375,10 @@ void SHARPISO::compute_vertex_on_line
  const COORD_TYPE line_origin[DIM3],
  const COORD_TYPE line_direction[DIM3],
  COORD_TYPE sharp_coord[DIM3],
- bool & flag_conflict,
  SVD_INFO & svd_info)
 {
   const SIGNED_COORD_TYPE max_dist = sharpiso_param.max_dist;
   static COORD_TYPE Linf_coord[DIM3];
-
-  // default
-  flag_conflict = false;
 
   // Compute the closest point (L2 distance) on the line to sharp_coord.
   compute_closest_point_to_cube_center
@@ -397,21 +395,15 @@ void SHARPISO::compute_vertex_on_line
           (cube_coord, line_origin, line_direction, Linf_coord);
 
         snap_to_cube(cube_coord, sharpiso_param.snap_dist, Linf_coord);
-        if (check_conflict(scalar_grid, isovalue, cube_coord, Linf_coord)) 
-          { flag_conflict = true; }
-        else {
+        if (!check_conflict(scalar_grid, isovalue, cube_coord, Linf_coord)) {
           // No conflict.  Use Linf coord.
           IJK::copy_coord_3D(Linf_coord, sharp_coord);
+          svd_info.flag_Linf_iso_vertex_location = true;
         }
-      }
-      else {
-        flag_conflict = true;
       }
     }
   }
-  else {
-    flag_conflict = true;
-  }
+
 }
 
 
@@ -1004,6 +996,7 @@ void SHARP_ISOVERT_PARAM::Set(const SHARP_ISOVERT_PARAM & param)
 void SVD_INFO::Init()
 {
   flag_conflict = false;
+  flag_Linf_iso_vertex_location = false;
   location = LOC_SVD;
 }
 

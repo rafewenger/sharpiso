@@ -307,6 +307,7 @@ namespace ISODUAL3D {
     int num_sharp_edges;
     int num_smooth_vertices;
     int num_repositioned_vertices;
+    int num_Linf_iso_vertex_locations;
 
     SHARPISO_INFO();  ///< Constructor.
     void Clear();     ///< Clear all data.

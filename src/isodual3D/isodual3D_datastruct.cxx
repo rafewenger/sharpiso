@@ -359,6 +359,7 @@ void ISODUAL3D::SHARPISO_INFO::Clear()
   num_sharp_edges = 0;
   num_smooth_vertices = 0;
   num_repositioned_vertices = 0;
+  num_Linf_iso_vertex_locations = 0;
 }
 
 // Increment num_sharp_corners or num_sharp_edges or num_smooth_vertices
