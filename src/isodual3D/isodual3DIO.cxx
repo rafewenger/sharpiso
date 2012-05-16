@@ -1264,7 +1264,7 @@ namespace {
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
   cerr << "  [-max_eigen {max}]" << endl;
   cerr << "  [-max_dist {D}] [-gradS_offset {offset}]" << endl;
-  cerr << "  [-reposition | -no_reposition]" << endl;
+  cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
   cerr << "  [-lindstrom]" << endl;
   cerr << "  [-allow_conflict] [-clamp_conflict] [-centroid_conflict]" << endl;
   cerr << "  [-clamp_far] [-centroid_far]" << endl;

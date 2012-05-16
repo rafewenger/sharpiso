@@ -3,7 +3,7 @@
 
 /*
 IJK: Isosurface Jeneration Kode
-Copyright (C) 2011 Rephael Wenger
+Copyright (C) 2011,2012 Rephael Wenger
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -540,8 +540,11 @@ namespace {
    const VERTEX_INDEX iv0, const VERTEX_INDEX jloc0,
    const VERTEX_INDEX iv1, const VERTEX_INDEX jloc1,
    COORD_TYPE * isovert_coord,
-    SHARPISO_INFO & sharp_info)
+   SHARPISO_INFO & sharp_info)
   {
+    static COORD_TYPE coord0[DIM3];
+    static COORD_TYPE coord1[DIM3];
+    
     COORD_TYPE distance_squared;
     IJK::compute_distance_squared
       (DIM3, isovert_coord+jloc0*DIM3, isovert_coord+jloc1*DIM3, 
@@ -549,7 +552,23 @@ namespace {
 
     if (distance_squared < sep_dist_squared) {
       ISODUAL3D::compute_isosurface_grid_edge_centroid
-        (scalar_grid, isovalue, iv0, isovert_coord+jloc0*DIM3);
+        (scalar_grid, isovalue, iv0, coord0);
+      ISODUAL3D::compute_isosurface_grid_edge_centroid
+        (scalar_grid, isovalue, iv1, coord1);
+
+      COORD_TYPE new_dist_sq0;
+      COORD_TYPE new_dist_sq1;
+      IJK::compute_distance_squared
+        (DIM3, coord0, isovert_coord+jloc1*DIM3, new_dist_sq0);
+      IJK::compute_distance_squared
+        (DIM3, isovert_coord+jloc0*DIM3, coord1, new_dist_sq1);
+
+      if (new_dist_sq0 >= new_dist_sq1) {
+        IJK::copy_coord_3D(coord0, isovert_coord+jloc0*DIM3);
+      }
+      else {
+        IJK::copy_coord_3D(coord1, isovert_coord+jloc1*DIM3);
+      }
 
       sharp_info.num_repositioned_vertices++;
     }

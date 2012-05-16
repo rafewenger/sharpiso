@@ -220,6 +220,7 @@ void ISODUAL3D::dual_contouring
       error.AddMessage("  Positioning does not allow multiple isosurface vertices in a cube.");
       throw error;
     }
+
   }
   else {
 
