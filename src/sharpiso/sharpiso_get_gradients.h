@@ -229,7 +229,8 @@ namespace SHARPISO {
    NUM_TYPE & num_gradients);
 
   /// Get gradients at edge intersection points determined by edge endpoints.
-  void get_edgeI_selected_gradients
+  /// Use sharp formula for computing gradient at intersection.
+  void get_edgeI_sharp_gradients
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
      const GRADIENT_GRID_BASE & gradient_grid,
      const VERTEX_INDEX cube_index,

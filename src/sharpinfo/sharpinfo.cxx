@@ -224,7 +224,7 @@ int main(int argc, char **argv)
         (sharpiso_param.grad_selection_cube_offset);
 
       if (flag_edge_intersect_sharp) {
-        get_edgeI_selected_gradients
+        get_edgeI_sharp_gradients
           (scalar_grid, gradient_grid, cube_index, isovalue,
            point_coord, gradient_coord, scalar, num_gradients);
       }
@@ -371,7 +371,7 @@ void compute_iso_vertex_using_svd
        sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
   }
   else if (flag_edge_intersect_sharp) {
-    svd_compute_sharp_vertex_edgeI_select_gradient
+    svd_compute_sharp_vertex_edgeI_sharp_gradient
       (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
        sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
   }

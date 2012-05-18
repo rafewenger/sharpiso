@@ -140,8 +140,8 @@ namespace ISODUAL3D {
   // *******************************************************************
 
   /// Position vertices using SVD on grid edge-isosurface intersections.
-  /// Approximate gradients using linear interpolation on the grid edge.
-  void position_dual_isovertices_edgeI_select_gradients
+  /// Select endpoint gradient which determines edge-isosurface intersection.
+  void position_dual_isovertices_edgeI_sharp_gradients
   (const ISODUAL_SCALAR_GRID_BASE & grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const SCALAR_TYPE isovalue,
@@ -150,7 +150,7 @@ namespace ISODUAL3D {
 
   /// Position vertices using SVD on grid edge-isosurface intersections.
   /// Select endpoint gradient which determines edge-isosurface intersection.
-  void position_dual_isovertices_edgeI_select_gradients
+  void position_dual_isovertices_edgeI_sharp_gradients
   (const ISODUAL_SCALAR_GRID_BASE & grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const SCALAR_TYPE isovalue,

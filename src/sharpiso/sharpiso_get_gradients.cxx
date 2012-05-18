@@ -909,7 +909,10 @@ void SHARPISO::get_intersected_neighbor_edge_endpoint_gradients
 
 }
 
-void SHARPISO::get_edgeI_selected_gradients
+
+/// Get gradients at edge intersection points determined by edge endpoints.
+/// Use sharp formula for computing gradient at intersection.
+void SHARPISO::get_edgeI_sharp_gradients
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,

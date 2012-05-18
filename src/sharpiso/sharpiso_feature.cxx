@@ -462,8 +462,8 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_interpolate_gradients
 }
 
 /// Compute sharp isosurface vertex using edge-isosurface intersections.
-/// Select endpoint gradient which determines edge-isosurface intersection.
-void SHARPISO::svd_compute_sharp_vertex_edgeI_select_gradient
+/// Use sharp formula for computing gradient at intersection.
+void SHARPISO::svd_compute_sharp_vertex_edgeI_sharp_gradient
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
