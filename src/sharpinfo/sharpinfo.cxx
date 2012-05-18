@@ -60,8 +60,8 @@ bool flag_centroid(false);
 SHARP_ISOVERT_PARAM sharpiso_param;
 bool flag_list_eigen(false);
 bool flag_svd_gradients(true); //default
-bool flag_svd_edges_simple(false);
-bool flag_svd_edges_cmplx(false);
+bool flag_edge_intersect_interpolate(false);
+bool flag_edge_intersect_sharp(false);
 bool flag_dist2vert(false);
 bool flag_cube_set(false);
 bool flag_vertex_set(false);
@@ -223,10 +223,17 @@ int main(int argc, char **argv)
       OFFSET_CUBE_111 cube_111
         (sharpiso_param.grad_selection_cube_offset);
 
-      get_gradients
-        (scalar_grid, gradient_grid, cube_index, isovalue,
-         sharpiso_param, cube_111, sharpiso_param.flag_sort_gradients,
-         point_coord, gradient_coord, scalar, num_gradients);
+      if (flag_edge_intersect_sharp) {
+        get_edgeI_selected_gradients
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           point_coord, gradient_coord, scalar, num_gradients);
+      }
+      else {
+        get_gradients
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           sharpiso_param, cube_111, sharpiso_param.flag_sort_gradients,
+           point_coord, gradient_coord, scalar, num_gradients);
+      }
 
       if (flag_list_gradients) {
         COORD_TYPE cube_center[DIM3];
@@ -358,12 +365,12 @@ void compute_iso_vertex_using_svd
     sharpiso_param.max_small_eigenvalue;
 
 
-  if (flag_svd_edges_simple) {
+  if (flag_edge_intersect_interpolate) {
     svd_compute_sharp_vertex_edgeI_interpolate_gradients
       (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
        sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
   }
-  else if (flag_svd_edges_cmplx) {
+  else if (flag_edge_intersect_sharp) {
     svd_compute_sharp_vertex_edgeI_select_gradient
       (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
        sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
@@ -1001,14 +1008,14 @@ void parse_command_line(int argc, char **argv)
       sharpiso_param.flag_sort_gradients = true;
     }
     else if (s == "-gradES") {
-      flag_svd_edges_simple = true;
+      flag_edge_intersect_interpolate = true;
       flag_use_lindstrom = true;    // *** CURRENTLY ONLY LINDSTROM
       use_gradients_determining_edge_intersections = true;
       use_selected_gradients = false;
       flag_edge_intersection = true;
     }
     else if (s == "-gradEC") {
-      flag_svd_edges_cmplx = true;
+      flag_edge_intersect_sharp = true;
       flag_use_lindstrom = true;    // *** CURRENTLY ONLY LINDSTROM
       use_selected_gradients = false;
       use_gradients_determining_edge_intersections = true;
@@ -1167,6 +1174,18 @@ void parse_command_line(int argc, char **argv)
 
   if (!flag_isovalue_set && flag_list_subgrid) {
     cerr << "Error.  Option -list_subgrid cannot be used without -isovalue."
+         << endl;
+    exit(15);
+  }
+
+  if (!flag_isovalue_set && flag_edge_intersect_interpolate) {
+    cerr << "Error.  Option -gradES cannot be used without -isovalue."
+         << endl;
+    exit(15);
+  }
+
+  if (!flag_isovalue_set && flag_edge_intersect_sharp) {
+    cerr << "Error.  Option -gradEC cannot be used without -isovalue."
          << endl;
     exit(15);
   }

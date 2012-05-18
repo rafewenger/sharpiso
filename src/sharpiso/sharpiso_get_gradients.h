@@ -228,6 +228,17 @@ namespace SHARPISO {
    std::vector<SCALAR_TYPE> & scalar,
    NUM_TYPE & num_gradients);
 
+  /// Get gradients at edge intersection points determined by edge endpoints.
+  void get_edgeI_selected_gradients
+    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+     const GRADIENT_GRID_BASE & gradient_grid,
+     const VERTEX_INDEX cube_index,
+     const SCALAR_TYPE isovalue,
+     std::vector<COORD_TYPE> & point_coord,
+     std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+     std::vector<SCALAR_TYPE> & scalar,
+     NUM_TYPE & num_gradients);
+
   // **************************************************
   // GET VERTICES
   // **************************************************
