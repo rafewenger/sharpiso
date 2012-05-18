@@ -22,6 +22,7 @@
 */
 
 #include "sharpiso_get_gradients.h"
+#include "sh_point_find.h"
 
 #include "ijkcoord.txx"
 #include "ijkgrid.txx"
@@ -370,7 +371,6 @@ void SHARPISO::get_cube_gradients
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
- std::vector<COORD_TYPE> & point_coord,
  GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3],
  SCALAR_TYPE scalar[NUM_CUBE_VERTICES3D])
 {

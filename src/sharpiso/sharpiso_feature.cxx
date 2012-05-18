@@ -422,13 +422,12 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_interpolate_gradients
   const EIGENVALUE_TYPE max_small_eigenvalue =
     sharpiso_param.max_small_eigenvalue;
   NUM_TYPE num_gradients(0);
-  std::vector<COORD_TYPE> point_coord;
   GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3];
   SCALAR_TYPE scalar[NUM_CUBE_VERTICES3D];
 
   get_cube_gradients
     (scalar_grid, gradient_grid, cube_index,
-     point_coord, gradient_coord, scalar);
+     gradient_coord, scalar);
 
   // Ray Direction to calculate intersection if there are 2 singular values.
   GRADIENT_COORD_TYPE ray_direction[3]={0.0};
@@ -477,13 +476,12 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_select_gradient
   const EIGENVALUE_TYPE max_small_eigenvalue =
     sharpiso_param.max_small_eigenvalue;
   NUM_TYPE num_gradients(0);
-  std::vector<COORD_TYPE> point_coord;
   GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3];
   SCALAR_TYPE scalar[NUM_CUBE_VERTICES3D];
 
   get_cube_gradients
     (scalar_grid, gradient_grid, cube_index,
-     point_coord, gradient_coord, scalar);
+     gradient_coord, scalar);
 
   // Ray Direction to calculate intersection if there are 2 singular values.
   GRADIENT_COORD_TYPE ray_direction[3]={0.0};
