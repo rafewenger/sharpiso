@@ -69,6 +69,7 @@ bool flag_use_lindstrom(false);
 bool flag_edge_intersection(false);
 bool flag_subgrid(false);
 bool flag_output_param(true);
+bool flag_sharp_edgeI(false);
 
 // compute isosurface vertices
 void compute_iso_vertex_using_svd
@@ -145,6 +146,13 @@ void output_cube_eigenvalues
  const GRADIENT_GRID & gradient_grid,
  const SCALAR_TYPE isovalue,
  const SHARP_ISOVERT_PARAM & sharpiso_param);
+void output_edge_intersections
+(std::ostream & output,
+ const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const SCALAR_TYPE isovalue,
+ const GRADIENT_COORD_TYPE zero_tolerance);
 
 void output_centroid_results
 (std::ostream & output, const COORD_TYPE coord[DIM3]);
@@ -290,6 +298,13 @@ int main(int argc, char **argv)
           }
         }
 
+        if (flag_sharp_edgeI) {
+          output_edge_intersections
+            (cout, scalar_grid, gradient_grid, cube_index, isovalue,
+             sharpiso_param.zero_tolerance);
+          cout << endl;
+        }
+
         if (flag_list_subgrid) {
           GRID_COORD_TYPE cube_coord[DIM3];
 
@@ -414,6 +429,7 @@ void compute_iso_vertex_using_subgrid
      get_gradients_param, cube_111, subgrid_axis_size,
      sharp_coord, scalar_stdev, max_abs_scalar_error);
 }
+
 
 // **************************************************
 // OUTPUT ROUTINES
@@ -678,6 +694,52 @@ void output_gradient_based_scalars
      num_points, &(location[0]));
 }
 
+void output_edge_intersections
+(std::ostream & output,
+ const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const SCALAR_TYPE isovalue,
+ const GRADIENT_COORD_TYPE zero_tolerance)
+{
+  const int dimension = scalar_grid.Dimension();
+  COORD_TYPE vcoord0[DIM3];
+  COORD_TYPE vcoord1[DIM3];
+  GRADIENT_COORD_TYPE grad[DIM3];
+  SCALAR_TYPE s, s_split, t_split;
+  bool flag_no_split;
+
+  for (int d = 0; d < dimension; d++) {
+    for (int k = 0; k < scalar_grid.NumFacetVertices(); k++) {
+      VERTEX_INDEX iv0 = scalar_grid.FacetVertex(cube_index, d, k);
+      VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, d);
+
+      if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
+
+        VERTEX_INDEX iv2;
+        get_vertex_determining_edge_intersection
+          (scalar_grid, gradient_grid, isovalue, iv0, iv1, d,
+           zero_tolerance, iv2, flag_no_split, t_split, s_split);
+        scalar_grid.ComputeCoord(iv0, vcoord0);
+        scalar_grid.ComputeCoord(iv1, vcoord1);
+
+        output << "Edge: ";
+        IJK::ijkgrid_output_coord(output, DIM3, vcoord0);
+        IJK::ijkgrid_output_coord(output, DIM3, vcoord1);
+
+        if (flag_no_split) {
+          output << "  No split." << endl;
+        }
+        else {
+          output << "  split scalar: " << s_split;
+          output << "  split t: " << t_split << endl;
+        }
+      }
+    }
+  }
+}
+
+
 /// Output distance from vert to plane defined by gradient field at neighbors.
 void output_dist2vert
 (std::ostream & output, const GRADIENT_COORD_TYPE gfield_gradient[DIM3],
@@ -922,7 +984,7 @@ void usage_error()
          << " | -vc \"vertex coordinates\"" << endl;
     cerr << "  -max_eigen <value>" << endl;
     cerr << "  -gradS_offset <value> | -max_dist <value>" << endl;
-    cerr << "  -listg | -list_subgrid" << endl;
+    cerr << "  -listg | -list_subgrid | -edgeI" << endl;
     cerr << "  -help | -no_output_param" << endl;
     exit(10);
 }
@@ -1097,6 +1159,9 @@ void parse_command_line(int argc, char **argv)
     }
     else if (s == "-subgrid") {
       flag_subgrid = true;
+    }
+    else if (s == "-edgeI") {
+      flag_sharp_edgeI = true;
     }
     else if (s == "-gradS_offset") {
       sharpiso_param.grad_selection_cube_offset = get_float(iarg, argc, argv);
@@ -1303,6 +1368,7 @@ void help()
        << "                using gradient assignment and apply svd." << endl;
   cerr << "  -subgrid:   Output isosurface vertex based on subgrid." << endl;
   cerr << "  -lindstrom: Use Lindstrom's equation for calculating point on sharp feature." << endl;
+  cerr << "  -edgeI:     Output edge intersection information." << endl;
   cerr << "  -rayI:      Use intersection of ray and cubes for calculating point on sharp feature." << endl;
   cerr << "  -coord \"point_coord\":  Compute scalar values at coordinate point_coord." << endl;
   cerr << "  -cube_offset2: Cube offset for intersection calculations."

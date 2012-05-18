@@ -281,6 +281,32 @@ namespace SHARPISO {
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, const VERTEX_INDEX cube_index,
    const SCALAR_TYPE isovalue, std::vector<VERTEX_INDEX> & vertex_list);
 
+  /// Get vertex whose gradient determines intersection of isosurface 
+  ///    and edge (iv0,iv1)
+  /// @param zero_tolerance No division by numbers less than or equal 
+  ///        to zero_tolerance.
+  /// @pre zero_tolerance must be non-negative.
+  void get_vertex_determining_edge_intersection
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
+   const GRADIENT_COORD_TYPE zero_tolerance,
+   VERTEX_INDEX & iv2,
+   bool & flag_no_split,
+   SCALAR_TYPE & t_split, 
+   SCALAR_TYPE & s_split);
+
+  /// Get vertex whose gradient determines intersection of isosurface 
+  ///    and edge (iv0,iv1)
+  void get_vertex_determining_edge_intersection
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
+   const GRADIENT_COORD_TYPE zero_tolerance,
+   VERTEX_INDEX & iv2);
+
   // **************************************************
   // SORT VERTICES
   // **************************************************
