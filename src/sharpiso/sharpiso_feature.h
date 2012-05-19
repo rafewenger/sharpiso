@@ -117,8 +117,8 @@ namespace SHARPISO {
    SVD_INFO & svd_info);
 
   /// Compute sharp isosurface vertex using edge-isosurface intersections.
-  /// Select endpoint gradient which determines edge-isosurface intersection.
-  void svd_compute_sharp_vertex_edgeI_select_gradient
+  /// Use sharp formula for computing gradient at intersection.
+  void svd_compute_sharp_vertex_edgeI_sharp_gradient
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,

@@ -246,7 +246,7 @@ void ISODUAL3D::dual_contouring
     else if (vertex_position_method == EDGE_COMPLEX) {
       // Position using SVD on grid edge-isosurface intersections.
       // Select endpoint gradient which determines edge-isosurface intersection.
-      position_dual_isovertices_edgeI_select_gradients
+      position_dual_isovertices_edgeI_sharp_gradients
         (scalar_grid, gradient_grid, isovalue,
          iso_vlist,isodual_param, vertex_coord);
     }

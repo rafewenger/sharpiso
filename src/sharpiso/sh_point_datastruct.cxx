@@ -54,7 +54,8 @@ bool sh_cube::setup_shCube
     cb.pts.push_back(p); 
   }
        
-	     
+
+  // *** SHOULD STILL SET UP CUBE. ***	     
   if (isovalue <= min_sval || isovalue > max_sval)
     {  return false; }
 

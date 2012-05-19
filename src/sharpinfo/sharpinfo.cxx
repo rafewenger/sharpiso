@@ -60,13 +60,15 @@ bool flag_centroid(false);
 SHARP_ISOVERT_PARAM sharpiso_param;
 bool flag_list_eigen(false);
 bool flag_svd_gradients(true); //default
-bool flag_svd_edges_simple(false);
-bool flag_svd_edges_cmplx(false);
+bool flag_edge_intersect_interpolate(false);
+bool flag_edge_intersect_sharp(false);
 bool flag_dist2vert(false);
 bool flag_cube_set(false);
 bool flag_vertex_set(false);
 bool flag_use_lindstrom(false);
 bool flag_edge_intersection(false);
+bool flag_subgrid(false);
+bool flag_output_param(true);
 
 // compute isosurface vertices
 void compute_iso_vertex_using_svd
@@ -223,10 +225,17 @@ int main(int argc, char **argv)
       OFFSET_CUBE_111 cube_111
         (sharpiso_param.grad_selection_cube_offset);
 
-      get_gradients
-        (scalar_grid, gradient_grid, cube_index, isovalue,
-         sharpiso_param, cube_111, sharpiso_param.flag_sort_gradients,
-         point_coord, gradient_coord, scalar, num_gradients);
+      if (flag_edge_intersect_sharp) {
+        get_edgeI_sharp_gradients
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           point_coord, gradient_coord, scalar, num_gradients);
+      }
+      else {
+        get_gradients
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           sharpiso_param, cube_111, sharpiso_param.flag_sort_gradients,
+           point_coord, gradient_coord, scalar, num_gradients);
+      }
 
       if (flag_list_gradients) {
         COORD_TYPE cube_center[DIM3];
@@ -275,8 +284,10 @@ int main(int argc, char **argv)
              max_small_eigenvalue, svd_info);
           cout << endl;
 
-          report_sharp_param(sharpiso_param);
-          cout << endl;
+          if (flag_output_param) {
+            report_sharp_param(sharpiso_param);
+            cout << endl;
+          }
         }
 
         if (flag_list_subgrid) {
@@ -289,16 +300,19 @@ int main(int argc, char **argv)
           cout << endl;
         }
 
-        SCALAR_TYPE scalar_stdev;
-        SCALAR_TYPE max_abs_scalar_error;
-        compute_iso_vertex_using_subgrid
-          (scalar_grid, gradient_grid, cube_index, isovalue,
-           sharpiso_param, subgrid_axis_size,
-           sharp_coord, scalar_stdev, max_abs_scalar_error);
+        if (flag_subgrid || flag_list_subgrid) {
 
-        output_subgrid_results
-          (cout, sharp_coord, scalar_stdev, max_abs_scalar_error);
-        cout << endl;
+          SCALAR_TYPE scalar_stdev;
+          SCALAR_TYPE max_abs_scalar_error;
+          compute_iso_vertex_using_subgrid
+            (scalar_grid, gradient_grid, cube_index, isovalue,
+             sharpiso_param, subgrid_axis_size,
+             sharp_coord, scalar_stdev, max_abs_scalar_error);
+
+          output_subgrid_results
+            (cout, sharp_coord, scalar_stdev, max_abs_scalar_error);
+          cout << endl;
+        }
       }
 
 
@@ -358,13 +372,13 @@ void compute_iso_vertex_using_svd
     sharpiso_param.max_small_eigenvalue;
 
 
-  if (flag_svd_edges_simple) {
+  if (flag_edge_intersect_interpolate) {
     svd_compute_sharp_vertex_edgeI_interpolate_gradients
       (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
        sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
   }
-  else if (flag_svd_edges_cmplx) {
-    svd_compute_sharp_vertex_edgeI_select_gradient
+  else if (flag_edge_intersect_sharp) {
+    svd_compute_sharp_vertex_edgeI_sharp_gradient
       (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
        sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
   }
@@ -494,6 +508,15 @@ void output_svd_results
   output << "Eigenvalues: ";
   IJK::ijkgrid_output_coord(output, DIM3, eigenvalues);
   output << endl;
+
+  if (eigenvalues[0] > eigenvalue_tolerance) {
+    EIGENVALUE_TYPE normalized_eigenvalues[DIM3];
+    multiply_coord_3D(1/eigenvalues[0], eigenvalues, normalized_eigenvalues);
+    output << "Normalized eigenvalues: ";
+    IJK::ijkgrid_output_coord(output, DIM3, normalized_eigenvalues);
+    output << endl;
+  }
+
   output << "Number of large eigenvalues (>= " << eigenvalue_tolerance
          << "): "
          << num_large_eigenvalues << endl;
@@ -888,7 +911,7 @@ void usage_error()
     cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS |" << endl;
     cerr << "   -gradIE | -gradIES | -gradNIE | -gradNIES |" << endl;
     cerr << "   -gradCD | -gradCDdup | -gradES | -gradEC ]" << endl;
-    cerr << "  [-lindstrom | -rayI]" << endl;
+    cerr << "  [-subgrid] [-lindstrom | -rayI]" << endl;
     cerr << "  [-allow_conflict] [-clamp_conflict] [-clamp_far]" << endl;
     cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
     cerr << "  [-removeg | -no_removeg]"
@@ -900,6 +923,7 @@ void usage_error()
     cerr << "  -max_eigen <value>" << endl;
     cerr << "  -gradS_offset <value> | -max_dist <value>" << endl;
     cerr << "  -listg | -list_subgrid" << endl;
+    cerr << "  -help | -no_output_param" << endl;
     exit(10);
 }
 
@@ -1001,14 +1025,14 @@ void parse_command_line(int argc, char **argv)
       sharpiso_param.flag_sort_gradients = true;
     }
     else if (s == "-gradES") {
-      flag_svd_edges_simple = true;
+      flag_edge_intersect_interpolate = true;
       flag_use_lindstrom = true;    // *** CURRENTLY ONLY LINDSTROM
       use_gradients_determining_edge_intersections = true;
       use_selected_gradients = false;
       flag_edge_intersection = true;
     }
     else if (s == "-gradEC") {
-      flag_svd_edges_cmplx = true;
+      flag_edge_intersect_sharp = true;
       flag_use_lindstrom = true;    // *** CURRENTLY ONLY LINDSTROM
       use_selected_gradients = false;
       use_gradients_determining_edge_intersections = true;
@@ -1071,6 +1095,9 @@ void parse_command_line(int argc, char **argv)
       flag_edge_intersection = false;
       sharpiso_param.allow_duplicates = true;
     }
+    else if (s == "-subgrid") {
+      flag_subgrid = true;
+    }
     else if (s == "-gradS_offset") {
       sharpiso_param.grad_selection_cube_offset = get_float(iarg, argc, argv);
       iarg++;
@@ -1127,6 +1154,9 @@ void parse_command_line(int argc, char **argv)
       sharpiso_param.max_small_eigenvalue = get_float(iarg, argc, argv);
       iarg++;
     }
+    else if (s == "-no_output_param") {
+      flag_output_param = false;
+    }
     else if (s == "-help") {
       help();
     }
@@ -1167,6 +1197,18 @@ void parse_command_line(int argc, char **argv)
 
   if (!flag_isovalue_set && flag_list_subgrid) {
     cerr << "Error.  Option -list_subgrid cannot be used without -isovalue."
+         << endl;
+    exit(15);
+  }
+
+  if (!flag_isovalue_set && flag_edge_intersect_interpolate) {
+    cerr << "Error.  Option -gradES cannot be used without -isovalue."
+         << endl;
+    exit(15);
+  }
+
+  if (!flag_isovalue_set && flag_edge_intersect_sharp) {
+    cerr << "Error.  Option -gradEC cannot be used without -isovalue."
          << endl;
     exit(15);
   }
@@ -1259,6 +1301,7 @@ void help()
   cerr << "  -gradEC:    Compute edge-isosurface intersection points/normals"
        << endl
        << "                using gradient assignment and apply svd." << endl;
+  cerr << "  -subgrid:   Output isosurface vertex based on subgrid." << endl;
   cerr << "  -lindstrom: Use Lindstrom's equation for calculating point on sharp feature." << endl;
   cerr << "  -rayI:      Use intersection of ray and cubes for calculating point on sharp feature." << endl;
   cerr << "  -coord \"point_coord\":  Compute scalar values at coordinate point_coord." << endl;
@@ -1283,5 +1326,6 @@ void help()
   cout << "  -round <n>: Round coordinates to nearest 1/n." << endl;
   cout << "              Suggest using n=16,32,64,... or 2^k for some k."
        << endl;
+  cout << "  -no_output_param:  Do not ouput parameters for sharpiso calculations." << endl;
   exit(15);
 }

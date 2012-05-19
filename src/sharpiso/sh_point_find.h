@@ -36,5 +36,10 @@ bool shFindPoint
  SVD_INFO &svd_debug_info, 
  COORD_TYPE *shpoint);
 
+void setup_edgeIntercepts
+(CUBE &cb,
+ const double isovalue,
+ const bool use_cmplx_interp);
+
 
 

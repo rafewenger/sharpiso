@@ -345,8 +345,8 @@ void ISODUAL3D::position_dual_isovertices_edgeI_interpolate_gradients
 // *******************************************************************
 
 /// Position vertices using SVD on grid edge-isosurface intersections.
-/// Select endpoint gradient which determines edge-isosurface intersection.
-void ISODUAL3D::position_dual_isovertices_edgeI_select_gradients
+/// Use sharp formula for computing gradient at intersection.
+void ISODUAL3D::position_dual_isovertices_edgeI_sharp_gradients
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
@@ -369,7 +369,7 @@ void ISODUAL3D::position_dual_isovertices_edgeI_select_gradients
     VERTEX_INDEX cube_index(0);
     VERTEX_INDEX num_large_eigenvalues;
 
-    svd_compute_sharp_vertex_edgeI_select_gradient
+    svd_compute_sharp_vertex_edgeI_sharp_gradient
       (scalar_grid, gradient_grid, iv, isovalue, isodual_param,
        sharp_coord+i*dimension, eigenvalues, 
        num_large_eigenvalues, svd_info);
@@ -378,8 +378,8 @@ void ISODUAL3D::position_dual_isovertices_edgeI_select_gradients
 }
 
 /// Position vertices using SVD on grid edge-isosurface intersections.
-/// Select endpoint gradient which determines edge-isosurface intersection.
-void ISODUAL3D::position_dual_isovertices_edgeI_select_gradients
+/// Use sharp formula for computing gradient at intersection.
+void ISODUAL3D::position_dual_isovertices_edgeI_sharp_gradients
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
@@ -390,7 +390,7 @@ void ISODUAL3D::position_dual_isovertices_edgeI_select_gradients
 
    coord.resize(vlist.size()*dimension);
 
-   position_dual_isovertices_edgeI_select_gradients
+   position_dual_isovertices_edgeI_sharp_gradients
      (scalar_grid, gradient_grid, isovalue, vlist, isodual_param, 
       &(coord.front()));
 }
