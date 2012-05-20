@@ -13,6 +13,7 @@ def parse_command_line():
   parser.add_argument('-long',action='store_true')
   parser.add_argument('-key')
   parser.add_argument('-reposition',action='store_true')
+  parser.add_argument('-reselectg',action='store_true')
   parser.add_argument('-lindstrom',action='store_true')
   parser.add_argument('-allow_conflict',action='store_true')
   parser.add_argument('-clamp_conflict',action='store_true')

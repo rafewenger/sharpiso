@@ -6,6 +6,7 @@ pos=['gradEC','gradCD','gradCDdup','gradNS']
 
 
 for p in pos:
+  output=[]
   print 'running with on ' , p
   ofname= "out_annulus_"+p +".txt"
   fi=open (ofname,'w')
@@ -19,6 +20,7 @@ for p in pos:
   fi.write ('-----reposition-----\n')
   for line in f1:
     print >>fi,line,
+    output.append(line)
   f1.close()    
 
   temp_args=args[:]
@@ -32,8 +34,9 @@ for p in pos:
   fi.write ('-----allow_conflict-----\n')
   for line in f1:
     print >>fi,line,
+    output.append(line)
   f1.close()
-
+'''
   temp_args=args[:]
   temp_args.append('-position')
   temp_args.append(p)
@@ -106,5 +109,7 @@ for p in pos:
   f1 = open ('output.txt','r')
   fi.write ('-----with cgradient reselectg-----\n')
   for line in f1:
-    print >>fi,line, 
+    print >>fi,line,
+'''     
+print 'output', output
 print 'DONE' 

@@ -8,6 +8,7 @@ import def_param as df
 
 reload (cmd_line)
 reload (create_command03)
+reload (df)
 cl=cmd_line
 
 cc=create_command03
@@ -17,7 +18,7 @@ if args.long==True:
   print'Run more extensive tests ...'
   args.position = df.POS_DEF_LONG
   args.isovalue = df.ISO_DEF_LONG
-  args.input_files = df.DATA_DEF_LONG
+  args.input_files = df.DATA_DEF_LONG 
 # run the commands 
 # If the key is on then we run it twice
 if args.key !=None:

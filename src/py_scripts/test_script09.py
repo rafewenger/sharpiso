@@ -6,13 +6,12 @@ import datetime as dt
 import datetime
 
 args=cl.parse_command_line()
-args.position=['gradEC','gradNS']
-op=cc.create_iso_command(args)
-dt=str(dt.datetime.now())
 
+dt=str(dt.datetime.now())
+'''
 
 print '=====output==='
-
+op=cc.create_iso_command(args)
 for iv,out in enumerate(op):
   fname='out'+args.position[iv]+dt+'.txt'
   fi=open (fname,'w')
@@ -43,3 +42,17 @@ for iv,out in enumerate(op):
     else:
       print >>fi,'\n',
   print 'output written to',fname,']' 
+  
+'''
+################################# neg 
+print '=====output negative==='
+fname='outneg'+dt+'.txt'
+op=cc.create_iso_command_neg(args) 
+fi=open (fname,'w')
+for out_sub in op:
+  if out_sub !='break':
+    print >>fi,out_sub.ljust(5,' '),
+  else:
+    print >>fi,'\n',
+print 'output written to',fname,']'
+  
