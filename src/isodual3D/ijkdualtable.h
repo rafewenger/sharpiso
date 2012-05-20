@@ -167,22 +167,34 @@ namespace IJKDUALTABLE {
   class ISODUAL_CUBE_TABLE:public ISODUAL_TABLE {
 
   protected:
+    bool flag_separate_neg;                 ///< If true, separate negative vertices.
+
+    /// If true, always separate two diagonally opposite
+    ///   positive or negative vertices.
+    bool flag_always_separate_opposite;     
+
     /// Create table entries.
-    /// @param flag_opposite_vertices If true, separate two diagonally 
-    ///        opposite positive vertices.
-    void CreateTableEntries(const bool flag_opposite_vertices);
+    /// @param flag_opposite_vertices If true, always separate two
+    ///        diagonally opposite positive or negative vertices.
+    void CreateTableEntries
+      (const bool flag_separate_neg, const bool flag_separate_opposite);
 
   public:
     ISODUAL_CUBE_TABLE() {};
     ISODUAL_CUBE_TABLE(const int dimension);
     ISODUAL_CUBE_TABLE
       (const int dimension, const bool flag_opposite_vertices);
+    ISODUAL_CUBE_TABLE
+      (const int dimension, const bool separate_neg,
+       const bool flag_separate_opposite);
 
     // Set functions.
     void SetDimension(const int d);
 
     void Create(const int dimension);
-    void Create(const int dimension, const bool flag_opposite_vertices);
+    void Create(const int dimension, const bool flag_separate_opposite);
+    void Create(const int dimension, const bool flag_separate_neg, 
+                const bool flag_separate_opposite);
 
     /// Undefine function.
     void SetNumTableEntries(const int num_table_entries);
@@ -249,8 +261,12 @@ namespace IJKDUALTABLE {
   /// Reverse order of bits in ival.
   TABLE_INDEX reverse_bits(const TABLE_INDEX ival, const int num_bits);
 
-  /// Return true if ival represents two opposite ones.
+  /// Return true if ival represents two diagonally opposite ones.
   bool is_two_opposite_ones
+    (const TABLE_INDEX ival, const int num_bits);
+
+  /// Return true if ival represents two diagonally opposite zeros.
+  bool is_two_opposite_zeros
     (const TABLE_INDEX ival, const int num_bits);
 }
 

@@ -60,6 +60,7 @@ namespace {
      LINF_PARAM, NO_LINF_PARAM,
      USE_LINDSTROM_PARAM,
      SINGLE_ISOV_PARAM, MULTI_ISOV_PARAM,
+     SEP_NEG_PARAM, SEP_POS_PARAM,
      ROUND_PARAM, NO_ROUND_PARAM,
      HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
      OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
@@ -79,6 +80,7 @@ namespace {
      "-Linf", "-no_Linf",
      "-lindstrom",
      "-single_isov", "-multi_isov",
+     "-sep_neg", "-sep_pos",
      "-round", "-no_round",
      "-help", "-off", "-iv", "-out_param",
      "-o", "-stdout",
@@ -337,6 +339,14 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 
     case MULTI_ISOV_PARAM:
       input_info.allow_multiple_iso_vertices = true;
+      break;
+
+    case SEP_NEG_PARAM:
+      input_info.flag_separate_neg = true;
+      break;
+
+    case SEP_POS_PARAM:
+      input_info.flag_separate_neg = false;
       break;
 
     case ALLOW_CONFLICT_PARAM:

@@ -119,6 +119,9 @@ namespace ISODUAL3D {
     ///   to represent multiple isosurface patches.
     bool allow_multiple_iso_vertices;
 
+    /// If true, isosurfaced patches separate negative vertices.
+    bool flag_separate_neg;
+
   public:
     ISODUAL_PARAM() { Init(); };
     ~ISODUAL_PARAM() { Init(); };

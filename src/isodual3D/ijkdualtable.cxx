@@ -294,6 +294,14 @@ ISODUAL_CUBE_TABLE::ISODUAL_CUBE_TABLE
   Create(dimension, flag_opposite_vertices);
 }
 
+// Constructor.
+ISODUAL_CUBE_TABLE::ISODUAL_CUBE_TABLE
+(const int dimension, const bool flag_separate_neg,
+ const bool flag_opposite_vertices)
+{
+  Create(dimension, flag_separate_neg, flag_opposite_vertices);
+}
+
 // Set dimension.
 void ISODUAL_CUBE_TABLE::SetDimension(const int dimension)
 {
@@ -308,13 +316,21 @@ void ISODUAL_CUBE_TABLE::SetDimension(const int dimension)
 
 // Create table.
 void ISODUAL_CUBE_TABLE::Create
-(const int dimension, const bool flag_opposite_vertices)
+(const int dimension, const bool flag_separate_neg,
+ const bool flag_separate_opposite)
 {
   SetDimension(dimension);
 
   TABLE_INDEX n = calculate_num_entries(NumPolyVertices(), 2);
   ISODUAL_TABLE::SetNumTableEntries(n);
-  CreateTableEntries(flag_opposite_vertices);
+  CreateTableEntries(flag_separate_neg, flag_separate_opposite);
+}
+
+// Create table.
+void ISODUAL_CUBE_TABLE::Create
+(const int dimension, const bool flag_separate_opposite)
+{
+  Create(dimension, true, flag_separate_opposite);
 }
 
 // Create table.
@@ -324,31 +340,45 @@ void ISODUAL_CUBE_TABLE::Create(const int dimension)
 }
 
 // Create table entries.
-// @param flag_opposite_vertices If true, separate two diagonally 
-//        opposite positive vertices.
+// @param flag_separate_neg  If true, separate negative vertices.
+// @param flag_separate_opposite If true, always separate two diagonally 
+//        opposite negative or positive vertices 
 void ISODUAL_CUBE_TABLE::CreateTableEntries
-(const bool flag_opposite_vertices)
+(const bool flag_separate_neg, const bool flag_separate_opposite)
 {
+  this->flag_separate_neg = flag_separate_neg;
+  this->flag_always_separate_opposite = flag_separate_opposite;
+
   FIND_COMPONENT find_component(Dimension());
   IJK::CUBE_FACE_INFO<int, int, int> cube(Dimension());
 
+  bool flag_separate_pos = (!flag_separate_neg);
   for (TABLE_INDEX ientry = 0; ientry < NumTableEntries(); ientry++) {
 
 
     find_component.ClearAll();
     find_component.SetVertexFlags(ientry);
 
-    if (flag_opposite_vertices &&
-        is_two_opposite_ones(ientry, NumPolyVertices()))
-      { find_component.NegateVertexFlags(); };
+    if (flag_separate_opposite) {
+      if (flag_separate_neg) {
+        if (is_two_opposite_ones(ientry, NumPolyVertices()))
+          { find_component.NegateVertexFlags(); };
+      }
+      else {
+        if (is_two_opposite_zeros(ientry, NumPolyVertices()))
+          { find_component.NegateVertexFlags(); };
+      }
+    }
+
 
     int num_components(0);
     for (int i = 0; i < NumPolyVertices(); i++) {
-      if (!find_component.VertexFlag(i) &&
-          find_component.Component(i) == 0) {
+      if (find_component.Component(i) == 0) {
 
-        num_components++;
-        find_component.Search(i, num_components);
+        if (find_component.VertexFlag(i) == flag_separate_pos) {
+          num_components++;
+          find_component.Search(i, num_components);
+        }
       }
     }
 
@@ -365,7 +395,7 @@ void ISODUAL_CUBE_TABLE::CreateTableEntries
       else {
         entry[ientry].is_bipolar[ie] = true;
         int icomp = find_component.Component(iv0);
-        if (find_component.VertexFlag(iv0)) {
+        if (find_component.VertexFlag(iv1) == flag_separate_pos) {
           // Vertex iv1 is negative.
           icomp = find_component.Component(iv1);
         }
@@ -546,6 +576,22 @@ bool IJKDUALTABLE::is_two_opposite_ones
   TABLE_INDEX reverse_val = reverse_bits(ival, num_bits);
 
   if ((ival == reverse_val) && (num_ones == 2))
+    { return(true); }
+  else
+    { return(false); }
+}
+
+/// Return true if ival represents two opposite zeros.
+bool IJKDUALTABLE::is_two_opposite_zeros
+(const TABLE_INDEX ival, const int num_bits)
+{
+  int max_val = (1L << num_bits) - 1;
+
+  int num_zeros, num_ones;
+  count_bits(ival, num_bits, num_zeros, num_ones);
+  TABLE_INDEX reverse_val = reverse_bits(ival, num_bits);
+
+  if ((ival == reverse_val) && (num_zeros == 2))
     { return(true); }
   else
     { return(false); }

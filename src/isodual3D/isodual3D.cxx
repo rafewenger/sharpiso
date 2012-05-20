@@ -173,6 +173,7 @@ void ISODUAL3D::dual_contouring
     isodual_param.grad_selection_cube_offset;
   const bool allow_multiple_iso_vertices =
     isodual_param.allow_multiple_iso_vertices;
+  const bool flag_separate_neg = isodual_param.flag_separate_neg;
   PROCEDURE_ERROR error("dual_contouring");
 
   clock_t t0, t1, t2, t3;
@@ -186,9 +187,9 @@ void ISODUAL3D::dual_contouring
 
   if (allow_multiple_iso_vertices) {
 
-    bool flag_opposite_vertices(true);
+    bool flag_separate_opposite(true);
     IJKDUALTABLE::ISODUAL_CUBE_TABLE 
-      isodual_table(dimension, flag_opposite_vertices);
+      isodual_table(dimension, flag_separate_neg, flag_separate_opposite);
 
     std::vector<FACET_VERTEX_INDEX> facet_vertex;
     extract_dual_isopoly
