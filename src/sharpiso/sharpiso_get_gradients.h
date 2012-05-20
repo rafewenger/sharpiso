@@ -255,6 +255,15 @@ namespace SHARPISO {
      const VERTEX_INDEX cube_index, const SCALAR_TYPE isovalue,
      VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D], NUM_TYPE & num_vertices);
 
+  /// Get vertices at endpoints of cube edges which intersect the isosurface.
+  /// Select endpoints whose isoplane intersects the ray 
+  ///   pointing to the opposing endpoint.
+  void get_intersected_cube_edge_endpoints_select
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index, const SCALAR_TYPE isovalue, 
+   VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D], NUM_TYPE & num_vertices);
+
   /// Get cube vertices determining the intersection of isosurface and edges.
   void get_cube_vertices_determining_edge_intersections
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
@@ -419,6 +428,7 @@ namespace SHARPISO {
   public:
     bool use_only_cube_gradients;
     bool use_selected_gradients;
+    bool select_based_on_grad_dir;
     bool use_intersected_edge_endpoint_gradients;
     bool use_gradients_determining_edge_intersections;
     bool allow_duplicates;

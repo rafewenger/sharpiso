@@ -222,8 +222,17 @@ namespace {
     IJK::ARRAY<bool> vertex_flag(NUM_CUBE_VERTICES3D, true);
 
     if (sharpiso_param.use_intersected_edge_endpoint_gradients) {
-      get_intersected_cube_edge_endpoints
-        (scalar_grid, cube_index, isovalue, cube_vertex_list, num_vertices);
+
+      if (sharpiso_param.select_based_on_grad_dir) {
+        get_intersected_cube_edge_endpoints_select
+          (scalar_grid, gradient_grid, cube_index, isovalue, 
+           cube_vertex_list, num_vertices);
+        num_selected = num_vertices;
+      }
+      else {
+        get_intersected_cube_edge_endpoints
+          (scalar_grid, cube_index, isovalue, cube_vertex_list, num_vertices);
+      }
     }
     else if (sharpiso_param.use_gradients_determining_edge_intersections) {
       get_cube_vertices_determining_edge_intersections
@@ -235,9 +244,11 @@ namespace {
       num_vertices = NUM_CUBE_VERTICES3D;
     }
 
-    get_selected_vertices
-      (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
-       cube_111, num_vertices, cube_vertex_list, num_selected);
+    if (!sharpiso_param.select_based_on_grad_dir) {
+      get_selected_vertices
+        (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
+         cube_111, num_vertices, cube_vertex_list, num_selected);
+    }
   }
 
 }
@@ -639,6 +650,62 @@ namespace {
 
   }
 
+  /// Return true if isoplane intersects ray from point 0.
+  /// @param ray_dir Ray direction. 1 or -1.
+   bool does_isoplane_intersect_ray
+   (const SCALAR_TYPE s0,
+    const GRADIENT_COORD_TYPE g0,
+    const SCALAR_TYPE s1,
+    const GRADIENT_COORD_TYPE ray_dir)
+  {
+    if (s0 < s1) {
+      if (g0*ray_dir > 0) { return(true); }
+    }
+    else {
+      if (g0*ray_dir < 0) { return(true); }
+    }
+    return(false);
+  }
+    
+  void flag_intersected_cube_edge_endpoints_select
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   bool corner_flag[NUM_CUBE_VERTICES3D])
+  {
+    typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;
+
+    const DTYPE dimension = scalar_grid.Dimension();
+
+    for (VERTEX_INDEX i = 0; i < NUM_CUBE_VERTICES3D; i++)
+      { corner_flag[i] = false; }
+
+    for (DTYPE d = 0; d < dimension; d++) {
+      for (VERTEX_INDEX k = 0; k < scalar_grid.NumFacetVertices(); k++) {
+        VERTEX_INDEX iv0 = scalar_grid.FacetVertex(cube_index, d, k);
+        VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, d);
+        SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
+        SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
+
+        if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
+    
+          VERTEX_INDEX icorner0 = grid_222.FacetVertex(0, d, k);
+          VERTEX_INDEX icorner1 = grid_222.NextVertex(icorner0, d);
+
+          GRADIENT_COORD_TYPE g0 = gradient_grid.Vector(iv0, d);
+          GRADIENT_COORD_TYPE g1 = gradient_grid.Vector(iv1, d);
+
+          if (does_isoplane_intersect_ray(s0, g0, s1, 1))
+            { corner_flag[icorner0] = true; }
+          if (does_isoplane_intersect_ray(s1, g1, s0, -1))
+            { corner_flag[icorner1] = true; }
+        }
+      }
+    }
+
+  }
+
 }
 
 void SHARPISO::get_intersected_edge_endpoint_gradients
@@ -941,7 +1008,7 @@ void SHARPISO::get_cube_vertices
 // Get vertices at endpoints of cube edges which intersect the isosurface.
 void SHARPISO::get_intersected_cube_edge_endpoints
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, const VERTEX_INDEX cube_index,
- const SCALAR_TYPE isovalue,
+ const SCALAR_TYPE isovalue, 
  VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D], NUM_TYPE & num_vertices)
 {
   typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;
@@ -968,6 +1035,38 @@ void SHARPISO::get_intersected_cube_edge_endpoints
 
 }
 
+// Get vertices at endpoints of cube edges which intersect the isosurface.
+// Select endpoints whose isoplane intersects the ray 
+//   pointing to the opposing endpoint.
+void SHARPISO::get_intersected_cube_edge_endpoints_select
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index, const SCALAR_TYPE isovalue, 
+ VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D], NUM_TYPE & num_vertices)
+{
+  typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;
+
+  const DTYPE dimension = scalar_grid.Dimension();
+  bool corner_flag[NUM_CUBE_VERTICES3D];
+
+  // Initialize.
+  num_vertices = 0;
+
+  flag_intersected_cube_edge_endpoints_select
+    (scalar_grid, gradient_grid, cube_index, isovalue, corner_flag);
+
+  for (VERTEX_INDEX j = 0; j < NUM_CUBE_VERTICES3D; j++) {
+    if (corner_flag[j]) {
+      // grid_222.CubeVertex(0,j) will probably be j, but no guarantees.
+      VERTEX_INDEX icorner = grid_222.CubeVertex(0, j);
+      VERTEX_INDEX iv = scalar_grid.CubeVertex(cube_index, icorner);
+
+      vertex_list[num_vertices] = iv;
+      num_vertices++;
+    }
+  }
+
+}
 // Get cube vertices which determining intersection of isosurface and edges.
 void SHARPISO::get_cube_vertices_determining_edge_intersections
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
@@ -1450,6 +1549,7 @@ void SHARPISO::GET_GRADIENTS_PARAM::Init()
 {
   use_only_cube_gradients = false;
   use_selected_gradients = true;
+  select_based_on_grad_dir = false;
   use_intersected_edge_endpoint_gradients = false;
   use_gradients_determining_edge_intersections = false;
   allow_duplicates = false;

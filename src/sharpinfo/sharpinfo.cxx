@@ -971,7 +971,8 @@ void usage_error()
     cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\""
     << endl;
     cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS |" << endl;
-    cerr << "   -gradIE | -gradIES | -gradNIE | -gradNIES |" << endl;
+    cerr << "   -gradIE | -gradIES | -gradIEDir | -gradNIE | -gradNIES |" 
+         << endl;
     cerr << "   -gradCD | -gradCDdup | -gradES | -gradEC ]" << endl;
     cerr << "  [-subgrid] [-lindstrom | -rayI]" << endl;
     cerr << "  [-allow_conflict] [-clamp_conflict] [-clamp_far]" << endl;
@@ -1031,6 +1032,7 @@ void parse_command_line(int argc, char **argv)
   bool use_selected_gradients(true);
   bool use_intersected_edge_endpoint_gradients(false);
   bool use_gradients_determining_edge_intersections(false);
+  bool select_based_on_grad_dir(false);
 
   if (argc == 1) { usage_error(); }
 
@@ -1130,6 +1132,12 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-gradIES") {
       use_only_cube_gradients = true;
       use_selected_gradients = true;
+      use_intersected_edge_endpoint_gradients = true;
+    }
+    else if (s == "-gradIEDir") {
+      use_only_cube_gradients = true;
+      use_selected_gradients = true;
+      select_based_on_grad_dir = true;
       use_intersected_edge_endpoint_gradients = true;
     }
     else if (s == "-gradNIE") {
@@ -1315,6 +1323,7 @@ void parse_command_line(int argc, char **argv)
   sharpiso_param.use_gradients_determining_edge_intersections =
     use_gradients_determining_edge_intersections;
   sharpiso_param.use_lindstrom = flag_use_lindstrom;
+  sharpiso_param.select_based_on_grad_dir = select_based_on_grad_dir;
 }
 
 void help()
@@ -1342,6 +1351,10 @@ void help()
   cerr << "  -gradIES: Use gradients at endpoints of intersected cube edges."
        << endl;
   cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
+  cerr << "  -gradIEDir: Use gradients at endpoints of intersected cube edges."
+       << endl;
+  cerr << "           Select gradients based on direction along edge."
+       << endl;
   cerr << "  -gradCD: Use gradients determining intersections of isosurface"
        << endl
        << "           and cube edges." << endl;

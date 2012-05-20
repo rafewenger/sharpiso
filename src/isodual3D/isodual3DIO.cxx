@@ -121,6 +121,7 @@ namespace {
     input_info.use_only_cube_gradients = false;
     input_info.use_selected_gradients = true;
     input_info.use_intersected_edge_endpoint_gradients = false;
+    input_info.select_based_on_grad_dir = false;
 
     if (str == "cube_center") {
       input_info.vertex_position_method = CUBECENTER;
@@ -158,6 +159,13 @@ namespace {
       input_info.vertex_position_method = GRADIENT_POSITIONING;
       input_info.use_only_cube_gradients = true;
       input_info.use_selected_gradients = true;
+      input_info.use_intersected_edge_endpoint_gradients = true;
+    }
+    else if (str == "gradIEDir"){
+      input_info.vertex_position_method = GRADIENT_POSITIONING;
+      input_info.use_only_cube_gradients = true;
+      input_info.use_selected_gradients = true;
+      input_info.select_based_on_grad_dir = true;
       input_info.use_intersected_edge_endpoint_gradients = true;
     }
     else if (str == "gradCD"){
@@ -1263,7 +1271,8 @@ namespace {
   cerr << "  [-subsample S]" << endl;
   cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|"
        << endl
-       << "              gradIE|gradIES|gradCD|gradNIE|gradNIES|" << endl
+       << "              gradIE|gradIES|gradIEDir|gradCD|gradNIE|gradNIES|" 
+       << endl
        << "              gradES|gradEC}]" << endl;
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
   cerr << "  [-single_isov | -multi_isov]" << endl;
@@ -1327,6 +1336,12 @@ void ISODUAL3D::help()
   cout << "  -position gradIES: Position isosurface vertices using svd"
        << endl;
   cout << "       on selected gradients at endpoints of intersected cube edges."
+       << endl;
+  cout << "  -position gradIEDir: Position isosurface vertices using svd"
+       << endl;
+  cout << "       on selected gradients at endpoints of intersected cube edges."
+       << endl;
+  cerr << "           Select gradients based on direction along edge."
        << endl;
   cout << "  -position gradCD: Position isosurface vertices using svd"
        << endl;
