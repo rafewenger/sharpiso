@@ -60,11 +60,4 @@ data_read=f.readlines()
 
 
 
-#CHART DATA
 
-
-
-#f=open('output.txt','r')
-#print 'reading from file ...'
-#data=f.readlines()
-#chart_data.plot_data(data)
