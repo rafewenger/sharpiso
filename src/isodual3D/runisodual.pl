@@ -10,6 +10,7 @@ my @input_list = @ARGV;
 my $allpositions = 0;
 my @count_files;
 my $annulus_flag = 0;
+my $flange_flag = 0;
 my $twocubes_flag = 0;
 my $predefined_data = 0;
 my $data_dir = "data";
@@ -38,6 +39,11 @@ while (scalar(@input_list) > 0 &&
     next;
   }
 
+  if ("$new_option" eq "-flange") {
+    $flange_flag = 1;
+    next;
+  }
+
   if ("$new_option" eq "-twocubes") {
     $twocubes_flag = 1;
     next;
@@ -54,7 +60,7 @@ while (scalar(@input_list) > 0 &&
 
 }
 
-if ($annulus_flag || $twocubes_flag) {
+if ($annulus_flag || $twocubes_flag || $flange_flag) {
   $predefined_data = 1;
 }
 
@@ -64,6 +70,9 @@ if ($predefined_data) {
 
   if ($annulus_flag) 
     { run_isodual3D_on_annulus(\@input_options); }
+
+  if ($flange_flag) 
+    { run_isodual3D_on_flange(\@input_options); }
 
   if ($twocubes_flag) 
     { run_isodual3D_on_twocubes(\@input_options); }
@@ -217,10 +226,32 @@ sub run_isodual3D_on_annulus {
 
 }
 
+sub run_isodual3D_on_flange {
+
+  scalar(@_) == 1 ||
+    die "Error in sub run_isodual3D_on_flange. Requires 1 parameter.\n";
+
+  my @option_list = @{$_[0]};
+
+  my @flange_files = 
+    ( "flange3D.A61x.nrrd", "flange3D.B61x.nrrd", "flange3D.C61x.nrrd",
+      "flange3D.D61x.nrrd", "flange3D.E61x.nrrd", "flange3D.F61x.nrrd");
+
+  my @isovalue_list = ( 3.0, 3.01, 3.1, 3.2, 3.3, 3.4, 3.5 );
+
+  foreach my $filename (@flange_files) {
+    foreach my $isovalue (@isovalue_list) {
+      compute_and_output_count
+        ($isovalue, "$data_dir/$filename", "out.off", \@option_list);
+    }
+  }
+
+}
+
 sub run_isodual3D_on_twocubes {
 
   scalar(@_) == 1 ||
-    die "Error in sub run_isodual3D_on_annulus. Requires 1 parameter.\n";
+    die "Error in sub run_isodual3D_on_twocubes. Requires 1 parameter.\n";
 
   my @option_list = @{$_[0]};
 

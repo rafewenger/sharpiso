@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2008 Rephael Wenger
+  Copyright (C) 2012, 2008 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +24,7 @@
 #ifndef _IJK_
 #define _IJK_
 
+#include <limits>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -224,17 +225,76 @@ namespace IJK {
   // INTEGER POWER FUNCTION
   // **************************************************
 
+  /// *** DEPRECATED ***
   /// \brief Integer power function.
   /// Return (base)^p.
-  template <class ITYPE>
-  ITYPE int_power(const ITYPE base, const ITYPE p)
+  template <typename ITYPE0, typename ITYPE1>
+  ITYPE0 int_power(const ITYPE0 base, const ITYPE1 p)
   {
-    ITYPE result = 1;
-    for (ITYPE k = 0; k < p; k++) {
+    ITYPE0 result = 1;
+    for (ITYPE1 k = 0; k < p; k++) {
       result *= base;
     }
 
     return(result);
+  }
+
+  /// \brief Integer power function.
+  /// @param[out] result Equals (base)^p.
+  template <typename ITYPE0, typename ITYPE1, typename ITYPE2>
+  void int_power(const ITYPE0 base, const ITYPE1 p, 
+                 ITYPE2 & result)
+  {
+    result = 1;
+    for (ITYPE1 k = 0; k < p; k++) {
+      result *= base;
+    }
+  }
+
+  /// \brief Integer power function with error checking.
+  /// @param[out] result Equals (base)^p.
+  template <typename ITYPE0, typename ITYPE1, typename ITYPE2,
+            typename ETYPE>
+  void int_power(const ITYPE0 base, const ITYPE1 p, 
+                 ITYPE2 & result, ETYPE & error)
+  {
+    const ITYPE2 result_bound = (std::numeric_limits<ITYPE2>::max()/base);
+    
+    result = 1;
+    for (ITYPE1 k = 0; k < p; k++) {
+
+      if (result > result_bound) {
+        error.AddMessage
+          ("Result out of bounds. ", base, "^", p,
+           " is larger than ", std::numeric_limits<ITYPE2>::max(), ".");
+        throw error;
+      }
+      result *= base;
+    }
+  }
+
+  // **************************************************
+  // CONVERT INTEGER TO BASE "base"
+  // **************************************************
+
+  template <typename ITYPE, typename BTYPE, typename DTYPE,
+            typename NTYPE, typename ETYPE>
+  void convert2base(const ITYPE ival, const BTYPE base, 
+                    DTYPE * digit, const NTYPE max_num_digits,
+                    ETYPE & error)
+  {
+    ITYPE jval = ival;
+    for (NTYPE i = 0; i < max_num_digits; i++) {
+      digit[i] = jval % base;
+      jval = jval/base;
+    }
+
+    if (jval != 0) {
+      error.AddMessage("Error converting ", ival, " to base ", base, ".");
+      error.AddMessage("Output has more than ", max_num_digits, " digits.");
+
+      throw error;
+    };
   }
 
   // **************************************************

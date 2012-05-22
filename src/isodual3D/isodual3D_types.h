@@ -86,6 +86,10 @@ namespace ISODUAL3D {
   typedef enum { UNDEFINED_TRI, UNIFORM_TRI, SPLIT_MAX_ANGLE }
   QUAD_TRI_METHOD;
 
+  /// Ambiguity status.
+  typedef enum { SEPARATE_POS, SEPARATE_NEG, SEPARATE_UNDECIDED } 
+  AMBIGUITY_CHOICE;
+
 // **************************************************
 // CLASSES
 // **************************************************
