@@ -56,7 +56,6 @@ int main(int argc, char **argv)
   INPUT_INFO input_info;
   IJK::ERROR error;
   bool flag_gradient(false);
-
   try {
 
     std::set_new_handler(memory_exhaustion);

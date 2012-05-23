@@ -4,7 +4,7 @@ def create_iso_command(args):
   outlist=[]
   #read the data sheet info 
   fda=open ('testData/data_sheet.txt','r')
-  print 'create_iso_command'
+  print '**************ISODUAL3D with perfect gradients**************'
   for pos in args.position:
     output=[]
     print 'position ',pos
@@ -12,7 +12,11 @@ def create_iso_command(args):
       #output.append(infile)
       tmp_fda=fda.readline()
       tmp_fda=tmp_fda.split(" ")
-      dir=tmp_fda[3]+tmp_fda[4]+tmp_fda[5]
+      if len(tmp_fda)>=5:
+        dir=tmp_fda[3]+tmp_fda[4]+tmp_fda[5]
+      else:
+        dir='-1'+'-1'+'-1'
+      print dir
       for iso in args.isovalue:
         infile_temp=infile.split('.')
         output.append(infile_temp[0])
@@ -72,7 +76,7 @@ def create_iso_command(args):
         opsplit=op.split()
         output.append(opsplit[1])
         output.append('break')
-      print infile,'done'
+      print '--',infile,'done'
     outlist.append(output)
   return outlist
 
@@ -82,7 +86,7 @@ def create_iso_command_cgrad(args):
   outlist=[]
   #read the data sheet info 
   fda=open ('testData/data_sheet.txt','r')
-  print 'create_iso_command_cgrad'
+  print '**************ISODUAL3D with central gradients**************'
   for pos in args.position:
     output=[]
     print 'position cgradient',pos
@@ -90,7 +94,11 @@ def create_iso_command_cgrad(args):
       #output.append(infile)
       tmp_fda=fda.readline()
       tmp_fda=tmp_fda.split(" ")
-      dir=tmp_fda[3]+tmp_fda[4]+tmp_fda[5]
+      if len(tmp_fda)>=5:
+        dir=tmp_fda[3]+tmp_fda[4]+tmp_fda[5]
+      else:
+        dir='-1'+'-1'+'-1'
+      print dir
       for iso in args.isovalue:
         infile_temp=infile.split('.')
         output.append(infile_temp[0])
@@ -158,85 +166,8 @@ def create_iso_command_cgrad(args):
         output.append(opsplit[1])
         
         output.append('break')
-      print infile,'done'
+      print '--',infile,'done'
     outlist.append(output)
   return outlist
 
-'''
-def create_iso_command_neg(args):
-  output=[]
-  isovalue=['-10.1','-10.2']
-  for infile in args.input_files:
-    #output.append(infile)
-    for iso in isovalue:
-      infile_temp=infile.split('.')
-      output.append(infile_temp[0]+'neg')
-      output.append(iso)
-      
-      sp.call(['./isodual3D', '-multi_isov','-trimesh','-s','-position','gradCD','-o', 'out.off',\
-                iso, 'testData/'+infile_temp[0]+'neg.nrrd'])
-      sp.call(['./findedge','140','out.off'])
-      op=sp.check_output(['./findEdgeCount','-fp','out.line'])
-      opsplit=op.split()
-      output.append(opsplit[1])
-      
-      #repostion
-      sp.call(['./isodual3D','-multi_isov','-trimesh','-s','-position','gradCD','-o', 'out.off','-reposition',\
-                iso, 'testData/'+infile_temp[0]+'neg.nrrd'])
-      sp.call(['./findedge','140','out.off'])
-      op=sp.check_output(['./findEdgeCount','-fp','out.line'])
-      opsplit=op.split()
-      output.append(opsplit[1])
-      #lindstrom
-      sp.call(['./isodual3D','-multi_isov','-trimesh','-s','-position','gradCD','-o', 'out.off','-lindstrom',\
-               iso, 'testData/'+infile_temp[0]+'neg.nrrd'])
-      sp.call(['./findedge','140','out.off'])
-      op=sp.check_output(['./findEdgeCount','-fp','out.line'])
-      opsplit=op.split()
-      output.append(opsplit[1])
-      #allow_conflict
-      sp.call(['./isodual3D','-multi_isov','-trimesh','-s','-position','gradCD','-o', 'out.off','-allow_conflict',\
-                iso, 'testData/'+infile_temp[0]+'neg.nrrd'])
-      sp.call(['./findedge','140','out.off'])
-      op=sp.check_output(['./findEdgeCount','-fp','out.line'])
-      opsplit=op.split()
-      output.append(opsplit[1])
-      #centroid_conflcit
-      sp.call(['./isodual3D','-multi_isov','-trimesh','-s','-position','gradCD','-o', 'out.off','-centroid_conflict',\
-                iso, 'testData/'+infile_temp[0]+'neg.nrrd'])
-      sp.call(['./findedge','140','out.off'])
-      op=sp.check_output(['./findEdgeCount','-fp','out.line'])
-      opsplit=op.split()
-      output.append(opsplit[1])
-      #clamp_far
-      sp.call(['./isodual3D','-multi_isov','-trimesh','-s','-position','gradCD','-o', 'out.off','-clamp_far',\
-               iso, 'testData/'+infile_temp[0]+'neg.nrrd'])
-      sp.call(['./findedge','140','out.off'])
-      op=sp.check_output(['./findEdgeCount','-fp','out.line'])
-      opsplit=op.split()
-      output.append(opsplit[1])
-      #reselectg
-      sp.call(['./isodual3D','-multi_isov','-trimesh','-s','-position','gradCD','-o', 'out.off','-reselectg',\
-                iso, 'testData/'+infile_temp[0]+'neg.nrrd'])
-      sp.call(['./findedge','140','out.off'])
-      op=sp.check_output(['./findEdgeCount','-fp','out.line'])
-      opsplit=op.split()
-      output.append(opsplit[1])
-      #allow conflict + repos
-      sp.call(['./isodual3D','-multi_isov','-trimesh','-s','-position','gradCD','-o', 'out.off','-reposition',\
-                '-allow_conflict',iso, 'testData/'+infile_temp[0]+'neg.nrrd'])
-      sp.call(['./findedge','140','out.off'])
-      op=sp.check_output(['./findEdgeCount','-fp','out.line'])
-      opsplit=op.split()
-      output.append(opsplit[1])
-      #clamp conflict + repos
-      sp.call(['./isodual3D','-multi_isov','-trimesh','-s','-position','gradCD','-o', 'out.off','-reposition',\
-                '-clamp_conflict',iso, 'testData/'+infile_temp[0]+'neg.nrrd'])
-      sp.call(['./findedge','140','out.off'])
-      op=sp.check_output(['./findEdgeCount','-fp','out.line'])
-      opsplit=op.split()
-      output.append(opsplit[1])
-      
-      output.append('break')
-  return output
- '''       
+     
