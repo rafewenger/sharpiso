@@ -103,12 +103,12 @@ void svd_calculate_sharpiso_vertex_2_svals_unit_normals
 
 
 void compute_cube_vertex
-(const MatrixXf A,
- const RowVectorXf b,
+(const MatrixXf &A,
+ const RowVectorXf &b,
  MatrixXf &singular_values,
  const float  err_tolerance,
  int &num_singular_vals,
- const RowVectorXf centroid,
+ const RowVectorXf &centroid,
  float * sharp_point);
 
 
@@ -119,11 +119,11 @@ MatrixXf compute_A_inverse
  MatrixXf &singularValues, NUM_TYPE & num_singular_vals );
 */
 void compute_A_inverse
-(const MatrixXf A, const EIGENVALUE_TYPE  err_tolerance,
+(const MatrixXf &A, const EIGENVALUE_TYPE  err_tolerance,
  MatrixXf &singularValues, NUM_TYPE & num_singular_vals, MatrixXf & );
  
  // Compute X as Ainverse times B
-void compute_X(const MatrixXf Inv_A, RowVectorXf B,RowVectorXf &);
+void compute_X(const MatrixXf &Inv_A, RowVectorXf &B,RowVectorXf &);
 
 // FUNCTION compute w
 void calculate_w
