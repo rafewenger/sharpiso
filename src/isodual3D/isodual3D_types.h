@@ -87,8 +87,9 @@ namespace ISODUAL3D {
   QUAD_TRI_METHOD;
 
   /// Ambiguity status.
-  typedef enum { SEPARATE_POS, SEPARATE_NEG, SEPARATE_UNDECIDED } 
-  AMBIGUITY_CHOICE;
+  typedef enum { NOT_AMBIGUOUS, SEPARATE_POS, SEPARATE_NEG,
+                 UNDECIDED_AMBIGUITY, CONFLICTING_SEPARATION } 
+  AMBIGUITY_STATUS;
 
 // **************************************************
 // CLASSES

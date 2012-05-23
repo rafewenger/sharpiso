@@ -56,6 +56,14 @@ void normalize(const GRADIENT_COORD_TYPE *intial,
 	}
 }
 
+// FUNCTION compute x which computes the position x 
+//   based on x - Ainverse times B
+inline void compute_X(const MatrixXf &Inv_A, RowVectorXf &B, RowVectorXf &X) {
+	// compute the vector X
+	X = Inv_A * B.transpose();
+}
+
+
 // calculate the sharp iso vertex using SVD, 
 // and the lindstrom approach
 // this is called from svd_compute_sharp_vertex_for_cube in sharpiso_feature.cxx
@@ -392,17 +400,16 @@ void compute_B(const COORD_TYPE *vert_cooords,
 // FUNCTION to compute B where B is given as isovalue - c_i + g_i*p_i
 // Normalize the gradients
 
-void compute_B_normalize(const COORD_TYPE *vert_cooords,
-		const GRADIENT_COORD_TYPE *vert_grads, const SCALAR_TYPE *vert_scalars,
-		const int num_vert, const SCALAR_TYPE isovalue, RowVectorXf & B) {
-	GRADIENT_COORD_TYPE vert_grads_normalized[DIM3] = { 0.0 };
-	GRADIENT_COORD_TYPE magnitude = 0.0;
+void compute_B_normalize
+(const COORD_TYPE *vert_coords,
+ const GRADIENT_COORD_TYPE *vert_grads, const SCALAR_TYPE *vert_scalars,
+ const int num_vert, const SCALAR_TYPE isovalue, RowVectorXf & B) {
+	GRADIENT_COORD_TYPE magnitude;
 	for (int i = 0; i < num_vert; i++) {
 		//compute magnitude of the gradients
 		calculate_magnitude(&(vert_grads[DIM3 * i]), DIM3, magnitude);
-		float dtpdt(0.0);
-		compute_dot_pdt(&(vert_grads[DIM3 * i]), &(vert_cooords[DIM3 * i]),
-				DIM3, dtpdt);
+		float dtpdt;
+		compute_dot_pdt(vert_grads + i*DIM3, vert_coords + i*DIM3, DIM3, dtpdt);
 		B(i) = isovalue - vert_scalars[i] + dtpdt;
 
 		if (magnitude > TOLERANCE)
@@ -414,9 +421,11 @@ void compute_B_normalize(const COORD_TYPE *vert_cooords,
 
 // Compute sigma using only large singular values
 // Precondition: sigma is a square kxk matrix where k=singular_values.rows().
-void compute_sigma(const MatrixXf & singular_values,
-		const EIGENVALUE_TYPE error_tolerance, const int max_num_singular,
-		MatrixXf & sigma, int & num_large_singular) {
+void compute_sigma
+(const MatrixXf & singular_values,
+ const EIGENVALUE_TYPE error_tolerance, const int max_num_singular,
+ MatrixXf & sigma, int & num_large_singular) 
+{
 	int num_sval = singular_values.rows();
 
 	// Initialize
@@ -469,22 +478,22 @@ void compute_cube_vertex(const MatrixXf &A, const RowVectorXf &b,
 		MatrixXf &singular_values, const float err_tolerance,
 		int & num_large_sval, const RowVectorXf &centroid, float * sharp_point) {
 	// Compute the singular values for the matrix
-	JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
+  JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
+
 	singular_values = svd.singularValues();
 	int num_sval = singular_values.rows();
 
 	// Compute sigma using only large singular values
-	MatrixXf sigma(num_sval, num_sval);
-	compute_sigma(singular_values, err_tolerance, num_sval, sigma,
-			num_large_sval);
+  MatrixXf sigma(num_sval, num_sval);
 
-	MatrixXf point = centroid.transpose() + svd.matrixV() * sigma
-			* svd.matrixU().transpose() * (b.transpose() - A
-			* centroid.transpose());
+  compute_sigma(singular_values, err_tolerance, num_sval, sigma,
+                num_large_sval);
 
-	for (int i = 0; i < 3; i++) {
-		sharp_point[i] = point(i);
-	}
+  MatrixXf point = centroid.transpose() + svd.matrixV() * sigma
+    * svd.matrixU().transpose() * (b.transpose() - A
+                                   * centroid.transpose());
+
+  for (int i = 0; i < 3; i++) { sharp_point[i] = point(i); }
 }
 
 // FUNCTION compute the pseudo inverse of A using the TOP 2 singular values.
@@ -525,12 +534,6 @@ void compute_A_inverse_top_2(const MatrixXf &A,
 		NUM_TYPE & num_singular_vals, MatrixXf& pseudoInverseA) {
 	compute_A_pseudoinverse_top_2(A, singularValues, err_tolerance,
 			num_singular_vals, pseudoInverseA);
-}
-
-// FUNCTION compute x which computes the position x based on x - Ainverse times B
-void compute_X(const MatrixXf &Inv_A, RowVectorXf &B, RowVectorXf &X) {
-	// compute the vector X
-	X = Inv_A * B.transpose();
 }
 
 // Calculate the magnitude
