@@ -84,7 +84,7 @@ for cen in cntrs:
     p3=sp.call(temp_neg)
     
 n=1    
-cntrs1=['30 35 30 60 55 65', '35.1 40.2 38.3 61.2 60.3 62.4']
+cntrs1=['40 45 42 40 50 55', '35.1 40.2 38.3 51.2 50.3 52.4']
 
 # twocubes data set    
 for cen in cntrs1:
