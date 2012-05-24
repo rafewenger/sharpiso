@@ -56,7 +56,6 @@ namespace SHARPISO {
   // CONSTANTS
   // **************************************************
 
-  //Debug
   const NUM_TYPE DIM3 = 3;
   const NUM_TYPE NUM_CUBE_VERTICES3D = 8;
   const NUM_TYPE NUM_CUBE_EDGES3D = NUM_CUBE_VERTICES3D*DIM3/2;
@@ -65,7 +64,15 @@ namespace SHARPISO {
   const NUM_TYPE NUM_CUBE_FACET_EDGES3D =
     (NUM_CUBE_EDGES3D-NUM_CUBE_FACET_VERTICES3D)/2;
   const NUM_TYPE NUM_CUBE_DIAGONALS3D = NUM_CUBE_FACET_VERTICES3D;
-  const SCALAR_TYPE clamp_threshold = 0.0001; // clamp very small values to the cube.
+
+  /// Number of vertices in two cubes sharing a facet.
+  const NUM_TYPE NUM_TWO_CUBE_VERTICES3D = DIM3 * NUM_CUBE_VERTICES3D;
+
+
+  // *** NOTE:  SHOULD BE REPLACED BY PARAMETER ***
+  // clamp very small values to the cube.
+  const SCALAR_TYPE clamp_threshold = 0.0001; 
+
 };
 
 #endif

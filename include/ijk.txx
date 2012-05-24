@@ -222,6 +222,18 @@ namespace IJK {
   };
 
   // **************************************************
+  // SET C ARRAY
+  // **************************************************
+
+  /// Set all elements of array a to x.
+  template <typename NTYPE, typename ETYPE0, typename ETYPE1>
+  void set_c_array(const NTYPE alength, const ETYPE0 x, ETYPE1 a[])
+  {
+    for (NTYPE i = 0; i < alength; i++)
+      { a[i] = x; }
+  }
+
+  // **************************************************
   // INTEGER POWER FUNCTION
   // **************************************************
 
