@@ -16,7 +16,7 @@ def create_iso_command(args):
         dir=tmp_fda[3]+tmp_fda[4]+tmp_fda[5]
       else:
         dir='-1'+'-1'+'-1'
-      print dir
+      
       for iso in args.isovalue:
         infile_temp=infile.split('.')
         output.append(infile_temp[0])
@@ -98,7 +98,7 @@ def create_iso_command_cgrad(args):
         dir=tmp_fda[3]+tmp_fda[4]+tmp_fda[5]
       else:
         dir='-1'+'-1'+'-1'
-      print dir
+      
       for iso in args.isovalue:
         infile_temp=infile.split('.')
         output.append(infile_temp[0])
