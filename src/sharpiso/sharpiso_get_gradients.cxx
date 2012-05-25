@@ -199,6 +199,30 @@ namespace {
     vertex_list.resize(num_selected);
   }
 
+  /// Get vertices with large gradient magnitudes.
+  /// Returns vertex_list[] with selected vertices in first num_selected positions.
+  void get_vertices_with_large_gradient_magnitudes
+  (const GRADIENT_GRID_BASE & gradient_grid,
+   const GRADIENT_COORD_TYPE max_small_mag_squared,
+   const NUM_TYPE num_vertices,
+   VERTEX_INDEX vertex_list[],
+   NUM_TYPE & num_selected)
+  {
+    num_selected = 0;
+    for (NUM_TYPE i = 0; i < num_vertices; i++) {
+
+      VERTEX_INDEX iv = vertex_list[i];
+      GRADIENT_COORD_TYPE magnitude_squared =
+        gradient_grid.ComputeMagnitudeSquared(iv);
+
+      if (magnitude_squared > max_small_mag_squared) {
+        vertex_list[num_selected] = vertex_list[i];
+        num_selected++;
+      }
+    }
+
+  }
+
   /// Get cube vertices indicating selected gradients.
   /// @param sharpiso_param Determines which gradients are selected.
   /// @pre No duplicates allowed.
@@ -466,6 +490,42 @@ void SHARPISO::get_gradients
   }
 }
 
+/// Get gradients from two cubes sharing a facet.
+/// Used in getting gradients around a facet.
+/// @param sharpiso_param Determines which gradients are selected.
+void SHARPISO::get_two_cube_gradients
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX facet_v0,
+ const NUM_TYPE orth_dir,
+ const SCALAR_TYPE isovalue,
+ const GET_GRADIENTS_PARAM & sharpiso_param,
+ const OFFSET_CUBE_111 & cube_111,
+ std::vector<COORD_TYPE> & point_coord,
+ std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+ std::vector<SCALAR_TYPE> & scalar,
+ NUM_TYPE & num_gradients)
+{
+  const GRADIENT_COORD_TYPE max_small_mag = 
+    sharpiso_param.max_small_magnitude;
+  const GRADIENT_COORD_TYPE max_small_mag_squared = 
+    max_small_mag * max_small_mag;
+
+  VERTEX_INDEX vertex_list[NUM_TWO_CUBE_VERTICES3D];
+  NUM_TYPE num_vertices;
+
+  get_intersected_two_cube_edge_endpoints
+    (scalar_grid, facet_v0, orth_dir, isovalue,
+     vertex_list, num_vertices);
+
+  get_vertices_with_large_gradient_magnitudes
+    (gradient_grid, max_small_mag_squared, 
+     num_vertices, vertex_list, num_gradients);
+
+  get_vertex_gradients
+    (scalar_grid, gradient_grid, vertex_list, num_gradients,
+     point_coord, gradient_coord, scalar);
+}
 
 void SHARPISO::get_large_cube_gradients
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -1313,7 +1373,7 @@ void SHARPISO::get_vertex_determining_edge_intersection
 // @param facet_v0 Index of primary (lowest-left) facet vertex.
 // @param orth_dir Direction orthogonal to facet.
 // @pre Facet is in interior of grid.
-void get_intersected_two_cube_edge_endpoints
+void SHARPISO::get_intersected_two_cube_edge_endpoints
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, const VERTEX_INDEX facet_v0,
  const int orth_dir, const SCALAR_TYPE isovalue, 
  VERTEX_INDEX vertex_list[NUM_TWO_CUBE_VERTICES3D], NUM_TYPE & num_vertices)
@@ -1336,10 +1396,10 @@ void get_intersected_two_cube_edge_endpoints
       VERTEX_INDEX jf = j/NUM_CUBE_FACET_VERTICES3D;
       VERTEX_INDEX k = j%NUM_CUBE_FACET_VERTICES3D;
       VERTEX_INDEX v1 = facet_v0;
-      if (j == 0) {
+      if (jf == 0) {
         v1 = scalar_grid.PrevVertex(facet_v0, orth_dir);
       }
-      else if (j == 2) {
+      else if (jf == 2) {
         v1 = scalar_grid.NextVertex(facet_v0, orth_dir);
       }
       VERTEX_INDEX iv = scalar_grid.FacetVertex(v1, orth_dir, k);
