@@ -202,23 +202,24 @@ void ISODUAL3D::dual_contouring
     merge_identical(isopoly, cube_list, isopoly_cube, merge_data);
 
     std::vector<ISO_VERTEX_INDEX> iso_vlist_cube;
-    std::vector<FACET_VERTEX_INDEX> iso_vlist_facet;
+    std::vector<FACET_VERTEX_INDEX> iso_vlist_patch;
 
     IJK::split_dual_isovert
       (scalar_grid, isodual_table, isovalue, 
        cube_list, isopoly_cube, facet_vertex,
-       iso_vlist_cube, iso_vlist_facet, isopoly_vert);
+       iso_vlist_cube, iso_vlist_patch, isopoly_vert);
 
     t2 = clock();
 
     if (vertex_position_method == GRADIENT_POSITIONING) {
       position_dual_isovertices_using_gradients
         (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
-         iso_vlist_cube, iso_vlist_facet, vertex_coord, isodual_info.sharpiso);
+         iso_vlist_cube, iso_vlist_patch, vertex_coord, isodual_info.sharpiso);
     }
     else {
       error.AddMessage("Programming error. Positioning method error.");
-      error.AddMessage("  Positioning does not allow multiple isosurface vertices in a cube.");
+      error.AddMessage
+        ("  Positioning does not allow multiple isosurface vertices in a cube.");
       throw error;
     }
 

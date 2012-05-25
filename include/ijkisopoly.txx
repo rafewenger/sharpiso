@@ -574,20 +574,29 @@ namespace IJK {
   // **************************************************
 
   /// Split dual isosurface vertices.
+  /// @param cube_list[] List of cubes containing isosurface vertices.
+  /// @param isopoly_cube[] isopoly_cube[j*num_polyv+k] is the cube containing
+  ///    the k'th vertex of isosurface polytope j
+  /// @param facet_vertex[] facet_vertex[j*num_polyv+k] is the location
+  ///    of the k'th vertex on isosurface polytope j.
+  /// @param iso_vlist_cube[] iso_vlist_cube[i] is the cube containing
+  ///    isosurface vertex i.
+  /// @param iso_vlist_patch[] iso_vlist_patch[j] is the index of the
+  ///    isosurface patch in iso_vlist_cube[i] containing vertex i.
   template <typename GRID_TYPE, typename ISODUAL_TABLE,
             typename SCALAR_TYPE, 
             typename CINDEX_TYPE0, typename CINDEX_TYPE1,
             typename CINDEX_TYPE2, 
-            typename FACETV_TYPE0, typename FACETV_TYPE1,
+            typename FACETV_TYPE, typename PINDEX_TYPE,
             typename ISOV_TYPE>
   void split_dual_isovert
   (const GRID_TYPE & scalar_grid, const ISODUAL_TABLE & isodual_table,
    const SCALAR_TYPE isovalue,
    const std::vector<CINDEX_TYPE0> & cube_list, 
    const std::vector<CINDEX_TYPE1> & isopoly_cube, 
-   const std::vector<FACETV_TYPE0> & facet_vertex,
+   const std::vector<FACETV_TYPE> & facet_vertex,
    std::vector<CINDEX_TYPE2> & iso_vlist_cube, 
-   std::vector<FACETV_TYPE1> & iso_vlist_facet, 
+   std::vector<PINDEX_TYPE> & iso_vlist_patch, 
    std::vector<ISOV_TYPE> & isopoly)
   {
     typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
@@ -599,7 +608,7 @@ namespace IJK {
     const NUM_TYPE num_cube_vertices = scalar_grid.NumCubeVertices();
     const NUM_TYPE num_facet_vertices = scalar_grid.NumFacetVertices();
     std::vector<TABLE_INDEX> cube_table_index;
-    std::vector<FACETV_TYPE0> num_isov;
+    std::vector<FACETV_TYPE> num_isov;
     std::vector<ISOV_TYPE> first_cube_isov;
     num_isov.resize(cube_list.size());
     first_cube_isov.resize(cube_list.size());
@@ -619,14 +628,14 @@ namespace IJK {
     }
 
     iso_vlist_cube.resize(total_num_isov);
-    iso_vlist_facet.resize(total_num_isov);
+    iso_vlist_patch.resize(total_num_isov);
 
     ISOV_TYPE k = 0;
     for (ISOV_TYPE i = 0; i < cube_list.size(); i++) {
       first_cube_isov[i] = k;
-      for (FACETV_TYPE0 j = 0; j < num_isov[i]; j++) {
+      for (FACETV_TYPE j = 0; j < num_isov[i]; j++) {
         iso_vlist_cube[k+j] = cube_list[i];
-        iso_vlist_facet[k+j] = j;
+        iso_vlist_patch[k+j] = j;
       }
       k = k+num_isov[i];
     }
