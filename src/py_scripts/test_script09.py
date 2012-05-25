@@ -13,9 +13,9 @@ for files in fi:
   
 args=cl.parse_command_line()
 
-#args.input_files=flist[1:40]  # for annulus 
+args.input_files=flist[1:40]  # for annulus 
 #args.input_files=flist[105:130]  # for twocubes 
-args.input_files=flist[105:106]  # for twocubes
+#args.input_files=flist[105:129]  # for twocubes
 
 #dt=str(dt.datetime.now())
 localtime=time.localtime(time.time())
@@ -37,7 +37,7 @@ for iv,out in enumerate(op):
       print >>fi,out_sub.ljust(tab_width,' '),
     else:
       print >>fi,'\n',
-  print 'output written to',fname,']' 
+  print '[output written to',fname,']' 
   
 
 
@@ -56,19 +56,20 @@ for iv,out in enumerate(op):
       print >>fi,out_sub.ljust(tab_width,' '),
     else:
       print >>fi,'\n',
-  print 'output written to',fname,']' 
-  
+  print '[output written to',fname,']' 
 
-################################## negative gradient
-import create_command05 as cc5
+
+# MULTI ISOV RUNS
+import create_command06 as ccmulti
 args.position =  ['gradCD','gradIES','gradIEDir']
-args.isovalue =  ['-10.1','-10.3','-10.6']
-op=cc5.create_iso_command_negate_sep_neg(args) 
+# sep_pos
+op=ccmulti.create_iso_command_multi_isov(args, '-sep_pos')
+
 for iv,out in enumerate(op):
-  fname='outsetneg'+args.position[iv]+dt+'.txt'
+  fname='outsep_pos'+args.position[iv]+dt+'.txt'
   fi=open (fname,'w')
   print >>fi,args.position[iv],
-  print >>fi,'**************ISODUAL3D with negative gradients separate negatives **************'
+  print >>fi,'**************ISODUAL3D with cgrad **************'
   print >>fi,df.TEST_HEADER_STRING1
   print >>fi,df.TEST_HEADER_STRING2
   for out_sub in out:
@@ -76,15 +77,15 @@ for iv,out in enumerate(op):
       print >>fi,out_sub.ljust(tab_width,' '),
     else:
       print >>fi,'\n',
-  print 'output written to',fname,']' 
-  
-###############
-op=cc5.create_iso_command_negate_sep_pos(args) 
+  print '[output written to',fname,']' 
+
+# sep_neg
+op=ccmulti.create_iso_command_multi_isov(args, '-sep_neg')
 for iv,out in enumerate(op):
-  fname='outsetpos'+args.position[iv]+dt+'.txt'
+  fname='outneg_pos'+args.position[iv]+dt+'.txt'
   fi=open (fname,'w')
   print >>fi,args.position[iv],
-  print >>fi,'**************ISODUAL3D with negative gradients separate positives **************'
+  print >>fi,'**************ISODUAL3D with cgrad **************'
   print >>fi,df.TEST_HEADER_STRING1
   print >>fi,df.TEST_HEADER_STRING2
   for out_sub in out:
@@ -92,7 +93,7 @@ for iv,out in enumerate(op):
       print >>fi,out_sub.ljust(tab_width,' '),
     else:
       print >>fi,'\n',
-  print 'output written to',fname,']' 
-  
+  print '[output written to',fname,']' 
+
 
   
