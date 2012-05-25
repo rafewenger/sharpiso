@@ -179,7 +179,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
  const SCALAR_TYPE isovalue,
  const ISODUAL_PARAM & isodual_param,
  const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
- const std::vector<FACET_VERTEX_INDEX> & iso_vlist_facet,
+ const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
  COORD_TYPE * sharp_coord,
  SHARPISO_INFO & sharp_info)
 {
@@ -204,7 +204,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
 
   for (VERTEX_INDEX i = 0; i < iso_vlist_cube.size(); i++) {
     VERTEX_INDEX icube = iso_vlist_cube[i];
-    FACET_VERTEX_INDEX ifacet = iso_vlist_facet[i];
+    FACET_VERTEX_INDEX ifacet = iso_vlist_patch[i];
 
     IJKDUALTABLE::TABLE_INDEX it;
     IJK::compute_isotable_index
@@ -272,7 +272,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
  const SCALAR_TYPE isovalue,
  const ISODUAL_PARAM & isodual_param,
  const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
- const std::vector<FACET_VERTEX_INDEX> & iso_vlist_facet,
+ const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
  std::vector<COORD_TYPE> & sharp_coord,
  SHARPISO_INFO & sharp_info)
 {
@@ -281,7 +281,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
   sharp_coord.resize(iso_vlist_cube.size()*dimension);
   position_dual_isovertices_using_gradients
     (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
-     iso_vlist_cube, iso_vlist_facet, &(sharp_coord.front()), sharp_info);
+     iso_vlist_cube, iso_vlist_patch, &(sharp_coord.front()), sharp_info);
 }
 
 // ********************************************************

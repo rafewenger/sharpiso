@@ -47,6 +47,8 @@ char * scalar_filename = NULL;
 char * gradient_filename = NULL;
 SCALAR_TYPE isovalue(0);
 VERTEX_INDEX cube_index(0);
+VERTEX_INDEX facet_v0(0);
+int facet_orth_dir(0);
 VERTEX_INDEX vertex_index(0);
 std::vector<GRID_COORD_TYPE> cube_coord;
 std::vector<GRID_COORD_TYPE> vertex_coord;
@@ -70,6 +72,7 @@ bool flag_edge_intersection(false);
 bool flag_subgrid(false);
 bool flag_output_param(true);
 bool flag_sharp_edgeI(false);
+bool flag_facet_set(false);
 
 // compute isosurface vertices
 void compute_iso_vertex_using_svd
@@ -104,6 +107,10 @@ bool check_cube_coord
 bool check_vertex_coord
 (const SHARPISO_SCALAR_GRID & scalar_grid,
  const std::vector<GRID_COORD_TYPE> & vertex_coord, IJK::ERROR & error);
+bool check_facet
+(const SHARPISO_SCALAR_GRID & scalar_grid,
+ const VERTEX_INDEX facet_v0, const NUM_TYPE facet_orth_dir,
+ IJK::ERROR & error);
 
 // output routines
 void output_cube_coordinates
@@ -219,6 +226,11 @@ int main(int argc, char **argv)
       vertex_index = scalar_grid.ComputeVertexIndex(vertex_coord);
     }
 
+    if (flag_facet_set) {
+      if (!check_facet(scalar_grid, facet_v0, facet_orth_dir, error))
+        { throw error; }
+    }
+
     NUM_TYPE num_gradients = 0;
     std::vector<COORD_TYPE> point_coord;
     std::vector<GRADIENT_COORD_TYPE> gradient_coord;
@@ -257,6 +269,25 @@ int main(int argc, char **argv)
           (cout, point_coord, gradient_coord, scalar, num_gradients, 
            isovalue, cube_center);
         cout << endl;
+
+        if (flag_facet_set) {
+          std::vector<COORD_TYPE> point_coord2;
+          std::vector<GRADIENT_COORD_TYPE> gradient_coord2;
+          std::vector<SCALAR_TYPE> scalar2;
+          int num_gradients2;
+
+          get_two_cube_gradients
+            (scalar_grid, gradient_grid, facet_v0, facet_orth_dir, 
+             isovalue, sharpiso_param, cube_111,
+             point_coord2, gradient_coord2, scalar2, num_gradients2);
+
+          cout << "Gradients around facet:" << endl;
+          output_gradients
+          (cout, point_coord2, gradient_coord2, scalar2, num_gradients2, 
+           isovalue, cube_center);
+          cout << endl;
+        }
+
       }
 
       if (flag_isovalue_set) {
@@ -953,6 +984,37 @@ bool check_vertex_coord
     return(true);
 }
 
+bool check_facet
+(const SHARPISO_SCALAR_GRID & scalar_grid,
+ const VERTEX_INDEX facet_v0, const NUM_TYPE facet_orth_dir,
+ IJK::ERROR & error)
+{
+  GRID_COORD_TYPE coord[DIM3];
+
+  if (facet_v0 < 0) {
+    error.AddMessage("Illegal facet vertex following -facet.");
+    error.AddMessage("Facet vertex index must be non-negative.");
+    return(false);
+  }
+
+  if (facet_v0+1 >= scalar_grid.NumVertices()) {
+    error.AddMessage("Illegal facet vertex following -facet.");
+    error.AddMessage("Facet vertex index must be less than ",
+                     scalar_grid.NumVertices(), ".");
+    return(false);
+  }
+
+  scalar_grid.ComputeCoord(facet_v0, coord);
+
+  if (coord[facet_orth_dir] <= 0 ||
+      coord[facet_orth_dir]+1 >= scalar_grid.AxisSize(facet_orth_dir)) {
+
+    error.AddMessage
+      ("Illegal facet specification.  Facet not in grid interior.");
+    return(false);
+  }
+}
+
 // **************************************************
 // MISCELLANEOUS ROUTINES
 // **************************************************
@@ -984,7 +1046,8 @@ void usage_error()
     cerr << "  -dist2vert | -vertex <vertex_index>"
          << " | -vc \"vertex coordinates\"" << endl;
     cerr << "  -max_eigen <value>" << endl;
-    cerr << "  -gradS_offset <value> | -max_dist <value>" << endl;
+    cerr << "  -gradS_offset <value> | -max_dist <value> | max_mag <value>" 
+         << endl;
     cerr << "  -listg | -list_subgrid | -edgeI" << endl;
     cerr << "  -help | -no_output_param" << endl;
     exit(10);
@@ -1006,6 +1069,32 @@ int get_int(const int iarg, const int argc, char **argv)
   }
 
   return(x);
+}
+
+int get_two_int(const int iarg, const int argc, char **argv,
+                int & x0, int & x1)
+{
+  const int num_arg = 2;
+
+  if (iarg+num_arg >= argc) {
+    cerr << "Usage error. Missing arguments for option "
+         << argv[iarg] << " and missing file name." << endl;
+    usage_error();
+  }
+
+  if (!IJK::string2val(argv[iarg+1], x0)) {
+    cerr << "Error in argument for option: " << argv[iarg] << endl;
+    cerr << "Non-integer character in string: " << argv[iarg+1] << endl;
+    exit(50);
+  }
+
+  if (!IJK::string2val(argv[iarg+2], x1)) {
+    cerr << "Error in argument for option: " << argv[iarg] << endl;
+    cerr << "Non-integer character in string: " << argv[iarg+2] << endl;
+    cerr << "Note: " << argv[iarg] << " takes two integer arguments."
+         << endl;
+    exit(51);
+  }
 }
 
 float get_float(const int iarg, const int argc, char **argv)
@@ -1046,6 +1135,11 @@ void parse_command_line(int argc, char **argv)
       cube_index = get_int(iarg, argc, argv);
       iarg++;
       flag_cube_set = true;
+    }
+    else if (s == "-facet") {
+      get_two_int(iarg, argc, argv, facet_v0, facet_orth_dir);
+      flag_facet_set = true;
+      iarg = iarg+2;
     }
     else if (s == "-dist2vert") {
       flag_dist2vert = true;
@@ -1183,6 +1277,10 @@ void parse_command_line(int argc, char **argv)
     }
     else if (s == "-max_dist") {
       sharpiso_param.max_dist = get_float(iarg, argc, argv);
+      iarg++;
+    }
+    else if (s == "-max_mag") {
+      sharpiso_param.max_small_magnitude = get_float(iarg, argc, argv);
       iarg++;
     }
     else if (s == "-no_round") {
@@ -1391,6 +1489,9 @@ void help()
        << endl;
   cerr << "  -max_dist <V>:  Maximum distance from cube to isosurface vertex."
        << endl;
+  cerr << "  -max_mag {max}:  Set maximum small gradient magnitude to max." 
+       << endl;
+  cerr << "           Gradients with magnitude below max are ignored." << endl;
   cerr << "  -listg: List gradients." << endl;
   cerr << "  -sortg: Sort gradients by distance of isoplane to cube center."
        << endl;

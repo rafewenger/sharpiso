@@ -145,6 +145,22 @@ namespace SHARPISO {
    std::vector<SCALAR_TYPE> & scalar,
    NUM_TYPE & num_gradients);
 
+  /// Get gradients from two cubes sharing a facet.
+  /// Used in getting gradients around a facet.
+  /// @param sharpiso_param Determines which gradients are selected.
+  void get_two_cube_gradients
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX facet_v0,
+   const NUM_TYPE orth_dir,
+   const SCALAR_TYPE isovalue,
+   const GET_GRADIENTS_PARAM & sharpiso_param,
+   const OFFSET_CUBE_111 & cube_111,
+   std::vector<COORD_TYPE> & point_coord,
+   std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+   std::vector<SCALAR_TYPE> & scalar,
+   NUM_TYPE & num_gradients);
+
   /// Get large gradients at cube vertices.
   void get_large_cube_gradients
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -315,6 +331,17 @@ namespace SHARPISO {
    const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
    const GRADIENT_COORD_TYPE zero_tolerance,
    VERTEX_INDEX & iv2);
+
+  /// Get vertices at endpoints of facet edges which intersect the isosurface.
+  /// Two cubes share a facet.
+  /// @param facet_v0 Index of primary (lowest-left) facet vertex.
+  /// @param orth_dir Direction orthogonal to facet.
+  /// @pre Facet is in interior of grid.
+  void get_intersected_two_cube_edge_endpoints
+    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, const VERTEX_INDEX facet_v0,
+     const int orth_dir, const SCALAR_TYPE isovalue, 
+     VERTEX_INDEX vertex_list[NUM_TWO_CUBE_VERTICES3D], 
+     NUM_TYPE & num_vertices);
 
   // **************************************************
   // SORT VERTICES

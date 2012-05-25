@@ -48,7 +48,7 @@ namespace {
   typedef enum
     {SUBSAMPLE_PARAM, 
      GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
-     MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM,
+     MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, MAX_MAG_PARAM,
      REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
      ALLOW_CONFLICT_PARAM, 
      CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
@@ -69,7 +69,7 @@ namespace {
   const char * parameter_string[] =
     {"-subsample", 
      "-gradient", "-position", "-trimesh", "-uniform_trimesh",
-     "-max_eigen", "-max_dist", "-gradS_offset", 
+     "-max_eigen", "-max_dist", "-gradS_offset", "-max_mag",
      "-reposition", "-no_reposition", "-sepdist",
      "-allow_conflict", "-clamp_conflict", "-centroid_conflict",
      "-clamp_far", "-centroid_far",
@@ -300,6 +300,11 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 
     case MAX_DIST_PARAM:
       input_info.max_dist = get_float(iarg, argc, argv);
+      iarg++;
+      break;
+
+    case MAX_MAG_PARAM:
+      input_info.max_small_magnitude = get_float(iarg, argc, argv);
       iarg++;
       break;
 
@@ -1287,7 +1292,7 @@ namespace {
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
   cerr << "  [-single_isov | -multi_isov]" << endl;
   cerr << "  [-max_eigen {max}]" << endl;
-  cerr << "  [-max_dist {D}] [-gradS_offset {offset}]" << endl;
+  cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}]" << endl;
   cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
   cerr << "  [-lindstrom]" << endl;
   cerr << "  [-allow_conflict] [-clamp_conflict] [-centroid_conflict]" << endl;
@@ -1384,6 +1389,9 @@ void ISODUAL3D::help()
        << endl;
   cerr << "  -max_dist {D}:    Set max Linf distance from cube to isosurface vertex." 
        << endl;
+  cerr << "  -max_mag {max}:  Set maximum small gradient magnitude to max." 
+       << endl;
+  cerr << "           Gradients with magnitude below max are ignored." << endl;
   cerr << "  -gradS_offset {offset}: Set cube offset for gradient selection to offset."
        << endl;
   cout << "  -lindstrom:   Use Lindstrom's equation to compute sharp point."

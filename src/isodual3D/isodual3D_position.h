@@ -96,7 +96,7 @@ namespace ISODUAL3D {
    const SCALAR_TYPE isovalue,
    const ISODUAL_PARAM & isodual_param,
    const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
-   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_facet,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    COORD_TYPE * sharp_coord,
    SHARPISO_INFO & sharp_info);
 
@@ -108,7 +108,7 @@ namespace ISODUAL3D {
    const SCALAR_TYPE isovalue,
    const ISODUAL_PARAM & isodual_param,
    const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
-   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_facet,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    std::vector<COORD_TYPE> & sharp_coord,
    SHARPISO_INFO & sharp_info);
 
