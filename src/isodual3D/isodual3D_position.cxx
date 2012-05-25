@@ -191,7 +191,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
   COORD_TYPE coord0[dimension];
   COORD_TYPE coord1[dimension];
   COORD_TYPE coord2[dimension];
-  IJK::CUBE_FACE_INFO<int,int,int> cube(dimension);
+  ISODUAL3D_CUBE_FACE_INFO  cube(dimension);
 
   SVD_INFO svd_info;
   svd_info.location = LOC_NONE;
@@ -204,7 +204,6 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
 
   for (VERTEX_INDEX i = 0; i < iso_vlist_cube.size(); i++) {
     VERTEX_INDEX icube = iso_vlist_cube[i];
-    FACET_VERTEX_INDEX ifacet = iso_vlist_patch[i];
 
     IJKDUALTABLE::TABLE_INDEX it;
     IJK::compute_isotable_index
@@ -223,42 +222,11 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
       sharp_info.IncrementIsoVertexNum(num_large_eigenvalues);
     }
     else {
+      FACET_VERTEX_INDEX ipatch= iso_vlist_patch[i];
 
-      int num_intersected_edges = 0;
-      IJK::set_coord(dimension, 0.0, vcoord);
-
-      for (int ie = 0; ie < cube.NumEdges(); ie++) {
-        if (isodual_table.IsBipolar(it, ie)) {
-          if (isodual_table.IncidentIsoVertex(it, ie) == ifacet) {
-            int k0 = cube.EdgeEndpoint(ie, 0);
-            int k1 = cube.EdgeEndpoint(ie, 1);
-            VERTEX_INDEX iend0 = scalar_grid.CubeVertex(icube, k0);
-            VERTEX_INDEX iend1 = scalar_grid.CubeVertex(icube, k1);
-            SCALAR_TYPE s0 = scalar_grid.Scalar(iend0);
-            SCALAR_TYPE s1 = scalar_grid.Scalar(iend1);
-
-            scalar_grid.ComputeCoord(iend0, coord0);
-            scalar_grid.ComputeCoord(iend1, coord1);
-
-            IJK::linear_interpolate_coord
-              (dimension, s0, coord0, s1, coord1, isovalue, coord2);
-
-            IJK::add_coord(dimension, vcoord, coord2, vcoord);
-
-            num_intersected_edges++;
-          }
-        }
-      }
-
-      if (num_intersected_edges > 0) {
-        IJK::multiply_coord
-          (dimension, 1.0/num_intersected_edges, vcoord, 
-           sharp_coord+i*dimension);
-      }
-      else {
-        scalar_grid.ComputeCubeCenterCoord(icube, sharp_coord+i*dimension);
-      }
-
+      compute_isosurface_grid_edge_centroid
+        (scalar_grid, isodual_table, isovalue, icube, ipatch,
+         it, cube, sharp_coord+i*DIM3);
     }
   }
 
@@ -458,6 +426,57 @@ void ISODUAL3D::compute_isosurface_grid_edge_centroid
     }
 
     IJK::copy_coord(dimension, vcoord, coord);
+}
+
+/// Compute centroid of intersections of isosurface and cube edges.
+/// Use only grid cube edges associated with isosurface patch ipatch.
+void ISODUAL3D::compute_isosurface_grid_edge_centroid
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+ const SCALAR_TYPE isovalue, const VERTEX_INDEX icube,
+ const FACET_VERTEX_INDEX ipatch, const IJKDUALTABLE::TABLE_INDEX it,
+ const ISODUAL3D_CUBE_FACE_INFO & cube,
+ COORD_TYPE * coord)
+{
+  static COORD_TYPE vcoord[DIM3];
+  static COORD_TYPE coord0[DIM3];
+  static COORD_TYPE coord1[DIM3];
+  static COORD_TYPE coord2[DIM3];
+
+  int num_intersected_edges = 0;
+  IJK::set_coord_3D(0.0, vcoord);
+
+  for (int ie = 0; ie < cube.NumEdges(); ie++) {
+    if (isodual_table.IsBipolar(it, ie)) {
+      if (isodual_table.IncidentIsoVertex(it, ie) == ipatch) {
+        int k0 = cube.EdgeEndpoint(ie, 0);
+        int k1 = cube.EdgeEndpoint(ie, 1);
+        VERTEX_INDEX iend0 = scalar_grid.CubeVertex(icube, k0);
+        VERTEX_INDEX iend1 = scalar_grid.CubeVertex(icube, k1);
+        SCALAR_TYPE s0 = scalar_grid.Scalar(iend0);
+        SCALAR_TYPE s1 = scalar_grid.Scalar(iend1);
+
+        scalar_grid.ComputeCoord(iend0, coord0);
+        scalar_grid.ComputeCoord(iend1, coord1);
+
+        IJK::linear_interpolate_coord
+          (DIM3, s0, coord0, s1, coord1, isovalue, coord2);
+
+        IJK::add_coord_3D(vcoord, coord2, vcoord);
+
+        num_intersected_edges++;
+      }
+    }
+  }
+
+  if (num_intersected_edges > 0) {
+    IJK::multiply_coord_3D
+      (1.0/num_intersected_edges, vcoord, coord);
+  }
+  else {
+    scalar_grid.ComputeCubeCenterCoord(icube, coord);
+  }
+
 }
 
 // **************************************************

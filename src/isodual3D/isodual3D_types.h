@@ -96,6 +96,9 @@ namespace ISODUAL3D {
 // **************************************************
 
   typedef IJK::BOX<VERTEX_INDEX> GRID_BOX;  ///< Grid box type.
+
+  typedef IJK::CUBE_FACE_INFO<int,int,int> ISODUAL3D_CUBE_FACE_INFO;
+
 }
 
 #endif

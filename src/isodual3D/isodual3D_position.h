@@ -176,11 +176,22 @@ namespace ISODUAL3D {
   // Compute routines
   // **************************************************
 
-  /// Compute centroid of intersections of isosurface and grid edges
+  /// Compute centroid of intersections of isosurface and cube edges.
   void compute_isosurface_grid_edge_centroid
     (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
     const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
     COORD_TYPE * coord);
+
+  /// Compute centroid of intersections of isosurface and cube edges.
+  /// Use only grid cube edges associated with isosurface patch ipatch.
+  void compute_isosurface_grid_edge_centroid
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue, const VERTEX_INDEX icube,
+   const FACET_VERTEX_INDEX ipatch, const IJKDUALTABLE::TABLE_INDEX it,
+   const ISODUAL3D_CUBE_FACE_INFO & cube,
+   COORD_TYPE * coord);
+
 };
 
 #endif
