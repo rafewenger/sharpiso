@@ -1,8 +1,8 @@
-
+# file to generate the data files 
 import subprocess as sp
 
-args =['../ijkgenscalar2', '-grad', '-dim', '3', '-asize', '100']
-cgrad=['../cgradient']
+args =['ijkgenscalar2', '-grad', '-dim', '3', '-asize', '100']
+cgrad=['cgradient']
 dirs=['1 0 0 ','1 1 0 ','1 1 1','2 1 0','2 1 1','2 2 1','3 1 0','3 1 1','3 2 0','3 2 1','3 2 2','3 3 1','3 3 2']
 cntrs=['50 50 50','50.1 50.2 50.3','50.2 50.3 50.4','50.3 50.4 50.5']
 neg=['./ijkscalar', 'scalarop']
@@ -34,17 +34,6 @@ for cen in cntrs:
     cgrad_fname='annulus'+str(n-1)+'.cgrad'+'.nrrd'
     ctemp.append(cgrad_fname)
     p2=sp.call(ctemp)
-    #generate the negative data set
-    fname='annulus'+str(n-1)+'.nrrd'
-    oname='annulus'+str(n-1)+'neg.nrrd'
-    temp_neg=neg[:]
-    temp_neg.append('-o')
-    temp_neg.append(oname)
-    temp_neg.append('-grad')
-    temp_neg.append('-negate')
-    temp_neg.append(fname)
-    p3=sp.call(temp_neg)
-    
     
 n=1    
 # flange data set    
@@ -72,16 +61,6 @@ for cen in cntrs:
     cgrad_fname='flange'+str(n-1)+'.cgrad'+'.nrrd'
     ctemp.append(cgrad_fname)
     p2=sp.call(ctemp)
-    #generate the negative data set
-    fname='flange'+str(n-1)+'.nrrd'
-    oname='flange'+str(n-1)+'.ngrad.nrrd'
-    temp_neg=neg[:]
-    temp_neg.append('-o')
-    temp_neg.append(oname)
-    temp_neg.append('-grad')
-    temp_neg.append('-negate')
-    temp_neg.append(fname)
-    p3=sp.call(temp_neg)
     
 n=1    
 cntrs1=['40 45 42 40 50 55', '35.1 40.2 38.3 51.2 50.3 52.4']
@@ -110,13 +89,4 @@ for cen in cntrs1:
     cgrad_fname='two_cubes'+str(n-1)+'.cgrad'+'.nrrd'
     ctemp.append(cgrad_fname)
     p2=sp.call(ctemp)
-    #generate the negative data set
-    fname='two_cubes'+str(n-1)+'.nrrd'
-    oname='two_cubes'+str(n-1)+'.ngrad.nrrd'
-    temp_neg=neg[:]
-    temp_neg.append('-o')
-    temp_neg.append(oname)
-    temp_neg.append('-grad')
-    temp_neg.append('-negate')
-    temp_neg.append(fname)
-    p3=sp.call(temp_neg)
+    
