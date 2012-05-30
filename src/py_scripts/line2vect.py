@@ -1,3 +1,4 @@
+#! /usr/bin/python
 '''
 Convert a line file into a vect file for geomview 
 Arindam bhattacharya
