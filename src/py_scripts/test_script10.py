@@ -7,16 +7,16 @@ global print_res
 OPTIONS
 '''
 #set up the types  and num 
-types = ['annulus', 'two_cubes']
+#types = ['annulus', 'two_cubes']
+types = ['annulus']
 positions = ['gradCD', 'gradEC','gradNS','gradIES','gradIEDir','gradCS','centroid']
-
-iso_cmd = "./isodual3D"
-def_parms = ['-trimesh', '-s', '-o', 'out.off']
+iso_cmd = "isodual3D"
+def_parms = ['-trimesh', '-multi_isov','-sep_pos', '-s', '-o','out.off']
+OPTS = []
 '''
 set up the isodual3D commend
 '''
 def setup_isocmd():
-  OPTS = []
   OPTS.append(['-clamp_conflict'])
   OPTS.append(['-reposition'])
   OPTS.append(['-lindstrom'])
@@ -65,12 +65,12 @@ def run_tests():
           #print filename,iso,opts,'\n'
           pos_op=[]
           for pos in positions:
-            full_fname = '/home/arindam/Research/Isosurface/Code/sharpiso/src/py_scripts/testData/' + filename
+            full_fname = 'testData/' + filename
             ex[:] = []
             ex = [iso_cmd] + opts[:] + ['-position', pos] + def_parms[:] + [iso, full_fname]
             sp.call(ex)  
-            sp.call(['./findedge', '140', 'out.off'])
-            ot = sp.check_output(['./findEdgeCount', '-fp', 'out.line'])
+            sp.call(['findedge', '140', 'out.off'])
+            ot = sp.check_output(['findEdgeCount', '-fp', 'out.line'])
             pos_op.append(ot.split()[1])
           row.append(pos_op)
           row_lists.append(row)
@@ -83,6 +83,7 @@ def run_tests():
 '''
 print the results 
 '''
+'''
 def print_res(res):
   fi=open ('result.txt','w')
   print 'printing the results', len(res)
@@ -91,6 +92,8 @@ def print_res(res):
     print >>fi,p.center(7),
   print >>fi,'\n'
   for row in res:
+    #debug 
+    print 'row',row
     print >>fi,row[0].ljust(15),row[1].ljust(3),
     temp=''
     for opt in row[2]:
@@ -99,8 +102,22 @@ def print_res(res):
     for val in row[3]:
       print >>fi,val.ljust(7), 
     print >>fi,'\n',
-    
-    
+'''    
+#new print     
+def print_res(res):
+  fi=open ('result.txt','w')
+  print 'printing the results', len(res)
+  for row in res:
+    vals=row[3]
+    vals = [map(int, x) for x in vals]
+    names_of_vals=positions[:]
+    x=zip(vals,names_of_vals)
+    x.sort()
+    sortedvals,sortednames=zip(*x)  
+    print >>fi,row[0], row[1].ljust(3), ', '.join(row[2]).ljust(30),
+    for y in sortednames:
+        print >>fi,"%7s"% y,    
+    print >>fi,''    
   
 
 '''

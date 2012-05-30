@@ -16,6 +16,7 @@ def main ():
             if index==0:
                 if line.split()[0] != 'LINEC':
                     print 'not a line file '
+                    sys.exit(0)
             elif index==2:
                 vals=line.split()
                 num_points=int(vals[0])

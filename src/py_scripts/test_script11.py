@@ -4,16 +4,20 @@ import subprocess as sp
 global run_tests  
 global set_isov
 global print_res
+# set up the names 
+opt_name=['clmp_cnflct','repo','lind','allow_cnflct','cntrd_cnflct','clmp_far','rslctg'\
+  ,'all_cnlf&repo']
+
 '''
 OPTIONS
 '''
 #set up the types  and num 
 #types = ['annulus', 'two_cubes']
 types = ['annulus']
-#positions = ['gradCD', 'gradEC','gradNS','gradIES','gradIEDir','gradCS','centroid']
-positions = ['gradCD', 'gradEC']
+positions = ['gradCD', 'gradEC','gradNS','gradIES','gradIEDir','gradCS','centroid']
+
 iso_cmd = "isodual3D"
-def_parms = ['-trimesh', '-s', '-o', 'out.off']
+def_parms = ['-trimesh', '-multi_isov','-sep_pos', '-s', '-o', 'positions.off']
 '''
 set up the isodual3D commend
 '''
@@ -35,8 +39,7 @@ function to set up the isovalues
 '''
 def set_isov(typ):
   if typ == "annulus":
-    #return ['10.1', '10.2','10.4','10.7']
-    return ['10.1']
+    return ['10.1', '10.2','10.4','10.7']
   if typ == "two_cubes":
     return ['15.1', '15.2','15.5','15.8']  
   
@@ -48,7 +51,7 @@ def run_tests():
   row = []
   ex = []
   pos_op = []
-  num = 3
+  num = 30
   OPTS = setup_isocmd()
 
   for typ in types:
@@ -68,34 +71,11 @@ def run_tests():
                 ex=[]
                 ex=[iso_cmd]+opts[:]+['-position', pos] + def_parms[:] + [iso, full_name]
                 sp.call(ex)
-                sp.call(['findedge', '140', 'out.off'])
-                ot = sp.check_output(['findEdgeCount', '-fp', 'out.line'])
+                sp.call(['findedge', '140', 'positions.off'])
+                ot = sp.check_output(['findEdgeCount', '-fp', 'positions.line'])
                 opts_list.append(ot.split()[1])                
             row.append(opts_list)
-            row_lists.append(row)
-        '''
-        for opts in OPTS:
-        #print 'iso ',iso,' opts ',opts
-          #row = [:]
-          row=[]
-          row.append(filename)
-          row.append(iso)
-          row.append(opts)
-          #print 'row',row 
-          #print filename,iso,opts,'\n'
-          pos_op=[]
-          for pos in positions:
-            full_fname = 'testData/' + filename
-            ex[:] = []
-            ex = [iso_cmd] + opts[:] + ['-position', pos] + def_parms[:] + [iso, full_fname]
-            sp.call(ex)  
-            sp.call(['findedge', '140', 'out.off'])
-            ot = sp.check_output(['findEdgeCount', '-fp', 'out.line'])
-            pos_op.append(ot.split()[1])
-          row.append(pos_op)
-          row_lists.append(row)
-          #print 'row_list ',row_lists 
-         '''   
+            row_lists.append(row)   
   return row_lists 
   
 
@@ -105,26 +85,18 @@ def run_tests():
 print the results 
 '''
 def print_res(res):
-  fi=open ('result1.txt','w')
+  fi=open ('positions.txt','w')
   print 'printing the results', len(res)
-  print >>fi,'filename'.center(15),'iso','options'.center(30),
-  for p in positions:
-    print >>fi,p.center(7),
-  print >>fi,'\n'
+
   for row in res:
-    #debug 
-    print 'row',row
-    print >>fi,row[0].ljust(15),row[1].ljust(3),
-    temp=''
-    for opt in row[2]:
-      temp=temp+opt
-    print >>fi,temp.ljust(30),
-    for val in row[3]:
-      print >>fi,val.ljust(7), 
-    print >>fi,'\n',
-    
-    
-  
+    vals=row[3]
+    vals = [map(int, x) for x in vals]
+    names_of_vals=opt_name[:]
+    x=zip(vals,names_of_vals)
+    x.sort()
+    sortedvals,sortednames=zip(*x)  
+    print >>fi,row[0], row[1], row[2], sortednames
+
 
 '''
 main function 
