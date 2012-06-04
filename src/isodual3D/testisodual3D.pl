@@ -10,7 +10,7 @@ my @proglist = @ARGV;
 my @input_options;
 my $fastflag = 0;
 my $veryfastflag = 0;
-my $veryveryfastflag = 1;
+my $veryveryfastflag = 0;
 my $alloptions = 0;
 my $found_difference = 0;
 my $isoval_offset = 0;
