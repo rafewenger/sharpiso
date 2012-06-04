@@ -64,6 +64,7 @@ void ISODUAL_PARAM::Init()
   max_small_eigenvalue = 0.1;
   allow_multiple_iso_vertices = false;
   flag_separate_neg = true;
+  flag_resolve_ambiguous_facets = false;
 }
 
 /// Set type of interpolation
@@ -361,6 +362,11 @@ void ISODUAL3D::SHARPISO_INFO::Clear()
   num_smooth_vertices = 0;
   num_repositioned_vertices = 0;
   num_Linf_iso_vertex_locations = 0;
+
+  num_cube_not_ambiguous = 0;
+  num_cube_separate_pos = 0;
+  num_cube_separate_neg = 0;
+  num_cube_unresolved_ambiguity = 0;
 }
 
 // Increment num_sharp_corners or num_sharp_edges or num_smooth_vertices

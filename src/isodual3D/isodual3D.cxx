@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ijkisopoly.txx"
 
 #include "isodual3D.h"
+#include "isodual3D_ambig.h"
 #include "isodual3D_extract.h"
 #include "isodual3D_position.h"
 
@@ -174,6 +175,8 @@ void ISODUAL3D::dual_contouring
   const bool allow_multiple_iso_vertices =
     isodual_param.allow_multiple_iso_vertices;
   const bool flag_separate_neg = isodual_param.flag_separate_neg;
+  const bool flag_resolve_ambiguous_facets =
+    isodual_param.flag_resolve_ambiguous_facets;
   PROCEDURE_ERROR error("dual_contouring");
 
   clock_t t0, t1, t2, t3;
@@ -204,30 +207,73 @@ void ISODUAL3D::dual_contouring
     std::vector<ISO_VERTEX_INDEX> iso_vlist_cube;
     std::vector<FACET_VERTEX_INDEX> iso_vlist_patch;
 
-    IJK::split_dual_isovert
-      (scalar_grid, isodual_table, isovalue, 
-       cube_list, isopoly_cube, facet_vertex,
-       iso_vlist_cube, iso_vlist_patch, isopoly_vert);
+    if (flag_resolve_ambiguous_facets) {
 
-    t2 = clock();
+      std::vector<AMBIGUITY_TYPE> cube_ambig(cube_list.size());
+      std::vector<AMBIGUITY_TYPE> iso_vlist_cube_ambig;
 
-    if (vertex_position_method == GRADIENT_POSITIONING) {
-      position_dual_isovertices_using_gradients
-        (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
-         iso_vlist_cube, iso_vlist_patch, vertex_coord, isodual_info.sharpiso);
-    }
-    else if (vertex_position_method == EDGE_COMPLEX) {
-      // Position using SVD on grid edge-isosurface intersections.
-      // Select endpoint gradient which determines edge-isosurface intersection.
-      position_dual_isovertices_edgeI_sharp_gradients
-        (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
-         iso_vlist_cube, iso_vlist_patch, vertex_coord);
+      set_cube_ambiguity(scalar_grid, gradient_grid, isovalue,
+                         cube_list, isodual_param, cube_ambig);
+
+      set_ambiguity_info(cube_ambig, isodual_info.sharpiso);
+
+      split_dual_isovert
+        (scalar_grid, isodual_table, isovalue, 
+         cube_list, cube_ambig, isopoly_cube, facet_vertex, 
+         iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
+         isopoly_vert);
+
+      t2 = clock();
+
+      if (vertex_position_method == GRADIENT_POSITIONING) {
+        position_dual_isovertices_using_gradients
+          (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
+           iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
+           vertex_coord, isodual_info.sharpiso);
+      }
+      /* NOT YET IMPLEMENTED
+      else if (vertex_position_method == EDGE_COMPLEX) {
+        // Position using SVD on grid edge-isosurface intersections.
+        // Select endpoint gradient which determines edge-isosurface intersection.
+        position_dual_isovertices_edgeI_sharp_gradients
+          (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
+           iso_vlist_cube, iso_vlist_patch, iso_vlist_ambig, vertex_coord);
+      }
+      */
+      else {
+        error.AddMessage("Programming error. Positioning method error.");
+        error.AddMessage
+          ("  Positioning does not allow multiple isosurface vertices in a cube.");
+        throw error;
+      }
+
     }
     else {
-      error.AddMessage("Programming error. Positioning method error.");
-      error.AddMessage
-        ("  Positioning does not allow multiple isosurface vertices in a cube.");
-      throw error;
+      IJK::split_dual_isovert
+        (scalar_grid, isodual_table, isovalue, 
+         cube_list, isopoly_cube, facet_vertex,
+         iso_vlist_cube, iso_vlist_patch, isopoly_vert);
+
+      t2 = clock();
+
+      if (vertex_position_method == GRADIENT_POSITIONING) {
+        position_dual_isovertices_using_gradients
+          (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
+           iso_vlist_cube, iso_vlist_patch, vertex_coord, isodual_info.sharpiso);
+      }
+      else if (vertex_position_method == EDGE_COMPLEX) {
+        // Position using SVD on grid edge-isosurface intersections.
+        // Select endpoint gradient which determines edge-isosurface intersection.
+        position_dual_isovertices_edgeI_sharp_gradients
+          (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
+           iso_vlist_cube, iso_vlist_patch, vertex_coord);
+      }
+      else {
+        error.AddMessage("Programming error. Positioning method error.");
+        error.AddMessage
+          ("  Positioning does not allow multiple isosurface vertices in a cube.");
+        throw error;
+      }
     }
 
   }

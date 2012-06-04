@@ -118,7 +118,7 @@ sub run_isodual3D {
   $count_filename =~ s/.off/.count/;
 
   my $command_line =
-      "isodual3D @option_list -trimesh -s -o $output_filename $isovalue $input_filename";
+      "isodual3D @option_list -trimesh -o $output_filename $isovalue $input_filename";
 
   if (-e "./isodual3D") {
     # Use version in current directory

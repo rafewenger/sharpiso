@@ -112,6 +112,33 @@ namespace ISODUAL3D {
    std::vector<COORD_TYPE> & sharp_coord,
    SHARPISO_INFO & sharp_info);
 
+  /// Position dual isosurface vertices using gradients
+  void position_dual_isovertices_using_gradients
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
+   COORD_TYPE * sharp_coord,
+   SHARPISO_INFO & sharp_info);
+
+  /// Position dual isosurface vertices using gradients
+  void position_dual_isovertices_using_gradients
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
+   std::vector<COORD_TYPE> & sharp_coord,
+   SHARPISO_INFO & sharp_info);
+
+
   // ********************************************************
   // Position using gradients interpolated on grid edges.
   // ********************************************************
@@ -185,6 +212,35 @@ namespace ISODUAL3D {
    const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    std::vector<COORD_TYPE> & coord);
+
+  // **************************************************
+  // Split dual isosurface vertices.
+  // **************************************************
+
+  /// Split dual isosurface vertices.
+  /// @param isodual_table Dual isosurface lookup table splitting
+  ///        negative vertices.
+  /// @param cube_list[] List of cubes containing isosurface vertices.
+  /// @param isopoly_cube[] isopoly_cube[j*num_polyv+k] is the cube containing
+  ///    the k'th vertex of isosurface polytope j
+  /// @param facet_vertex[] facet_vertex[j*num_polyv+k] is the location
+  ///    of the k'th vertex on isosurface polytope j.
+  /// @param iso_vlist_cube[] iso_vlist_cube[i] is the cube containing
+  ///    isosurface vertex i.
+  /// @param iso_vlist_patch[] iso_vlist_patch[j] is the index of the
+  ///    isosurface patch in iso_vlist_cube[i] containing vertex i.
+  void split_dual_isovert
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const std::vector<ISO_VERTEX_INDEX> & cube_list,
+   const std::vector<AMBIGUITY_TYPE> & cube_ambig,
+   const std::vector<ISO_VERTEX_INDEX> & isopoly_cube,     
+   const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+   std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
+   std::vector<VERTEX_INDEX> & isopoly_vert);
 
   // **************************************************
   // Reposition routine

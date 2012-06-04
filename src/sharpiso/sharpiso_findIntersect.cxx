@@ -24,7 +24,7 @@ int findmax(const float dir[]);
 // FindIntersect  ,
 // accepts as inputs  a point p[], a direction dir[].It returns a boolean which is TRUE
 // if the Ray intersects the cube. It returns FALSE if the ray does not intersect the cube.
-// If the bool is true , intersect[] returns the MID-point of intersection of the ray and the cueb.
+// If the bool is true , intersect[] returns the MID-point of intersection of the ray and the cube.
 
 bool SHARPISO::calculate_point_intersect
 (const SCALAR_TYPE *p,
@@ -103,7 +103,7 @@ bool SHARPISO::calculate_point_intersect
 };
 
 
-// Caculate point intesect between the ray and the cube.
+// Caculate ray-cube intersection point.
 // This version takes in the coordinate of the cube index and translates,
 // to find the intersection with the unit cube and translate it back.
 
@@ -181,12 +181,7 @@ bool SHARPISO::calculate_point_intersect
     SCALAR_TYPE temp = p[i] + t1*dir[i];
     endPt1[i] = temp;
   }
-  /* /// used for debug purpose
-   cout <<" pt 1 x:["<< endPt0[0] <<"] y:["<< endPt0[1] <<"] z:["<< endPt0[2] <<"]"
-   <<" t0: "<<t0<<endl;
-   cout <<" pt 2 x:["<< endPt1[0] <<"] y:["<< endPt1[1] <<"] z:["<< endPt1[2] <<"]"
-   <<" t1: "<<t1<<endl;
-   */
+
   //Find the point of intersection.
   for (int i=0; i<DIM3; i++) {
     intersect[i] = (endPt0[i] + endPt1[i])/2.0;
@@ -328,13 +323,6 @@ bool SHARPISO::calculate_point_intersect_complex
     endPt0[i] = p[i] + t0*dir[i];
     endPt1[i] = p[i] + t1*dir[i];
   }
-  /*
-   /// used for debug purpose
-   cout <<" pt 1 ["<< endPt0[0] <<" "<< endPt0[1] <<" "<< endPt0[2] <<"]"
-   <<" t0: "<<t0<<endl;
-   cout <<" pt 2 ["<< endPt1[0] <<" "<< endPt1[1] <<"  "<< endPt1[2] <<"]"
-   <<" t1: "<<t1<<endl;
-   */
   
   //Find the point of intersection.
   for (int i = 0; i < DIM3; i++) {
@@ -384,9 +372,11 @@ void SHARPISO::compute_closest_point_to_cube_center
   IJK::add_coord(DIM3, cube_center, c, closest_point);
 }
 
-//
-void update_t_minus(const int X,const int Y, COORD_TYPE ray_direction_normalized[DIM3],
-                    COORD_TYPE cube_center[DIM3],const COORD_TYPE coord[DIM3], COORD_TYPE &t, bool &istTrue)
+
+void update_t_minus
+(const int X,const int Y, COORD_TYPE ray_direction_normalized[DIM3],
+ COORD_TYPE cube_center[DIM3],const COORD_TYPE coord[DIM3], 
+ COORD_TYPE &t, bool &istTrue)
 {
   float RxMinusRy=ray_direction_normalized[X]-ray_direction_normalized[Y];
   if (RxMinusRy!=0) {
@@ -409,7 +399,7 @@ void update_t_plus
   else
     istTrue=false;
   
-}//
+}
 
 void compute_linf_point
 (const COORD_TYPE coord[DIM3],const COORD_TYPE ray_direction_normalized[DIM3],
@@ -431,7 +421,8 @@ void compute_linf_dist
     }
   }
   new_dist=max;
-};
+}
+
 // compute the linf distance between a point and a ray
 void SHARPISO::compute_closest_point_to_cube_center_linf
 (const GRID_COORD_TYPE cube_coord[],
@@ -455,14 +446,20 @@ void SHARPISO::compute_closest_point_to_cube_center_linf
   float t[6]={0.0};
   bool  istTrue[6];
   
-  update_t_minus(X, Y, ray_direction_normalized, cube_center, coord, t[0], istTrue[0]);
-  update_t_plus(X, Y, ray_direction_normalized, cube_center, coord, t[1], istTrue[1]);
+  update_t_minus(X, Y, ray_direction_normalized, cube_center, 
+                 coord, t[0], istTrue[0]);
+  update_t_plus(X, Y, ray_direction_normalized, cube_center, 
+                coord, t[1], istTrue[1]);
   
-  update_t_minus(X, Z, ray_direction_normalized, cube_center, coord, t[2], istTrue[2]);
-  update_t_plus(X, Z, ray_direction_normalized, cube_center, coord, t[3], istTrue[3]);
+  update_t_minus(X, Z, ray_direction_normalized, cube_center, 
+                 coord, t[2], istTrue[2]);
+  update_t_plus(X, Z, ray_direction_normalized, cube_center, 
+                coord, t[3], istTrue[3]);
   
-  update_t_minus( Y,Z, ray_direction_normalized, cube_center, coord, t[4], istTrue[4]);
-  update_t_plus( Y,Z, ray_direction_normalized, cube_center, coord, t[5], istTrue[5]);
+  update_t_minus( Y,Z, ray_direction_normalized, cube_center, 
+                  coord, t[4], istTrue[4]);
+  update_t_plus( Y,Z, ray_direction_normalized, cube_center, 
+                 coord, t[5], istTrue[5]);
   
   COORD_TYPE point[DIM3]={0.0};
   IJK::copy_coord_3D(coord ,point);
@@ -498,5 +495,112 @@ int findmax(const SCALAR_TYPE dir[])
     }
   }
   return ind;
+}
+
+// **************************************************
+// INTERSECT LINE AND SQUARE CYLINDER
+// **************************************************
+
+namespace {
+
+  // Compute the intersection of a line and two parallel planes.
+  // Returns t[0], t[1], where the intersection is
+  //   (line_p0 + line_dir*t[0], line_p0 + line_dir*t[1])
+  //   and t[0] <= t[1].
+  void intersect_line_two_planes_t
+  (const COORD_TYPE plane_p0[DIM3], 
+   const NUM_TYPE plane_orth_dir,
+   const COORD_TYPE distance_between_planes,
+   const COORD_TYPE line_p0[DIM3],
+   const COORD_TYPE line_dir[DIM3],
+   const COORD_TYPE max_small_grad,
+   COORD_TYPE t[2],
+   bool & flag_intersect)
+  {
+    const NUM_TYPE dir = plane_orth_dir;
+
+    if (line_dir[plane_orth_dir] <= max_small_grad) {
+      flag_intersect = false;
+      return;
+    }
+    
+    flag_intersect = true;
+    COORD_TYPE point_diff = plane_p0[dir] - line_p0[dir];
+    t[0] = point_diff/line_dir[dir];
+    t[1] = (point_diff + distance_between_planes)/line_dir[dir];
+
+    if (t[1] < t[0]) { std::swap(t[0], t[1]); };
+  }
+
+}
+
+/// Intersect a line and a square cylinder
+void SHARPISO::intersect_line_square_cylinder
+(const COORD_TYPE square_p0[DIM3],
+ const NUM_TYPE cylinder_axis_dir,
+ const COORD_TYPE square_width,
+ const COORD_TYPE half_cylinder_length,
+ const COORD_TYPE line_p0[DIM3],
+ const COORD_TYPE line_dir[DIM3],
+ const COORD_TYPE max_small_grad,
+ COORD_TYPE end[2][DIM3],
+ bool & flag_intersect)
+{
+  COORD_TYPE t[2], new_t[2];
+  COORD_TYPE cylinder_p0[DIM3];
+
+  IJK::copy_coord_3D(square_p0, cylinder_p0);
+  cylinder_p0[cylinder_axis_dir] -= half_cylinder_length;
+
+  flag_intersect = false;
+  for (NUM_TYPE d = 0; d < DIM3; d++) {
+
+    bool flag;
+    COORD_TYPE distance_between_planes;
+
+    if (d == cylinder_axis_dir) 
+      { distance_between_planes = 2*half_cylinder_length; }
+    else
+      { distance_between_planes = square_width; }
+
+    intersect_line_two_planes_t
+      (cylinder_p0, d, distance_between_planes, line_p0, line_dir,
+       max_small_grad, new_t, flag);
+
+    if (flag) {
+      if (!flag_intersect) {
+        t[0] = new_t[0];
+        t[1] = new_t[1];
+        flag_intersect = true;
+      }
+      else {
+        if (t[0] < new_t[0]) { t[0] = new_t[0]; }
+        if (t[1] > new_t[1]) { t[1] = new_t[1]; }
+      }
+    }
+    else {
+      if (line_p0[d] < cylinder_p0[d] ||
+          line_p0[d] > cylinder_p0[d] + distance_between_planes) {
+        // Line is not between planes.
+        flag_intersect = false;
+        return;
+      }
+    }
+  }
+
+  if (!flag_intersect) { return; }
+
+  if (t[0] > t[1]) {
+    flag_intersect = false;
+    return;
+  }
+
+
+  for (NUM_TYPE i = 0; i < 2; i++) {
+    for (NUM_TYPE d = 0; d < DIM3; d++) {
+      end[i][d] = line_p0[d] + t[i]*line_dir[d];
+    }
+  }
+
 }
 

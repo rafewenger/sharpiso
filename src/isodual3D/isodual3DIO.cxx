@@ -60,7 +60,7 @@ namespace {
      LINF_PARAM, NO_LINF_PARAM,
      USE_LINDSTROM_PARAM,
      SINGLE_ISOV_PARAM, MULTI_ISOV_PARAM,
-     SEP_NEG_PARAM, SEP_POS_PARAM,
+     SEP_NEG_PARAM, SEP_POS_PARAM, RESOLVE_AMBIG_PARAM,
      ROUND_PARAM, NO_ROUND_PARAM,
      HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
      OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
@@ -80,7 +80,7 @@ namespace {
      "-Linf", "-no_Linf",
      "-lindstrom",
      "-single_isov", "-multi_isov",
-     "-sep_neg", "-sep_pos",
+     "-sep_neg", "-sep_pos", "-resolve_ambig",
      "-round", "-no_round",
      "-help", "-off", "-iv", "-out_param",
      "-o", "-stdout",
@@ -348,10 +348,17 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 
     case SEP_NEG_PARAM:
       input_info.flag_separate_neg = true;
+      input_info.allow_multiple_iso_vertices = true;
       break;
 
     case SEP_POS_PARAM:
       input_info.flag_separate_neg = false;
+      input_info.allow_multiple_iso_vertices = true;
+      break;
+
+    case RESOLVE_AMBIG_PARAM:
+      input_info.flag_resolve_ambiguous_facets = true;
+      input_info.allow_multiple_iso_vertices = true;
       break;
 
     case ALLOW_CONFLICT_PARAM:
@@ -1216,6 +1223,19 @@ void ISODUAL3D::report_iso_info
            << isodual_info.sharpiso.num_repositioned_vertices << endl;
     }
 
+    if (output_info.allow_multiple_iso_vertices &&
+        output_info.flag_resolve_ambiguous_facets) {
+      cout << "  Number of non-ambiguous cubes: "
+           << isodual_info.sharpiso.num_cube_not_ambiguous << endl;
+      cout << "  Number of separate positive cubes: "
+           << isodual_info.sharpiso.num_cube_separate_pos << endl;
+      cout << "  Number of separate negative cubes: "
+           << isodual_info.sharpiso.num_cube_separate_neg << endl;
+      cout << "  Number of unresolved ambiguous cubes: "
+           << isodual_info.sharpiso.num_cube_unresolved_ambiguity << endl;
+
+    }
+
     cout << endl;
   }
 }
@@ -1290,7 +1310,8 @@ namespace {
        << endl
        << "              gradES|gradEC}]" << endl;
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
-  cerr << "  [-single_isov | -multi_isov]" << endl;
+  cerr << "  [-single_isov | -multi_isov | -sep_pos | -sep_neg | -resolv_ambig]"
+       << endl;
   cerr << "  [-max_eigen {max}]" << endl;
   cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}]" << endl;
   cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
@@ -1298,6 +1319,7 @@ namespace {
   cerr << "  [-allow_conflict] [-clamp_conflict] [-centroid_conflict]" << endl;
   cerr << "  [-clamp_far] [-centroid_far]" << endl;
   cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
+  cerr << "  [-Linf | -no_Linf]" << endl;
   cerr << "  [-removeg | -no_removeg] [-reselectg | -no_reselectg]" << endl;
   cerr << "  [-centroid_eigen1 | -no_centroid_eigen1]" << endl;
   cerr << "  [-no_round | -round <n>]" << endl;
@@ -1385,6 +1407,14 @@ void ISODUAL3D::help()
   cout << "  -gradient {gradient_nrrd_filename}: Read gradients from gradient nrrd file." << endl;
   cout << "  -single_isov: Each intersected cube generates a single isosurface vertex." << endl;
   cout << "  -multi_isov:  An intersected cube may generate multiple isosurface vertices."  << endl;
+  cout << "  -sep_pos:     Use dual isosurface table separating positive "
+       << "                grid vertices." << endl;
+  cout << "  -sep_neg:     Use dual isosurface table separating negative "
+       << "                grid vertices." << endl;
+  cout << "  -resolve_ambig:  Selectively resolve ambiguities." << endl
+       << "       Note: Not all ambiguities may be resolved." << endl
+       << "             Unresolved ambiguities may create non-manifold regions."
+       << endl;
   cerr << "  -max_eigen {max}: Set maximum small eigenvalue to max."
        << endl;
   cerr << "  -max_dist {D}:    Set max Linf distance from cube to isosurface vertex." 
@@ -1410,6 +1440,8 @@ void ISODUAL3D::help()
   cout << "  -recompute_eigen2:  Recompute with only 2 eigenvalues to settle conflicts." << endl;
   cout << "  -no_recompute_eigen2:  Don't recompute with only 2 eigenvalues." 
        << endl;
+  cout << "  -Linf:     Use Linf metric to resolve conflicts." << endl;
+  cout << "  -no_Linf:  Don't use Linf metric to resolve conflicts." << endl;
   cout << "  -removeg:  Remove gradients to resolve conflicts." << endl;
   cout << "  -no_removeg: Don't remove gradients to resolve conflicts." << endl;
   cout << "  -centroid_eigen1: Use centroid with one large eigenvalue." << endl;

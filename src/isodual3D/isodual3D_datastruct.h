@@ -122,6 +122,9 @@ namespace ISODUAL3D {
     /// If true, isosurfaced patches separate negative vertices.
     bool flag_separate_neg;
 
+    /// If true, resolve ambiguous facets based on location of sharp features.
+    bool flag_resolve_ambiguous_facets;
+
   public:
     ISODUAL_PARAM() { Init(); };
     ~ISODUAL_PARAM() { Init(); };
@@ -311,6 +314,12 @@ namespace ISODUAL3D {
     int num_smooth_vertices;
     int num_repositioned_vertices;
     int num_Linf_iso_vertex_locations;
+
+    // Ambiguity information.
+    int num_cube_not_ambiguous;
+    int num_cube_separate_pos;
+    int num_cube_separate_neg;
+    int num_cube_unresolved_ambiguity;
 
     SHARPISO_INFO();  ///< Constructor.
     void Clear();     ///< Clear all data.
