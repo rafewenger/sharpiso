@@ -1310,7 +1310,7 @@ namespace {
        << endl
        << "              gradES|gradEC}]" << endl;
   cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
-  cerr << "  [-single_isov | -multi_isov | -sep_pos | -sep_neg | -resolv_ambig]"
+  cerr << "  [-single_isov | -multi_isov | -sep_pos | -sep_neg | -resolve_ambig]"
        << endl;
   cerr << "  [-max_eigen {max}]" << endl;
   cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}]" << endl;
