@@ -61,8 +61,8 @@ void ISODUAL3D::dual_contouring
 
   if (isodual_data.IsGradientGridSet() &&
     isodual_data.VertexPositionMethod() == GRADIENT_POSITIONING
-    || isodual_data.VertexPositionMethod() == EDGE_SIMPLE
-    || isodual_data.VertexPositionMethod() == EDGE_COMPLEX) {
+    || isodual_data.VertexPositionMethod() == EDGEI_INTERPOLATE
+    || isodual_data.VertexPositionMethod() == EDGEI_GRADIENT) {
       dual_contouring
         (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
         isovalue, isodual_data,
@@ -231,7 +231,7 @@ void ISODUAL3D::dual_contouring
            iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
            vertex_coord, isodual_info.sharpiso);
       }
-      else if (vertex_position_method == EDGE_COMPLEX) {
+      else if (vertex_position_method == EDGEI_GRADIENT) {
         // Position using SVD on grid edge-isosurface intersections.
         // Select endpoint gradient which determines edge-isosurface intersection.
         position_dual_isovertices_edgeI_sharp_gradients
@@ -259,7 +259,7 @@ void ISODUAL3D::dual_contouring
           (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
            iso_vlist_cube, iso_vlist_patch, vertex_coord, isodual_info.sharpiso);
       }
-      else if (vertex_position_method == EDGE_COMPLEX) {
+      else if (vertex_position_method == EDGEI_GRADIENT) {
         // Position using SVD on grid edge-isosurface intersections.
         // Select endpoint gradient which determines edge-isosurface intersection.
         position_dual_isovertices_edgeI_sharp_gradients
@@ -291,12 +291,12 @@ void ISODUAL3D::dual_contouring
         (scalar_grid, gradient_grid, isovalue, isodual_param,
          iso_vlist, vertex_coord, isodual_info.sharpiso);
     }
-    else if (vertex_position_method == EDGE_SIMPLE) {
+    else if (vertex_position_method == EDGEI_INTERPOLATE) {
       position_dual_isovertices_edgeI_interpolate_gradients
         (scalar_grid, gradient_grid, isovalue,
          isodual_param, iso_vlist, vertex_coord);
     }
-    else if (vertex_position_method == EDGE_COMPLEX) {
+    else if (vertex_position_method == EDGEI_GRADIENT) {
       // Position using SVD on grid edge-isosurface intersections.
       // Select endpoint gradient which determines edge-isosurface intersection.
       position_dual_isovertices_edgeI_sharp_gradients

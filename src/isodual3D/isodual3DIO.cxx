@@ -198,10 +198,10 @@ namespace {
       input_info.use_intersected_edge_endpoint_gradients = true;
     }
     else if (str == "gradES"){
-      input_info.vertex_position_method = EDGE_SIMPLE;
+      input_info.vertex_position_method = EDGEI_INTERPOLATE;
     }
     else if (str == "gradEC"){
-      input_info.vertex_position_method = EDGE_COMPLEX;
+      input_info.vertex_position_method = EDGEI_GRADIENT;
     }
     else {
       cerr << "Error in input parameter -position.  Illegal position method: "
@@ -1403,7 +1403,7 @@ void ISODUAL3D::help()
        << endl;
   cout << "       on computed gradients at isosurface-edge intersections."
        << endl;
-  cout << "       Use complex choice to compute isosurface-edge intersections." << endl;
+  cout << "       Use endpoint gradients to compute isosurface-edge intersections." << endl;
   cout << "  -gradient {gradient_nrrd_filename}: Read gradients from gradient nrrd file." << endl;
   cout << "  -single_isov: Each intersected cube generates a single isosurface vertex." << endl;
   cout << "  -multi_isov:  An intersected cube may generate multiple isosurface vertices."  << endl;

@@ -113,8 +113,8 @@ void ISODUAL_PARAM::Set
 bool ISODUAL_PARAM::GradientsRequired() const
 {
   if (VertexPositionMethod() == GRADIENT_POSITIONING ||
-      VertexPositionMethod() == EDGE_SIMPLE ||
-      VertexPositionMethod() == EDGE_COMPLEX)
+      VertexPositionMethod() == EDGEI_INTERPOLATE ||
+      VertexPositionMethod() == EDGEI_GRADIENT)
     { return(true); }
   else
     { return(false); }
