@@ -97,7 +97,7 @@ namespace ISODUAL3D {
    const ISODUAL_PARAM & isodual_param,
    const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
-   COORD_TYPE * sharp_coord,
+   COORD_TYPE * coord,
    SHARPISO_INFO & sharp_info);
 
   /// Position dual isosurface vertices using gradients
@@ -109,20 +109,7 @@ namespace ISODUAL3D {
    const ISODUAL_PARAM & isodual_param,
    const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
-   std::vector<COORD_TYPE> & sharp_coord,
-   SHARPISO_INFO & sharp_info);
-
-  /// Position dual isosurface vertices using gradients
-  void position_dual_isovertices_using_gradients
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
-   const SCALAR_TYPE isovalue,
-   const ISODUAL_PARAM & isodual_param,
-   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
-   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
-   const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
-   COORD_TYPE * sharp_coord,
+   std::vector<COORD_TYPE> & coord,
    SHARPISO_INFO & sharp_info);
 
   /// Position dual isosurface vertices using gradients
@@ -135,7 +122,20 @@ namespace ISODUAL3D {
    const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
-   std::vector<COORD_TYPE> & sharp_coord,
+   COORD_TYPE * coord,
+   SHARPISO_INFO & sharp_info);
+
+  /// Position dual isosurface vertices using gradients
+  void position_dual_isovertices_using_gradients
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
+   std::vector<COORD_TYPE> & coord,
    SHARPISO_INFO & sharp_info);
 
 
@@ -198,7 +198,7 @@ namespace ISODUAL3D {
    const ISODUAL_PARAM & isodual_param,
    const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
-   COORD_TYPE * sharp_coord);
+   COORD_TYPE * coord);
 
   /// Position vertices using SVD on grid edge-isosurface intersections.
   /// Use sharp formula for computing gradient at intersection.
@@ -211,6 +211,33 @@ namespace ISODUAL3D {
    const ISODUAL_PARAM & isodual_param,
    const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   std::vector<COORD_TYPE> & coord);
+
+  /// Position vertices using SVD on grid edge-isosurface intersections.
+  /// Use sharp formula for computing gradient at intersection.
+  void position_dual_isovertices_edgeI_sharp_gradients
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
+   COORD_TYPE * coord);
+
+  /// Position vertices using SVD on grid edge-isosurface intersections.
+  /// Use sharp formula for computing gradient at intersection.
+  /// Version using std::vector for array coord[].
+  void position_dual_isovertices_edgeI_sharp_gradients
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
    std::vector<COORD_TYPE> & coord);
 
   // **************************************************

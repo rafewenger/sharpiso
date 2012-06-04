@@ -231,19 +231,17 @@ void ISODUAL3D::dual_contouring
            iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
            vertex_coord, isodual_info.sharpiso);
       }
-      /* NOT YET IMPLEMENTED
       else if (vertex_position_method == EDGE_COMPLEX) {
         // Position using SVD on grid edge-isosurface intersections.
         // Select endpoint gradient which determines edge-isosurface intersection.
         position_dual_isovertices_edgeI_sharp_gradients
           (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
-           iso_vlist_cube, iso_vlist_patch, iso_vlist_ambig, vertex_coord);
+           iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig, vertex_coord);
       }
-      */
       else {
         error.AddMessage("Programming error. Positioning method error.");
         error.AddMessage
-          ("  Positioning does not allow multiple isosurface vertices in a cube.");
+          ("  Positioning does not allow resolving ambiguities in a cube.");
         throw error;
       }
 
