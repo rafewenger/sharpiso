@@ -44,6 +44,7 @@ namespace ISODUAL3D {
     const std::vector<ISO_VERTEX_INDEX> & vlist, COORD_TYPE * coord);
 
   /// Position dual isosurface vertices in cube centers
+  /// Version using std::vector for array coord[].
   void position_dual_isovertices_cube_center
     (const ISODUAL_GRID & grid,
     const std::vector<ISO_VERTEX_INDEX> & vlist,
@@ -58,6 +59,7 @@ namespace ISODUAL3D {
 
   /// Position dual isosurface vertices in centroid
   ///   of isosurface-edge intersections
+  /// Version using std::vector for array coord[].
   void position_dual_isovertices_centroid
     (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
     const SCALAR_TYPE isovalue,
@@ -79,6 +81,7 @@ namespace ISODUAL3D {
    SHARPISO_INFO & sharp_info);
 
   /// Position dual isosurface vertices using gradients
+  /// Version using std::vector for array coord[].
   void position_dual_isovertices_using_gradients
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -97,7 +100,20 @@ namespace ISODUAL3D {
    const ISODUAL_PARAM & isodual_param,
    const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
-   COORD_TYPE * sharp_coord,
+   COORD_TYPE * coord,
+   SHARPISO_INFO & sharp_info);
+
+  /// Position dual isosurface vertices using gradients
+  /// Version using std::vector for array coord[].
+  void position_dual_isovertices_using_gradients
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   std::vector<COORD_TYPE> & coord,
    SHARPISO_INFO & sharp_info);
 
   /// Position dual isosurface vertices using gradients
@@ -109,74 +125,52 @@ namespace ISODUAL3D {
    const ISODUAL_PARAM & isodual_param,
    const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
-   std::vector<COORD_TYPE> & sharp_coord,
+   const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
+   COORD_TYPE * coord,
+   SHARPISO_INFO & sharp_info);
+
+  /// Position dual isosurface vertices using gradients
+  /// Version using std::vector for array coord[].
+  void position_dual_isovertices_using_gradients
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
+   std::vector<COORD_TYPE> & coord,
    SHARPISO_INFO & sharp_info);
 
   // ********************************************************
-  // Position using gradients interpolated on grid edges.
+  // Position vertices using SVD on grid edge-isosurface intersections.
   // ********************************************************
 
   /// Position vertices using SVD on grid edge-isosurface intersections.
-  /// Approximate gradients using linear interpolation on the edges.
-  void position_dual_isovertices_edgeI_interpolate_gradients
-  (const ISODUAL_SCALAR_GRID_BASE & grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const SCALAR_TYPE isovalue,
-   const ISODUAL_PARAM & isodual_param, 
-   const std::vector<ISO_VERTEX_INDEX> & vlist,
-   COORD_TYPE * coord);
-
-  /// Position vertices using SVD on grid edge-isosurface intersections.
-  /// Approximate gradients using linear interpolation on the edges.
-  void position_dual_isovertices_edgeI_interpolate_gradients
-  (const ISODUAL_SCALAR_GRID_BASE & grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const SCALAR_TYPE isovalue,
-   const ISODUAL_PARAM & isodual_param,
-   const std::vector<ISO_VERTEX_INDEX> & vlist,
-   std::vector<COORD_TYPE> & coord);
-
-  // *******************************************************************
-  // Position using gradients determining edge-isosurface intersections.
-  // *******************************************************************
-
-  /// Position vertices using SVD on grid edge-isosurface intersections.
-  /// Select endpoint gradient which determines edge-isosurface intersection.
-  void position_dual_isovertices_edgeI_sharp_gradients
-  (const ISODUAL_SCALAR_GRID_BASE & grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const SCALAR_TYPE isovalue,
-   const ISODUAL_PARAM & isodual_param, 
-   const std::vector<ISO_VERTEX_INDEX> & vlist,
-   COORD_TYPE * coord);
-
-  /// Position vertices using SVD on grid edge-isosurface intersections.
-  /// Select endpoint gradient which determines edge-isosurface intersection.
-  /// Version using std::vector for array coord[].
-  void position_dual_isovertices_edgeI_sharp_gradients
-  (const ISODUAL_SCALAR_GRID_BASE & grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const SCALAR_TYPE isovalue,
-   const ISODUAL_PARAM & isodual_param,
-   const std::vector<ISO_VERTEX_INDEX> & vlist,
-   std::vector<COORD_TYPE> & coord);
-
-  /// Position vertices using SVD on grid edge-isosurface intersections.
-  /// Use sharp formula for computing gradient at intersection.
-  void position_dual_isovertices_edgeI_sharp_gradients
+  void position_dual_isovertices_edgeI
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
-   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const SCALAR_TYPE isovalue,
    const ISODUAL_PARAM & isodual_param,
-   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
-   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   const std::vector<ISO_VERTEX_INDEX> & vlist,
+   const VERTEX_POSITION_METHOD position_method,
    COORD_TYPE * sharp_coord);
 
   /// Position vertices using SVD on grid edge-isosurface intersections.
-  /// Use sharp formula for computing gradient at intersection.
   /// Version using std::vector for array coord[].
-  void position_dual_isovertices_edgeI_sharp_gradients
+  void position_dual_isovertices_edgeI
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & vlist,
+   const VERTEX_POSITION_METHOD position_method,
+   std::vector<COORD_TYPE> & coord);
+
+  /// Position vertices using SVD on grid edge-isosurface intersections.
+  /// Use isodual_table to determine connections.
+  void position_dual_isovertices_edgeI
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
@@ -184,7 +178,83 @@ namespace ISODUAL3D {
    const ISODUAL_PARAM & isodual_param,
    const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   const VERTEX_POSITION_METHOD position_method,
+   COORD_TYPE * coord);
+
+  /// Position vertices using SVD on grid edge-isosurface intersections.
+  /// Use isodual_table to determine connections.
+  /// Version using std::vector for array coord[].
+  void position_dual_isovertices_edgeI
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   const VERTEX_POSITION_METHOD position_method,
    std::vector<COORD_TYPE> & coord);
+
+  /// Position vertices using SVD on grid edge-isosurface intersections.
+  /// Use isodual_table to determine connections.
+  /// Use iso_vlist_cube_ambig[] to resolve ambiguities.
+  void position_dual_isovertices_edgeI
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
+   const VERTEX_POSITION_METHOD position_method,
+   COORD_TYPE * coord);
+
+  /// Position vertices using SVD on grid edge-isosurface intersections.
+  /// Use isodual_table to determine connections.
+  /// Use iso_vlist_cube_ambig[] to resolve ambiguities.
+  /// Version using std::vector for array coord[].
+  void position_dual_isovertices_edgeI
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
+   const VERTEX_POSITION_METHOD position_method,
+   std::vector<COORD_TYPE> & coord);
+
+
+  // **************************************************
+  // Split dual isosurface vertices.
+  // **************************************************
+
+  /// Split dual isosurface vertices.
+  /// @param isodual_table Dual isosurface lookup table splitting
+  ///        negative vertices.
+  /// @param cube_list[] List of cubes containing isosurface vertices.
+  /// @param isopoly_cube[] isopoly_cube[j*num_polyv+k] is the cube containing
+  ///    the k'th vertex of isosurface polytope j
+  /// @param facet_vertex[] facet_vertex[j*num_polyv+k] is the location
+  ///    of the k'th vertex on isosurface polytope j.
+  /// @param iso_vlist_cube[] iso_vlist_cube[i] is the cube containing
+  ///    isosurface vertex i.
+  /// @param iso_vlist_patch[] iso_vlist_patch[j] is the index of the
+  ///    isosurface patch in iso_vlist_cube[i] containing vertex i.
+  void split_dual_isovert
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const std::vector<ISO_VERTEX_INDEX> & cube_list,
+   const std::vector<AMBIGUITY_TYPE> & cube_ambig,
+   const std::vector<ISO_VERTEX_INDEX> & isopoly_cube,     
+   const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+   std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
+   std::vector<VERTEX_INDEX> & isopoly_vert);
 
   // **************************************************
   // Reposition routine

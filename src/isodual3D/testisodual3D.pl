@@ -10,6 +10,7 @@ my @proglist = @ARGV;
 my @input_options;
 my $fastflag = 0;
 my $veryfastflag = 0;
+my $veryveryfastflag = 0;
 my $alloptions = 0;
 my $found_difference = 0;
 my $isoval_offset = 0;
@@ -34,6 +35,12 @@ while (scalar(@proglist) > 0 &&
 
   if ($new_option eq "-veryfast") { 
     $veryfastflag = 1; 
+    next;
+  };
+
+  if ($new_option eq "-veryveryfast") { 
+    $veryveryfastflag = 1; 
+    $veryfastflag = 1;
     next;
   };
 
@@ -83,11 +90,14 @@ if ((scalar keys %data_flag) == 0) {
 
 
 if ($use_all_data) {
-  $testdata{cube_A20}{fname} = "cube3D.A20x.nrrd";
-  $testdata{cube_A20}{isovalue} = [ 4.9, 5, 5.5 ];
 
-  $testdata{cube_B20}{fname} = "cube3D.B20x.nrrd";
-  $testdata{cube_B20}{isovalue} = [ 5, 5.5];
+  if (!$veryveryfastflag) {
+    $testdata{cube_A20}{fname} = "cube3D.A20x.nrrd";
+    $testdata{cube_A20}{isovalue} = [ 4.9, 5, 5.5 ];
+
+    $testdata{cube_B20}{fname} = "cube3D.B20x.nrrd";
+    $testdata{cube_B20}{isovalue} = [ 5, 5.5];
+  }
 }
 
 if ($use_all_data || defined($data_flag{twocubes})) {
@@ -103,25 +113,28 @@ if ($use_all_data || defined($data_flag{twocubes})) {
 
 if ($use_all_data || defined($data_flag{annulus})) {
 
-  if (!$veryfastflag) {
-    $testdata{annulus_A31}{fname} = "annulus3D.A31x.nrrd";
-    $testdata{annulus_A31}{isovalue} = [ 4, 4.5 ];
+  if (!$veryveryfastflag) {
 
-    $testdata{annulus_B31}{fname} = "annulus3D.B31x.nrrd";
-    $testdata{annulus_B31}{isovalue} = [ 4, 4.1, 4.5 ];
+    if (!$veryfastflag) {
+      $testdata{annulus_A31}{fname} = "annulus3D.A31x.nrrd";
+      $testdata{annulus_A31}{isovalue} = [ 4, 4.5 ];
 
-    $testdata{annulus_C31}{fname} = "annulus3D.C31x.nrrd";
-    $testdata{annulus_C31}{isovalue} = [ 4, 4.5 ];
+      $testdata{annulus_B31}{fname} = "annulus3D.B31x.nrrd";
+      $testdata{annulus_B31}{isovalue} = [ 4, 4.1, 4.5 ];
 
-    $testdata{annulus_D31}{fname} = "annulus3D.D31x.nrrd";
-    $testdata{annulus_D31}{isovalue} = [ 4, 4.5 ];
+      $testdata{annulus_C31}{fname} = "annulus3D.C31x.nrrd";
+      $testdata{annulus_C31}{isovalue} = [ 4, 4.5 ];
 
-    $testdata{annulus_E31}{fname} = "annulus3D.E31x.nrrd";
-    $testdata{annulus_E31}{isovalue} = [ 4, 4.5 ];
+      $testdata{annulus_D31}{fname} = "annulus3D.D31x.nrrd";
+      $testdata{annulus_D31}{isovalue} = [ 4, 4.5 ];
+
+      $testdata{annulus_E31}{fname} = "annulus3D.E31x.nrrd";
+      $testdata{annulus_E31}{isovalue} = [ 4, 4.5 ];
+    }
+
+    $testdata{annulus_F31}{fname} = "annulus3D.F31x.nrrd";
+    $testdata{annulus_F31}{isovalue} = [ 4, 4.5 ];
   }
-
-  $testdata{annulus_F31}{fname} = "annulus3D.F31x.nrrd";
-  $testdata{annulus_F31}{isovalue} = [ 4, 4.5 ];
 }
 
 if ($use_all_data || defined($data_flag{flange})) {
@@ -218,9 +231,17 @@ sub compare_executables_all_options {
   print "\n";
   compare_executables("-position gradIE @input_options");
   print "\n";
+  compare_executables("-position gradIEDir @input_options");
+  print "\n";
   compare_executables("-position gradCD @input_options");
   print "\n";
   compare_executables("-position gradCDdup @input_options");
+  print "\n";
+  compare_executables("-position gradCD -sep_pos @input_options");
+  print "\n";
+  compare_executables("-position gradCD -sep_neg @input_options");
+  print "\n";
+  compare_executables("-position gradCD -resolve_ambig @input_options");
   print "\n";
   compare_executables("-position centroid -trimesh @input_options");
   print "\n";

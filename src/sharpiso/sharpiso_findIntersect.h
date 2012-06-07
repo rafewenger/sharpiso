@@ -54,6 +54,20 @@ namespace SHARPISO {
    const COORD_TYPE ray_direction[],
    COORD_TYPE closest_point[DIM3]);
 
-  
+  /// Intersect a line and a square cylinder
+  /// @param[out] end[][] end[i][d] is coordinate d of endpoint i.
+  /// @param[flag_intersect] True if line intersects cylinder.
+  void intersect_line_square_cylinder
+  (const COORD_TYPE square_p0[DIM3],
+   const NUM_TYPE cylinder_axis_dir,
+   const COORD_TYPE square_width,
+   const COORD_TYPE cylinder_length,
+   const COORD_TYPE line_p0[DIM3],
+   const COORD_TYPE line_dir[DIM3],
+   const COORD_TYPE max_small_grad,
+   COORD_TYPE end[2][DIM3],
+   bool & flag_intersect);
+
 };
+
 #endif

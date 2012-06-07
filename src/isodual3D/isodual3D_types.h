@@ -78,8 +78,10 @@ namespace ISODUAL3D {
   /// CENTROID_EDGE_ISO: Position isosurface vertices at the centroid
   ///                    of the edge isosurface intersections.
   /// GRADIENT_POSITIONING: Position using gradients.
+  /// EDGEI_INTERPOLATE: Interpolate isosurface-edge intersection.
+  /// EDGEI_GRADIENT:  Compute isosurface-edge intersection using gradients.
   typedef enum { CUBECENTER, CENTROID_EDGE_ISO,
-                 GRADIENT_POSITIONING, EDGE_SIMPLE, EDGE_COMPLEX } 
+                 GRADIENT_POSITIONING, EDGEI_INTERPOLATE, EDGEI_GRADIENT } 
   VERTEX_POSITION_METHOD;
 
   /// Quadrilateral triangulation method.
@@ -87,9 +89,12 @@ namespace ISODUAL3D {
   QUAD_TRI_METHOD;
 
   /// Ambiguity status.
-  typedef enum { NOT_AMBIGUOUS, SEPARATE_POS, SEPARATE_NEG,
-                 UNDECIDED_AMBIGUITY, CONFLICTING_SEPARATION } 
+  typedef enum { AMBIGUITY_NOT_SET, NOT_AMBIGUOUS, SEPARATE_POS, 
+                 SEPARATE_NEG, UNDECIDED_AMBIGUITY, 
+                 CONFLICTING_SEPARATION } 
   AMBIGUITY_STATUS;
+
+  typedef unsigned char AMBIGUITY_TYPE;
 
 // **************************************************
 // CLASSES

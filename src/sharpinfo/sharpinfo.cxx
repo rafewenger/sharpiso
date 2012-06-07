@@ -160,6 +160,15 @@ void output_edge_intersections
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE zero_tolerance);
+void output_facet_svd_results
+(std::ostream & output,
+ const GRID_COORD_TYPE facet_coord[DIM3],
+ const NUM_TYPE facet_orth_dir,
+ const NUM_TYPE sharp_vertex_location,
+ const COORD_TYPE sharp_coord[DIM3],
+ const EIGENVALUE_TYPE eigenvalues[DIM3],
+ const NUM_TYPE num_large_eigenvalues,
+ const EIGENVALUE_TYPE eigenvalue_tolerance);
 
 void output_centroid_results
 (std::ostream & output, const COORD_TYPE coord[DIM3]);
@@ -217,6 +226,7 @@ int main(int argc, char **argv)
         { throw error; }
 
       cube_index = scalar_grid.ComputeVertexIndex(cube_coord);
+      flag_cube_set = true;
     }
 
     if (vertex_coord.size() > 0) {
@@ -278,7 +288,7 @@ int main(int argc, char **argv)
 
           get_two_cube_gradients
             (scalar_grid, gradient_grid, facet_v0, facet_orth_dir, 
-             isovalue, sharpiso_param, cube_111,
+             isovalue, sharpiso_param,
              point_coord2, gradient_coord2, scalar2, num_gradients2);
 
           cout << "Gradients around facet:" << endl;
@@ -308,20 +318,43 @@ int main(int argc, char **argv)
           cout << endl;
         }
         else {
-          GRID_COORD_TYPE cube_coord[DIM3];
 
-          compute_iso_vertex_using_svd
-            (scalar_grid, gradient_grid, cube_index, isovalue,
-             sharp_coord, eigenvalues,
-             num_large_eigenvalues, svd_info);
+          if (flag_facet_set) {
+            GRID_COORD_TYPE facet_coord[DIM3];
+            GRADIENT_COORD_TYPE line_direction[DIM3];
+            NUM_TYPE sharp_vertex_location;
 
-          scalar_grid.ComputeCoord(cube_index, cube_coord);
+            svd_compute_sharp_vertex_near_facet
+              (scalar_grid, gradient_grid, facet_v0, facet_orth_dir,
+               isovalue, sharpiso_param, 
+               sharp_vertex_location, sharp_coord, line_direction, 
+               eigenvalues, num_large_eigenvalues);
 
-          output_svd_results
-            (cout, cube_coord, sharp_coord, 
-             eigenvalues, num_large_eigenvalues,
-             max_small_eigenvalue, svd_info);
-          cout << endl;
+            scalar_grid.ComputeCoord(facet_v0, facet_coord);
+
+            output_facet_svd_results
+              (cout, facet_coord, facet_orth_dir, sharp_vertex_location,
+               sharp_coord, eigenvalues, num_large_eigenvalues,
+               max_small_eigenvalue);
+            cout << endl;
+          }
+
+          if (flag_cube_set) {
+            GRID_COORD_TYPE cube_coord[DIM3];
+
+            compute_iso_vertex_using_svd
+              (scalar_grid, gradient_grid, cube_index, isovalue,
+               sharp_coord, eigenvalues,
+               num_large_eigenvalues, svd_info);
+
+            scalar_grid.ComputeCoord(cube_index, cube_coord);
+
+            output_svd_results
+              (cout, cube_coord, sharp_coord, 
+               eigenvalues, num_large_eigenvalues,
+               max_small_eigenvalue, svd_info);
+            cout << endl;
+          }
 
           if (flag_output_param) {
             report_sharp_param(sharpiso_param);
@@ -438,6 +471,7 @@ void compute_iso_vertex_using_svd
   }
 
 }
+
 
 void compute_iso_vertex_using_subgrid
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -598,6 +632,55 @@ void output_svd_results
     output << endl;
   }
 
+}
+
+void output_facet_svd_results
+(std::ostream & output,
+ const GRID_COORD_TYPE facet_coord[DIM3],
+ const NUM_TYPE facet_orth_dir,
+ const NUM_TYPE sharp_vertex_location,
+ const COORD_TYPE sharp_coord[DIM3],
+ const EIGENVALUE_TYPE eigenvalues[DIM3],
+ const NUM_TYPE num_large_eigenvalues,
+ const EIGENVALUE_TYPE eigenvalue_tolerance)
+{
+  COORD_TYPE closest_point[DIM3];
+
+  bool use_only_cube_gradients = sharpiso_param.use_only_cube_gradients;
+  bool use_selected_gradients = sharpiso_param.use_selected_gradients;
+
+
+  output << "Facet: ";
+  IJK::ijkgrid_output_coord(output, DIM3, facet_coord);
+  output << " Orth dir: " << facet_orth_dir;
+  output << endl;
+
+  if (sharp_vertex_location < 0) 
+    { output << "Sharp feature left/below facet." << endl; }
+  else if (sharp_vertex_location > 0) 
+    { output << "Sharp feature right/above facet." << endl; }
+  else
+    { output << "Sharp feature intersects facet." << endl; }
+
+  output << "SVD: Sharp coordinates ";
+
+  IJK::ijkgrid_output_coord(output, DIM3, sharp_coord);
+  output << endl;
+  output << "Eigenvalues: ";
+  IJK::ijkgrid_output_coord(output, DIM3, eigenvalues);
+  output << endl;
+
+  if (eigenvalues[0] > eigenvalue_tolerance) {
+    EIGENVALUE_TYPE normalized_eigenvalues[DIM3];
+    multiply_coord_3D(1/eigenvalues[0], eigenvalues, normalized_eigenvalues);
+    output << "Normalized eigenvalues: ";
+    IJK::ijkgrid_output_coord(output, DIM3, normalized_eigenvalues);
+    output << endl;
+  }
+
+  output << "Number of large eigenvalues (>= " << eigenvalue_tolerance
+         << "): "
+         << num_large_eigenvalues << endl;
 }
 
 void output_centroid_results
@@ -1036,13 +1119,15 @@ void usage_error()
     cerr << "   -gradIE | -gradIES | -gradIEDir | -gradNIE | -gradNIES |" 
          << endl;
     cerr << "   -gradCD | -gradCDdup | -gradES | -gradEC ]" << endl;
-    cerr << "  [-subgrid] [-lindstrom | -rayI]" << endl;
-    cerr << "  [-allow_conflict] [-clamp_conflict] [-clamp_far]" << endl;
-    cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
+    cerr << "  -subgrid | -lindstrom | -rayI" << endl;
+    cerr << "  [-allow_conflict | -clamp_conflict | -centroid_conflict]" 
+         << endl;
+    cerr << "  -clamp_far | [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
     cerr << "  [-removeg | -no_removeg]"
-         << " [-centroid_eigen1 | -no_centroid_eigen1] [-no_Linf]" << endl;
-    cerr << "  -no_round | -round <n>" << endl;
+         << "  [-centroid_eigen1 | -no_centroid_eigen1] [-no_Linf]" << endl;
+    cerr << "  [-no_round | -round <n>]" << endl;
     cerr << "  -coord \"point coord\"" << endl;
+    cerr << "  -facet <vertex_index> <orth_dir>" << endl;
     cerr << "  -dist2vert | -vertex <vertex_index>"
          << " | -vc \"vertex coordinates\"" << endl;
     cerr << "  -max_eigen <value>" << endl;
@@ -1297,6 +1382,9 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-clamp_conflict") {
       sharpiso_param.flag_clamp_conflict = true;
     }
+    else if (s == "-centroid_conflict") {
+      sharpiso_param.flag_clamp_conflict = false;
+    }
     else if (s == "-clamp_far") {
       sharpiso_param.flag_clamp_far = true;
     }
@@ -1482,6 +1570,9 @@ void help()
   cerr << "  -edgeI:     Output edge intersection information." << endl;
   cerr << "  -rayI:      Use intersection of ray and cubes for calculating point on sharp feature." << endl;
   cerr << "  -coord \"point_coord\":  Compute scalar values at coordinate point_coord." << endl;
+  cerr << "  -facet <vertex_index> <orth_dir>: Set grid facet." << endl;
+  cerr << "     Lower/left vertex of facet is <vertex_index>." << endl;
+  cerr << "     Facet is orthgonal to direction <orth_dir>." << endl;
   cerr << "  -cube_offset2: Cube offset for intersection calculations."
        << endl;
   cerr << "                 Initial value set to 0.3." << endl;

@@ -500,7 +500,6 @@ void SHARPISO::get_two_cube_gradients
  const NUM_TYPE orth_dir,
  const SCALAR_TYPE isovalue,
  const GET_GRADIENTS_PARAM & sharpiso_param,
- const OFFSET_CUBE_111 & cube_111,
  std::vector<COORD_TYPE> & point_coord,
  std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
  std::vector<SCALAR_TYPE> & scalar,

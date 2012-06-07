@@ -536,6 +536,117 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_sharp_gradient
 }
 
 
+/// Compute sharp isosurface vertex near facet 
+///    using singular valued decomposition.
+/// @param facet_v0 Index of primary (lowest-left) facet vertex.
+/// @param orth_dir Direction orthogonal to facet.
+/// @pre Facet is in interior of grid.
+/// @param[out] sharp_vertex_location  -1, 0, or 1.
+///    -1: Sharp vertex is below/left of facet.
+///    0: Vertex not sharp or relative location undetermined.
+void SHARPISO::svd_compute_sharp_vertex_near_facet
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX facet_v0,
+ const NUM_TYPE facet_orth_dir,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
+ NUM_TYPE & sharp_vertex_location,
+ COORD_TYPE sharp_coord[DIM3],
+ GRADIENT_COORD_TYPE line_direction[DIM3],
+ EIGENVALUE_TYPE eigenvalues[DIM3],
+ NUM_TYPE & num_large_eigenvalues)
+{
+  const GRADIENT_COORD_TYPE max_small_mag = 
+    sharpiso_param.max_small_magnitude;
+  const EIGENVALUE_TYPE max_eigen = sharpiso_param.max_small_eigenvalue;
+  const COORD_TYPE snap_dist = sharpiso_param.snap_dist;
+  NUM_TYPE num_gradients = 0;
+  std::vector<COORD_TYPE> point_coord;
+  std::vector<GRADIENT_COORD_TYPE> gradient_coord;
+  std::vector<SCALAR_TYPE> scalar;
+  static COORD_TYPE v0_coord[DIM3];
+  static COORD_TYPE end[2][DIM3];
+  static COORD_TYPE endc[2];
+
+  // Initialize
+  sharp_vertex_location = 0;
+
+  get_two_cube_gradients
+    (scalar_grid, gradient_grid, facet_v0, facet_orth_dir, 
+     isovalue, sharpiso_param,
+     point_coord, gradient_coord, scalar, num_gradients);
+
+  svd_calculate_sharpiso_vertex_unit_normals
+    (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]), 
+     num_gradients, isovalue, max_eigen, num_large_eigenvalues, 
+     eigenvalues, sharp_coord, line_direction);
+
+  if (num_large_eigenvalues > 1) {
+
+    scalar_grid.ComputeCoord(facet_v0, v0_coord);
+
+    if (num_large_eigenvalues == 3) {
+      
+      if (sharp_coord[facet_orth_dir] > v0_coord[facet_orth_dir]+snap_dist) 
+        { sharp_vertex_location = 1; }
+      else if (sharp_coord[facet_orth_dir]+snap_dist < 
+               v0_coord[facet_orth_dir]+snap_dist)
+        { sharp_vertex_location = -1; }
+    }
+    else {
+      // case: num_large_eigenvalues == 2
+
+      // Large number for long/narrow cylinder.
+      const COORD_TYPE CYLINDER_LENGTH = 100;
+      bool flag_intersect;
+
+      intersect_line_square_cylinder
+        (v0_coord, facet_orth_dir, 1, CYLINDER_LENGTH,
+         sharp_coord, line_direction, max_small_mag, end, flag_intersect);
+
+      if (flag_intersect) {
+        endc[0] = end[0][facet_orth_dir];
+        endc[1] = end[1][facet_orth_dir];
+
+        if (endc[0] > endc[1]) { std::swap(endc[0], endc[1]); }
+
+        if (endc[0] > v0_coord[facet_orth_dir]) 
+          { sharp_vertex_location = 1; }
+        else if (endc[1] < v0_coord[facet_orth_dir]) 
+          { sharp_vertex_location = -1; }
+        // else default (sharp_vertex_location = 0).
+      }
+      // else default (sharp_vertex_location = 0).
+    }
+  }
+  // else default (sharp_vertex_location = 0).
+
+}
+
+/// Compute sharp isosurface vertex near facet 
+///    using singular valued decomposition.
+/// Short parameter list.
+void SHARPISO::svd_compute_sharp_vertex_near_facet
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX facet_v0,
+ const NUM_TYPE facet_orth_dir,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
+ NUM_TYPE & sharp_vertex_location)
+{
+  NUM_TYPE num_large_eigenvalues;  
+  COORD_TYPE sharp_coord[DIM3];
+  GRADIENT_COORD_TYPE line_direction[DIM3];
+  EIGENVALUE_TYPE eigenvalues[DIM3];
+
+  svd_compute_sharp_vertex_near_facet
+    (scalar_grid, gradient_grid, facet_v0, facet_orth_dir,
+     isovalue, sharpiso_param, sharp_vertex_location,
+     sharp_coord, line_direction, eigenvalues, num_large_eigenvalues);
+}
+
 // **************************************************
 // SUBGRID ROUTINES TO COMPUTE SHARP VERTEX/EDGE
 // **************************************************

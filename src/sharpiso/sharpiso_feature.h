@@ -128,6 +128,39 @@ namespace SHARPISO {
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
 
+  /// Compute sharp isosurface vertex near facet 
+  ///    using singular valued decomposition.
+  /// @param facet_v0 Index of primary (lowest-left) facet vertex.
+  /// @param orth_dir Direction orthogonal to facet.
+  /// @pre Facet is in interior of grid.
+  /// @param[out] sharp_vertex_location  -1, 0, or 1.
+  ///    -1: Sharp vertex is below/left of facet.
+  ///    0: Vertex not sharp or relative location undetermined.
+  void svd_compute_sharp_vertex_near_facet
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX facet_v0,
+   const NUM_TYPE facet_orth_dir,
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & sharpiso_param,
+   NUM_TYPE & sharp_vertex_location,
+   COORD_TYPE sharp_coord[DIM3],
+   GRADIENT_COORD_TYPE line_direction[DIM3],
+   EIGENVALUE_TYPE eigenvalues[DIM3],
+   NUM_TYPE & num_large_eigenvalues);
+
+  /// Compute sharp isosurface vertex near facet 
+  ///    using singular valued decomposition.
+  /// Short parameter list.
+  void svd_compute_sharp_vertex_near_facet
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX facet_v0,
+   const NUM_TYPE facet_orth_dir,
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & sharpiso_param,
+   NUM_TYPE & sharp_vertex_location);
+
 
   // **************************************************
   // SUBGRID ROUTINES TO COMPUTE SHARP VERTEX/EDGE
