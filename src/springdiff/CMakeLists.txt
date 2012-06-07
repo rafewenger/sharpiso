@@ -32,7 +32,7 @@ ADD_EXECUTABLE(springdiff springdiff_main.cxx springdiff.cxx
 springdiff.h)
 
 SET(CMAKE_INSTALL_PREFIX ${SHARP_DIR})
-INSTALL(TARGETS springdiff DESTINATION "bin/$ENV{OSTYPE}")
+INSTALL(TARGETS springdiff DESTINATION "/bin/$ENV{OSTYPE}")
 
 ADD_CUSTOM_TARGET(tar WORKING_DIRECTORY ../.. COMMAND tar cvfh ${SPRINGDIFF_DIR}/isodual3D.tar ${SPRINGDIFF_DIR}/*.cxx ${SPRINGDIFF_DIR}/*.h ${SPRINGDIFF_DIR}/*.txx ${SPRINGDIFF_DIR}/CMakeLists.txt)
 

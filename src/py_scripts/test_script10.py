@@ -9,7 +9,7 @@ OPTIONS
 #set up the types  and num 
 #types = ['annulus', 'two_cubes']
 types = ['annulus']
-positions = ['gradCD', 'gradEC','gradNS','gradIES','gradIEDir','gradCS','centroid']
+positions = ['gradCD', 'gradEC','gradNS','gradIEDir']
 #positions = ['gradCD', 'gradEC','gradNS']
 iso_cmd = "isodual3D"
 def_parms = ['-trimesh', '-multi_isov','-sep_pos', '-s', '-o','out.off']
@@ -47,7 +47,7 @@ def run_tests():
   row = []
   ex = []
   pos_op = []
-  num = 30
+  num = 50
   OPTS = setup_isocmd()
 
   for typ in types:

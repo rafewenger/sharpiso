@@ -1,3 +1,4 @@
+ #!/usr/bin/python 
 # test isodual 3D 
 # for each gradient try all options 
 import subprocess as sp 
@@ -14,7 +15,7 @@ OPTIONS
 #set up the types  and num 
 #types = ['annulus', 'two_cubes']
 types = ['annulus']
-positions = ['gradCD', 'gradEC','gradNS','gradIES','gradIEDir','gradCS','centroid']
+positions = ['gradCD', 'gradEC','gradNS','gradIEDir']
 #positions = ['gradCD', 'gradEC','gradNS']
 iso_cmd = "isodual3D"
 def_parms = ['-trimesh', '-multi_isov','-sep_pos', '-s', '-o', 'positions.off']
@@ -28,6 +29,7 @@ def setup_isocmd():
   opts_name.append('repo')
   OPTS.append(['-lindstrom'])
   opts_name.append('lind')
+  
   OPTS.append(['-allow_conflict'])
   opts_name.append('alwCnf')
   OPTS.append(['-centroid_conflict'])
@@ -38,6 +40,7 @@ def setup_isocmd():
   opts_name.append('rslctG')
   OPTS.append(['-allow_conflict','-reposition'])
   opts_name.append('alwCf&repo')
+  
   OPTS.append(['-centroid_conflict','-reposition']) 
   opts_name.append('cntrdCnf&repo')
   return OPTS
@@ -48,7 +51,7 @@ function to set up the isovalues
 '''
 def set_isov(typ):
   if typ == "annulus":
-    return ['10.1', '10.2','10.4','10.7']
+    return ['10.1', '10.2','10.4','10.5','10.7']
     #return ['10.1', '10.7']
   if typ == "two_cubes":
     return ['15.1', '15.2','15.5','15.8']  
@@ -61,13 +64,13 @@ def run_tests():
   row = []
   ex = []
   pos_op = []
-  num = 30
+  num = 50
   OPTS = setup_isocmd()
 
   for typ in types:
     for n in range(1, num):
       filename = typ + str(n) + '.nrrd'
-    
+      print 'running test  on ',n  
       isovals = set_isov(typ)
       for iso in isovals:
         for pos in positions:
@@ -90,32 +93,40 @@ def run_tests():
   
 
 def print_res2(res):
-    fi=open ('results_large.txt','w')
+    #fi=open ('results_large.txt','w')
     for i in range (len(positions)):
-        print >>fi,'Test on ',positions[i], 'num of tests ',len(res)
+        outname='isotest_'+positions[i]+'.txt'
+        fi=open (outname,'w')
         print >>fi,'filename iso',
         for ele in range(len(OPTS)):
             print >>fi,opts_name[ele].ljust(8),
         print >>fi,''
         cnt_list=[0]*len(OPTS)
+        num_test=0
+        min0=0
         for row in res:
-            if str(row[2])==positions[i]: 
+            if str(row[2])==positions[i]:
+                num_test=num_test+1 
                 print >>fi,row[0].split('.')[0].ljust(7),
-                print >>fi,row[1].ljust(3),
+                print >>fi,row[1].ljust(3),' | ',
                 for ele in row[3]:
                     print >>fi,ele.ljust(8),          
                 vals=row[3]
                 vals=map(int,vals)
                 minlist = min(vals)
                 maxlist = max(vals)
+                if minlist == 0:
+                    min0=min0+1
                 print >>fi,'| ',minlist,maxlist
                 for ind,n in enumerate(vals):
                     if n==minlist:
                        cnt_list[ind]=cnt_list[ind]+1
         #print 'cnt_list ',cnt_list
         print >>fi,'\n \n SUMMARY'
+        print >>fi,'Test on ',positions[i], 'num of tests ',num_test
         for ele in range(len(cnt_list)):
             print >>fi,'%15s was best in %5s cases'% (OPTS[ele], cnt_list[ele])        
+        print >>fi,'the min error was 0 in ',min0,'cases'
         print >>fi,'*************************************\n'           
 
 '''
