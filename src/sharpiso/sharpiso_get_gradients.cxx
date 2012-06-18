@@ -829,6 +829,52 @@ void SHARPISO::get_intersected_edge_endpoint_gradients
 
 namespace {
 
+  // Compute intersection of edge and plane determined by gradient g, scalar s.
+  // Intersection point is v0+t*dir, 0 <= t <= 1.
+  // If plane does not intersect edge in a single point, then t < 0 or t > 1.
+  void compute_edge_intersection
+  (const SCALAR_TYPE s, const GRADIENT_COORD_TYPE g,
+   const SCALAR_TYPE isovalue, SCALAR_TYPE & t)
+  {
+      SCALAR_TYPE sdiff = isovalue - s;
+
+      if (sdiff > 0) {
+        if (g > sdiff) { t = sdiff/g; }
+        else if (g == sdiff) { t = 1; }
+        else if (g <= 0) { t = -1; }
+        else { t = 2; }
+      }
+      else if (sdiff < 0) {
+        if (g < sdiff) { t = sdiff/g; }
+        else if (g == sdiff) { t = 1; }
+        else if (g >= 0) { t = -1; }
+        else { t = 2; }
+      }
+      else { t = 0; }
+  }
+
+  // Compute intersection of edge and plane determined by gradients at v0, v1.
+  // Intersection point is v0+t*dir, 0 <= t <= 1.
+  // If plane does not intersect edge in a single point, then t < 0 or t > 1.
+  void compute_edge_intersection
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
+   SCALAR_TYPE & t0, SCALAR_TYPE & t1)
+  {
+      const SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
+      const SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
+
+      const GRADIENT_COORD_TYPE g0 = gradient_grid.Vector(iv0, dir);
+      const GRADIENT_COORD_TYPE g1 = gradient_grid.Vector(iv1, dir);
+
+      compute_edge_intersection(s0, g0, isovalue, t0);
+      compute_edge_intersection(s1, -g1, isovalue, t1);
+      t1 = 1-t1;
+  }
+
+  // *** NOTE: zero_tolerance parameter is obsolete.
   void flag_cube_gradients_determining_edge_intersections
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -856,8 +902,7 @@ namespace {
 
           VERTEX_INDEX iv2;
           get_vertex_determining_edge_intersection
-            (scalar_grid, gradient_grid, isovalue, iv0, iv1, d,
-             zero_tolerance, iv2);
+            (scalar_grid, gradient_grid, isovalue, iv0, iv1, d, iv2);
 
           if (iv2 == iv0) { corner_flag[icorner0] = true; }
           else { corner_flag[icorner1] = true; }
@@ -1193,6 +1238,8 @@ void SHARPISO::get_cube_vertices_determining_edge_intersections
 
 }
 
+
+// *** NOTE: zero_tolerance parameter is obsolete.
 /// Get cube vertices determining the intersection of isosurface and edges.
 /// Allow duplicate gradients.
 /// @param zero_tolerance No division by numbers less than or equal 
@@ -1218,8 +1265,7 @@ void SHARPISO::get_cube_vertices_determining_edgeI_allow_duplicates
 
         VERTEX_INDEX iv2;
         get_vertex_determining_edge_intersection
-          (scalar_grid, gradient_grid, isovalue, iv0, iv1, d,
-           zero_tolerance, iv2);
+          (scalar_grid, gradient_grid, isovalue, iv0, iv1, d, iv2);
 
         vertex_list.push_back(iv2);
       }
@@ -1304,16 +1350,65 @@ void SHARPISO::get_intersected_cube_neighbor_edge_endpoints
 
 // Get vertex whose gradient determines intersection of isosurface 
 //    and edge (iv0,iv1)
-// @param zero_tolerance No division by numbers less than or equal 
-//        to zero_tolerance.
-// @pre zero_tolerance must be non-negative.
 void SHARPISO::get_vertex_determining_edge_intersection
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
  const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
+ VERTEX_INDEX & iv2)
+{
+  const SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
+  const SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
+  const GRADIENT_COORD_TYPE g0 = gradient_grid.Vector(iv0, dir);
+  const GRADIENT_COORD_TYPE g1 = gradient_grid.Vector(iv1, dir);
+  COORD_TYPE t0, t1;
+
+  compute_edge_intersection(s0, g0, isovalue, t0);
+  compute_edge_intersection(s1, -g1, isovalue, t1);
+  t1 = 1-t1;
+
+  iv2 = iv0;  // default
+
+  if (s0 == isovalue) { return; }
+
+  if (s1 == isovalue) { 
+    iv2 = iv1; 
+    return;
+  }
+
+  if (0 <= t1 && t1 <= 1) {
+    if (t0 < 0 || t0 > 1) { iv2 = iv1; }
+    else if (s0 < s1) {
+      if (g0 > g1) {
+        if (t0 < t1) { iv2 = iv1; }
+      }
+      else {
+        // g0 <= g1
+        if (t0 > t1) { iv2 = iv1; }
+      }
+    }
+    else if (s0 > s1) {
+      if (g0 > g1) {
+        if (t0 > t1) { iv2 = iv1; }
+      }
+      else {
+        // g0 <= g1
+        if (t0 < t1) { iv2 = iv1; }
+      }
+    }
+  }
+
+}
+
+// Compute point on edge where gradient changes.
+// @param zero_tolerance No division by numbers less than or equal 
+//        to zero_tolerance.
+// @pre zero_tolerance must be non-negative.
+void SHARPISO::compute_gradient_change_on_edge
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
  const GRADIENT_COORD_TYPE zero_tolerance,
- VERTEX_INDEX & iv2,
  bool & flag_no_split,
  SCALAR_TYPE & t_split, 
  SCALAR_TYPE & s_split)
@@ -1325,7 +1420,6 @@ void SHARPISO::get_vertex_determining_edge_intersection
   const GRADIENT_COORD_TYPE g1 = gradient_grid.Vector(iv1, dir);
   const GRADIENT_COORD_TYPE gdiff = g0 - g1;
 
-  iv2 = iv0;
   flag_no_split = false;
   if (fabs(gdiff) <= zero_tolerance) { 
     flag_no_split = true;
@@ -1334,38 +1428,8 @@ void SHARPISO::get_vertex_determining_edge_intersection
 
   t_split = (s1-s0-g1)/gdiff;
   s_split = g0*t_split + s0;
-
-  if (s0 <= s1) {
-    if (isovalue < s_split) { iv2 = iv0; }
-    else { iv2 = iv1; }
-  }
-  else {
-    if (isovalue < s_split) { iv2 = iv1; }
-    else { iv2 = iv0; }
-  }
-
 }
 
-// Get vertex whose gradient determines intersection of isosurface 
-//    and edge (iv0,iv1)
-// @param zero_tolerance No division by numbers less than or equal 
-//        to zero_tolerance.
-// @pre zero_tolerance must be non-negative.
-void SHARPISO::get_vertex_determining_edge_intersection
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const SCALAR_TYPE isovalue,
- const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
- const GRADIENT_COORD_TYPE zero_tolerance,
- VERTEX_INDEX & iv2)
-{
-  SCALAR_TYPE t_split, s_split;
-  bool flag_no_split;
-
-  get_vertex_determining_edge_intersection
-    (scalar_grid, gradient_grid, isovalue, iv0, iv1, dir,
-     zero_tolerance, iv2, flag_no_split, t_split, s_split);
-}
 
 // Get vertices at endpoints of facet edges which intersect the isosurface.
 // Two cubes share a facet.

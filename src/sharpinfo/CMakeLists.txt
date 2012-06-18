@@ -33,7 +33,7 @@ ADD_EXECUTABLE(sharpinfo sharpinfo.cxx sharpiso_feature.cxx
                          sh_point_svdcal.cxx sharpiso_findIntersect.cxx)
 
 SET(CMAKE_INSTALL_PREFIX ${SHARP_DIR})
-INSTALL(TARGETS sharpinfo DESTINATION "/usr/local/bin/$ENV{OSTYPE}")
+INSTALL(TARGETS sharpinfo DESTINATION "bin/$ENV{OSTYPE}")
 
 ADD_CUSTOM_TARGET(tar WORKING_DIRECTORY ../.. COMMAND tar cvfh ${SHARPINFO_DIR}/sharpinfo.tar ${SHARPINFO_DIR}/*.cxx ${SHARPINFO_DIR}/*.h ${SHARPINFO_DIR}/*.txx ${SHARPINFO_DIR}/CMakeLists.txt)
 
