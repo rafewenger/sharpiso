@@ -64,10 +64,11 @@ inline void compute_X(const MatrixXf &Inv_A, RowVectorXf &B, RowVectorXf &X) {
 }
 
 
-// calculate the sharp iso vertex using SVD, 
+// Calculate the sharp iso vertex using SVD,
 // and the lindstrom approach
 // this is called from svd_compute_sharp_vertex_for_cube in sharpiso_feature.cxx
 void svd_calculate_sharpiso_vertex_using_lindstrom(
+		const bool useLindstrom2,
 		const COORD_TYPE * vert_coords, const GRADIENT_COORD_TYPE * vert_grads,
 		const SCALAR_TYPE * vert_scalars, const NUM_TYPE num_vert,
 		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
@@ -97,10 +98,14 @@ void svd_calculate_sharpiso_vertex_using_lindstrom(
 			isovalue, B);
 	RowVectorXf eigen_cubecenter(DIM3);
 	eigen_cubecenter << cubecenter[0], cubecenter[1], cubecenter[2];
-
-	// compute the cube vertex
+	// check which one to use lindstrom2 or lindstrom
+	if (useLindstrom2 == false)
+	// Compute the cube vertex
 	compute_cube_vertex(A, B, singular_values, err_tolerance,
 			num_singular_vals, eigen_cubecenter, isoVertcoords);
+	else
+		compute_cube_vertex_lind2(A, B, singular_values, err_tolerance,
+				num_singular_vals, eigen_cubecenter, isoVertcoords);
 
 	//set up singular values. convert from eigen data type to floating type.
 	for (int i = 0; i < num_singular_vals; i++) {
@@ -402,8 +407,8 @@ void compute_B(const COORD_TYPE *vert_cooords,
 
 void compute_B_normalize
 (const COORD_TYPE *vert_coords,
- const GRADIENT_COORD_TYPE *vert_grads, const SCALAR_TYPE *vert_scalars,
- const int num_vert, const SCALAR_TYPE isovalue, RowVectorXf & B) {
+		const GRADIENT_COORD_TYPE *vert_grads, const SCALAR_TYPE *vert_scalars,
+		const int num_vert, const SCALAR_TYPE isovalue, RowVectorXf & B) {
 	GRADIENT_COORD_TYPE magnitude;
 	for (int i = 0; i < num_vert; i++) {
 		//compute magnitude of the gradients
@@ -423,8 +428,8 @@ void compute_B_normalize
 // Precondition: sigma is a square kxk matrix where k=singular_values.rows().
 void compute_sigma
 (const MatrixXf & singular_values,
- const EIGENVALUE_TYPE error_tolerance, const int max_num_singular,
- MatrixXf & sigma, int & num_large_singular) 
+		const EIGENVALUE_TYPE error_tolerance, const int max_num_singular,
+		MatrixXf & sigma, int & num_large_singular)
 {
 	int num_sval = singular_values.rows();
 
@@ -468,34 +473,62 @@ void compute_A_pseudoinverse(const MatrixXf &A, MatrixXf & singular_values,
 			num_large_singular);
 
 	pseudoinverseA = svd.matrixV() * sigma.transpose()
-			* svd.matrixU().transpose();
+					* svd.matrixU().transpose();
 }
 
-// compute_point for edge based dual contouring
+// Compute_point for edge based dual contouring
 // applying the formula used in  lindstrom
 // need not be the centroid , may even be the cube_center
 void compute_cube_vertex(const MatrixXf &A, const RowVectorXf &b,
 		MatrixXf &singular_values, const float err_tolerance,
 		int & num_large_sval, const RowVectorXf &centroid, float * sharp_point) {
+
 	// Compute the singular values for the matrix
-  JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
+	JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
 
 	singular_values = svd.singularValues();
 	int num_sval = singular_values.rows();
 
 	// Compute sigma using only large singular values
-  MatrixXf sigma(num_sval, num_sval);
+	MatrixXf sigma(num_sval, num_sval);
 
-  compute_sigma(singular_values, err_tolerance, num_sval, sigma,
-                num_large_sval);
+	compute_sigma(singular_values, err_tolerance, num_sval, sigma,
+			num_large_sval);
 
-  MatrixXf point = centroid.transpose() + svd.matrixV() * sigma
-    * svd.matrixU().transpose() * (b.transpose() - A
-                                   * centroid.transpose());
+	MatrixXf point = centroid.transpose() + svd.matrixV() * sigma
+			* svd.matrixU().transpose() * (b.transpose() - A
+					* centroid.transpose());
 
-  for (int i = 0; i < 3; i++) { sharp_point[i] = point(i); }
+	for (int i = 0; i < 3; i++) { sharp_point[i] = point(i); }
 }
 
+// Compute_point for edge based dual contouring
+// applying the formula used in  lindstrom2
+// sharp point = centroid + V*Sigma * U^t *(b - A'*centroid)
+// where A' = U*Sigma *V^t
+void compute_cube_vertex_lind2(const MatrixXf &A, const RowVectorXf &b,
+		MatrixXf &singular_values, const float err_tolerance,
+		int & num_large_sval, const RowVectorXf &centroid, float * sharp_point) {
+
+	// Compute the singular values for the matrix
+	JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
+
+	singular_values = svd.singularValues();
+	int num_sval = singular_values.rows();
+
+	// Compute sigma using only large singular values
+	MatrixXf sigma(num_sval, num_sval);
+
+	compute_sigma(singular_values, err_tolerance, num_sval, sigma,
+			num_large_sval);
+
+	MatrixXf point = centroid.transpose() + svd.matrixV() * sigma
+			* svd.matrixU().transpose() * (b.transpose() - svd.matrixU()*sigma*svd.matrixV().transpose()
+					* centroid.transpose());
+
+	for (int i = 0; i < 3; i++) { sharp_point[i] = point(i); }
+}
+///
 // FUNCTION compute the pseudo inverse of A using the TOP 2 singular values.
 // helper function to compute_A_inverse.
 // it calculates the sigma interms of the given tolerance

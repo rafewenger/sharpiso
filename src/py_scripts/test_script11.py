@@ -2,21 +2,34 @@
 # test isodual 3D 
 # for each gradient try all options 
 import subprocess as sp 
+import sys as s
+import random
 global run_tests  
 global set_isov
 global print_res
+Stest=True # default is to run the short test
 OPTS = []
 # set up the names 
 opts_name=[]
-
+types=[]
+positions=[]
 '''
 OPTIONS
 '''
-#set up the types  and num 
-#types = ['annulus', 'two_cubes']
-types = ['annulus']
-positions = ['gradCD', 'gradEC','gradNS','gradIEDir']
-#positions = ['gradCD', 'gradEC','gradNS']
+def set_tests():
+  #set up the types  and num 
+  #types = ['annulus', 'two_cubes']   
+  global positions
+  global types 
+  types = ['annulus']
+  global num
+  if (Stest==False) :
+    positions = positions+['gradCD', 'gradEC','gradNS', 'gradCDdup','gradIEDir']
+    num=50
+  else:
+    positions = ['gradCD', 'gradEC','gradNS', 'gradCDdup','gradIEDir']
+    num = 2
+  return 0    
 iso_cmd = "isodual3D"
 def_parms = ['-trimesh', '-multi_isov','-sep_pos', '-s', '-o', 'positions.off']
 '''
@@ -27,22 +40,70 @@ def setup_isocmd():
   opts_name.append('clmConf')
   OPTS.append(['-reposition'])
   opts_name.append('repo')
+  OPTS.append(['-no_reposition'])
+  opts_name.append('norepo')
   OPTS.append(['-lindstrom'])
   opts_name.append('lind')
+  if (True):
+    OPTS.append(['-allow_conflict'])
+    opts_name.append('alwCnf')
+    OPTS.append(['-centroid_conflict'])
+    opts_name.append('cntrdCnf')
+    OPTS.append(['-clamp_far'])
+    opts_name.append('clpFr')
+    OPTS.append(['-clamp_far','-max_dist','1.5'])
+    opts_name.append('clpFr1.5')
+    
+    OPTS.append(['-allow_conflict','-Linf','-max_dist','1.5'])
+    opts_name.append('01')
+
+    OPTS.append(['-allow_conflict','-Linf','-max_dist','2.0'])
+    opts_name.append('02')
+
+    OPTS.append(['-allow_conflict','-Linf','-max_dist','0.5'])
+    opts_name.append('03')
   
-  OPTS.append(['-allow_conflict'])
-  opts_name.append('alwCnf')
-  OPTS.append(['-centroid_conflict'])
-  opts_name.append('cntrdCnf')
-  OPTS.append(['-clamp_far'])
-  opts_name.append('clpFr')
-  OPTS.append(['-reselectg'])
-  opts_name.append('rslctG')
-  OPTS.append(['-allow_conflict','-reposition'])
-  opts_name.append('alwCf&repo')
+    #
+    OPTS.append(['-clamp_conflict','-Linf','-max_dist','1.5'])
+    opts_name.append('04')
+
+    OPTS.append(['-clamp_conflict','-Linf','-max_dist','2.0'])
+    opts_name.append('05')
+
+    OPTS.append(['-clamp_conflict','-Linf','-max_dist','0.5'])
+    opts_name.append('06')
+  
+    #
+    # #
+    OPTS.append(['-allow_conflict','-no_Linf','-max_dist','1.5'])
+    opts_name.append('07')
+
+    OPTS.append(['-allow_conflict','-no_Linf','-max_dist','2.0'])
+    opts_name.append('08')
+
+    OPTS.append(['-allow_conflict','-no_Linf','-max_dist','0.5'])
+    opts_name.append('09')
+  
+    #
+    OPTS.append(['-clamp_conflict','-no_Linf','-max_dist','1.5'])
+    opts_name.append('10')
+
+    OPTS.append(['-clamp_conflict','-no_Linf','-max_dist','2.0'])
+    opts_name.append('11')
+
+    OPTS.append(['-clamp_conflict','-no_Linf','-max_dist','0.5'])
+    opts_name.append('12')
+  
+    #
+    # #
+    OPTS.append(['-reselectg'])
+    opts_name.append('rslctG')
+    OPTS.append(['-allow_conflict','-reposition'])
+    opts_name.append('alwCf&repo')
   
   OPTS.append(['-centroid_conflict','-reposition']) 
   opts_name.append('cntrdCnf&repo')
+  
   return OPTS
 
 
@@ -64,13 +125,16 @@ def run_tests():
   row = []
   ex = []
   pos_op = []
-  num = 50
+  num=50
   OPTS = setup_isocmd()
-
+  print 'in run_tests'  
+  print 'positions',positions
+  print 'opts',OPTS
+  print 'num',num
   for typ in types:
     for n in range(1, num):
       filename = typ + str(n) + '.nrrd'
-      print 'running test  on ',n  
+      print 'Running test on ',filename
       isovals = set_isov(typ)
       for iso in isovals:
         for pos in positions:
@@ -80,7 +144,7 @@ def run_tests():
             row.append(pos)
             opts_list=[]
             for opts in OPTS:
-                full_name='testData/' + filename
+                full_name='testData2/' + filename
                 ex=[]
                 ex=[iso_cmd]+opts[:]+['-position', pos] + def_parms[:] + [iso, full_name]
                 sp.call(ex)
@@ -91,7 +155,46 @@ def run_tests():
             row_lists.append(row)   
   return row_lists 
   
+'''
+function to set up the calls to isodual3D
+'''    
+def run_tests_random():
+  row_lists = []
+  row = []
+  ex = []
+  pos_op = []
 
+  OPTS = setup_isocmd()
+  print 'in run_tests'  
+  print 'positions',positions
+  print 'opts',OPTS
+  print 'num',num
+  for typ in types:
+    count=0
+    while (count <30):
+      count=count+1
+      n=random.randint(1,50)
+      filename = typ + str(n) + '.nrrd'
+      print 'Running test on ',filename
+      isovals = set_isov(typ)
+      for iso in isovals:
+        for pos in positions:
+            row=[]
+            row.append(filename)
+            row.append(iso)
+            row.append(pos)
+            opts_list=[]
+            for opts in OPTS:
+                full_name='testData2/' + filename
+                ex=[]
+                ex=[iso_cmd]+opts[:]+['-position', pos] + def_parms[:] + [iso, full_name]
+                sp.call(ex)
+                sp.call(['findedge', '140', 'positions.off'])
+                ot = sp.check_output(['findEdgeCount', '-fp', 'positions.line'])
+                opts_list.append(ot.split()[1])                
+            row.append(opts_list)
+            row_lists.append(row)   
+  return row_lists 
 def print_res2(res):
     #fi=open ('results_large.txt','w')
     for i in range (len(positions)):
@@ -117,7 +220,7 @@ def print_res2(res):
                 maxlist = max(vals)
                 if minlist == 0:
                     min0=min0+1
-                print >>fi,'| ',minlist,maxlist
+                print >>fi,'|',minlist,maxlist
                 for ind,n in enumerate(vals):
                     if n==minlist:
                        cnt_list[ind]=cnt_list[ind]+1
@@ -129,6 +232,35 @@ def print_res2(res):
         print >>fi,'the min error was 0 in ',min0,'cases'
         print >>fi,'*************************************\n'           
 
+'''
+3
+'''
+def print_res3(res):
+    #fi=open ('results_large.txt','w')
+    for i in range (len(positions)):
+        outname='isotest_csv'+positions[i]+'.txt'
+        fi=open (outname,'w')
+        cnt_list=[0]*len(OPTS)
+        num_test=0
+        min0=0
+        for row in res:
+            if str(row[2])==positions[i]:
+                num_test=num_test+1 
+                print >>fi,row[0].split('.')[0],',',
+                print >>fi,row[1].ljust(3),',',
+                for ele in row[3]:
+                    print >>fi,ele,',',          
+                vals=row[3]
+                vals=map(int,vals)
+                minlist = min(vals)
+                maxlist = max(vals)
+                if minlist == 0:
+                    min0=min0+1
+                print >>fi,minlist,',',maxlist
+                for ind,n in enumerate(vals):
+                    if n==minlist:
+                       cnt_list[ind]=cnt_list[ind]+1
+ 
 '''
 print the results 
 '''
@@ -153,7 +285,18 @@ main function
 '''
 def main ():
   print 'welcome to isodual tests'
+  for arg in range(len(s.argv)):
+    print 'input arguments ',s.argv[arg]
+    if (s.argv[arg]=='-short_test'):
+        Stest=True
+    else:
+        Stest=False
+    if (s.argv[arg]=='-help'):
+        print 'options : -short_test {to run a short test}'
+        
+  set_tests()  
   res = run_tests()
+  print_res3(res)
   print_res2(res)
   
 

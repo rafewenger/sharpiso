@@ -63,93 +63,94 @@ void parse_command_line(int argc, char **argv);
 
 int main(int argc, char **argv)
 {
-    time_t start_time;
-    time(&start_time);
+	time_t start_time;
+	time(&start_time);
 
-    vector<GRADIENT_COORD_TYPE> mag_list;
+	vector<GRADIENT_COORD_TYPE> mag_list;
 
-    IJK::ERROR error;
+	IJK::ERROR error;
 
-    try {
+	try {
 
-        std::set_new_handler(memory_exhaustion);
+		std::set_new_handler(memory_exhaustion);
 
-        parse_command_line(argc, argv);
+		parse_command_line(argc, argv);
 
-        SHARPISO_SCALAR_GRID full_scalar_grid;
-        GRID_NRRD_IN<int,int> nrrd_in;
-        NRRD_DATA<int,int> nrrd_header;
+		SHARPISO_SCALAR_GRID full_scalar_grid;
+		GRID_NRRD_IN<int,int> nrrd_in;
+		NRRD_DATA<int,int> nrrd_header;
 
-        nrrd_in.ReadScalarGrid
-        (scalar_filename, full_scalar_grid, nrrd_header, error);
+		nrrd_in.ReadScalarGrid
+		(scalar_filename, full_scalar_grid, nrrd_header, error);
 
-        if (nrrd_in.ReadFailed()) { throw error; }
+		if (nrrd_in.ReadFailed()) { throw error; }
 
-        GRADIENT_GRID gradient_grid;
-        if(debug){
-            cout <<" lambda " << lambda <<endl;
-            cout <<" mu " << mu <<endl;
-            cout <<" num_iter " << num_iter << endl;
-        }
-        if (flag_cdiff) {
-            compute_gradient_central_difference
-              (full_scalar_grid, icube, gradient_grid);
-        }
-        else
-        {
-            // compute the central gradients first
-            compute_gradient_central_difference
-              (full_scalar_grid, icube, gradient_grid);
-            //normalize the gradients
-            normalize_and_store_gradient_magnitudes
-              (full_scalar_grid, EPSILON, gradient_grid, mag_list);
+		GRADIENT_GRID gradient_grid;
+		if(debug){
+			cout <<" lambda " << lambda <<endl;
+			cout <<" mu " << mu <<endl;
+			cout <<" num_iter " << num_iter << endl;
+		}
+		if (flag_cdiff) {
+			compute_gradient_central_difference
+			(full_scalar_grid, icube, gradient_grid);
+		}
+		else
+		{
+			// compute the central gradients first
+			compute_gradient_central_difference
+			(full_scalar_grid, icube, gradient_grid);
 
-            if (flag_iso)
-            {
-                cout << "isotropic diffusion called "<<endl;
-                anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, 0, icube, gradient_grid);
-            }
-            else
-            {
-                // Calculate the anisotropic diff of the gradients.
-                anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, 1, icube, gradient_grid);
-            }
-            //reset the magnitudes
-            reset_gradient_magnitudes
-              (full_scalar_grid, EPSILON, gradient_grid, mag_list);
+			//normalize the gradients
+			normalize_and_store_gradient_magnitudes
+			(full_scalar_grid, EPSILON, gradient_grid, mag_list);
 
-        }
-        if (flag_gzip) {
-            write_vector_grid_nrrd_gzip(gradient_filename, gradient_grid);
-        }
-        else {
-            write_vector_grid_nrrd(gradient_filename, gradient_grid);
-        }
+			if (flag_iso)
+			{
+				cout << "isotropic diffusion called "<<endl;
+				anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, 0, icube, gradient_grid);
+			}
+			else
+			{
+				// Compute the anisotropic diffusion of the gradients
+				anisotropic_diff (full_scalar_grid,  mu, lambda, num_iter, 1, icube, gradient_grid);
+			}
+			//reset the magnitudes
+			reset_gradient_magnitudes
+			(full_scalar_grid, EPSILON, gradient_grid, mag_list);
 
-        if (report_time_flag) {
+		}
+		if (flag_gzip) {
+			write_vector_grid_nrrd_gzip(gradient_filename, gradient_grid);
+		}
+		else {
+			write_vector_grid_nrrd(gradient_filename, gradient_grid);
+		}
 
-            time_t end_time;
-            time(&end_time);
-            double total_elapsed_time = difftime(end_time, start_time);
+		if (report_time_flag) {
 
-            cout << endl;
-            cout << "Elapsed time = " << total_elapsed_time << " seconds."
-            << endl;
-        };
+			time_t end_time;
+			time(&end_time);
+			double total_elapsed_time = difftime(end_time, start_time);
 
-    }
-    catch (ERROR error) {
-        if (error.NumMessages() == 0) {
-            cerr << "Unknown error." << endl;
-        }
-        else { error.Print(cerr); }
-        cerr << "Exiting." << endl;
-        exit(20);
-    }
-    catch (...) {
-        cerr << "Unknown error." << endl;
-        exit(50);
-    };
+			cout << endl;
+			cout << "Elapsed time = " << total_elapsed_time << " seconds."
+					<< endl;
+		};
+
+	}
+	catch (ERROR error) {
+		if (error.NumMessages() == 0) {
+			cerr << "Unknown error." << endl;
+		}
+		else { error.Print(cerr); }
+		cerr << "Exiting." << endl;
+		exit(20);
+	}
+	catch (...) {
+		cerr << "Unknown error." << endl;
+		exit(50);
+	};
 
 }
 
@@ -160,73 +161,73 @@ int main(int argc, char **argv)
 
 void memory_exhaustion()
 {
-    cerr << "Error: Out of memory.  Terminating program." << endl;
-    exit(10);
+	cerr << "Error: Out of memory.  Terminating program." << endl;
+	exit(10);
 }
 
 void parse_command_line(int argc, char **argv)
 {
-    int iarg = 1;
+	int iarg = 1;
 
-    while (iarg < argc && argv[iarg][0] == '-') {
-        if (string(argv[iarg]) == "-time")
-        { report_time_flag = true;   }
-        else if (string(argv[iarg]) == "-gzip")
-        { flag_gzip = true; }
-        else if (string(argv[iarg]) == "-cdiff")
-        { flag_cdiff = true; }
-        else if (string(argv[iarg]) == "-iso")
-        { flag_iso = true; }
-        else if (string(argv[iarg]) == "-mu")
-        {
-            iarg++;
-            if (iarg >= argc) { usage_error(); };
-            sscanf(argv[iarg], "%f", &mu);
-        }
-        else if (string(argv[iarg]) == "-lambda")
-        {
-            iarg++;
-            if (iarg >= argc) { usage_error(); };
-            sscanf(argv[iarg], "%f", &lambda);
-        }
-        else if (string(argv[iarg]) == "-num_iter")
-        {
-            iarg++;
-            if (iarg >= argc) { usage_error(); };
-            sscanf(argv[iarg], "%d", &num_iter);
-        }
-        else if (string(argv[iarg]) == "-icube")
-        {
-            iarg++;
-            if (iarg >= argc) { usage_error(); };
-            sscanf(argv[iarg], "%d", &icube);
-        }
-        else
-        { usage_error(); }
-        iarg++;
-    }
+	while (iarg < argc && argv[iarg][0] == '-') {
+		if (string(argv[iarg]) == "-time")
+		{ report_time_flag = true;   }
+		else if (string(argv[iarg]) == "-gzip")
+		{ flag_gzip = true; }
+		else if (string(argv[iarg]) == "-cdiff")
+		{ flag_cdiff = true; }
+		else if (string(argv[iarg]) == "-iso")
+		{ flag_iso = true; }
+		else if (string(argv[iarg]) == "-mu")
+		{
+			iarg++;
+			if (iarg >= argc) { usage_error(); };
+			sscanf(argv[iarg], "%f", &mu);
+		}
+		else if (string(argv[iarg]) == "-lambda")
+		{
+			iarg++;
+			if (iarg >= argc) { usage_error(); };
+			sscanf(argv[iarg], "%f", &lambda);
+		}
+		else if (string(argv[iarg]) == "-num_iter")
+		{
+			iarg++;
+			if (iarg >= argc) { usage_error(); };
+			sscanf(argv[iarg], "%d", &num_iter);
+		}
+		else if (string(argv[iarg]) == "-icube")
+		{
+			iarg++;
+			if (iarg >= argc) { usage_error(); };
+			sscanf(argv[iarg], "%d", &icube);
+		}
+		else
+		{ usage_error(); }
+		iarg++;
+	}
 
-    if (iarg+2 != argc) { usage_error(); };
+	if (iarg+2 != argc) { usage_error(); };
 
-    scalar_filename = argv[iarg];
-    gradient_filename = argv[iarg+1];
+	scalar_filename = argv[iarg];
+	gradient_filename = argv[iarg+1];
 }
 
 void usage_msg()
 {
-    cerr <<"Usage: anisograd [options]  {scalar nrrd file} {gradient nrrd file}"<<endl;
-    cerr <<"                 [-gzip] [-time]"<<endl;
-    cerr <<"                 [-icube]    cube  index "<<endl;
-    cerr <<"                 [-cdiff]    central difference"<<endl;
-    cerr <<"                 [-iso]      isotropic diffusion "<<endl;
-    cerr <<"                 [-mu]       extent of anisotropic diffusion"<< endl;
-    cerr <<"                 [-lambda]   extent of diffusion in each iteration " <<endl;
-    cerr <<"                 [-num_iter] number of iterations "<<endl;
-    cerr << endl;
+	cerr <<"Usage: anisograd [options]  {scalar nrrd file} {gradient nrrd file}"<<endl;
+	cerr <<"                 [-gzip] [-time]"<<endl;
+	cerr <<"                 [-icube]    cube  index "<<endl;
+	cerr <<"                 [-cdiff]    central difference"<<endl;
+	cerr <<"                 [-iso]      isotropic diffusion "<<endl;
+	cerr <<"                 [-mu]       extent of anisotropic diffusion"<< endl;
+	cerr <<"                 [-lambda]   extent of diffusion in each iteration " <<endl;
+	cerr <<"                 [-num_iter] number of iterations "<<endl;
+	cerr << endl;
 }
 
 void usage_error()
 {
-    usage_msg();
-    exit(100);
+	usage_msg();
+	exit(100);
 }

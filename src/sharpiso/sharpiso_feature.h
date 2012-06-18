@@ -273,6 +273,7 @@ namespace SHARPISO {
     bool flag_reselect_gradients;  ///< Select fewer grads to resolve conflicts
     bool flag_centroid_eigen1;     ///< Use centroid for 1 or fewer eigenvalues
     bool use_lindstrom;            ///< If true, use Lindstrom formula
+    bool use_lindstrom2;
     bool use_Linf_dist;            ///< If true, use Linf dist.
 
     /// Maximum (Linf) distance from cube to isosurface vertex

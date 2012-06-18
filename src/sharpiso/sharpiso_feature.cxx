@@ -120,7 +120,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
   IJK::add_coord_3D(cube_coord, default_center, cube_center);
 
   svd_calculate_sharpiso_vertex_using_lindstrom
-    (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
+    (sharpiso_param.use_lindstrom2, &(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
      num_gradients, isovalue, max_small_eigenvalue,
      num_large_eigenvalues, eigenvalues, cube_center, sharp_coord);
 
@@ -147,7 +147,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
              check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
 
         svd_calculate_sharpiso_vertex_using_lindstrom
-          (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
+          (sharpiso_param.use_lindstrom2, &(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
            numg2, isovalue, max_small_eigenvalue,
            num_large_eigenvalues, eigenvalues, cube_center, sharp_coord);
         numg2--;
@@ -1136,6 +1136,7 @@ bool check_conflict
 void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 {
   use_lindstrom = false;
+  use_lindstrom2= false;
   flag_allow_conflict = false;
   flag_clamp_conflict = true;
   flag_clamp_far = false;

@@ -1,4 +1,4 @@
-PROJECT(anisograd)
+PROJECT(ProjectAnisograd)
 
 #---------------------------------------------------------
 
@@ -27,10 +27,10 @@ LINK_DIRECTORIES("${NRRD_LIBDIR}")
 LINK_LIBRARIES(expat NrrdIO z)
 ADD_DEFINITIONS(-DSHARP_ISOTABLE_DIR=\"${SHARP_ISOTABLE_DIR}\")
 
-ADD_EXECUTABLE(anisograd anisograd_main.cxx anisograd_operators.cxx  anisograd.cxx)
+ADD_EXECUTABLE(aniso anisograd_main.cxx anisograd_operators.cxx  anisograd.cxx)
 
 SET(CMAKE_INSTALL_PREFIX ${SHARP_DIR})
-INSTALL(TARGETS anisograd DESTINATION "bin/$ENV{OSTYPE}")
+INSTALL(TARGETS aniso DESTINATION "/usr/local/bin/$ENV{OSTYPE}")
 
 ADD_CUSTOM_TARGET(tar WORKING_DIRECTORY ../.. COMMAND tar cvfh ${anisograd_DIR}/isodual3D.tar ${anisograd_DIR}/*.cxx ${anisograd_DIR}/*.h ${anisograd_DIR}/*.txx ${anisograd_DIR}/CMakeLists.txt)
 
