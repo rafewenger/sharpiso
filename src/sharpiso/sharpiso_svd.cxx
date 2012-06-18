@@ -100,9 +100,9 @@ void svd_calculate_sharpiso_vertex_using_lindstrom(
 	eigen_cubecenter << cubecenter[0], cubecenter[1], cubecenter[2];
 	// check which one to use lindstrom2 or lindstrom
 	if (useLindstrom2 == false)
-	// Compute the cube vertex
-	compute_cube_vertex(A, B, singular_values, err_tolerance,
-			num_singular_vals, eigen_cubecenter, isoVertcoords);
+		// Compute the cube vertex
+		compute_cube_vertex(A, B, singular_values, err_tolerance,
+				num_singular_vals, eigen_cubecenter, isoVertcoords);
 	else
 		compute_cube_vertex_lind2(A, B, singular_values, err_tolerance,
 				num_singular_vals, eigen_cubecenter, isoVertcoords);
@@ -428,14 +428,18 @@ void compute_B_normalize
 // Precondition: sigma is a square kxk matrix where k=singular_values.rows().
 void compute_sigma
 (const MatrixXf & singular_values,
-		const EIGENVALUE_TYPE error_tolerance, const int max_num_singular,
-		MatrixXf & sigma, int & num_large_singular)
+		const EIGENVALUE_TYPE error_tolerance,
+		const int max_num_singular,
+		MatrixXf & sigma_plus,
+		MatrixXf & sigma,
+		int & num_large_singular)
 {
 	int num_sval = singular_values.rows();
 
 	// Initialize
 	num_large_singular = 0;
 	sigma.setZero(num_sval, num_sval);
+	sigma_plus.setZero(num_sval, num_sval);
 
 	EIGENVALUE_TYPE max_sval = singular_values.maxCoeff();
 	EIGENVALUE_TYPE scaled_error_tolerance = error_tolerance * max_sval;
@@ -449,7 +453,8 @@ void compute_sigma
 	for (int i = 0; i < max_num_sval; i++) {
 		if (singular_values(i) > scaled_error_tolerance) {
 			num_large_singular++;
-			sigma(i, i) = 1.0 / singular_values(i);
+			sigma_plus(i, i) = 1.0 / singular_values(i);
+			sigma(i,i) = singular_values(i);
 		}
 	}
 
@@ -469,11 +474,12 @@ void compute_A_pseudoinverse(const MatrixXf &A, MatrixXf & singular_values,
 
 	// Compute sigma using only large singular values
 	MatrixXf sigma(num_sval, num_sval);
-	compute_sigma(singular_values, err_tolerance, num_sval, sigma,
+	MatrixXf sigma_plus(num_sval, num_sval);
+	compute_sigma(singular_values, err_tolerance, num_sval, sigma_plus, sigma,
 			num_large_singular);
 
-	pseudoinverseA = svd.matrixV() * sigma.transpose()
-					* svd.matrixU().transpose();
+	pseudoinverseA = svd.matrixV() * sigma_plus.transpose()
+							* svd.matrixU().transpose();
 }
 
 // Compute_point for edge based dual contouring
@@ -490,11 +496,11 @@ void compute_cube_vertex(const MatrixXf &A, const RowVectorXf &b,
 
 	// Compute sigma using only large singular values
 	MatrixXf sigma(num_sval, num_sval);
-
-	compute_sigma(singular_values, err_tolerance, num_sval, sigma,
+	MatrixXf sigma_plus(num_sval, num_sval);
+	compute_sigma(singular_values, err_tolerance, num_sval, sigma_plus, sigma,
 			num_large_sval);
 
-	MatrixXf point = centroid.transpose() + svd.matrixV() * sigma
+	MatrixXf point = centroid.transpose() + svd.matrixV() * sigma_plus
 			* svd.matrixU().transpose() * (b.transpose() - A
 					* centroid.transpose());
 
@@ -516,8 +522,8 @@ void compute_cube_vertex_lind2(const MatrixXf &A, const RowVectorXf &b,
 
 	// Compute sigma using only large singular values
 	MatrixXf sigma(num_sval, num_sval);
-
-	compute_sigma(singular_values, err_tolerance, num_sval, sigma,
+	MatrixXf sigma_plus(num_sval, num_sval);
+	compute_sigma(singular_values, err_tolerance, num_sval, sigma_plus, sigma,
 			num_large_sval);
 
 	MatrixXf point = centroid.transpose() + svd.matrixV() * sigma
@@ -539,10 +545,11 @@ void compute_A_pseudoinverse_top_2(const MatrixXf &A,
 	int num_sval = singular_values.rows();
 	// Compute sigma using only large singular values.
 	// Use at most two singular values.
+	MatrixXf sigma_plus(num_sval, num_sval);
 	MatrixXf sigma(num_sval, num_sval);
-	compute_sigma(singular_values, err_tolerance, 2, sigma, num_large_singular);
+	compute_sigma(singular_values, err_tolerance, 2, sigma_plus, sigma, num_large_singular);
 
-	inA = svd.matrixV() * sigma.transpose() * svd.matrixU().transpose();
+	inA = svd.matrixV() * sigma_plus.transpose() * svd.matrixU().transpose();
 }
 
 // FUNCTION compute the inverse of A,
