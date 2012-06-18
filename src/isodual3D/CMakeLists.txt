@@ -41,6 +41,6 @@ ADD_EXECUTABLE(isodual3D isodual3D_main.cxx isodual3DIO.cxx isodual3D.cxx
                          sharpiso_findIntersect.cxx)
 
 SET(CMAKE_INSTALL_PREFIX ${IJK_DIR})
-INSTALL(TARGETS isodual3D DESTINATION "/bin/$ENV{OSTYPE}")
+INSTALL(TARGETS isodual3D DESTINATION "/usr/local/bin/$ENV{OSTYPE}")
 
 ADD_CUSTOM_TARGET(tar WORKING_DIRECTORY ../.. COMMAND tar cvfh ${ISODUAL3D_DIR}/isodual3D.tar ${ISODUAL3D_DIR}/*.cxx ${ISODUAL3D_DIR}/*.h ${ISODUAL3D_DIR}/*.txx ${ISODUAL3D_DIR}/CMakeLists.txt)
