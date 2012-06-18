@@ -482,7 +482,6 @@ void compute_A_pseudoinverse(const MatrixXf &A, MatrixXf & singular_values,
 void compute_cube_vertex(const MatrixXf &A, const RowVectorXf &b,
 		MatrixXf &singular_values, const float err_tolerance,
 		int & num_large_sval, const RowVectorXf &centroid, float * sharp_point) {
-
 	// Compute the singular values for the matrix
 	JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
 
@@ -509,7 +508,6 @@ void compute_cube_vertex(const MatrixXf &A, const RowVectorXf &b,
 void compute_cube_vertex_lind2(const MatrixXf &A, const RowVectorXf &b,
 		MatrixXf &singular_values, const float err_tolerance,
 		int & num_large_sval, const RowVectorXf &centroid, float * sharp_point) {
-
 	// Compute the singular values for the matrix
 	JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
 
