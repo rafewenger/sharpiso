@@ -224,7 +224,6 @@ namespace SHARPISO {
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index, const GRADIENT_COORD_TYPE max_small_mag,
    const SCALAR_TYPE isovalue,
-   const GRADIENT_COORD_TYPE zero_tolerance,
    std::vector<COORD_TYPE> & point_coord,
    std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
    std::vector<SCALAR_TYPE> & scalar,
@@ -282,7 +281,7 @@ namespace SHARPISO {
   void get_cube_vertices_determining_edge_intersections
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
      const GRADIENT_GRID_BASE & gradient_grid, const VERTEX_INDEX cube_index,
-     const SCALAR_TYPE isovalue, const GRADIENT_COORD_TYPE zero_tolerance,
+     const SCALAR_TYPE isovalue, 
      VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D], NUM_TYPE & num_vertices);
 
   /// Get cube vertices determining the intersection of isosurface and edges.
@@ -290,7 +289,7 @@ namespace SHARPISO {
   void get_cube_vertices_determining_edgeI_allow_duplicates
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
      const GRADIENT_GRID_BASE & gradient_grid, const VERTEX_INDEX cube_index,
-     const SCALAR_TYPE isovalue, const GRADIENT_COORD_TYPE zero_tolerance,
+     const SCALAR_TYPE isovalue, 
      std::vector<VERTEX_INDEX> & vertex_list);
 
   /// Get vertices of cube and cube neighbors.
@@ -306,29 +305,25 @@ namespace SHARPISO {
 
   /// Get vertex whose gradient determines intersection of isosurface 
   ///    and edge (iv0,iv1)
+  void get_vertex_determining_edge_intersection
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
+   VERTEX_INDEX & iv2);
+
+  /// Compute point on edge where gradient changes.
   /// @param zero_tolerance No division by numbers less than or equal 
   ///        to zero_tolerance.
   /// @pre zero_tolerance must be non-negative.
-  void get_vertex_determining_edge_intersection
+  void compute_gradient_change_on_edge
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
-   const SCALAR_TYPE isovalue,
    const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
    const GRADIENT_COORD_TYPE zero_tolerance,
-   VERTEX_INDEX & iv2,
    bool & flag_no_split,
    SCALAR_TYPE & t_split, 
    SCALAR_TYPE & s_split);
-
-  /// Get vertex whose gradient determines intersection of isosurface 
-  ///    and edge (iv0,iv1)
-  void get_vertex_determining_edge_intersection
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const SCALAR_TYPE isovalue,
-   const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
-   const GRADIENT_COORD_TYPE zero_tolerance,
-   VERTEX_INDEX & iv2);
 
   /// Get vertices at endpoints of cube edges which intersect the isosurface.
   /// Two cubes share a facet.

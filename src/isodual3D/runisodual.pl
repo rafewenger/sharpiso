@@ -191,11 +191,12 @@ sub run_isodual3D_all_positions {
   run_isodual3D_position($isovalue, $infile, "centroid");
   run_isodual3D_position($isovalue, $infile, "gradES");
   run_isodual3D_position($isovalue, $infile, "gradEC");
-  run_isodual3D_position($isovalue, $infile, "gradC");
-  run_isodual3D_position($isovalue, $infile, "gradIE");
-  run_isodual3D_position($isovalue, $infile, "gradIES");
   run_isodual3D_position($isovalue, $infile, "gradCD");
   run_isodual3D_position($isovalue, $infile, "gradCDdup");
+  run_isodual3D_position($isovalue, $infile, "gradC");
+  run_isodual3D_position($isovalue, $infile, "gradIE");
+  run_isodual3D_position($isovalue, $infile, "gradIEDir");
+  run_isodual3D_position($isovalue, $infile, "gradIES");
   run_isodual3D_position($isovalue, $infile, "gradN");
   run_isodual3D_position($isovalue, $infile, "gradNS");
   run_isodual3D_position($isovalue, $infile, "gradNIE");

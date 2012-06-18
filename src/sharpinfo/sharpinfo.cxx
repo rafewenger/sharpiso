@@ -830,10 +830,9 @@ void output_edge_intersections
 
       if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
 
-        VERTEX_INDEX iv2;
-        get_vertex_determining_edge_intersection
-          (scalar_grid, gradient_grid, isovalue, iv0, iv1, d,
-           zero_tolerance, iv2, flag_no_split, t_split, s_split);
+        compute_gradient_change_on_edge
+          (scalar_grid, gradient_grid, iv0, iv1, d,
+           zero_tolerance, flag_no_split, t_split, s_split);
         scalar_grid.ComputeCoord(iv0, vcoord0);
         scalar_grid.ComputeCoord(iv1, vcoord1);
 
