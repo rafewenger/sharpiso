@@ -236,8 +236,10 @@ namespace {
    VERTEX_INDEX cube_vertex_list[NUM_CUBE_VERTICES3D],
    NUM_TYPE & num_selected)
   {
+    /* OBSOLETE
     const GRADIENT_COORD_TYPE zero_tolerance = 
       sharpiso_param.zero_tolerance;
+    */
 
     // NOTE: cube_vertex_list is an array.
     // static so not reallocated at each call
@@ -261,7 +263,7 @@ namespace {
     }
     else if (sharpiso_param.use_gradients_determining_edge_intersections) {
       get_cube_vertices_determining_edge_intersections
-        (scalar_grid, gradient_grid, cube_index, isovalue, zero_tolerance,
+        (scalar_grid, gradient_grid, cube_index, isovalue, 
          cube_vertex_list, num_vertices);
     }
     else {
@@ -434,8 +436,10 @@ void SHARPISO::get_gradients
  std::vector<SCALAR_TYPE> & scalar,
  NUM_TYPE & num_gradients)
 {
+  /* OBSOLETE
   const GRADIENT_COORD_TYPE zero_tolerance = 
     sharpiso_param.zero_tolerance;
+  */
 
   if (sharpiso_param.use_only_cube_gradients && 
       !sharpiso_param.allow_duplicates) {
@@ -463,7 +467,7 @@ void SHARPISO::get_gradients
 
     if (sharpiso_param.use_only_cube_gradients) {
       get_cube_vertices_determining_edgeI_allow_duplicates
-        (scalar_grid, gradient_grid, cube_index, isovalue, zero_tolerance,
+        (scalar_grid, gradient_grid, cube_index, isovalue, 
          vertex_list);
     }
     else if (sharpiso_param.use_intersected_edge_endpoint_gradients) {
@@ -874,13 +878,11 @@ namespace {
       t1 = 1-t1;
   }
 
-  // *** NOTE: zero_tolerance parameter is obsolete.
   void flag_cube_gradients_determining_edge_intersections
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
    const SCALAR_TYPE isovalue,
-   const GRADIENT_COORD_TYPE zero_tolerance,
    bool corner_flag[NUM_CUBE_VERTICES3D])
   {
     typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;
@@ -915,15 +917,11 @@ namespace {
 }
 
 /// Get gradients of vertices which determine edge isosurface intersections.
-/// @param zero_tolerance No division by numbers less than or equal 
-///        to zero_tolerance.
-/// @pre zero_tolerance must be non-negative.
 void SHARPISO::get_gradients_determining_edge_intersections
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index, const GRADIENT_COORD_TYPE max_small_mag,
  const SCALAR_TYPE isovalue,
- const GRADIENT_COORD_TYPE zero_tolerance,
  std::vector<COORD_TYPE> & point_coord,
  std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
  std::vector<SCALAR_TYPE> & scalar,
@@ -937,8 +935,7 @@ void SHARPISO::get_gradients_determining_edge_intersections
   bool corner_flag[NUM_CUBE_VERTICES3D];
 
   flag_cube_gradients_determining_edge_intersections
-    (scalar_grid, gradient_grid, cube_index, isovalue, zero_tolerance,
-     corner_flag);
+    (scalar_grid, gradient_grid, cube_index, isovalue, corner_flag);
 
   for (VERTEX_INDEX j = 0; j < NUM_CUBE_VERTICES3D; j++) {
     if (corner_flag[j]) {
@@ -1210,7 +1207,7 @@ void SHARPISO::get_intersected_cube_edge_endpoints_select
 void SHARPISO::get_cube_vertices_determining_edge_intersections
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
  const GRADIENT_GRID_BASE & gradient_grid, const VERTEX_INDEX cube_index,
- const SCALAR_TYPE isovalue, const GRADIENT_COORD_TYPE zero_tolerance,
+ const SCALAR_TYPE isovalue, 
  VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D], NUM_TYPE & num_vertices)
 {
   typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;
@@ -1222,8 +1219,7 @@ void SHARPISO::get_cube_vertices_determining_edge_intersections
   num_vertices = 0;
 
   flag_cube_gradients_determining_edge_intersections
-    (scalar_grid, gradient_grid, cube_index, isovalue, zero_tolerance,
-     corner_flag);
+    (scalar_grid, gradient_grid, cube_index, isovalue, corner_flag);
 
   for (VERTEX_INDEX j = 0; j < NUM_CUBE_VERTICES3D; j++) {
     if (corner_flag[j]) {
@@ -1239,17 +1235,12 @@ void SHARPISO::get_cube_vertices_determining_edge_intersections
 }
 
 
-// *** NOTE: zero_tolerance parameter is obsolete.
 /// Get cube vertices determining the intersection of isosurface and edges.
 /// Allow duplicate gradients.
-/// @param zero_tolerance No division by numbers less than or equal 
-///        to zero_tolerance.
-/// @pre zero_tolerance must be non-negative.
 void SHARPISO::get_cube_vertices_determining_edgeI_allow_duplicates
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index, const SCALAR_TYPE isovalue,
- const GRADIENT_COORD_TYPE zero_tolerance,
  std::vector<VERTEX_INDEX> & vertex_list)
 {
   typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;

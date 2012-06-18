@@ -224,7 +224,6 @@ namespace SHARPISO {
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index, const GRADIENT_COORD_TYPE max_small_mag,
    const SCALAR_TYPE isovalue,
-   const GRADIENT_COORD_TYPE zero_tolerance,
    std::vector<COORD_TYPE> & point_coord,
    std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
    std::vector<SCALAR_TYPE> & scalar,
@@ -282,7 +281,7 @@ namespace SHARPISO {
   void get_cube_vertices_determining_edge_intersections
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
      const GRADIENT_GRID_BASE & gradient_grid, const VERTEX_INDEX cube_index,
-     const SCALAR_TYPE isovalue, const GRADIENT_COORD_TYPE zero_tolerance,
+     const SCALAR_TYPE isovalue, 
      VERTEX_INDEX vertex_list[NUM_CUBE_VERTICES3D], NUM_TYPE & num_vertices);
 
   /// Get cube vertices determining the intersection of isosurface and edges.
@@ -290,7 +289,7 @@ namespace SHARPISO {
   void get_cube_vertices_determining_edgeI_allow_duplicates
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
      const GRADIENT_GRID_BASE & gradient_grid, const VERTEX_INDEX cube_index,
-     const SCALAR_TYPE isovalue, const GRADIENT_COORD_TYPE zero_tolerance,
+     const SCALAR_TYPE isovalue, 
      std::vector<VERTEX_INDEX> & vertex_list);
 
   /// Get vertices of cube and cube neighbors.
