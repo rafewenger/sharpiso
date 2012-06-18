@@ -236,11 +236,6 @@ namespace {
    VERTEX_INDEX cube_vertex_list[NUM_CUBE_VERTICES3D],
    NUM_TYPE & num_selected)
   {
-    /* OBSOLETE
-    const GRADIENT_COORD_TYPE zero_tolerance = 
-      sharpiso_param.zero_tolerance;
-    */
-
     // NOTE: cube_vertex_list is an array.
     // static so not reallocated at each call
     static GRID_COORD_TYPE cube_coord[DIM3];
@@ -436,11 +431,6 @@ void SHARPISO::get_gradients
  std::vector<SCALAR_TYPE> & scalar,
  NUM_TYPE & num_gradients)
 {
-  /* OBSOLETE
-  const GRADIENT_COORD_TYPE zero_tolerance = 
-    sharpiso_param.zero_tolerance;
-  */
-
   if (sharpiso_param.use_only_cube_gradients && 
       !sharpiso_param.allow_duplicates) {
 
@@ -856,6 +846,36 @@ namespace {
       }
       else { t = 0; }
   }
+
+  // Return true if t0 should be selected.
+  // @pre 0 <= t0 <= 1 and 0 <= t1 <= 1.
+  bool select_t0
+  (const SCALAR_TYPE s0, const SCALAR_TYPE s1,
+   const GRADIENT_COORD_TYPE g0, const GRADIENT_COORD_TYPE g1,
+   const COORD_TYPE t0, const COORD_TYPE t1)
+  {
+    if (s0 < s1) {
+      if (g0 > g1) {
+        if (t0 < t1) { return(false); }
+      }
+      else {
+        // g0 <= g1
+        if (t0 > t1) { return(false); }
+      }
+    }
+    else if (s0 > s1) {
+      if (g0 > g1) {
+        if (t0 > t1) { return(false); }
+      }
+      else {
+        // g0 <= g1
+        if (t0 < t1) { return(false); }
+      }
+    }
+
+    return(true);
+  }
+
 
   // Compute intersection of edge and plane determined by gradients at v0, v1.
   // Intersection point is v0+t*dir, 0 <= t <= 1.
@@ -1369,23 +1389,9 @@ void SHARPISO::get_vertex_determining_edge_intersection
 
   if (0 <= t1 && t1 <= 1) {
     if (t0 < 0 || t0 > 1) { iv2 = iv1; }
-    else if (s0 < s1) {
-      if (g0 > g1) {
-        if (t0 < t1) { iv2 = iv1; }
-      }
-      else {
-        // g0 <= g1
-        if (t0 > t1) { iv2 = iv1; }
-      }
-    }
-    else if (s0 > s1) {
-      if (g0 > g1) {
-        if (t0 > t1) { iv2 = iv1; }
-      }
-      else {
-        // g0 <= g1
-        if (t0 < t1) { iv2 = iv1; }
-      }
+    else {
+      if (!select_t0(s0, s1, g0, g1, t0, t1))
+        { iv2 = iv1; }
     }
   }
 
