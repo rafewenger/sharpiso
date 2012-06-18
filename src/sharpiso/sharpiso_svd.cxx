@@ -525,11 +525,10 @@ void compute_cube_vertex_lind2(const MatrixXf &A, const RowVectorXf &b,
 	MatrixXf sigma_plus(num_sval, num_sval);
 	compute_sigma(singular_values, err_tolerance, num_sval, sigma_plus, sigma,
 			num_large_sval);
-
-	MatrixXf point = centroid.transpose() + svd.matrixV() * sigma
-			* svd.matrixU().transpose() * (b.transpose() - svd.matrixU()*sigma*svd.matrixV().transpose()
+	MatrixXf A2 = svd.matrixU()*sigma*svd.matrixV().transpose();
+	MatrixXf point = centroid.transpose() + svd.matrixV() * sigma_plus
+			* svd.matrixU().transpose() * (b.transpose() - A2
 					* centroid.transpose());
-
 	for (int i = 0; i < 3; i++) { sharp_point[i] = point(i); }
 }
 ///
