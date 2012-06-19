@@ -4,6 +4,7 @@
 import subprocess as sp 
 import sys as s
 import random
+import glob
 global run_tests  
 global set_isov
 global print_res
@@ -11,28 +12,24 @@ Stest=False # default is to run the short test
 OPTS = []
 # set up the names 
 opts_name=[]
-types=[]
 positions=[]
-
-loc = 'testData2/'
+isovals=[]
+loc = './'
 '''
 OPTIONS
 '''
 def set_tests():
-  #set up the types  and num 
-  #types = ['annulus', 'two_cubes']   
   global positions
-  
   global types 
-  types = ['annulus']
-  
-  global num
+  global isovals  
   if (Stest==False) :
     positions = positions+['gradCD', 'gradEC','gradNS', 'gradCDdup','gradIEDir']
     num=50
+    isovals = ['10.1', '10.2','10.4','10.5','10.7']
   else:
-    positions = ['gradCD', 'gradEC','gradNS', 'gradCDdup','gradIEDir']
+    positions = ['gradCD', 'gradEC']
     num = 3
+    isovals =  ['10.1', '10.2']
   return 0    
 iso_cmd = "isodual3D"
 def_parms = ['-trimesh', '-multi_isov','-sep_pos', '-s', '-o', 'test.off']
@@ -55,15 +52,7 @@ def setup_isocmd():
   return OPTS
 
 
-'''
-function to set up the isovalues 
-'''
-def set_isov(typ):
-  if typ == "annulus":
-    return ['10.1', '10.2','10.4','10.5','10.7']
-  if typ == "two_cubes":
-    return ['15.1', '15.2','15.5','15.8']  
-  
+
 '''
 function to set up the calls to isodual3D
 '''    
@@ -72,33 +61,34 @@ def run_tests():
   row = []
   ex = []
   pos_op = []
-  global num
   OPTS = setup_isocmd() 
   print 'Positions: ',positions
   print 'Options: ',OPTS
-  print 'Num of tests: ',num
-  for typ in types:
-    for n in range(1, num):
-      filename = typ + str(n) + '.nrrd'
-      print 'Running test on ',filename
-      isovals = set_isov(typ)
-      for iso in isovals:
-        for pos in positions:
-            row=[]
-            row.append(filename)
-            row.append(iso)
-            row.append(pos)
-            opts_list=[]
-            for opts in OPTS:
-                full_name=loc + filename
-                ex=[]
-                ex=[iso_cmd]+opts[:]+['-position', pos] + def_parms[:] + [iso, full_name]
-                sp.call(ex)
-                sp.call(['findedge', '140', 'test.off'])
-                ot = sp.check_output(['findEdgeCount', '-fp', 'test.line'])
-                opts_list.append(ot.split()[1])                
-            row.append(opts_list)
-            row_lists.append(row)   
+  print 'Isovals', isovals
+  files=glob.glob('*.nrrd')
+  list_files=[]
+  for l in files:
+    if  not(l.endswith('.grad.nrrd') or l.endswith('.cgrad.nrrd')) :
+      list_files.append(l)
+  for filename in list_files:
+    print 'Running test on ',filename
+    for iso in isovals:
+      for pos in positions:
+          row=[]
+          row.append(filename)
+          row.append(iso)
+          row.append(pos)
+          opts_list=[]
+          for opts in OPTS:
+              full_name=loc + filename
+              ex=[]
+              ex=[iso_cmd]+opts[:]+['-position', pos] + def_parms[:] + [iso, full_name]
+              sp.call(ex)
+              sp.call(['findedge', '140', 'test.off'])
+              ot = sp.check_output(['findEdgeCount', '-fp', 'test.line'])
+              opts_list.append(ot.split()[1])                
+          row.append(opts_list)
+          row_lists.append(row)   
   return row_lists 
   
  
@@ -107,7 +97,7 @@ def print_res2(res):
     for i in range (len(positions)):
         outname='isotest_'+positions[i]+'.txt'
         fi=open (outname,'w')
-        print >>fi,'filename iso',
+        print >>fi,'filename   iso',
         for ele in range(len(OPTS)):
             print >>fi,opts_name[ele].ljust(8),
         print >>fi,''
@@ -150,7 +140,7 @@ def print_res3(res):
         cnt_list=[0]*len(OPTS)
         num_test=0
         min0=0
-        print >>fi,'filename, iso,min,max,',
+        print >>fi,'filename, iso,',
         for n in range(len(opts_name)):
           print >>fi,opts_name[n],',',
         #line break after printing the headers
@@ -180,11 +170,10 @@ main function
 '''
 def main ():
   print 'welcome to isodual tests'
+  global Stest
   for arg in range(len(s.argv)):
     if (s.argv[arg]=='-short_test'):
         Stest=True
-    else:
-        Stest=False
     if (s.argv[arg]=='-help'):
         print 'options : -short_test {to run a short test}'
         print '          -loc { location to look for files}'
@@ -197,7 +186,7 @@ def main ():
   res = run_tests()
   print_res3(res)
   print_res2(res)
-  print ('created files ','isotest_csv*.txt','isotest_*.txt')
+  print ('created files isotest_csv*.txt and isotest_*.txt')
   
 
 if __name__ == "__main__":
