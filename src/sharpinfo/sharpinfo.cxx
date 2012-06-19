@@ -68,6 +68,7 @@ bool flag_dist2vert(false);
 bool flag_cube_set(false);
 bool flag_vertex_set(false);
 bool flag_use_lindstrom(false);
+bool flag_use_lindstrom2(false);
 bool flag_edge_intersection(false);
 bool flag_subgrid(false);
 bool flag_output_param(true);
@@ -1356,6 +1357,10 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-lindstrom") {
       flag_use_lindstrom = true;
     }
+    else if (s == "-lindstrom2") {
+      flag_use_lindstrom = true;
+      flag_use_lindstrom2 = true;
+    }
     else if (s == "-rayI") {
       flag_use_lindstrom = false;
     }
@@ -1508,6 +1513,7 @@ void parse_command_line(int argc, char **argv)
   sharpiso_param.use_gradients_determining_edge_intersections =
     use_gradients_determining_edge_intersections;
   sharpiso_param.use_lindstrom = flag_use_lindstrom;
+  sharpiso_param.use_lindstrom2 = flag_use_lindstrom2;
   sharpiso_param.select_based_on_grad_dir = select_based_on_grad_dir;
 }
 
