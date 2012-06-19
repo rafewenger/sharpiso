@@ -22,8 +22,10 @@ def set_tests():
   #set up the types  and num 
   #types = ['annulus', 'two_cubes']   
   global positions
+  
   global types 
   types = ['annulus']
+  
   global num
   if (Stest==False) :
     positions = positions+['gradCD', 'gradEC','gradNS', 'gradCDdup','gradIEDir']
@@ -59,7 +61,6 @@ function to set up the isovalues
 def set_isov(typ):
   if typ == "annulus":
     return ['10.1', '10.2','10.4','10.5','10.7']
-    #return ['10.1', '10.7']
   if typ == "two_cubes":
     return ['15.1', '15.2','15.5','15.8']  
   
