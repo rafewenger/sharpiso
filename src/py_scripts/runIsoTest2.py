@@ -25,8 +25,8 @@ def set_tests():
   global isovals  
   global lst
   if (Stest==False) :
-    l1 = ['gradCD',['clmpC','-clamp_conflict'],['allowC','-allow_conflict']]
-    l2 = ['gradEC',['lin&dAllowC','-lindstrom','-allow_conflict']]
+    l1 = ['gradCD',['CDclmpC','-clamp_conflict'],['CDallowC','-allow_conflict']]
+    l2 = ['gradEC',['EClin&dAllowC','-lindstrom','-allow_conflict']]
     lst  = [l1,l2]
     isovals = ['5.1']
   else:
@@ -66,7 +66,6 @@ def run_tests():
           #print l
           pos = l[0]
           OPTS = l[1:]
-          row.append(pos)
           opts_results=[]
           for op in OPTS:         
             full_name= loc + filename
@@ -82,10 +81,9 @@ def run_tests():
   
  
 def print_res2(res):
-    fi=open ('iso_compile_res.csv','w')
+    fi=open ('isoCompile.csv','w')
     print >>fi, 'Filename,', 'isoval,',
     for l in lst:
-      print >>fi, l[0],',',
       for ops in l[1:]:
         print >>fi, ops[0],',',
     print >>fi,''
@@ -148,7 +146,7 @@ def main ():
   set_tests()  
   res = run_tests()
   print_res2(res)
-  print ('')
+  print ('isoCompile.csv created ')
   
 
 if __name__ == "__main__":
