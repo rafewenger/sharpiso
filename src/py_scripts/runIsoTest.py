@@ -25,14 +25,14 @@ def set_tests():
   if (Stest==False) :
     positions = positions+['gradCD', 'gradEC','gradNS', 'gradCDdup','gradIEDir']
     num=50
-    isovals = ['10.1', '10.2','10.4','10.5','10.7']
+    isovals = ['5.1', '5.2','5.4','5.5','5.7']
   else:
     positions = ['gradCD', 'gradEC']
     num = 3
-    isovals =  ['10.1', '10.2']
+    isovals =  ['5.1', '5.2']
   return 0    
 iso_cmd = "isodual3D"
-def_parms = ['-trimesh', '-multi_isov','-sep_pos', '-s', '-o', 'test.off']
+def_parms = ['-trimesh', '-resolve_ambig', '-s', '-o', 'test.off']
 
 
 '''
@@ -43,12 +43,14 @@ def setup_isocmd():
   example 
   
   OPTS.append(['-clamp_conflict'])
-  opts_name.append('clmConf')
+  opts_name.append('clampC')
   '''
+  OPTS.append(['-clamp_conflict'])
+  opts_name.append('clampC')
+  OPTS.append(['-centroid_conflict'])
+  opts_name.append('centC')
   OPTS.append(['-lindstrom'])
   opts_name.append('lnd')
-  OPTS.append(['-lindstrom2'])
-  opts_name.append('lnd2')
   return OPTS
 
 
