@@ -25,8 +25,8 @@ def set_tests():
   global isovals  
   global lst
   if (Stest==False) :
-    l1 = ['gradCD',['-clamp_conflict'],['-allow_conflict']]
-    l2 = ['gradEC',['-lindstrom','-allow_conflict']]
+    l1 = ['gradCD',['clmpC','-clamp_conflict'],['allowC','-allow_conflict']]
+    l2 = ['gradEC',['lin&dAllowC','-lindstrom','-allow_conflict']]
     lst  = [l1,l2]
     isovals = ['5.1']
   else:
@@ -71,21 +71,25 @@ def run_tests():
           for op in OPTS:         
             full_name= loc + filename
             ex=[]
-            ex=[iso_cmd]+op[:]+['-position', pos] + def_parms[:] + [iso, full_name]
+            ex=[iso_cmd]+op[1:]+['-position', pos] + def_parms[:] + [iso, full_name]
             sp.call(ex)
             sp.call(['findedge', '140', 'test.off'])
             ot = sp.check_output(['findEdgeCount', '-fp', 'test.line'])
             opts_results.append(ot.split()[1])
             row.append(ot.split()[1])
-      print 'row',row
       row_lists.append(row)          
   return row_lists 
   
  
 def print_res2(res):
     fi=open ('iso_compile_res.csv','w')
+    print >>fi, 'Filename,', 'isoval,',
+    for l in lst:
+      print >>fi, l[0],',',
+      for ops in l[1:]:
+        print >>fi, ops[0],',',
+    print >>fi,''
     for row in res:
-      print 'row in print',row
       str_row = ','.join (row)
       print >>fi,str_row
 '''
