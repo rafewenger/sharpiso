@@ -794,6 +794,33 @@ namespace {
     }
   }
 
+  void set_vertex_locations
+  (const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   INDEX_GRID_BASE & vloc, SHARPISO_BOOL_GRID_BASE & isovert_flag)
+  {
+    SHARPISO_BOOL_GRID multi_isov_flag;
+
+    multi_isov_flag.SetSize(isovert_flag);
+    multi_isov_flag.SetAll(false);
+
+    for (VERTEX_INDEX i = 0; i < iso_vlist_cube.size(); i++) {
+      if (iso_vlist_patch[i] != 0) {
+        VERTEX_INDEX iv = iso_vlist_cube[i];
+        multi_isov_flag.Set(iv, true);
+      }
+    }
+
+    isovert_flag.SetAll(false);
+    for (VERTEX_INDEX i = 0; i < iso_vlist_cube.size(); i++) {
+      VERTEX_INDEX iv = iso_vlist_cube[i];
+      if (!multi_isov_flag.Scalar(iv)) {
+        vloc.Set(iv, i);
+        isovert_flag.Set(iv, true);
+      }
+    }
+  }
+
   /// Returns true if \a s is greater than min scalar value of facet vertices
   ///   and \a s is less then or equal to max scalar value of facet vertices.
   /// @param scalar_grid Scalar grid.
@@ -927,6 +954,61 @@ void ISODUAL3D::reposition_dual_isovertices
       reposition_close_isovertices
         (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
          isodual_param, jv1, j1, jv3, j3, isovert_coord, sharp_info);
+    }
+  }
+  
+}
+
+/// Reposition to separate isosurface vertices.
+/// Skip cubes with more than one isosurface vertex.
+void ISODUAL3D::reposition_dual_isovertices
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const ISODUAL_PARAM & isodual_param,
+ const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+ const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+ COORD_TYPE * isovert_coord,
+ SHARPISO_INFO & sharp_info)
+{
+  INDEX_GRID vloc;
+  SHARPISO_BOOL_GRID isovert_flag;
+  GRID_COORD_TYPE v0coord[DIM3];
+
+  COORD_TYPE separation_distance = isodual_param.separation_distance;
+  COORD_TYPE sep_dist_squared = separation_distance*separation_distance;
+  
+  vloc.SetSize(scalar_grid);
+  isovert_flag.SetSize(scalar_grid);
+
+  set_vertex_locations(iso_vlist_cube, iso_vlist_patch, vloc, isovert_flag);
+
+  // Reposition close opposing quad vertices.
+  IJK_FOR_EACH_INTERIOR_GRID_EDGE(iv0, dir, scalar_grid, VERTEX_INDEX) {
+    VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, dir);
+
+    if (IJK::is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
+      VERTEX_INDEX jv0, jv1, jv2, jv3;
+      get_cubes_around_interior_edge
+        (scalar_grid, iv0, dir, jv0, jv1, jv2, jv3);
+
+      if (isovert_flag.Scalar(jv0) && isovert_flag.Scalar(jv2)) {
+        VERTEX_INDEX j0 = vloc.Scalar(jv0);
+        VERTEX_INDEX j2 = vloc.Scalar(jv2);
+
+        reposition_close_isovertices
+          (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
+           isodual_param, jv0, j0, jv2, j2, isovert_coord, sharp_info);
+      }
+
+      if (isovert_flag.Scalar(jv1) && isovert_flag.Scalar(jv3)) {
+        VERTEX_INDEX j1 = vloc.Scalar(jv1);
+        VERTEX_INDEX j3 = vloc.Scalar(jv3);
+
+        reposition_close_isovertices
+          (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
+           isodual_param, jv1, j1, jv3, j3, isovert_coord, sharp_info);
+      }
     }
   }
   

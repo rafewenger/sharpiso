@@ -270,6 +270,18 @@ namespace ISODUAL3D {
    COORD_TYPE * isovert_coord,
    SHARPISO_INFO & sharp_info);
 
+  /// Reposition to separate isosurface vertices.
+  /// Skip ambiguous cubes.
+  void reposition_dual_isovertices
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   const std::vector<ISO_VERTEX_INDEX> & vlist,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   COORD_TYPE * isovert_coord,
+   SHARPISO_INFO & sharp_info);
+
   // **************************************************
   // Compute routines
   // **************************************************

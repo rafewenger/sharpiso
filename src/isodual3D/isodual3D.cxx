@@ -246,6 +246,13 @@ void ISODUAL3D::dual_contouring
         throw error;
       }
 
+      if (isodual_param.flag_reposition) {
+        reposition_dual_isovertices
+          (scalar_grid, gradient_grid, isovalue, isodual_param,
+           iso_vlist_cube, iso_vlist_patch,
+           &(vertex_coord.front()), isodual_info.sharpiso);
+      }
+
     }
     else {
       IJK::split_dual_isovert
@@ -274,6 +281,14 @@ void ISODUAL3D::dual_contouring
           ("  Positioning does not allow multiple isosurface vertices in a cube.");
         throw error;
       }
+
+      if (isodual_param.flag_reposition) {
+        reposition_dual_isovertices
+          (scalar_grid, gradient_grid, isovalue, isodual_param,
+           iso_vlist_cube, iso_vlist_patch,
+           &(vertex_coord.front()), isodual_info.sharpiso);
+      }
+
     }
 
   }
