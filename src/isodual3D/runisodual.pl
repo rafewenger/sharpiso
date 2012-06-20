@@ -18,7 +18,8 @@ my $print_command_line = 1;
 my $print_count_filename = 1;
 
 # isodual3D arguments which take an input value/string.
-my @isodual3D_options = ( "-subsample",  "-position", "-round", "-max_dist" );
+my @isodual3D_options = ( "-subsample",  "-position", "-round", "-max_dist",
+                          "-snap_dist" );
 
 my @input_options=();
 while (scalar(@input_list) > 0 &&

@@ -45,10 +45,11 @@ using namespace std;
 // local namespace
 namespace {
 
-typedef enum
-{SUBSAMPLE_PARAM,
-	GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
-	MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, MAX_MAG_PARAM,
+typedef enum {
+  SUBSAMPLE_PARAM,
+  GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
+  MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, 
+  MAX_MAG_PARAM, SNAP_DIST_PARAM,
 	REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
 	ALLOW_CONFLICT_PARAM,
 	CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
@@ -70,7 +71,7 @@ typedef enum
 	const char * parameter_string[] =
 	{"-subsample",
 			"-gradient", "-position", "-trimesh", "-uniform_trimesh",
-			"-max_eigen", "-max_dist", "-gradS_offset", "-max_mag",
+      "-max_eigen", "-max_dist", "-gradS_offset", "-max_mag", "-snap_dist",
 			"-reposition", "-no_reposition", "-sepdist",
 			"-allow_conflict", "-clamp_conflict", "-centroid_conflict",
 			"-clamp_far", "-centroid_far",
@@ -79,8 +80,7 @@ typedef enum
 			"-reselectg", "-no_reselectg",
 			"-centroid_eigen1", "-no_centroid_eigen1",
 			"-Linf", "-no_Linf",
-			"-lindstrom",
-			"-lindstrom2",
+			"-lindstrom",	"-lindstrom2",
 			"-single_isov", "-multi_isov",
 			"-sep_neg", "-sep_pos", "-resolve_ambig",
 			"-round", "-no_round",
@@ -307,6 +307,11 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 
 		case MAX_MAG_PARAM:
 			input_info.max_small_magnitude = get_float(iarg, argc, argv);
+			iarg++;
+			break;
+
+		case SNAP_DIST_PARAM:
+			input_info.snap_dist = get_float(iarg, argc, argv);
 			iarg++;
 			break;
 
@@ -1320,7 +1325,7 @@ void options_msg()
 	cerr << "  [-single_isov | -multi_isov | -sep_pos | -sep_neg | -resolve_ambig]"
 			<< endl;
 	cerr << "  [-max_eigen {max}]" << endl;
-	cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}]" << endl;
+	cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}] [-snap_dist {D}]" << endl;
 	cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
 	cerr << "  [-lindstrom]" << endl;
 	cerr << "  [-allow_conflict] [-clamp_conflict] [-centroid_conflict]" << endl;
@@ -1429,6 +1434,8 @@ void ISODUAL3D::help()
 	cerr << "  -max_mag {max}:  Set maximum small gradient magnitude to max."
 			<< endl;
 	cerr << "           Gradients with magnitude below max are ignored." << endl;
+	cerr << "  -snap_dist {D}:  Snap points within distance D to cube."
+       << endl;
 	cerr << "  -gradS_offset {offset}: Set cube offset for gradient selection to offset."
 			<< endl;
 	cout << "  -lindstrom:   Use Lindstrom's equation to compute sharp point."
