@@ -68,6 +68,7 @@ def run_tests():
   print 'Options: ',OPTS
   print 'Isovals', isovals
   files=glob.glob('*.nrrd')
+  files.sort()
   list_files=[]
   for l in files:
     if  not(l.endswith('.grad.nrrd') or l.endswith('.cgrad.nrrd')) :
