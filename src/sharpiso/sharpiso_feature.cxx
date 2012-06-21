@@ -115,14 +115,20 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
   svd_info.flag_Linf_iso_vertex_location = false;
 
   // svd_calculate_sharpiso vertex using lindstrom
-  COORD_TYPE default_center[DIM3] = {0.5,0.5,0.5};
-  COORD_TYPE cube_center[DIM3];
-  IJK::add_coord_3D(cube_coord, default_center, cube_center);
+  COORD_TYPE central_point[DIM3];
+  if (sharpiso_param.flag_dist2centroid) {
+    compute_isosurface_grid_edge_centroid
+      (scalar_grid, isovalue, cube_index, central_point);
+  }
+  else {
+    scalar_grid.ComputeCubeCenterCoord(cube_index, central_point);
+  }
 
   svd_calculate_sharpiso_vertex_using_lindstrom
-    (sharpiso_param.use_lindstrom2, &(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
+    (sharpiso_param.use_lindstrom2, &(point_coord[0]), 
+     &(gradient_coord[0]), &(scalar[0]),
      num_gradients, isovalue, max_small_eigenvalue,
-     num_large_eigenvalues, eigenvalues, cube_center, sharp_coord);
+     num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
 
   if (!sharpiso_param.flag_allow_conflict && 
       sharpiso_param.flag_remove_gradients ) {
@@ -149,7 +155,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
         svd_calculate_sharpiso_vertex_using_lindstrom
           (sharpiso_param.use_lindstrom2, &(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
            numg2, isovalue, max_small_eigenvalue,
-           num_large_eigenvalues, eigenvalues, cube_center, sharp_coord);
+           num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
         numg2--;
       }
     }

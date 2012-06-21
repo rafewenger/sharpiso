@@ -57,6 +57,7 @@ typedef enum {
 	RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,
 	REMOVEG_PARAM, NO_REMOVEG_PARAM,
 	RESELECT_GRAD_PARAM, NO_RESELECT_GRAD_PARAM,
+  DIST2CENTER_PARAM, DIST2CENTROID_PARAM,
 	CENTROID_EIGEN1_PARAM, NO_CENTROID_EIGEN1_PARAM,
 	LINF_PARAM, NO_LINF_PARAM,
 	USE_LINDSTROM_PARAM,
@@ -78,6 +79,7 @@ typedef enum {
 			"-recompute_eigen2", "-no_recompute_eigen2",
 			"-removeg", "-no_removeg",
 			"-reselectg", "-no_reselectg",
+      "-dist2center", "-dist2centroid",
 			"-centroid_eigen1", "-no_centroid_eigen1",
 			"-Linf", "-no_Linf",
 			"-lindstrom",	"-lindstrom2",
@@ -416,6 +418,14 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 		case NO_RESELECT_GRAD_PARAM:
 			input_info.flag_reselect_gradients = false;
 			break;
+
+    case DIST2CENTER_PARAM:
+      input_info.flag_dist2centroid = false;
+      break;
+
+    case DIST2CENTROID_PARAM:
+      input_info.flag_dist2centroid = true;
+      break;
 
 		case CENTROID_EIGEN1_PARAM:
 			input_info.flag_centroid_eigen1 = true;
@@ -1333,6 +1343,7 @@ void options_msg()
 	cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
 	cerr << "  [-Linf | -no_Linf]" << endl;
 	cerr << "  [-removeg | -no_removeg] [-reselectg | -no_reselectg]" << endl;
+  cerr << "  [-dist2center | -dist2centroid]" << endl;
 	cerr << "  [-centroid_eigen1 | -no_centroid_eigen1]" << endl;
 	cerr << "  [-no_round | -round <n>]" << endl;
 	cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
@@ -1454,6 +1465,9 @@ void ISODUAL3D::help()
 	cout << "  -recompute_eigen2:  Recompute with only 2 eigenvalues to settle conflicts." << endl;
 	cout << "  -no_recompute_eigen2:  Don't recompute with only 2 eigenvalues."
 			<< endl;
+  cout << "  -dist2center:  Use distance to center in lindstrom." << endl;
+  cout << "  -dist2centroid:  Use distance to centroid of isourface-edge"
+       << "                   intersections in lindstrom." << endl;
 	cout << "  -Linf:     Use Linf metric to resolve conflicts." << endl;
 	cout << "  -no_Linf:  Don't use Linf metric to resolve conflicts." << endl;
 	cout << "  -removeg:  Remove gradients to resolve conflicts." << endl;

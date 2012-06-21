@@ -276,6 +276,11 @@ namespace SHARPISO {
     bool use_lindstrom2;
     bool use_Linf_dist;            ///< If true, use Linf dist.
 
+
+    /// If true, use distance to centroid of isosurface-edge intersections.
+    /// Otherwise, use distance to cube center.
+    bool flag_dist2centroid;       
+
     /// Maximum (Linf) distance from cube to isosurface vertex
     SIGNED_COORD_TYPE max_dist;
 
