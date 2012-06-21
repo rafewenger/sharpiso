@@ -119,6 +119,22 @@ namespace IJK {
       { coord1[d] = s*coord0[d]; };
   }
 
+  /// Add \a s * \a coord0[] to \a coord1[]).
+  /// @param dimension = Coordinate dimension (= number of coordinates.)
+  /// @param coord0 = Input coordinates.
+  /// @param coord1 = Input coordinates.
+  /// @param[out] coord2 = Output coordinate.
+  ///                      Equals (\a s * \a coord0[] + \a coord1[]).
+  template <class DTYPE, class STYPE, 
+            class CTYPE0, class CTYPE1, class CTYPE2>
+  void add_scaled_coord
+  (const DTYPE dimension, const STYPE s, const CTYPE0 coord0[],
+   const CTYPE1 coord1[], CTYPE2 coord2[])
+  {
+    for (DTYPE d = 0; d < dimension; d++) 
+      { coord2[d] = s*coord0[d] + coord1[d]; };
+  }
+
   /// Compute the midpoint of two coordinates.
   /// @param dimension = Coordinate dimension (= number of coordinates.)
   /// @param coord0 = Input coordinates.
@@ -488,6 +504,20 @@ namespace IJK {
   { 
     const int DIM3 = 3;
     multiply_coord(DIM3, s, coord0, coord1); 
+  }
+
+  /// Add \a s * \a coord0[] to \a coord1[]).
+  /// @param coord0 = Input coordinates.
+  /// @param coord1 = Input coordinates.
+  /// @param[out] coord2 = Output coordinate.
+  ///                      Equals (\a s * \a coord0[] + \a coord1[]).
+  template <class STYPE, class CTYPE0, class CTYPE1, class CTYPE2>
+  void add_scaled_coord_3D
+  (const STYPE s, 
+   const CTYPE0 coord0[], const CTYPE1 coord1[], CTYPE2 coord2[])
+  {
+    const int DIM3 = 3;
+    add_scaled_coord(DIM3, s, coord0, coord1, coord2);
   }
 
   /// Compute the midpoint of two coordinates.
