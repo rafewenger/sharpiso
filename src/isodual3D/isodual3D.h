@@ -50,7 +50,7 @@ namespace ISODUAL3D {
      DUAL_ISOSURFACE & dual_isosurface, ISODUAL_INFO & isodual_info);
 
   // **************************************************
-  // DUAL CONTOURING
+  // DUAL CONTOURING USING SCALAR DATA
   // **************************************************
 
   /// Dual Contouring Algorithm using only scalar data.
@@ -60,10 +60,49 @@ namespace ISODUAL3D {
   void dual_contouring
     (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
      const SCALAR_TYPE isovalue,
-     const VERTEX_POSITION_METHOD vertex_position_method,
+     const ISODUAL_PARAM & isodual_param,
      std::vector<VERTEX_INDEX> & isopoly_vert,
      std::vector<COORD_TYPE> & vertex_coord,
      MERGE_DATA & merge_data, ISODUAL_INFO & isodual_info);
+
+  /// Dual contouring algorithm.
+  /// Position isosurface vertices at cube centers.
+  /// @param merge_data = Data structure for merging edges.
+  /// Requires memory of size(MERGE_INDEX) for each grid edge.
+  void dual_contouring_cube_center
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   std::vector<VERTEX_INDEX> & isopoly_vert,
+   std::vector<COORD_TYPE> & vertex_coord,
+   MERGE_DATA & merge_data,
+   ISODUAL_INFO & isodual_info);
+
+  /// Dual contouring algorithm.
+  /// Position isosurface vertices at centroid of isosurface-edge intersections.
+  void dual_contouring_centroid
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   std::vector<VERTEX_INDEX> & isopoly_vert,
+   std::vector<COORD_TYPE> & vertex_coord,
+   MERGE_DATA & merge_data,
+   ISODUAL_INFO & isodual_info);
+
+  /// Dual contouring algorithm.
+  /// Position isosurface vertices at centroid of isosurface-edge intersections.
+  /// Allow multiple isosurface vertices in a grid cube.
+  void dual_contouring_centroid_multiv
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const bool flag_separate_neg,
+   std::vector<VERTEX_INDEX> & isopoly_vert,
+   std::vector<COORD_TYPE> & vertex_coord,
+   MERGE_DATA & merge_data,
+   ISODUAL_INFO & isodual_info);
+
+
+  // **************************************************
+  // DUAL CONTOURING USING SCALAR & GRADIENT DATA
+  // **************************************************
 
   /// Dual Contouring Algorithm using scalar and gradient data.
   /// Represents each grid edge by a single integer.

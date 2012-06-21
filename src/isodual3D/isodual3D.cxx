@@ -71,10 +71,9 @@ void ISODUAL3D::dual_contouring
   }
   else {
     dual_contouring
-      (isodual_data.ScalarGrid(), isovalue,
-      isodual_data.VertexPositionMethod(),
-      dual_isosurface.isopoly_vert, dual_isosurface.vertex_coord,
-      merge_data, isodual_info);
+      (isodual_data.ScalarGrid(), isovalue, isodual_data,
+       dual_isosurface.isopoly_vert, dual_isosurface.vertex_coord,
+       merge_data, isodual_info);
   }
 
   // store times
@@ -90,7 +89,7 @@ void ISODUAL3D::dual_contouring
 void ISODUAL3D::dual_contouring
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
- const VERTEX_POSITION_METHOD vertex_position_method,
+ const ISODUAL_PARAM & isodual_param,
  std::vector<VERTEX_INDEX> & isopoly_vert,
  std::vector<COORD_TYPE> & vertex_coord,
  MERGE_DATA & merge_data,
@@ -106,6 +105,36 @@ void ISODUAL3D::dual_contouring
  //   vertex_coord[dimension*iv+k] = k'th coordinate of vertex iv
  // merge_data = internal data structure for merging identical edges
  // isodual_info = information about running time and grid cubes and edges
+{
+  if (isodual_param.VertexPositionMethod() == CUBECENTER) {
+    dual_contouring_cube_center
+      (scalar_grid, isovalue, isopoly_vert, vertex_coord, 
+       merge_data, isodual_info);
+  }
+  else {
+    // Default: Position iso vertices at centroid.
+    if (isodual_param.allow_multiple_iso_vertices) {
+      dual_contouring_centroid_multiv
+        (scalar_grid, isovalue, isodual_param.flag_separate_neg,
+         isopoly_vert, vertex_coord, merge_data, isodual_info);
+    }
+    else {
+      dual_contouring_centroid
+        (scalar_grid, isovalue, isopoly_vert, vertex_coord, 
+         merge_data, isodual_info);
+    }
+  }
+}
+
+/// Dual contouring algorithm.
+/// Position isosurface vertices at cube centers.
+void ISODUAL3D::dual_contouring_cube_center
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ std::vector<VERTEX_INDEX> & isopoly_vert,
+ std::vector<COORD_TYPE> & vertex_coord,
+ MERGE_DATA & merge_data,
+ ISODUAL_INFO & isodual_info)
 {
   PROCEDURE_ERROR error("dual_contouring");
 
@@ -124,16 +153,109 @@ void ISODUAL3D::dual_contouring
   merge_identical(isopoly, iso_vlist, isopoly_vert, merge_data);
   clock_t t2 = clock();
 
-  if (vertex_position_method == CUBECENTER) {
-    position_dual_isovertices_cube_center
-      (scalar_grid, iso_vlist, vertex_coord);
-  }
+  position_dual_isovertices_cube_center
+    (scalar_grid, iso_vlist, vertex_coord);
 
-  else {
-    // default
-    position_dual_isovertices_centroid
-      (scalar_grid, isovalue, iso_vlist, vertex_coord);
-  }
+  clock_t t3 = clock();
+
+  // store times
+  clock2seconds(t1-t0, isodual_info.time.extract);
+  clock2seconds(t2-t1, isodual_info.time.merge);
+  clock2seconds(t3-t2, isodual_info.time.position);
+  clock2seconds(t3-t0, isodual_info.time.total);
+}
+
+/// Dual contouring algorithm.
+/// Position isosurface vertices at centroid of isosurface-edge intersections.
+void ISODUAL3D::dual_contouring_centroid
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ std::vector<VERTEX_INDEX> & isopoly_vert,
+ std::vector<COORD_TYPE> & vertex_coord,
+ MERGE_DATA & merge_data,
+ ISODUAL_INFO & isodual_info)
+{
+  PROCEDURE_ERROR error("dual_contouring");
+
+  clock_t t0 = clock();
+
+  isopoly_vert.clear();
+  vertex_coord.clear();
+  isodual_info.time.Clear();
+
+  std::vector<ISO_VERTEX_INDEX> isopoly;
+
+  extract_dual_isopoly
+    (scalar_grid, isovalue, isopoly, isodual_info);
+  clock_t t1 = clock();
+
+  std::vector<ISO_VERTEX_INDEX> iso_vlist;
+  merge_identical(isopoly, iso_vlist, isopoly_vert, merge_data);
+  clock_t t2 = clock();
+
+  position_dual_isovertices_centroid
+    (scalar_grid, isovalue, iso_vlist, vertex_coord);
+
+  clock_t t3 = clock();
+
+  // store times
+  clock2seconds(t1-t0, isodual_info.time.extract);
+  clock2seconds(t2-t1, isodual_info.time.merge);
+  clock2seconds(t3-t2, isodual_info.time.position);
+  clock2seconds(t3-t0, isodual_info.time.total);
+}
+
+/// Dual contouring algorithm.
+/// Position isosurface vertices at centroid of isosurface-edge intersections.
+/// Allow multiple isosurface vertices in a grid cube.
+void ISODUAL3D::dual_contouring_centroid_multiv
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const bool flag_separate_neg,
+ std::vector<VERTEX_INDEX> & isopoly_vert,
+ std::vector<COORD_TYPE> & vertex_coord,
+ MERGE_DATA & merge_data,
+ ISODUAL_INFO & isodual_info)
+{
+  const int dimension = scalar_grid.Dimension();
+  PROCEDURE_ERROR error("dual_contouring");
+
+  clock_t t0 = clock();
+
+  isopoly_vert.clear();
+  vertex_coord.clear();
+  isodual_info.time.Clear();
+
+  // Create dual isosurface lookup table.
+  bool flag_separate_opposite(true);
+  IJKDUALTABLE::ISODUAL_CUBE_TABLE 
+    isodual_table(dimension, flag_separate_neg, flag_separate_opposite);
+
+  std::vector<ISO_VERTEX_INDEX> isopoly;
+  std::vector<FACET_VERTEX_INDEX> facet_vertex;
+  extract_dual_isopoly
+    (scalar_grid, isovalue, isopoly, facet_vertex, isodual_info);
+
+  clock_t t1 = clock();
+
+  std::vector<ISO_VERTEX_INDEX> cube_list;
+  std::vector<ISO_VERTEX_INDEX> isopoly_cube;      
+  merge_identical(isopoly, cube_list, isopoly_cube, merge_data);
+
+  std::vector<ISO_VERTEX_INDEX> iso_vlist_cube;
+  std::vector<FACET_VERTEX_INDEX> iso_vlist_patch;
+
+  IJK::split_dual_isovert
+    (scalar_grid, isodual_table, isovalue, 
+     cube_list, isopoly_cube, facet_vertex,
+     iso_vlist_cube, iso_vlist_patch, isopoly_vert);
+
+  clock_t t2 = clock();
+
+  position_dual_isovertices_centroid
+    (scalar_grid, isodual_table, isovalue, 
+     iso_vlist_cube, iso_vlist_patch, vertex_coord);
+
   clock_t t3 = clock();
 
   // store times

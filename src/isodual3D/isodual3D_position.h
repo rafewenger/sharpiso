@@ -35,7 +35,7 @@ namespace ISODUAL3D {
 
 
   // **************************************************
-  // Position using only scalar data
+  // Position at cube centers
   // **************************************************
 
   /// Position dual isosurface vertices in cube centers
@@ -50,6 +50,10 @@ namespace ISODUAL3D {
     const std::vector<ISO_VERTEX_INDEX> & vlist,
     std::vector<COORD_TYPE> & coord);
 
+  // **************************************************
+  // Position at centroid of isosurface-edge intersections
+  // **************************************************
+
   /// Position dual isosurface vertices in centroid
   ///   of isosurface-edge intersections
   void position_dual_isovertices_centroid
@@ -65,6 +69,30 @@ namespace ISODUAL3D {
     const SCALAR_TYPE isovalue,
     const std::vector<ISO_VERTEX_INDEX> & vlist,
     std::vector<COORD_TYPE> & coord);
+
+  /// Position dual isosurface vertices in centroid
+  ///   of isosurface-edge intersections.
+  /// Version allowing multiple vertices in a grid cube.
+  void position_dual_isovertices_centroid
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   COORD_TYPE * coord);
+
+  /// Position dual isosurface vertices in centroid
+  ///   of isosurface-edge intersections.
+  /// Version allowing multiple vertices in a grid cube.
+  /// Version using std::vector for array coord[].
+  void position_dual_isovertices_centroid
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   std::vector<COORD_TYPE> & coord);
+
 
   // **************************************************
   // Position using gradients and svd
