@@ -1890,11 +1890,11 @@ void SHARPISO::get_grad_selection_string
   else if (grad_sel == GRAD_IE) { s = "gradIE"; }
   else if (grad_sel == GRAD_IES) { s = "gradIES"; }
   else if (grad_sel == GRAD_IE_DIR) { s = "gradIEDir"; }
-  else if (grad_sel == GRAD_CD) { s == "gradCD"; }
-  else if (grad_sel == GRAD_CD_DUP) { s == "gradCDdup"; }
-  else if (grad_sel == GRAD_NIE) { s == "gradNIE"; }
-  else if (grad_sel == GRAD_NIES) { s == "gradNIES"; }
-  else if (grad_sel == GRAD_EDGEI_INTERPOLATE) { s == "gradEIinterp"; }
-  else if (grad_sel == GRAD_EDGEI_GRAD) { s == "gradEIgrad"; }
-  else { s == "gradUnknown"; };
+  else if (grad_sel == GRAD_CD) { s = "gradCD"; }
+  else if (grad_sel == GRAD_CD_DUP) { s = "gradCDdup"; }
+  else if (grad_sel == GRAD_NIE) { s = "gradNIE"; }
+  else if (grad_sel == GRAD_NIES) { s = "gradNIES"; }
+  else if (grad_sel == GRAD_EDGEI_INTERPOLATE) { s = "gradEIinterp"; }
+  else if (grad_sel == GRAD_EDGEI_GRAD) { s = "gradEIgrad"; }
+  else { s = "gradUnknown"; };
 }

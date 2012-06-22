@@ -48,7 +48,8 @@ namespace {
 
 typedef enum {
   SUBSAMPLE_PARAM,
-  GRADIENT_PARAM, POSITION_PARAM, TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
+  GRADIENT_PARAM, POSITION_PARAM, POS_PARAM, 
+  TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
   MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, 
   MAX_MAG_PARAM, SNAP_DIST_PARAM,
 	REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
@@ -71,25 +72,25 @@ typedef enum {
 	NOWRITE_PARAM, OUTPUT_INFO_PARAM, SILENT_PARAM,
 	TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
 	const char * parameter_string[] =
-	{"-subsample",
-			"-gradient", "-position", "-trimesh", "-uniform_trimesh",
-      "-max_eigen", "-max_dist", "-gradS_offset", "-max_mag", "-snap_dist",
-			"-reposition", "-no_reposition", "-sepdist",
-			"-allow_conflict", "-clamp_conflict", "-centroid_conflict",
-			"-clamp_far", "-centroid_far",
-			"-recompute_eigen2", "-no_recompute_eigen2",
-			"-removeg", "-no_removeg",
-			"-reselectg", "-no_reselectg",
-      "-dist2center", "-dist2centroid",
-			"-centroid_eigen1", "-no_centroid_eigen1",
-			"-Linf", "-no_Linf",
-			"-lindstrom",	"-lindstrom2",
-			"-single_isov", "-multi_isov",
-			"-sep_neg", "-sep_pos", "-resolve_ambig",
-			"-round", "-no_round",
-			"-help", "-off", "-iv", "-out_param",
-			"-o", "-stdout",
-			"-nowrite", "-info", "-s", "-time", "-unknown"};
+	{ "-subsample",
+    "-gradient", "-position", "-pos", "-trimesh", "-uniform_trimesh",
+    "-max_eigen", "-max_dist", "-gradS_offset", "-max_mag", "-snap_dist",
+    "-reposition", "-no_reposition", "-sepdist",
+    "-allow_conflict", "-clamp_conflict", "-centroid_conflict",
+    "-clamp_far", "-centroid_far",
+    "-recompute_eigen2", "-no_recompute_eigen2",
+    "-removeg", "-no_removeg",
+    "-reselectg", "-no_reselectg",
+    "-dist2center", "-dist2centroid",
+    "-centroid_eigen1", "-no_centroid_eigen1",
+    "-Linf", "-no_Linf",
+    "-lindstrom",	"-lindstrom2",
+    "-single_isov", "-multi_isov",
+    "-sep_neg", "-sep_pos", "-resolve_ambig",
+    "-round", "-no_round",
+    "-help", "-off", "-iv", "-out_param",
+    "-o", "-stdout",
+    "-nowrite", "-info", "-s", "-time", "-unknown"};
 
 	PARAMETER get_parameter_token(char * s)
 	// convert string s into parameter token
@@ -218,6 +219,7 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 			break;
 
 		case POSITION_PARAM:
+		case POS_PARAM:
 			iarg++;
 			if (iarg >= argc) usage_error();
 			set_vertex_position_method(argv[iarg], input_info);
@@ -467,6 +469,7 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 
 	if (!is_vertex_position_method_set && input_info.gradient_filename == NULL) {
 		input_info.vertex_position_method = GRADIENT_POSITIONING;
+    input_info.SetGradSelectionMethod(GRAD_NS);
 	}
 
 	if (input_info.flag_subsample && input_info.subsample_resolution <= 1) {
@@ -1120,6 +1123,9 @@ void ISODUAL3D::report_num_cubes
 
 void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
 {
+  const VERTEX_POSITION_METHOD vpos_method = 
+    isodual_param.vertex_position_method;
+
 	cout << "Gradient selection cube offset: "
 			<< isodual_param.grad_selection_cube_offset << endl;
 	cout << "Maximum small eigenvalue: "
@@ -1128,6 +1134,44 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
 			<< isodual_param.max_dist << endl;
 	cout << "Max small gradient magnitude: "
 			<< isodual_param.max_small_magnitude << endl;
+
+  cout << "Vertex positioning: ";
+
+  switch (vpos_method) {
+
+  case CUBECENTER:
+    cout << "cube_center" << endl;
+    break;
+
+  case CENTROID_EDGE_ISO:
+    cout << "centroid" << endl;
+    break;
+
+  case EDGEI_INTERPOLATE:
+    cout << "edgeIinterp" << endl;
+    break;
+
+  case EDGEI_GRADIENT:
+    cout << "edgeIgrad" << endl;
+    break;
+
+  case GRADIENT_POSITIONING:
+    {
+      string s;
+
+      GRAD_SELECTION_METHOD grad_selection_method =
+        isodual_param.GradSelectionMethod();
+      get_grad_selection_string(grad_selection_method, s);
+
+      cout << s << endl;
+    }
+    break;
+
+  default:
+    cout << "Unkown" << endl;
+    break;
+  }
+
 	cout << endl;
 }
 
