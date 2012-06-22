@@ -62,9 +62,9 @@ void ISODUAL_PARAM::Init()
   use_selected_gradients = true;
   grad_selection_cube_offset = 0;
   max_small_eigenvalue = 0.1;
-  allow_multiple_iso_vertices = false;
+  allow_multiple_iso_vertices = true;
+  flag_resolve_ambiguous_facets = true;
   flag_separate_neg = true;
-  flag_resolve_ambiguous_facets = false;
 }
 
 /// Set type of interpolation
