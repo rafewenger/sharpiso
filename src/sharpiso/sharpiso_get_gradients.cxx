@@ -1745,6 +1745,7 @@ void SHARPISO::OFFSET_CUBE_111::SetOffset(const SIGNED_COORD_TYPE offset)
 /// Initialize GET_GRADIENTS_PARAM
 void SHARPISO::GET_GRADIENTS_PARAM::Init()
 {
+  grad_selection_method = UNKNOWN_GRAD_SELECTION_METHOD;
   use_only_cube_gradients = false;
   use_selected_gradients = true;
   select_based_on_grad_dir = false;
@@ -1755,4 +1756,145 @@ void SHARPISO::GET_GRADIENTS_PARAM::Init()
   grad_selection_cube_offset = 0;
   max_small_magnitude = 0.0;
   zero_tolerance = 0.0000001;
+}
+
+
+void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
+(const GRAD_SELECTION_METHOD grad_selection_method)
+{
+  IJK::PROCEDURE_ERROR error("GET_GRADIENTS_PARAM::SetGradSelectionMethod");
+
+  this->grad_selection_method = grad_selection_method;
+
+  // set defaults
+  use_only_cube_gradients = false;
+  use_selected_gradients = true;
+  use_intersected_edge_endpoint_gradients = false;
+  use_gradients_determining_edge_intersections = false;
+	select_based_on_grad_dir = false;
+  allow_duplicates = false;
+
+  switch(grad_selection_method) {
+
+  case GRAD_C:
+    use_only_cube_gradients = true;
+    use_selected_gradients = false;
+    break;
+
+  case GRAD_N:
+    use_only_cube_gradients = false;
+    use_selected_gradients = false;
+    break;
+
+  case GRAD_CS:
+    use_only_cube_gradients = true;
+    use_selected_gradients = true;
+    break;
+
+  case GRAD_NS:
+    use_only_cube_gradients = false;
+    use_selected_gradients = true;
+    break;
+
+  case GRAD_IE:
+    use_only_cube_gradients = true;
+    use_selected_gradients = false;
+    use_intersected_edge_endpoint_gradients = true;
+    break;
+
+  case GRAD_IES:
+    use_only_cube_gradients = true;
+    use_selected_gradients = true;
+    use_intersected_edge_endpoint_gradients = true;
+    break;
+
+  case GRAD_IE_DIR:
+    use_only_cube_gradients = true;
+    use_selected_gradients = true;
+    select_based_on_grad_dir = true;
+    use_intersected_edge_endpoint_gradients = true;
+    break;
+
+  case GRAD_CD:
+    use_only_cube_gradients = true;
+    use_selected_gradients = false;
+    use_intersected_edge_endpoint_gradients = true;
+    use_intersected_edge_endpoint_gradients = false;
+		use_gradients_determining_edge_intersections = true;
+    break;
+
+  case GRAD_CD_DUP:
+    use_only_cube_gradients = true;
+    use_selected_gradients = false;
+    use_intersected_edge_endpoint_gradients = true;
+    use_intersected_edge_endpoint_gradients = false;
+		use_gradients_determining_edge_intersections = true;
+    allow_duplicates = true;
+    break;
+
+  case GRAD_NIE:
+    use_only_cube_gradients = false;
+		use_selected_gradients = false;
+		use_intersected_edge_endpoint_gradients = true;
+    break;
+
+  case GRAD_NIES:
+    use_only_cube_gradients = false;
+		use_selected_gradients = true;
+		use_intersected_edge_endpoint_gradients = true;
+    break;
+
+  case GRAD_EDGEI_INTERPOLATE:
+    break;
+
+  case GRAD_EDGEI_GRAD:
+    break;
+    
+  default:
+    error("Programming error.  Unknown gradient selection type.");
+    throw error;
+  };
+
+}
+
+// **************************************************
+// MAP GRAD_SELECTION_METHOD TO/FROM C++ string
+// **************************************************
+
+GRAD_SELECTION_METHOD SHARPISO::get_grad_selection_method(const string & s)
+{
+  if (s == "gradC") { return(GRAD_C); }
+  else if (s == "gradN") { return(GRAD_N); }
+  else if (s == "gradCS") { return(GRAD_CS); }
+  else if (s == "gradNS") { return(GRAD_NS); }
+  else if (s == "gradIE") { return(GRAD_IE); }
+  else if (s == "gradIES") { return(GRAD_IES); }
+  else if (s == "gradIEDir") { return(GRAD_IE_DIR); }
+  else if (s == "gradCD") { return(GRAD_CD); }
+  else if (s == "gradCDdup") { return(GRAD_CD_DUP); }
+  else if (s == "gradNIE") { return(GRAD_NIE); }
+  else if (s == "gradNIES") { return(GRAD_NIES); }
+  else if (s == "gradEIinterp") { return(GRAD_EDGEI_INTERPOLATE); }
+  else if (s == "gradEIgrad") { return(GRAD_EDGEI_GRAD); }
+  else if (s == "gradES") { return(GRAD_EDGEI_INTERPOLATE); }
+  else if (s == "gradEC") { return(GRAD_EDGEI_GRAD); }
+  else { return(UNKNOWN_GRAD_SELECTION_METHOD); }
+}
+
+void SHARPISO::get_grad_selection_string
+(const GRAD_SELECTION_METHOD grad_sel, string & s)
+{
+  if (grad_sel == GRAD_C) { s = "gradCD"; }
+  else if (grad_sel == GRAD_CS) { s = "gradCS"; }
+  else if (grad_sel == GRAD_NS) { s = "gradNS"; }
+  else if (grad_sel == GRAD_IE) { s = "gradIE"; }
+  else if (grad_sel == GRAD_IES) { s = "gradIES"; }
+  else if (grad_sel == GRAD_IE_DIR) { s = "gradIEDir"; }
+  else if (grad_sel == GRAD_CD) { s == "gradCD"; }
+  else if (grad_sel == GRAD_CD_DUP) { s == "gradCDdup"; }
+  else if (grad_sel == GRAD_NIE) { s == "gradNIE"; }
+  else if (grad_sel == GRAD_NIES) { s == "gradNIES"; }
+  else if (grad_sel == GRAD_EDGEI_INTERPOLATE) { s == "gradEIinterp"; }
+  else if (grad_sel == GRAD_EDGEI_GRAD) { s == "gradEIgrad"; }
+  else { s == "gradUnknown"; };
 }

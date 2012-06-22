@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Code
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011,2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -51,6 +51,13 @@ namespace SHARPISO {
   typedef int VERTEX_INDEX;
 
   typedef enum { LOC_NONE, CENTROID, CUBE_CENTER, LOC_SVD } LOC_TYPE ;
+
+  typedef enum { GRAD_C, GRAD_N, GRAD_CS, GRAD_NS, GRAD_IE, GRAD_IES,
+                 GRAD_IE_DIR, GRAD_CD, GRAD_CD_DUP, GRAD_NIE, GRAD_NIES,
+                 GRAD_EDGEI_INTERPOLATE, GRAD_EDGEI_GRAD,
+                 UNKNOWN_GRAD_SELECTION_METHOD }
+    GRAD_SELECTION_METHOD;
+
 
   // **************************************************
   // CONSTANTS

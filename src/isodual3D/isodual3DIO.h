@@ -372,12 +372,15 @@ namespace ISODUAL3D {
 // REPORT SCALAR FIELD OR ISOSURFACE INFORMATION
 // **************************************************
 
+  /// Report number of grid cubes (and number of subsampled grid cubes.)
   void report_num_cubes
     (const ISODUAL_GRID & full_grid, const INPUT_INFO & input_info, 
      const ISODUAL_DATA & isodual_data);
 
+  /// Report isodual parameters.
   void report_isodual_param(const ISODUAL_PARAM & isodual_param);
 
+  /// Report information about isosurface.
   void report_iso_info
     (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
      const std::vector<COORD_TYPE> & vertex_coord, 

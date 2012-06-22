@@ -24,6 +24,8 @@
 #ifndef _SHARPISO_GET_GRADIENTS_
 #define _SHARPISO_GET_GRADIENTS_
 
+#include <string>
+
 #include "sharpiso_cubes.h"
 #include "sharpiso_grids.h"
 #include "sharpiso_types.h"
@@ -436,6 +438,13 @@ namespace SHARPISO {
    const std::vector<VERTEX_INDEX> & vertex_list,
    bool vertex_flag[]);
 
+  // **************************************************
+  // MAP GRAD_SELECTION_METHOD TO/FROM C++ string
+  // **************************************************
+
+  GRAD_SELECTION_METHOD get_grad_selection_method(const std::string & s);
+  void get_grad_selection_string
+  (const GRAD_SELECTION_METHOD grad_sel, std::string & s);
 
   // **************************************************
   // GET_GRADIENTS_PARAM
@@ -445,7 +454,9 @@ namespace SHARPISO {
   class GET_GRADIENTS_PARAM {
   protected:
     void Init();
-    
+
+    GRAD_SELECTION_METHOD grad_selection_method;
+
   public:
     bool use_only_cube_gradients;
     bool use_selected_gradients;
@@ -463,6 +474,14 @@ namespace SHARPISO {
     
     /// Constructor
     GET_GRADIENTS_PARAM() { Init(); };
+
+    // Get functions.
+    GRAD_SELECTION_METHOD GradSelectionMethod() const
+    { return(grad_selection_method); };
+
+    // Set functions.
+    void SetGradSelectionMethod
+      (const GRAD_SELECTION_METHOD grad_selection_method);
   };
 
   // **************************************************

@@ -29,6 +29,7 @@
 #include <string>
 
 #include "isodual3DIO.h"
+#include "sharpiso_get_gradients.h"
 #include "ijkIO.txx"
 #include "ijkmesh.txx"
 #include "ijkstring.txx"
@@ -122,96 +123,33 @@ typedef enum {
 	{
 		const string str = s;
 
-		// set default method
-		input_info.vertex_position_method = CENTROID_EDGE_ISO;
-		input_info.use_only_cube_gradients = false;
-		input_info.use_selected_gradients = true;
-		input_info.use_intersected_edge_endpoint_gradients = false;
-		input_info.select_based_on_grad_dir = false;
-
 		if (str == "cube_center") {
 			input_info.vertex_position_method = CUBECENTER;
 		}
 		else if (str == "centroid") {
 			input_info.vertex_position_method = CENTROID_EDGE_ISO;
 		}
-		else if (str == "gradC"){
-			input_info.vertex_position_method = GRADIENT_POSITIONING;
-			input_info.use_only_cube_gradients = true;
-			input_info.use_selected_gradients = false;
-		}
-		else if (str == "gradN"){
-			input_info.vertex_position_method = GRADIENT_POSITIONING;
-			input_info.use_only_cube_gradients = false;
-			input_info.use_selected_gradients = false;
-		}
-		else if (str == "gradCS"){
-			input_info.vertex_position_method = GRADIENT_POSITIONING;
-			input_info.use_only_cube_gradients = true;
-			input_info.use_selected_gradients = true;
-		}
-		else if (str == "gradNS"){
-			input_info.vertex_position_method = GRADIENT_POSITIONING;
-			input_info.use_only_cube_gradients = false;
-			input_info.use_selected_gradients = true;
-		}
-		else if (str == "gradIE"){
-			input_info.vertex_position_method = GRADIENT_POSITIONING;
-			input_info.use_only_cube_gradients = true;
-			input_info.use_selected_gradients = false;
-			input_info.use_intersected_edge_endpoint_gradients = true;
-		}
-		else if (str == "gradIES"){
-			input_info.vertex_position_method = GRADIENT_POSITIONING;
-			input_info.use_only_cube_gradients = true;
-			input_info.use_selected_gradients = true;
-			input_info.use_intersected_edge_endpoint_gradients = true;
-		}
-		else if (str == "gradIEDir"){
-			input_info.vertex_position_method = GRADIENT_POSITIONING;
-			input_info.use_only_cube_gradients = true;
-			input_info.use_selected_gradients = true;
-			input_info.select_based_on_grad_dir = true;
-			input_info.use_intersected_edge_endpoint_gradients = true;
-		}
-		else if (str == "gradCD"){
-			input_info.vertex_position_method = GRADIENT_POSITIONING;
-			input_info.use_only_cube_gradients = true;
-			input_info.use_selected_gradients = false;
-			input_info.use_intersected_edge_endpoint_gradients = false;
-			input_info.use_gradients_determining_edge_intersections = true;
-		}
-		else if (str == "gradCDdup"){
-			input_info.vertex_position_method = GRADIENT_POSITIONING;
-			input_info.use_only_cube_gradients = true;
-			input_info.use_selected_gradients = false;
-			input_info.use_intersected_edge_endpoint_gradients = false;
-			input_info.use_gradients_determining_edge_intersections = true;
-			input_info.allow_duplicates = true;
-		}
-		else if (str == "gradNIE"){
-			input_info.vertex_position_method = GRADIENT_POSITIONING;
-			input_info.use_only_cube_gradients = false;
-			input_info.use_selected_gradients = false;
-			input_info.use_intersected_edge_endpoint_gradients = true;
-		}
-		else if (str == "gradNIES"){
-			input_info.vertex_position_method = GRADIENT_POSITIONING;
-			input_info.use_only_cube_gradients = false;
-			input_info.use_selected_gradients = true;
-			input_info.use_intersected_edge_endpoint_gradients = true;
-		}
-		else if (str == "gradES"){
+		else if (str == "edgeIinterp" || str == "gradES"){
 			input_info.vertex_position_method = EDGEI_INTERPOLATE;
 		}
-		else if (str == "gradEC"){
+		else if (str == "edgeIgrad" || str == "gradEC"){
 			input_info.vertex_position_method = EDGEI_GRADIENT;
 		}
-		else {
-			cerr << "Error in input parameter -position.  Illegal position method: "
-					<< str << "." << endl;
-			exit(1030);
-		}
+    else {
+      input_info.vertex_position_method = GRADIENT_POSITIONING;
+
+      GRAD_SELECTION_METHOD grad_selection_method
+        = get_grad_selection_method(str);
+
+      if (grad_selection_method == UNKNOWN_GRAD_SELECTION_METHOD) {
+        cerr << "Error in input parameter -position.  Illegal position method: "
+             << str << "." << endl;
+        exit(1030);
+      }
+
+      input_info.SetGradSelectionMethod(grad_selection_method);
+    }
+
 	}
 
 	int get_int(const int iarg, const int argc, char **argv)
@@ -1750,3 +1688,4 @@ NUM_TYPE ISODUAL3D::OUTPUT_INFO::NumVerticesPerIsopoly() const
 {
 	return(num_vertices_per_isopoly);
 }
+
