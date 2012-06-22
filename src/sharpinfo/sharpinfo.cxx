@@ -1404,6 +1404,12 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-no_removeg") {
       sharpiso_param.flag_remove_gradients = false;
     }
+    else if (s == "-dist2centroid") {
+      sharpiso_param.flag_dist2centroid = true;
+    }
+    else if (s == "-dist2center") {
+      sharpiso_param.flag_dist2centroid = false;
+    }
     else if (s == "-centroid_eigen1") {
       sharpiso_param.flag_centroid_eigen1 = true;
     }

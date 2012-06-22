@@ -1150,6 +1150,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   flag_round = false;
   flag_remove_gradients = false;
   flag_reselect_gradients = false;
+  flag_dist2centroid = false;
   flag_centroid_eigen1 = false;
   use_Linf_dist = true;
   max_dist = 1.0;
