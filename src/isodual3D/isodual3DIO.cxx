@@ -1172,6 +1172,31 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
     break;
   }
 
+  if (isodual_param.use_lindstrom) 
+    { cout << "Using Lindstrom formula." << endl; }
+
+  if (isodual_param.flag_clamp_conflict) 
+    { cout << "Resolve conflict by clamping coordinates." << endl; }
+  else
+    { cout << "Resolve conflict by reverting to centroid." << endl; }
+
+  if (isodual_param.allow_multiple_iso_vertices) {
+    cout << "Allow multiple isosurface vertices per grid cube." << endl;
+
+    if (isodual_param.flag_resolve_ambiguous_facets) {
+      cout << "Resolve ambiguous facets." << endl;
+    }
+    else if (isodual_param.flag_separate_neg) {
+      cout << "Separate negative vertices." << endl;
+    }
+    else {
+      cout << "Separate positive vertices." << endl;
+    }
+  }
+  else {
+    cout << "One isosurface vertex per grid cube." << endl;
+  }
+
 	cout << endl;
 }
 
