@@ -121,6 +121,8 @@ void set_pt_intersect
       //calculate lambda
       double lambda = numerator/denominator;
       if (lambda>1.0 || lambda < 0.0) {
+        // *** NOT CORRECT ***
+        // *** lambda could be > 1.0 or < 0.0 but one gradient dominates ***
         use_simple_interp = true;
       }
       else 
