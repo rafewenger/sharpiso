@@ -283,6 +283,56 @@ namespace IJK {
     ijkoutOFF(std::cout, dim, numv_per_simplex, coord, simplex_vert);
   }
 
+  /// Output Geomview .off file.
+  /// Two types of polytopes.
+  /// @param out = Output stream.
+  /// @param dim = Dimension of vertices.
+  /// @param coord = Array of coordinates. 
+  ///        coord[dim*i+k] = k'th coordinate of vertex i (k < dim).
+  /// @param poly1_vlist = List of vertices of poly 1.
+  /// @param numv_per_poly1 = Number of vertices per polygon in poly1_vlist.
+  /// @param num_poly1 = Number of poly1 polytopes.
+  /// @param poly2_vlist = List of vertices of poly 2.
+  /// @param numv_per_poly2 = Number of vertices per polygon in poly2_vlist.
+  /// @param num_poly2 = Number of poly2 polytopes.
+  template <typename CTYPE, typename VTYPE1, typename VTYPE2> void ijkoutOFF
+  (std::ostream & out, const int dim, const CTYPE * coord, const int numv,
+   const VTYPE1 * poly1_vlist, const int numv_per_poly1, const int num_poly1,
+   const VTYPE2 * poly2_vlist, const int numv_per_poly2, const int num_poly2)
+  {
+    const int num_poly = num_poly1 + num_poly2;
+    IJK::PROCEDURE_ERROR error("ijkoutOFF");
+
+    if (dim == 3) { out << "OFF" << std::endl; }
+    else if (dim == 4) { out << "4OFF" << std::endl;}
+    else {
+      out << "nOFF" << std::endl;
+      out << dim << std::endl;
+    };
+
+    out << numv << " " << num_poly << " " << 0 << std::endl;
+
+    ijkoutVertexCoord(out, dim, coord, numv);
+    out << std::endl;
+    ijkoutPolygonVertices(out, numv_per_poly1, poly1_vlist, num_poly1);
+    ijkoutPolygonVertices(out, numv_per_poly2, poly2_vlist, num_poly2);
+  }
+
+  /// Output Geomview .off file.
+  template <typename CTYPE, typename VTYPE1, typename VTYPE2> void ijkoutOFF
+  (std::ostream & out, const int dim, const std::vector<CTYPE> & coord,
+   const std::vector<VTYPE1> & poly1_vlist, const int numv_per_poly1,
+   const std::vector<VTYPE2> & poly2_vlist, const int numv_per_poly2)
+  {
+    const int numv = coord.size()/dim;
+    const int num_poly1 = poly1_vlist.size()/numv_per_poly1;
+    const int num_poly2 = poly2_vlist.size()/numv_per_poly2;
+
+    ijkoutOFF(out, dim, vector2pointer(coord), numv,
+              vector2pointer(poly1_vlist), numv_per_poly1, num_poly1,
+              vector2pointer(poly2_vlist), numv_per_poly2, num_poly2);
+  }
+
   /// Output Geomview .off file. Color vertices.
   template <typename T, typename colorT> void ijkoutColorVertOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,   
@@ -924,38 +974,36 @@ namespace IJK {
     ijkinOFFcoord(in, dim, numv, &(coord[0]));
   }
 
-  /// \brief Read simplex vertices of simplex \a js from Geomview .off file.
+  /// \brief Read polytope vertices of polytope \a js from Geomview .off file.
   ///
   /// Ignores any color information.
   /// @param in = Input stream.
-  /// @param js = Simplex index.
-  /// @param numv_per_simplex = Number of vertices per simplex.
-  /// @param simplex_vert = Array of simplex vertices. 
-  ///        simplex_vert[numv_per_simplex*js+k] = 
-  ///            k'th vertex index of simplex js.
-  /// @pre Array simplex_vert[] has been preallocated
-  ///      with size at least \a numv_per_simplex * \a (js+1).
-  template <typename T> void ijkinOFFsimplexVert
-  (std::istream & in, const int js, const int numv_per_simplex, 
-   T * simplex_vert)
+  /// @param jpoly = Polytope index.
+  /// @param numv_per_poly = Number of vertices per polytope.
+  /// @param poly_vert = Array of polytope vertices. 
+  ///        poly_vert[numv_per_poly*js+k] = 
+  ///            k'th vertex index of polytope jp.
+  /// @pre Array poly_vert[] has been preallocated
+  ///      with size at least \a numv_per_poly * \a (jpoly+1).
+  template <typename T> void ijkinOFFpolyVert
+  (std::istream & in, const int jpoly, const int numv_per_poly,
+   T * poly_vert)
   {
-    for (int k = 0; k < numv_per_simplex; k++) 
-      { in >> simplex_vert[js*numv_per_simplex + k]; }
+    for (int k = 0; k < numv_per_poly; k++) 
+      { in >> poly_vert[jpoly*numv_per_poly + k]; }
     gobble_line(in);
   }
 
-  /// \brief Read simplex vertices of simplex \a js from Geomview .off file.
-  /// C++ STL vector format for simplex_vert[].
-  /// @pre C++ vector simplex_vert[] has size at least 
-  ///        \a numv_per_simplex * \a (js+1).
-  template <typename T> void ijkinOFFsimplexVert
-  (std::istream & in, const int js, const int numv_per_simplex, 
-   std::vector<T> & simplex_vert)
+  /// \brief Read simplex vertices of polytope \a jpoly from Geomview .off file.
+  /// C++ STL vector format for poly_vert[].
+  /// @pre C++ vector poly_vert[] has size at least 
+  ///        \a numv_per_poly * \a (jpoly+1).
+  template <typename T> void ijkinOFFpolyVert
+  (std::istream & in, const int jpoly, const int numv_per_poly,
+   std::vector<T> & poly_vert)
   {
-    ijkinOFFsimplexVert(in, js, numv_per_simplex,
-                        &(simplex_vert.front()) + js*numv_per_simplex);
+    ijkinOFFpolyVert(in, jpoly, numv_per_poly, &(poly_vert[0]));
   }
-
 
   /// \brief Read \a nums simplex vertices starting at simplex \a ifirst
   ///        from Geomview .off file.
@@ -989,7 +1037,7 @@ namespace IJK {
         throw error;
       }
 
-      ijkinOFFsimplexVert(in, i, numv_per_simplex, simplex_vert);
+      ijkinOFFpolyVert(in, i, numv_per_simplex, simplex_vert);
 
       if (!in.good()) {
         error.AddMessage("Error reading vertices of simplex ", i, ".");
@@ -1054,7 +1102,7 @@ namespace IJK {
       simplex_vert = new int[nums*num_simplex_vert];
 
       // read in first simplex
-      ijkinOFFsimplexVert(in, 0, num_simplex_vert, simplex_vert);
+      ijkinOFFpolyVert(in, 0, num_simplex_vert, simplex_vert);
 
       ijkinOFFsimplex(in, 1, nums-1, num_simplex_vert, simplex_vert);
     };
@@ -1091,7 +1139,7 @@ namespace IJK {
       simplex_vert.resize(nums*num_simplex_vert);
 
       // read vertices of first simplex
-      ijkinOFFsimplexVert(in, 0, num_simplex_vert, simplex_vert);
+      ijkinOFFpolyVert(in, 0, num_simplex_vert, simplex_vert);
 
       // read remaining simplex vertices
       ijkinOFFsimplex(in, 1, nums-1, num_simplex_vert, simplex_vert);
@@ -1159,6 +1207,69 @@ namespace IJK {
   (int & dim, T * & coord, int & numv, int * & simplex_vert, int & nums)
   {
     ijkinOFF(std::cin, dim, coord, numv, simplex_vert, nums);
+  }
+
+  /// \brief Read triangles and quadrilaterals from Geomview .off file.
+  ///
+  /// Ignores any color, normal information.
+  /// @param in = Input stream.
+  /// @param dim = Dimension of vertices.
+  /// @param coord = Array of coordinates. 
+  ///                coord[dim*i+k] = k'th coordinate of vertex i (k < dim).
+  /// @param numv = Number of vertices.
+  /// @param tri_vert = Array of triangle vertices. 
+  ///        tri_vert[3*j+k] = k'th vertex index of triangle j.
+  /// @param nums = Number of simplices.
+  /// @param quad_vert = Array of quadrilateral vertices.
+  ///        simplex_vert[4*j+k] = k'th vertex index of quad j.
+  /// @param numq = Number of quadrilaterals.
+  template <typename T> 
+  void ijkinOFF_tri_quad
+  (std::istream & in, int & dim, std::vector<T> & coord, 
+   std::vector<int> & tri_vert, std::vector<int> & quad_vert)
+  {
+    const int NUM_TRIANGLE_VERTICES = 3;
+    const int NUM_QUAD_VERTICES = 4;
+    IJK::PROCEDURE_ERROR error("ijkinOFF_tri_quad");
+
+    int nume;
+
+    coord.clear();
+    tri_vert.clear();
+    quad_vert.clear();
+
+    // nump: Total number of triangle and quads.
+    int numv, nump;
+    ijkinOFFheader(in, dim, numv, nump, nume);
+
+    ijkinOFFcoord(in, dim, numv, coord);
+
+    int numt = 0;
+    int numq = 0;
+    for (int i = 0; i < nump; i++) {
+      int nvert;
+
+      in >> nvert;
+
+      if (nvert == NUM_TRIANGLE_VERTICES) {
+        tri_vert.resize(NUM_TRIANGLE_VERTICES*(numt+1));
+        ijkinOFFpolyVert(in, numt, NUM_TRIANGLE_VERTICES, tri_vert);
+        numt++;
+      }
+      else if (nvert == NUM_QUAD_VERTICES) {
+        quad_vert.resize(NUM_QUAD_VERTICES*(numq+1));
+        ijkinOFFpolyVert(in, numq, NUM_QUAD_VERTICES, quad_vert);
+        numq++;
+      }
+      else {
+        // Illegal number of vertices.
+        error.AddMessage("Polygon ", i, " has ", nvert, " vertices.");
+        error.AddMessage("All polygons are expected to have 3 or 4 vertices.");
+        throw error;
+      }
+
+    }
+
   }
 
   // ******************************************
