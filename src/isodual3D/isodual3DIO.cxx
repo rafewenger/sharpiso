@@ -302,11 +302,13 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 
 		case SEP_NEG_PARAM:
 			input_info.flag_separate_neg = true;
+      input_info.flag_resolve_ambiguous_facets = false;
 			input_info.allow_multiple_iso_vertices = true;
 			break;
 
 		case SEP_POS_PARAM:
 			input_info.flag_separate_neg = false;
+      input_info.flag_resolve_ambiguous_facets = false;
 			input_info.allow_multiple_iso_vertices = true;
 			break;
 
