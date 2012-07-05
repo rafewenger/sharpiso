@@ -32,83 +32,121 @@ namespace IJK {
 
 
   // **************************************************
-  // CONVERT QUADRILATERALS TO TRIANGLES
+  // TRIANGULATE POLYGONS
   // **************************************************
 
-  /// Convert quadrilaterals to triangles.
-  /// Split maximum quadrilateral angle.
-  /// Quadrilateral vertices are listed in order:
-  ///   Lower-left, Lower-right, Upper-Left, Upper-Right
+  /// Compute the cosine of an angle given by 3 points.
+  /// Compute cosine of angle between (coord1-coord0) and (coord2-coord0).
+  /// Cosine is represented as (cos_numerator/cos_denominator).
+  /// @param cos_numerator Numerator of the cosine.
+  /// @param cos_denominator Denominator of the cosine.
+  template <typename DTYPE, 
+            typename CTYPE0, typename CTYPE1, typename CTYPE2, 
+            typename CTYPE3, typename MTYPE>
+  void compute_cos_angle
+  (const DTYPE dimension, 
+   const CTYPE0 * coord0, const CTYPE1 * coord1, const CTYPE2 * coord2,
+   const MTYPE max_small_magnitude, CTYPE3 & cos_angle)
+  {
+    CTYPE0 u1[dimension];
+    CTYPE0 u2[dimension];
+
+    IJK::subtract_coord(dimension, coord1, coord0, u1);
+    IJK::subtract_coord(dimension, coord2, coord0, u2);
+    IJK::normalize_vector(dimension, u1, max_small_magnitude, u1);
+    IJK::normalize_vector(dimension, u2, max_small_magnitude, u2);
+
+    IJK::compute_inner_product(dimension, u1, u2, cos_angle);
+  }
+
+  /// Triangulate a single polygon.
+  /// Split maximum polygon angle.
+  /// Polygon vertices are listed in clockwise or counter-clockwise order
+  ///   around the polygon.
   /// Add new triangles to vector tri_vert.
-  /// @param max_small_magnitude Vectors with magnitude less than
-  ///   max_small_magnitude are considered zero vectors.
-  template <typename DTYPE, typename VTYPE0, typename CTYPE0, 
-            typename MTYPE, typename VTYPE1>
-  void convert_quad_to_tri_split_max_angle
+  template <typename DTYPE, typename CTYPE, typename NTYPE,
+            typename VTYPE0, typename VTYPE1, typename MTYPE>
+  void triangulate_polygon_split_max_angle
   (const DTYPE dimension,
-   const std::vector<CTYPE0> & vert_coord,
-   const std::vector<VTYPE0> & quad_vert, 
+   const CTYPE * vert_coord,
+   const NTYPE num_poly_vert,
+   const VTYPE0 * poly_vert,
+   const MTYPE max_small_magnitude,
+   std::vector<VTYPE1> & tri_vert)
+  {
+    CTYPE min_cos;
+
+    if (num_poly_vert < 3) { return; };
+
+    NTYPE k_min_cos = 0;        // Index of the vertex with min_cos
+    NTYPE iv0 = poly_vert[0];
+    NTYPE iv1 = poly_vert[num_poly_vert-1];
+    NTYPE iv2 = poly_vert[1];
+
+    compute_cos_angle
+      (dimension, vert_coord+iv0*dimension, vert_coord+iv1*dimension,
+       vert_coord+iv2*dimension, max_small_magnitude, min_cos);
+
+    for (NTYPE i = 1; i < num_poly_vert; i++) {
+      iv0 = poly_vert[i];
+      iv1 = poly_vert[i-1];
+      iv2 = poly_vert[((i+1)%num_poly_vert)];
+      CTYPE cos_v0;
+      compute_cos_angle
+        (dimension, vert_coord+iv0*dimension, vert_coord+iv1*dimension,
+         vert_coord+iv2*dimension, max_small_magnitude, cos_v0);
+
+      if (cos_v0 < min_cos) {
+        k_min_cos = i;
+        min_cos = cos_v0;
+      }
+    }
+
+    triangulate_polygon(num_poly_vert, poly_vert, k_min_cos, tri_vert);
+  }
+
+  /// Triangulate a list of quadrilaterals.
+  template <typename DTYPE, typename CTYPE, typename NTYPE,
+            typename VTYPE0, typename VTYPE1, typename MTYPE>
+  void triangulate_quad_split_max_angle
+  (const DTYPE dimension,
+   const CTYPE * vert_coord,
+   const VTYPE0 * quad_vert,
+   const NTYPE num_quad,
+   const MTYPE max_small_magnitude,
+   std::vector<VTYPE1> & tri_vert)
+  {
+    const NTYPE NUM_VERT_PER_QUAD = 4;
+
+    for (NTYPE iquad = 0; iquad < num_quad; iquad++) {
+
+      NTYPE k = iquad*NUM_VERT_PER_QUAD;
+      triangulate_polygon_split_max_angle
+        (dimension, vert_coord, NUM_VERT_PER_QUAD, quad_vert+k, 
+         max_small_magnitude, tri_vert);
+    }
+  }
+
+  /// Triangulate a list of quadrilaterals.
+  /// C++ STL vector format for vert_coord and quad_vert.
+  template <typename DTYPE, typename CTYPE,
+            typename VTYPE0, typename VTYPE1, typename MTYPE>
+  void triangulate_quad_split_max_angle
+  (const DTYPE dimension,
+   const std::vector<CTYPE> & vert_coord,
+   const std::vector<VTYPE0> & quad_vert,
    const MTYPE max_small_magnitude,
    std::vector<VTYPE1> & tri_vert)
   {
     typedef typename std::vector<VTYPE0>::size_type SIZE_TYPE;
 
     const SIZE_TYPE NUM_VERT_PER_QUAD = 4;
-    VTYPE0 v[NUM_VERT_PER_QUAD];
-    CTYPE0 w[NUM_VERT_PER_QUAD][dimension];
-    MTYPE cos_w[NUM_VERT_PER_QUAD];
-    SIZE_TYPE isplit;
-    MTYPE cos_vsplit;
-                                
 
-    for (SIZE_TYPE i = 0; i < quad_vert.size(); i+=NUM_VERT_PER_QUAD) {
-
-      // Get quadrilateral vertices in CYCLIC ORDER.
-      v[0] = quad_vert[i];
-      v[1] = quad_vert[i+1];
-      v[2] = quad_vert[i+3]; // quad_vert[i+3] first for cyclic order
-      v[3] = quad_vert[i+2];
-
-      for (SIZE_TYPE j = 0; j < NUM_VERT_PER_QUAD; j++) {
-        SIZE_TYPE j2 = (j+1)%NUM_VERT_PER_QUAD;
-
-        VTYPE0 ivj = v[j];
-        VTYPE0 ivj2 = v[j2];
-
-        subtract_coord
-          (dimension, &(vert_coord[ivj2*dimension]), 
-           &vert_coord[ivj*dimension], w[j]);
-
-        normalize_vector(dimension, w[j], max_small_magnitude, w[j]);
-      }
-
-      for (SIZE_TYPE j = 0; j < NUM_VERT_PER_QUAD; j++) {
-        SIZE_TYPE j3 = (j+3)%NUM_VERT_PER_QUAD;
-
-        compute_inner_product(dimension, w[j], w[j3], cos_w[j]);
-      }
-
-      isplit = 0;
-      cos_vsplit = cos_w[0];
-      for (SIZE_TYPE j = 1; j < NUM_VERT_PER_QUAD; j++) {
-
-        if (cos_w[j] > cos_vsplit) {
-          isplit = j;
-          cos_vsplit = cos_w[j];
-        }
-      }
-
-      // Add first triangle to tri_vert.
-      tri_vert.push_back(v[isplit]);
-      tri_vert.push_back(v[(isplit+1)%NUM_VERT_PER_QUAD]);
-      tri_vert.push_back(v[(isplit+2)%NUM_VERT_PER_QUAD]);
-
-      // Add second triangle to tri_vert.
-      tri_vert.push_back(v[(isplit+2)%NUM_VERT_PER_QUAD]);
-      tri_vert.push_back(v[(isplit+3)%NUM_VERT_PER_QUAD]);
-      tri_vert.push_back(v[isplit]);
-    }
-
+    SIZE_TYPE num_quad = quad_vert.size()/NUM_VERT_PER_QUAD;
+    triangulate_quad_split_max_angle
+      (dimension, IJK::vector2pointer(vert_coord),
+       IJK::vector2pointer(quad_vert), num_quad, max_small_magnitude,
+       tri_vert);
   }
 
 }

@@ -128,6 +128,7 @@ void output_gradients
  const COORD_TYPE cube_center[DIM3]);
 void output_svd_results
 (std::ostream & output, 
+ const SHARPISO_GRID & grid,
  const GRID_COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE sharp_coord[DIM3],
  const EIGENVALUE_TYPE eigenvalues[DIM3], const NUM_TYPE num_large_eigenvalues,
@@ -351,7 +352,7 @@ int main(int argc, char **argv)
             scalar_grid.ComputeCoord(cube_index, cube_coord);
 
             output_svd_results
-              (cout, cube_coord, sharp_coord, 
+              (cout, scalar_grid, cube_coord, sharp_coord, 
                eigenvalues, num_large_eigenvalues,
                max_small_eigenvalue, svd_info);
             cout << endl;
@@ -562,6 +563,7 @@ void output_gradients
 
 void output_svd_results
 (std::ostream & output,
+ const SHARPISO_GRID & grid,
  const GRID_COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE sharp_coord[DIM3],
  const EIGENVALUE_TYPE eigenvalues[DIM3],
@@ -631,6 +633,16 @@ void output_svd_results
     output <<"  Vertex on ray: ";
     print_coord3D(output, closest_point);
     output << endl;
+  }
+
+  if (svd_info.flag_conflict) {
+    const VERTEX_INDEX cube2 = svd_info.cube_containing_coord;
+    COORD_TYPE cube2_coord[DIM3];
+
+    grid.ComputeCoord(cube2, cube2_coord);
+    output << "Conflict with cube: ";
+    print_coord3D(output, cube2_coord);
+    output << " (Index: " << cube2 << ")" << endl;
   }
 
 }

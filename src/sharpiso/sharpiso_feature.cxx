@@ -44,6 +44,12 @@ bool check_conflict
  const SCALAR_TYPE isovalue,
  const GRID_COORD_TYPE cube_coord[DIM3], 
  const COORD_TYPE point_coord[DIM3]);
+bool check_conflict
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const GRID_COORD_TYPE cube_coord[DIM3], 
+ const COORD_TYPE point_coord[DIM3],
+ VERTEX_INDEX & conflicting_cube);
 
 
 // **************************************************
@@ -890,18 +896,22 @@ void SHARPISO::postprocess_isovert_location
 {
   const COORD_TYPE max_dist = sharpiso_param.max_dist;
 
+  svd_info.cube_containing_coord = cube_index;
   if (is_dist_to_cube_le(iso_coord, cube_coord, max_dist)) {
 
     if (!sharpiso_param.flag_allow_conflict) {
       bool flag_conflict;
+      VERTEX_INDEX conflicting_cube;
       snap_to_cube(cube_coord, sharpiso_param.snap_dist, iso_coord);
       flag_conflict = 
-        check_conflict(scalar_grid, isovalue, cube_coord, iso_coord);
+        check_conflict(scalar_grid, isovalue, cube_coord, iso_coord,
+                       conflicting_cube);
 
       if (flag_conflict) {
         process_conflict(scalar_grid, cube_index, cube_coord, isovalue,
                          sharpiso_param, iso_coord, svd_info);
         svd_info.flag_conflict = true;
+        svd_info.cube_containing_coord = conflicting_cube;
       }
     }
   }
@@ -1002,7 +1012,7 @@ void get_cube_containing_point
   cube_index = grid.ComputeVertexIndex(coord2);
 }
 
-/// Return index of cube containing point.
+/// Return list of cubes containing point.
 /// Set flag_boundary to true if point is on cube boundary.
 /// @pre Point is contained in grid.
 /// @pre grid.AxisSize(d) > 0 for every axis d.
@@ -1094,11 +1104,13 @@ bool cube_contains_point
 
 /// Return true if point lies in an occupied cube
 ///   other than the one given by cube_coord[].
+/// Returns conflicting cube.
 bool check_conflict
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
  const GRID_COORD_TYPE cube_coord[DIM3], 
- const COORD_TYPE point_coord[DIM3]) 
+ const COORD_TYPE point_coord[DIM3],
+ VERTEX_INDEX & conflicting_cube)
 {
   if (cube_contains_point(cube_coord, point_coord)) {
     // Point is in cube.  No conflict.
@@ -1113,6 +1125,7 @@ bool check_conflict
 
     if (IJK::is_gt_cube_min_le_cube_max(scalar_grid, icube2, isovalue)) {
       // Isosurface intersects icube2. Conflict.
+      conflicting_cube = icube2;
       return(true);
     }
 
@@ -1124,6 +1137,7 @@ bool check_conflict
         if (IJK::is_gt_cube_min_le_cube_max
             (scalar_grid, cube_list[i], isovalue)) {
           // Isosurface intersects cube_list[i]. Conflict.
+          conflicting_cube = cube_list[i];
           return(true);
         }
       }
@@ -1132,6 +1146,21 @@ bool check_conflict
 
   // No conflict.
   return(false);
+}
+
+/// Return true if point lies in an occupied cube
+///   other than the one given by cube_coord[].
+/// Returns conflicting cube.
+bool check_conflict
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const GRID_COORD_TYPE cube_coord[DIM3], 
+ const COORD_TYPE point_coord[DIM3])
+{
+  VERTEX_INDEX conflicting_cube;
+
+  return(check_conflict(scalar_grid, isovalue, cube_coord, point_coord,
+                        conflicting_cube));
 }
 
 // **************************************************

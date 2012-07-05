@@ -320,6 +320,7 @@ namespace SHARPISO {
     COORD_TYPE ray_initial_point[DIM3];      // point on ray
     COORD_TYPE ray_cube_intersection[DIM3];
     bool flag_conflict;
+    VERTEX_INDEX cube_containing_coord;
     bool flag_Linf_iso_vertex_location;
     
     /// Set ray information.

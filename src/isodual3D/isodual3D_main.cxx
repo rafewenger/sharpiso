@@ -173,15 +173,24 @@ void construct_isosurface
 
     if (isodual_data.flag_convert_quad_to_tri) {
 
+      VERTEX_INDEX_ARRAY quad_vert(dual_isosurface.isopoly_vert);
+      std::copy(dual_isosurface.isopoly_vert.begin(),
+                dual_isosurface.isopoly_vert.end(),
+                quad_vert.begin());
+      NUM_TYPE num_quad = quad_vert.size()/NUM_QUAD_VERTICES;
+      if (num_quad > 0) {
+        reorder_quad_vertices(&(quad_vert[0]), num_quad);
+      }
+
       if (isodual_data.quad_tri_method == SPLIT_MAX_ANGLE) {
 
         // *** CREATE create_dual_tri IN isodual3D.cxx ***
-        convert_quad_to_tri_split_max_angle
-          (DIM3, dual_isosurface.vertex_coord, dual_isosurface.isopoly_vert,
+        triangulate_quad_split_max_angle
+          (DIM3, dual_isosurface.vertex_coord, quad_vert,
            isodual_data.max_small_magnitude, dual_isosurface.tri_vert);
       }
       else {
-        convert_quad_to_tri
+        triangulate_quad
           (dual_isosurface.isopoly_vert, dual_isosurface.tri_vert);
       }
     }

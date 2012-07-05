@@ -161,41 +161,103 @@ namespace IJK {
   }
 
   // **************************************************
-  // CONVERT QUADRILATERALS TO TRIANGLES
+  // REORDER QUAD VERTICES
   // **************************************************
 
-  /// Convert quadrilaterals to triangles.
-  /// Quadrilateral vertices are listed in order:
-  ///   Lower-left, Lower-right, Upper-Left, Upper-Right
+  /// Reorder quad vertices.
+  /// Swap last two vertices.
+  /// Changes counter-clockwise order to lower-left, lower-right, 
+  ///   upper-left, upper-right order.
+  /// Changes lower-left, lower-right, upper-left, upper-right order
+  ///   to counter-clockwise order.
+  template <typename VTYPE, typename NTYPE>
+  void reorder_quad_vertices
+  (VTYPE * quad_vert, const NTYPE num_quad)
+  {
+    const NTYPE NUM_VERT_PER_QUAD = 4;
+
+    for (NTYPE iquad = 0; iquad < num_quad; iquad++) {
+      NTYPE k = iquad*NUM_VERT_PER_QUAD;
+      std::swap(quad_vert[k+2], quad_vert[k+3]);
+    }
+  }
+
+  // **************************************************
+  // TRIANGULATE POLYGONS
+  // **************************************************
+
+  /// Triangulate a polygon.
+  /// Polygon vertices are listed in clockwise or counter-clockwise order
+  ///   around the polygon.
   /// Add new triangles to vector tri_vert.
+  template <typename NTYPE, typename VTYPE0, typename VTYPE1>
+  void triangulate_polygon
+  (const NTYPE num_poly_vert, const VTYPE0 * poly_vert, 
+   std::vector<VTYPE1> & tri_vert)
+  {
+    VTYPE0 v0 = poly_vert[0];
+    for (NTYPE i = 1; i+1 < num_poly_vert; i++) {
+      tri_vert.push_back(v0);
+      tri_vert.push_back(poly_vert[i]);
+      tri_vert.push_back(poly_vert[i+1]);
+    }
+  }
+
+  /// Triangulate a polygon using diagonals from vertex poly_vert[index_v0].
+  /// Polygon vertices are listed in clockwise or counter-clockwise order
+  ///   around the polygon.
+  /// Add new triangles to vector tri_vert.
+  template <typename NTYPE, 
+            typename VTYPE0, typename VTYPE1, typename VTYPE2>
+  void triangulate_polygon
+  (const NTYPE num_poly_vert, const VTYPE0 * poly_vert,
+   const VTYPE1 index_v0,
+   std::vector<VTYPE2> & tri_vert)
+  {
+    VTYPE0 v0 = poly_vert[index_v0];
+    NTYPE i1 = (index_v0+1)%num_poly_vert;
+    NTYPE i2 = (i1+1)%num_poly_vert;
+    while (i2 != index_v0) {
+      tri_vert.push_back(v0);
+      tri_vert.push_back(poly_vert[i1]);
+      tri_vert.push_back(poly_vert[i2]);
+      i1 = i2;
+      i2 = (i1+1)%num_poly_vert;
+    }
+  }
+
+  /// Triangulate a set of quadrilaterals.
+  /// Quadrilateral vertices are listed in clockwise or counter-clockwise order
+  ///   around the polygon.
+  /// Add new triangles to vector tri_vert.
+  template <typename NTYPE, typename VTYPE0, typename VTYPE1>
+  void triangulate_quad
+  (const VTYPE0 * quad_vert, const NTYPE num_quad,
+   std::vector<VTYPE1> & tri_vert)
+  {
+    const NTYPE NUM_VERT_PER_QUAD = 4;
+
+    for (NTYPE iquad = 0; iquad < num_quad; iquad++) {
+
+      NTYPE k = iquad*NUM_VERT_PER_QUAD;
+      triangulate_polygon(NUM_VERT_PER_QUAD, quad_vert+k, tri_vert);
+    }
+  }
+
+  /// Convert quadrilaterals to triangles.
+  /// C++ STL vector format for quad_vert.
   template <typename VTYPE0, typename VTYPE1>
-  void convert_quad_to_tri
-  (const std::vector<VTYPE0> & quad_vert, std::vector<VTYPE1> & tri_vert)
+  void triangulate_quad
+  (const std::vector<VTYPE0> quad_vert, std::vector<VTYPE1> & tri_vert)
   {
     typedef typename std::vector<VTYPE0>::size_type SIZE_TYPE;
 
     const SIZE_TYPE NUM_VERT_PER_QUAD = 4;
 
-    for (SIZE_TYPE i = 0; i < quad_vert.size(); i+=NUM_VERT_PER_QUAD) {
-
-      // Get quadrilateral vertices.
-      VTYPE0 v0 = quad_vert[i];
-      VTYPE0 v1 = quad_vert[i+1];
-      VTYPE0 v2 = quad_vert[i+2];
-      VTYPE0 v3 = quad_vert[i+3];
-
-      // Add first triangle to tri_vert.
-      tri_vert.push_back(v0);
-      tri_vert.push_back(v1);
-      tri_vert.push_back(v2);
-
-      // Add second triangle to tri_vert.
-      tri_vert.push_back(v2);
-      tri_vert.push_back(v1);
-      tri_vert.push_back(v3);
-    }
-
+    SIZE_TYPE num_quad = quad_vert.size()/NUM_VERT_PER_QUAD;
+    triangulate_quad(IJK::vector2pointer(quad_vert), num_quad, tri_vert);
   }
+
 
 }
 

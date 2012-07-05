@@ -974,6 +974,23 @@ namespace IJK {
     ijkinOFFcoord(in, dim, numv, &(coord[0]));
   }
 
+  /// \brief Read vertex indices from Geomview .off file.
+  ///
+  /// Ignores any color information.
+  /// @param in = Input stream.
+  /// @param numv = Number of vertices.
+  /// @param vert = Array of vertices.
+  ///        vert[k] = k'th vertex.
+  /// @pre Array vert[] has been preallocated
+  ///      with size at least \a numv.
+  template <typename T> void ijkinOFFvert
+  (std::istream & in, const int numv, T * vert)
+  {
+    for (int k = 0; k < numv; k++) 
+      { in >> vert[k]; }
+    gobble_line(in);
+  }
+
   /// \brief Read polytope vertices of polytope \a js from Geomview .off file.
   ///
   /// Ignores any color information.
@@ -1270,6 +1287,81 @@ namespace IJK {
 
     }
 
+  }
+
+  /// \brief Read polygons from Geomview .off file.
+  ///
+  /// Ignores any color, normal information.
+  /// @param in = Input stream.
+  /// @param dim = Dimension of vertices.
+  /// @param coord = Array of coordinates. 
+  ///                coord[dim*i+k] = k'th coordinate of vertex i (k < dim).
+  /// @param numv = Number of vertices.
+  /// @param tri_vert = Array of triangle vertices. 
+  ///        tri_vert[3*j+k] = k'th vertex index of triangle j.
+  /// @param nums = Number of simplices.
+  /// @param quad_vert = Array of quadrilateral vertices.
+  ///        simplex_vert[4*j+k] = k'th vertex index of quad j.
+  /// @param numq = Number of quadrilaterals.
+  /// @param num_poly_vert = Array of number of polygon vertices.
+  ///        num_poly_vert[i] = Number of vertices of polygon i.
+  /// @param poly_vert = Array of polygon vertices.
+  /// @param first_poly_vert = Array indexing first vertex of each polygon.
+  ///        Polygon i has vertices poly_vert[first_poly_vert[i]] to
+  ///        poly_vert[first_poly_vert[i]+num_poly_vert[i]-1].
+  template <typename T> 
+  void ijkinPolyOFF
+  (std::istream & in, int & dim, std::vector<T> & coord, 
+   std::vector<int> & tri_vert, std::vector<int> & quad_vert,
+   std::vector<int> & num_poly_vert,
+   std::vector<int> & poly_vert, std::vector<int> & first_poly_vert)
+  {
+    const int NUM_TRIANGLE_VERTICES = 3;
+    const int NUM_QUAD_VERTICES = 4;
+    IJK::PROCEDURE_ERROR error("ijkinPolyOFF");
+
+    int nume;
+
+    coord.clear();
+    tri_vert.clear();
+    quad_vert.clear();
+    num_poly_vert.clear();
+    poly_vert.clear();
+    first_poly_vert.clear();
+
+    // nump: Total number of polygons.
+    int numv, nump;
+    ijkinOFFheader(in, dim, numv, nump, nume);
+
+    ijkinOFFcoord(in, dim, numv, coord);
+
+    int numt = 0;
+    int numq = 0;
+    int num_not_qt = 0;   // Number of polygons which are not tri or quad
+    for (int i = 0; i < nump; i++) {
+      int nvert;
+
+      in >> nvert;
+
+      if (nvert == NUM_TRIANGLE_VERTICES) {
+        tri_vert.resize(NUM_TRIANGLE_VERTICES*(numt+1));
+        ijkinOFFpolyVert(in, numt, NUM_TRIANGLE_VERTICES, tri_vert);
+        numt++;
+      }
+      else if (nvert == NUM_QUAD_VERTICES) {
+        quad_vert.resize(NUM_QUAD_VERTICES*(numq+1));
+        ijkinOFFpolyVert(in, numq, NUM_QUAD_VERTICES, quad_vert);
+        numq++;
+      }
+      else {
+        num_poly_vert.push_back(nvert);
+        int k = poly_vert.size();
+        first_poly_vert.push_back(k);
+        poly_vert.resize(k+nvert);
+        ijkinOFFvert(in, nvert, &(poly_vert[k]));
+        num_not_qt++;
+      }
+    }
   }
 
   // ******************************************
