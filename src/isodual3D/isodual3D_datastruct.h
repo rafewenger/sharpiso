@@ -3,7 +3,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011,2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -65,34 +65,36 @@ namespace ISODUAL3D {
   ///   returned by Dual Contouring algorithm.
   class DUAL_ISOSURFACE {
 
-  protected:
-    VERTEX_INDEX numv_per_isopoly;
-
   public:
-    /// List of isosurface polytope vertices.
-    /// NOTE: Should rename to quad_vert
-    VERTEX_INDEX_ARRAY isopoly_vert;
+    /// List of vertices of each quadrilateral in isosurface mesh.
+    VERTEX_INDEX_ARRAY quad_vert;
+
+    /// List of vertices of each triangle in isosurface mesh.
+    /// Not always set.
+    VERTEX_INDEX_ARRAY tri_vert;
 
     /// List of vertex coordinates.
     COORD_ARRAY vertex_coord;
 
-    /// List of vertices of each triangle in triangular mesh.
-    /// Not always set.
-    VERTEX_INDEX_ARRAY tri_vert;
-
     /// cube_containing_isopoly[i] = cube containing i'th isopoly.
     /// Not always set.
+    /// **** IS THIS USED ???? *****
     VERTEX_INDEX_ARRAY cube_containing_isopoly;
 
   public:
-    DUAL_ISOSURFACE(const VERTEX_INDEX numv_per_isopoly) 
-      { this->numv_per_isopoly = numv_per_isopoly; };
+    DUAL_ISOSURFACE() {};
 
-    VERTEX_INDEX NumVerticesPerIsoPoly() const
-      { return(numv_per_isopoly); };
+    NUM_TYPE NumVerticesPerTri() const
+    { return(3); }
 
-    VERTEX_INDEX NumIsoPoly() const
-      { return(isopoly_vert.size()/NumVerticesPerIsoPoly()); };
+    NUM_TYPE NumVerticesPerQuad() const
+    { return(4); }
+
+    NUM_TYPE NumTri() const
+    { return(tri_vert.size()/NumVerticesPerTri()); };
+
+    NUM_TYPE NumQuad() const
+    { return(quad_vert.size()/NumVerticesPerQuad()); };
 
     void Clear();
   };

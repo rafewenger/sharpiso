@@ -864,12 +864,12 @@ void ISODUAL3D::split_dual_isovert
  const SCALAR_TYPE isovalue,
  const std::vector<ISO_VERTEX_INDEX> & cube_list,
  const std::vector<AMBIGUITY_TYPE> & cube_ambig,
- const std::vector<ISO_VERTEX_INDEX> & isopoly_cube,     
+ const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
  const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
  std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
  std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
  std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
- std::vector<VERTEX_INDEX> & isopoly_vert)
+ std::vector<VERTEX_INDEX> & isoquad_vert)
 {
   const int dimension = scalar_grid.Dimension();
   const NUM_TYPE num_cube_vertices = scalar_grid.NumCubeVertices();
@@ -912,10 +912,10 @@ void ISODUAL3D::split_dual_isovert
     k = k+num_isov[i];
   }
 
-  isopoly_vert.resize(isopoly_cube.size());
+  isoquad_vert.resize(isoquad_cube.size());
 
-  for (ISO_VERTEX_INDEX i = 0; i < isopoly_cube.size(); i++) {
-    ISO_VERTEX_INDEX k = isopoly_cube[i];
+  for (ISO_VERTEX_INDEX i = 0; i < isoquad_cube.size(); i++) {
+    ISO_VERTEX_INDEX k = isoquad_cube[i];
     IJKDUALTABLE::TABLE_INDEX it = cube_table_index[k];
 
     // Compute index of facet vertex opposite to facet_vertex[i]
@@ -925,7 +925,7 @@ void ISODUAL3D::split_dual_isovert
     int opposite_vertex = (num_facet_vertices-1) - j;
     opposite_vertex += (ifacet*num_facet_vertices);
 
-    isopoly_vert[i] = first_cube_isov[k] + 
+    isoquad_vert[i] = first_cube_isov[k] + 
       isodual_table.IncidentIsoVertex(it, opposite_vertex);
 
   }

@@ -3,7 +3,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011,2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -41,8 +41,8 @@ using namespace ISODUAL3D;
 
 void DUAL_ISOSURFACE::Clear()
 {
-  isopoly_vert.clear();
   vertex_coord.clear();
+  quad_vert.clear();
   tri_vert.clear();
 }
 

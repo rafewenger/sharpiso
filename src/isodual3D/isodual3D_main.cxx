@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011,2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -164,7 +164,7 @@ void construct_isosurface
 
     const SCALAR_TYPE isovalue = input_info.isovalue[i];
 
-    DUAL_ISOSURFACE dual_isosurface(num_cube_vertices);
+    DUAL_ISOSURFACE dual_isosurface;
     ISODUAL_INFO isodual_info(dimension);
     isodual_info.grid.num_cubes = num_cubes;
 
@@ -173,9 +173,9 @@ void construct_isosurface
 
     if (isodual_data.flag_convert_quad_to_tri) {
 
-      VERTEX_INDEX_ARRAY quad_vert(dual_isosurface.isopoly_vert);
-      std::copy(dual_isosurface.isopoly_vert.begin(),
-                dual_isosurface.isopoly_vert.end(),
+      VERTEX_INDEX_ARRAY quad_vert(dual_isosurface.quad_vert.size());
+      std::copy(dual_isosurface.quad_vert.begin(),
+                dual_isosurface.quad_vert.end(),
                 quad_vert.begin());
       NUM_TYPE num_quad = quad_vert.size()/NUM_QUAD_VERTICES;
       if (num_quad > 0) {
@@ -190,15 +190,15 @@ void construct_isosurface
            isodual_data.max_small_magnitude, dual_isosurface.tri_vert);
       }
       else {
+        // *** SHOULD STORE IN SEPARATE DATASTRUCT ***
         triangulate_quad
-          (dual_isosurface.isopoly_vert, dual_isosurface.tri_vert);
+          (dual_isosurface.quad_vert, dual_isosurface.tri_vert);
+
       }
     }
 
     OUTPUT_INFO output_info;
     set_output_info(input_info, i, output_info);
-
-    VERTEX_INDEX num_poly = dual_isosurface.NumIsoPoly();
 
     int grow_factor = 1;
     int shrink_factor = 1;

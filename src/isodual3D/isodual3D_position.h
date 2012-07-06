@@ -308,12 +308,12 @@ namespace ISODUAL3D {
    const SCALAR_TYPE isovalue,
    const std::vector<ISO_VERTEX_INDEX> & cube_list,
    const std::vector<AMBIGUITY_TYPE> & cube_ambig,
-   const std::vector<ISO_VERTEX_INDEX> & isopoly_cube,     
+   const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,
    const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
    std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
-   std::vector<VERTEX_INDEX> & isopoly_vert);
+   std::vector<VERTEX_INDEX> & isoquad_vert);
 
   // **************************************************
   // Reposition routine

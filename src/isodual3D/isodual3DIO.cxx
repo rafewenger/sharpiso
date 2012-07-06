@@ -676,7 +676,7 @@ void ISODUAL3D::output_dual_isosurface
 	else {
 		output_quad_isosurface
 		(output_info, isodual_data,
-				dual_isosurface.vertex_coord, dual_isosurface.isopoly_vert,
+				dual_isosurface.vertex_coord, dual_isosurface.quad_vert,
 				isodual_info, io_time);
 	}
 }
@@ -723,7 +723,7 @@ void ISODUAL3D::output_dual_isosurface_color
 {
 	output_dual_isosurface_color
 	(output_info, isodual_data,
-			dual_isosurface.vertex_coord, dual_isosurface.isopoly_vert,
+			dual_isosurface.vertex_coord, dual_isosurface.quad_vert,
 			front_color, back_color, isodual_info, io_time);
 }
 
@@ -749,10 +749,11 @@ void ISODUAL3D::output_dual_isosurface_color_alternating
 		const DUAL_ISOSURFACE & dual_isosurface,
 		const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
 {
-	const VERTEX_INDEX num_poly = dual_isosurface.NumIsoPoly();
+	const VERTEX_INDEX num_quad = dual_isosurface.NumQuad();
 
-	IJK::ARRAY<COLOR_TYPE> front_color(4*num_poly);
-	IJK::ARRAY<COLOR_TYPE> back_color(4*num_poly);
+	IJK::ARRAY<COLOR_TYPE> front_color(4*num_quad);
+	IJK::ARRAY<COLOR_TYPE> back_color(4*num_quad);
+
 	set_color_alternating
 	(isodual_data.ScalarGrid(), dual_isosurface.cube_containing_isopoly,
 			front_color.Ptr());
@@ -761,10 +762,10 @@ void ISODUAL3D::output_dual_isosurface_color_alternating
 			back_color.Ptr());
 
 	output_dual_isosurface_color
-	(output_info, isodual_data, dual_isosurface.vertex_coord,
-			dual_isosurface.isopoly_vert,
-			front_color.PtrConst(), back_color.PtrConst(),
-			isodual_info, io_time);
+    (output_info, isodual_data, dual_isosurface.vertex_coord,
+     dual_isosurface.quad_vert,
+     front_color.PtrConst(), back_color.PtrConst(),
+     isodual_info, io_time);
 }
 
 // **************************************************
