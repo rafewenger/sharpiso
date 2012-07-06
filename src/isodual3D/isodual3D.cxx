@@ -348,22 +348,11 @@ void ISODUAL3D::dual_contouring_sharp
 
       if (vertex_position_method == GRADIENT_POSITIONING) {
 
-        if (isodual_param.flag_merge_conflict) {
-
-          position_dual_isovertices_using_gradients
-            (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
-             iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
-             dual_isosurface.vertex_coord, cube_conflict_list, 
-             isodual_info.sharpiso);
-
-        }
-        else {
-
-          position_dual_isovertices_using_gradients
-            (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
-             iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
-             dual_isosurface.vertex_coord, isodual_info.sharpiso);
-        }
+        position_dual_isovertices_using_gradients
+          (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
+           iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
+           dual_isosurface.vertex_coord, cube_conflict_list, 
+           isodual_info.sharpiso);
       }
       else if (vertex_position_method == EDGEI_INTERPOLATE ||
                vertex_position_method == EDGEI_GRADIENT) {
@@ -372,7 +361,7 @@ void ISODUAL3D::dual_contouring_sharp
           (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
            iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig, 
            vertex_position_method, dual_isosurface.vertex_coord,
-           isodual_info.sharpiso);
+           cube_conflict_list, isodual_info.sharpiso);
       }
       else {
         error.AddMessage("Programming error. Positioning method error.");
