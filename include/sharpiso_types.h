@@ -24,7 +24,7 @@
 #ifndef _SHARPISO_TYPES_
 #define _SHARPISO_TYPES_
 
-
+#include <utility>
 
 /// Definitions for sharp isosurface processing.
 namespace SHARPISO {
@@ -49,6 +49,8 @@ namespace SHARPISO {
 
   typedef int NUM_TYPE;
   typedef int VERTEX_INDEX;
+
+  typedef std::pair<VERTEX_INDEX, VERTEX_INDEX> VERTEX_PAIR;
 
   typedef enum { LOC_NONE, CENTROID, CUBE_CENTER, LOC_SVD } LOC_TYPE ;
 

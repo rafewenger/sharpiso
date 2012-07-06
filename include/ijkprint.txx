@@ -27,6 +27,9 @@
 
 #include <cmath>
 #include <iostream>
+#include <vector>
+
+// *** SHOULD BE <ctime> ***
 #include <time.h>
 
 
@@ -42,6 +45,12 @@ namespace IJK {
       out << list[i];
     }
     out << ")";
+  }
+
+  template <typename ETYPE>
+  void print_list(std::ostream & out, const std::vector<ETYPE> & list)
+  {
+    print_list(out, IJK::vector2pointer(list), list.size());
   }
 
   template <typename CTYPE>

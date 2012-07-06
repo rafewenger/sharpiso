@@ -23,6 +23,7 @@
 
 
 #include "ijktime.txx"
+#include "ijklist.txx"
 #include "ijkisopoly.txx"
 
 #include "isodual3D.h"
@@ -332,6 +333,7 @@ void ISODUAL3D::dual_contouring
 
       std::vector<AMBIGUITY_TYPE> cube_ambig(cube_list.size());
       std::vector<AMBIGUITY_TYPE> iso_vlist_cube_ambig;
+      std::vector<VERTEX_PAIR> conflict_list;
 
       set_cube_ambiguity(scalar_grid, gradient_grid, isovalue,
                          cube_list, isodual_param, cube_ambig);
@@ -350,7 +352,7 @@ void ISODUAL3D::dual_contouring
         position_dual_isovertices_using_gradients
           (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
            iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
-           vertex_coord, isodual_info.sharpiso);
+           vertex_coord, conflict_list, isodual_info.sharpiso);
       }
       else if (vertex_position_method == EDGEI_INTERPOLATE ||
                vertex_position_method == EDGEI_GRADIENT) {
@@ -365,6 +367,10 @@ void ISODUAL3D::dual_contouring
         error.AddMessage
           ("  Positioning does not allow resolving ambiguities in a cube.");
         throw error;
+      }
+
+      if (isodual3D_param.flag_merge_conflict) {
+        IJK::remap_list(conflict_list, isopoly_vert);
       }
 
       if (isodual_param.flag_reposition) {
