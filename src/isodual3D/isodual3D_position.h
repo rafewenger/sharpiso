@@ -73,6 +73,7 @@ namespace ISODUAL3D {
   /// Position dual isosurface vertices in centroid
   ///   of isosurface-edge intersections.
   /// Version allowing multiple vertices in a grid cube.
+  /// @param isodual_table Determines edges between isosurface vertices.
   void position_dual_isovertices_centroid
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
@@ -120,6 +121,8 @@ namespace ISODUAL3D {
    SHARPISO_INFO & sharp_info);
 
   /// Position dual isosurface vertices using gradients
+  /// Version allowing multiple vertices in a grid cube.
+  /// @param isodual_table Determines edges between isosurface vertices.
   void position_dual_isovertices_using_gradients
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -132,6 +135,7 @@ namespace ISODUAL3D {
    SHARPISO_INFO & sharp_info);
 
   /// Position dual isosurface vertices using gradients
+  /// Version allowing multiple vertices in a grid cube.
   /// Version using std::vector for array coord[].
   void position_dual_isovertices_using_gradients
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
@@ -145,6 +149,8 @@ namespace ISODUAL3D {
    SHARPISO_INFO & sharp_info);
 
   /// Position dual isosurface vertices using gradients
+  /// Version resolving ambiguous cubes.
+  /// @param iso_vlist_cube_ambig[] Determines how ambiguities are resolved.
   void position_dual_isovertices_using_gradients
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -158,6 +164,7 @@ namespace ISODUAL3D {
    SHARPISO_INFO & sharp_info);
 
   /// Position dual isosurface vertices using gradients
+  /// Version resolving ambiguous cubes.
   /// Version using std::vector for array coord[].
   void position_dual_isovertices_using_gradients
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
@@ -172,7 +179,8 @@ namespace ISODUAL3D {
    SHARPISO_INFO & sharp_info);
 
   /// Position dual isosurface vertices using gradients.
-  /// Return list of vertex conflicts.
+  /// Version resolving ambiguous cubes.
+  /// Version returning list of vertex conflicts.
   void position_dual_isovertices_using_gradients
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -187,7 +195,8 @@ namespace ISODUAL3D {
    SHARPISO_INFO & sharp_info);
 
   /// Position dual isosurface vertices using gradients.
-  /// Return list of vertex conflicts.
+  /// Version resolving ambiguous cubes.
+  /// Version returning list of vertex conflicts.
   /// Version using std::vector for array coord[].
   void position_dual_isovertices_using_gradients
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
@@ -214,7 +223,8 @@ namespace ISODUAL3D {
    const ISODUAL_PARAM & isodual_param,
    const std::vector<ISO_VERTEX_INDEX> & vlist,
    const VERTEX_POSITION_METHOD position_method,
-   COORD_TYPE * sharp_coord);
+   COORD_TYPE * sharp_coord,
+   SHARPISO_INFO & sharp_info);
 
   /// Position vertices using SVD on grid edge-isosurface intersections.
   /// Version using std::vector for array coord[].
@@ -225,10 +235,12 @@ namespace ISODUAL3D {
    const ISODUAL_PARAM & isodual_param,
    const std::vector<ISO_VERTEX_INDEX> & vlist,
    const VERTEX_POSITION_METHOD position_method,
-   std::vector<COORD_TYPE> & coord);
+   std::vector<COORD_TYPE> & coord,
+   SHARPISO_INFO & sharp_info);
 
   /// Position vertices using SVD on grid edge-isosurface intersections.
-  /// Use isodual_table to determine connections.
+  /// Version allowing multiple vertices in a grid cube.
+  /// @param isodual_table Determines edges between isosurface vertices.
   void position_dual_isovertices_edgeI
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -238,10 +250,11 @@ namespace ISODUAL3D {
    const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    const VERTEX_POSITION_METHOD position_method,
-   COORD_TYPE * coord);
+   COORD_TYPE * coord,
+   SHARPISO_INFO & sharp_info);
 
   /// Position vertices using SVD on grid edge-isosurface intersections.
-  /// Use isodual_table to determine connections.
+  /// Version allowing multiple vertices in a grid cube.
   /// Version using std::vector for array coord[].
   void position_dual_isovertices_edgeI
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
@@ -252,11 +265,12 @@ namespace ISODUAL3D {
    const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    const VERTEX_POSITION_METHOD position_method,
-   std::vector<COORD_TYPE> & coord);
+   std::vector<COORD_TYPE> & coord,
+   SHARPISO_INFO & sharp_info);
 
   /// Position vertices using SVD on grid edge-isosurface intersections.
-  /// Use isodual_table to determine connections.
-  /// Use iso_vlist_cube_ambig[] to resolve ambiguities.
+  /// Version resolving ambiguous cubes.
+  /// @param iso_vlist_cube_ambig[] Determines how ambiguities are resolved.
   void position_dual_isovertices_edgeI
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -267,11 +281,12 @@ namespace ISODUAL3D {
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
    const VERTEX_POSITION_METHOD position_method,
-   COORD_TYPE * coord);
+   COORD_TYPE * coord,
+   SHARPISO_INFO & sharp_info);
 
   /// Position vertices using SVD on grid edge-isosurface intersections.
-  /// Use isodual_table to determine connections.
-  /// Use iso_vlist_cube_ambig[] to resolve ambiguities.
+  /// Version allowing multiple vertices in a grid cube.
+  /// Version resolving ambiguous cubes.
   /// Version using std::vector for array coord[].
   void position_dual_isovertices_edgeI
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
@@ -283,7 +298,8 @@ namespace ISODUAL3D {
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
    const VERTEX_POSITION_METHOD position_method,
-   std::vector<COORD_TYPE> & coord);
+   std::vector<COORD_TYPE> & coord,
+   SHARPISO_INFO & sharp_info);
 
 
   // **************************************************

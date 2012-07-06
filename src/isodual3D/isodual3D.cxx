@@ -371,7 +371,8 @@ void ISODUAL3D::dual_contouring_sharp
         position_dual_isovertices_edgeI
           (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
            iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig, 
-           vertex_position_method, dual_isosurface.vertex_coord);
+           vertex_position_method, dual_isosurface.vertex_coord,
+           isodual_info.sharpiso);
       }
       else {
         error.AddMessage("Programming error. Positioning method error.");
@@ -425,7 +426,8 @@ void ISODUAL3D::dual_contouring_sharp
         position_dual_isovertices_edgeI
           (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
            iso_vlist_cube, iso_vlist_patch, vertex_position_method,
-           dual_isosurface.vertex_coord);
+           dual_isosurface.vertex_coord, isodual_info.sharpiso);
+
       }
       else {
         error.AddMessage("Programming error. Positioning method error.");
@@ -468,7 +470,8 @@ void ISODUAL3D::dual_contouring_sharp
       // Select endpoint gradient which determines edge-isosurface intersection.
       position_dual_isovertices_edgeI
         (scalar_grid, gradient_grid, isovalue, isodual_param, iso_vlist, 
-         vertex_position_method, dual_isosurface.vertex_coord);
+         vertex_position_method, dual_isosurface.vertex_coord,
+         isodual_info.sharpiso);
     }
     else {
       // default

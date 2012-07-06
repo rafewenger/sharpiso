@@ -489,6 +489,8 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_sharp_gradient
   GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3];
   SCALAR_TYPE scalar[NUM_CUBE_VERTICES3D];
 
+  svd_info.flag_conflict = false;
+
   get_cube_gradients
     (scalar_grid, gradient_grid, cube_index,
      gradient_coord, scalar);
@@ -527,6 +529,7 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_sharp_gradient
         check_conflict(scalar_grid, isovalue, cube_coord, coord);
 
       if (flag_conflict) {
+        svd_info.flag_conflict = true;
         process_conflict(scalar_grid, cube_index, cube_coord, isovalue,
                          sharpiso_param, coord, svd_info);
       }
