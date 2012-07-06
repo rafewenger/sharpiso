@@ -1066,7 +1066,7 @@ void ISODUAL3D::report_iso_info3D
 
 	VERTEX_INDEX numv = (dual_isosurface.vertex_coord.size())/DIM3;
 	VERTEX_INDEX num_tri = 
-    (dual_isosurface.quad_vert.size())/NUM_VERT_PER_TRI;
+    (dual_isosurface.tri_vert.size())/NUM_VERT_PER_TRI;
 	VERTEX_INDEX num_quad = 
     (dual_isosurface.quad_vert.size())/NUM_VERT_PER_QUAD;
 	VERTEX_INDEX num_grid_cubes = isodual_info.grid.num_cubes;
