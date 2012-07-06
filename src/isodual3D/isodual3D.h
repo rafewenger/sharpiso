@@ -104,18 +104,17 @@ namespace ISODUAL3D {
   // DUAL CONTOURING USING SCALAR & GRADIENT DATA
   // **************************************************
 
-  /// Dual Contouring Algorithm using scalar and gradient data.
-  /// Represents each grid edge by a single integer.
-  /// @param merge_data = Data structure for merging edges.
-  /// Requires memory of size(MERGE_INDEX) for each grid edge.
-  void dual_contouring
-    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-     const GRADIENT_GRID_BASE & gradient_grid,
-     const SCALAR_TYPE isovalue,
-     const ISODUAL_PARAM & isodual_param,
-     std::vector<VERTEX_INDEX> & isoquad_vert,
-     std::vector<COORD_TYPE> & vertex_coord,
-     MERGE_DATA & merge_data, ISODUAL_INFO & isodual_info);
+  /// Dual Contouring algorithm for sharp isosurface features.
+  /// Return list of isosurface triangle and quad vertices
+  ///   and list of isosurface vertex coordinates.
+  void dual_contouring_sharp
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   DUAL_ISOSURFACE & dual_isosurface,
+   MERGE_DATA & merge_data,
+   ISODUAL_INFO & isodual_info);
 
 }
 
