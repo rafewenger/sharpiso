@@ -22,9 +22,10 @@
 */
 
 
-#include "ijktime.txx"
-#include "ijklist.txx"
 #include "ijkisopoly.txx"
+#include "ijklist.txx"
+#include "ijkmesh.txx"
+#include "ijktime.txx"
 
 #include "isodual3D.h"
 #include "isodual3D_ambig.h"
@@ -324,6 +325,8 @@ void ISODUAL3D::dual_contouring_sharp
 
     std::vector<ISO_VERTEX_INDEX> iso_vlist_cube;
     std::vector<FACET_VERTEX_INDEX> iso_vlist_patch;
+    std::vector<VERTEX_PAIR> cube_conflict_list;
+    std::vector<VERTEX_PAIR> edge_list;
 
     if (flag_resolve_ambiguous_facets) {
 
@@ -344,10 +347,23 @@ void ISODUAL3D::dual_contouring_sharp
       t2 = clock();
 
       if (vertex_position_method == GRADIENT_POSITIONING) {
-        position_dual_isovertices_using_gradients
-          (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
-           iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
-           dual_isosurface.vertex_coord, isodual_info.sharpiso);
+
+        if (isodual_param.flag_merge_conflict) {
+
+          position_dual_isovertices_using_gradients
+            (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
+             iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
+             dual_isosurface.vertex_coord, cube_conflict_list, 
+             isodual_info.sharpiso);
+
+        }
+        else {
+
+          position_dual_isovertices_using_gradients
+            (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
+             iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
+             dual_isosurface.vertex_coord, isodual_info.sharpiso);
+        }
       }
       else if (vertex_position_method == EDGEI_INTERPOLATE ||
                vertex_position_method == EDGEI_GRADIENT) {
@@ -362,6 +378,23 @@ void ISODUAL3D::dual_contouring_sharp
         error.AddMessage
           ("  Positioning does not allow resolving ambiguities in a cube.");
         throw error;
+      }
+
+      if (isodual_param.flag_merge_conflict) {
+        std::vector<VERTEX_INDEX> isoquad_vert;
+
+        get_edge_collapses
+          (scalar_grid, isovalue, iso_vlist_cube, iso_vlist_patch,
+           cube_conflict_list, edge_list);
+        isodual_info.sharpiso.num_edge_collapses = edge_list.size();
+
+        IJK::remap_list(edge_list, dual_isosurface.quad_vert);
+        isoquad_vert = dual_isosurface.quad_vert;
+        IJK::reorder_quad_vertices(isoquad_vert);
+        dual_isosurface.quad_vert.clear();
+        IJK::get_non_degenerate_quad
+          (isoquad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
+        IJK::reorder_quad_vertices(dual_isosurface.quad_vert);
       }
 
       if (isodual_param.flag_reposition) {

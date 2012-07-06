@@ -312,6 +312,7 @@ namespace ISODUAL3D {
 
   public:
     int num_conflicts;
+    int num_edge_collapses;
     int num_sharp_corners;
     int num_sharp_edges;
     int num_smooth_vertices;

@@ -342,6 +342,23 @@ namespace ISODUAL3D {
    SHARPISO_INFO & sharp_info);
 
   // **************************************************
+  // Edge collapse routines
+  // **************************************************
+
+  /// Get edge collapses.
+  /// @param cube_conflict_list List of cube conflicts.
+  ///   cube_conflict_list[i].first conflicts with cube_conflict_list[i].second
+  /// @param[out] edge_list List of collapsed edges.
+  ///   Map edge_list[i].first to edge_list[i].second.
+  void get_edge_collapses
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   const std::vector<VERTEX_PAIR> & cube_conflict_list,
+   std::vector<VERTEX_PAIR> & edge_list);
+
+  // **************************************************
   // Compute routines
   // **************************************************
 

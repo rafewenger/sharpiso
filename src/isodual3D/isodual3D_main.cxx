@@ -192,12 +192,6 @@ void construct_isosurface
       isosurface_tri_mesh.vertex_coord = dual_isosurface.vertex_coord;
       isosurface_tri_mesh.tri_vert = dual_isosurface.tri_vert;
 
-      /* OBSOLETE
-      NUM_TYPE num_quad = quad_vert.size()/NUM_QUAD_VERTICES;
-      if (num_quad > 0) {
-        reorder_quad_vertices(&(quad_vert[0]), num_quad);
-      }
-      */
       IJK::reorder_quad_vertices(quad_vert);
 
       if (isodual_data.quad_tri_method == SPLIT_MAX_ANGLE) {

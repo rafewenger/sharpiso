@@ -988,74 +988,6 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
 }
 
 
-void ISODUAL3D::report_iso_info
-(const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
-		const vector<COORD_TYPE> & vertex_coord,
-		const vector<VERTEX_INDEX> & plist,
-		const ISODUAL_INFO & isodual_info)
-{
-	const int dimension = output_info.dimension;
-	const int numv_per_simplex = output_info.NumVerticesPerIsopoly();
-
-	const char * indent4 = "    ";
-	string grid_element_name = "cubes";
-	if (dimension == 2) { grid_element_name = "squares"; };
-
-	VERTEX_INDEX numv = (vertex_coord.size())/dimension;
-	VERTEX_INDEX num_poly = (plist.size())/numv_per_simplex;
-	VERTEX_INDEX num_grid_cubes = isodual_info.grid.num_cubes;
-	VERTEX_INDEX num_non_empty_cubes = isodual_info.scalar.num_non_empty_cubes;
-
-	float percent = 0.0;
-	if (num_grid_cubes > 0)
-	{ percent = float(num_non_empty_cubes)/float(num_grid_cubes); }
-	int ipercent = int(100*percent);
-	cout << "  Isovalue " << output_info.isovalue << ".  "
-			<< numv << " isosurface vertices.  ";
-	if (output_info.OutputTriMesh()) {
-		cout << num_poly << " isosurface triangles." << endl;
-	}
-	else {
-		cout << num_poly << " isosurface quadrilaterals." << endl;
-	}
-
-	if (output_info.flag_output_alg_info) {
-		cout << endl;
-		cout << "  Number of conflicts: "
-				<< isodual_info.sharpiso.num_conflicts << endl;
-		cout << "  Number of sharp corners: "
-				<< isodual_info.sharpiso.num_sharp_corners << endl;
-		cout << "  Number of sharp edges: "
-				<< isodual_info.sharpiso.num_sharp_edges << endl;
-		cout << "  Number of smooth isosurface vertices: "
-				<< isodual_info.sharpiso.num_smooth_vertices << endl;
-		if (output_info.use_Linf_dist) {
-			cout << "  Number of vertices at min Linf distance to cube center: "
-					<< isodual_info.sharpiso.num_Linf_iso_vertex_locations << endl;
-		}
-
-		if (output_info.flag_reposition) {
-			cout << "  Number of repositioned isosurface vertices: "
-					<< isodual_info.sharpiso.num_repositioned_vertices << endl;
-		}
-
-		if (output_info.allow_multiple_iso_vertices &&
-				output_info.flag_resolve_ambiguous_facets) {
-			cout << "  Number of non-ambiguous cubes: "
-					<< isodual_info.sharpiso.num_cube_not_ambiguous << endl;
-			cout << "  Number of separate positive cubes: "
-					<< isodual_info.sharpiso.num_cube_separate_pos << endl;
-			cout << "  Number of separate negative cubes: "
-					<< isodual_info.sharpiso.num_cube_separate_neg << endl;
-			cout << "  Number of unresolved ambiguous cubes: "
-					<< isodual_info.sharpiso.num_cube_unresolved_ambiguity << endl;
-
-		}
-
-		cout << endl;
-	}
-}
-
 void ISODUAL3D::report_iso_info3D
 (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
  const DUAL_ISOSURFACE & dual_isosurface,
@@ -1102,6 +1034,11 @@ void ISODUAL3D::report_iso_info3D
 			cout << "  Number of vertices at min Linf distance to cube center: "
 					<< isodual_info.sharpiso.num_Linf_iso_vertex_locations << endl;
 		}
+
+    if (output_info.flag_merge_conflict) {
+      cout << "  Number of edge collapses: " 
+           << isodual_info.sharpiso.num_edge_collapses << endl;
+    }
 
 		if (output_info.flag_reposition) {
 			cout << "  Number of repositioned isosurface vertices: "
@@ -1201,7 +1138,7 @@ void options_msg()
 	cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}] [-snap_dist {D}]" << endl;
 	cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
 	cerr << "  [-lindstrom]" << endl;
-	cerr << "  [-allow_conflict] [-clamp_conflict] [-centroid_conflict]" << endl;
+	cerr << "  [-allow_conflict |-clamp_conflict | centroid_conflict] [-merge_conflict]" << endl;
 	cerr << "  [-clamp_far] [-centroid_far]" << endl;
 	cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
 	cerr << "  [-Linf | -no_Linf]" << endl;
@@ -1320,6 +1257,8 @@ void ISODUAL3D::help()
 			<< " (Default.)"  << endl;
 	cout << "  -centroid_conflict:  Settle conflicts by using centroid."
 			<< endl;
+	cout << "  -merge_conflict:  Settle conflicting isosurface vertices."
+       << endl;
 	cout << "  -clamp_far: Clamp isosurface vertices at distance greater"
 			<< " than max_dist." << endl;
 	cout << "  -centroid_far: Revert to centroid when an isosurface vertex is"

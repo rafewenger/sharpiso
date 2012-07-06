@@ -358,6 +358,7 @@ ISODUAL3D::ISODUAL_INFO::ISODUAL_INFO()
 void ISODUAL3D::SHARPISO_INFO::Clear()
 {
   num_conflicts = 0;
+  num_edge_collapses = 0;
   num_sharp_corners = 0;
   num_sharp_edges = 0;
   num_smooth_vertices = 0;

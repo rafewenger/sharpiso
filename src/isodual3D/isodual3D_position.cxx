@@ -1179,3 +1179,96 @@ void ISODUAL3D::reposition_dual_isovertices
   
 }
 
+
+// **************************************************
+// Get edge collapses.
+// **************************************************
+
+namespace {
+
+  // Return true if the two cubes share a facet.
+  bool share_facet
+  (const SHARPISO_GRID & grid,
+   const VERTEX_INDEX icube1,
+   const VERTEX_INDEX icube2,
+   VERTEX_INDEX & facet_v0, NUM_TYPE & orth_dir)
+  {
+    VERTEX_INDEX jcube1 = icube1;
+    VERTEX_INDEX jcube2 = icube2;
+
+    if (jcube2 < jcube1) { std::swap(jcube1, jcube2); }
+
+    for (NUM_TYPE d = 0; d < grid.Dimension(); d++) {
+
+      if (grid.NextVertex(jcube1, d) == jcube2) {
+        facet_v0 = jcube2;
+        orth_dir = d;
+        return(true);
+      }
+
+    }
+  }
+
+  // Return true if facet has both pos and neg vertices
+  
+
+  // Return true if iso vertices in two cubes share an edge
+  bool share_isosurface_edge
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const VERTEX_INDEX icube1,
+   const VERTEX_INDEX icube2,
+   const SCALAR_TYPE isovalue)
+  {
+    VERTEX_INDEX facet_v0;
+    NUM_TYPE orth_dir;
+
+    if (share_facet(scalar_grid, icube1, icube2, facet_v0, orth_dir)) {
+      if (is_gt_facet_min_le_facet_max
+          (scalar_grid, facet_v0, orth_dir, isovalue))
+      { return(true); }
+    }
+
+    return(false);
+  }
+
+};
+
+/// Get edge collapses.
+/// @param cube_conflict_list List of cube conflicts.
+///   cube_conflict_list[i].first conflicts with cube_conflict_list[i].second
+/// @param[out] edge_list List of collapsed edges.
+///   Map edge_list[i].first to edge_list[i].second.
+void ISODUAL3D::get_edge_collapses
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+ const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+ const std::vector<VERTEX_PAIR> & cube_conflict_list,
+ std::vector<VERTEX_PAIR> & edge_list)
+{
+  INDEX_GRID vloc;
+  SHARPISO_BOOL_GRID isovert_flag;
+  
+  vloc.SetSize(scalar_grid);
+  isovert_flag.SetSize(scalar_grid);
+
+  set_vertex_locations(iso_vlist_cube, iso_vlist_patch, vloc, isovert_flag);
+
+  for (NUM_TYPE i = 0; i < cube_conflict_list.size(); i++) {
+
+    VERTEX_INDEX icube1 = cube_conflict_list[i].first;
+    if (isovert_flag.Scalar(icube1)) {
+      VERTEX_INDEX icube2 = cube_conflict_list[i].second;
+
+      if (isovert_flag.Scalar(icube2)) {
+
+        if (share_isosurface_edge(scalar_grid, icube1, icube2, isovalue)) {
+          ISO_VERTEX_INDEX isov1 = vloc.Scalar(icube1);
+          ISO_VERTEX_INDEX isov2 = vloc.Scalar(icube2);
+          edge_list.push_back(std::make_pair(isov1, isov2));
+        }
+      }
+    }
+  }
+
+}

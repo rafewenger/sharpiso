@@ -332,13 +332,6 @@ namespace ISODUAL3D {
   /// Report isodual parameters.
   void report_isodual_param(const ISODUAL_PARAM & isodual_param);
 
-  /// Report information about isosurface.
-  void report_iso_info
-    (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
-     const std::vector<COORD_TYPE> & vertex_coord, 
-     const std::vector<VERTEX_INDEX> & slist, 
-     const ISODUAL_INFO & isodual_info);
-
   void report_iso_info3D
     (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
      const DUAL_ISOSURFACE & dual_isosurface,

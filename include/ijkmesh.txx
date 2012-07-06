@@ -198,14 +198,57 @@ namespace IJK {
     reorder_quad_vertices(&(quad_vert.front()), num_quad);
   }
 
+  /// Get a single non-degenerate quadrilateral.
+  /// A quadrilateral with a single edge collapse are reported as triangles.
+  /// Note: Does not clear new_quad_vert or new_tri_vert.
+  template <typename VTYPE1, typename VTYPE2, typename VTYPE3>
+  void get_non_degenerate_quad
+  (const VTYPE1 * quad_vert,
+   std::vector<VTYPE2> & new_tri_vert,
+   std::vector<VTYPE3> & new_quad_vert)
+  {
+    typedef typename std::vector<VTYPE1>::size_type SIZE_TYPE;
+    const SIZE_TYPE NUM_VERT_PER_QUAD = 4;
+
+    for (SIZE_TYPE j1 = 0; j1 < 2; j1++) {
+      SIZE_TYPE j2 = j1+2;
+      if (quad_vert[j1] == quad_vert[j2]) {
+        // Degenerate quad. Collapses to two edges.
+        return;
+      }
+    }
+
+    for (SIZE_TYPE j1 = 0; j1 < NUM_VERT_PER_QUAD; j1++) {
+      SIZE_TYPE j2 = (j1+1)%NUM_VERT_PER_QUAD;
+      SIZE_TYPE j3 = (j2+1)%NUM_VERT_PER_QUAD;
+      SIZE_TYPE j4 = (j3+1)%NUM_VERT_PER_QUAD;
+
+      if (quad_vert[j1] == quad_vert[j2]) {
+        if (quad_vert[j3] != quad_vert[j4]) {
+          // Single edge collapse.
+          new_tri_vert.push_back(quad_vert[j2]);
+          new_tri_vert.push_back(quad_vert[j3]);
+          new_tri_vert.push_back(quad_vert[j4]);
+          return;
+        }
+      }
+    }
+
+    // Non-degenerate quadrilateral.
+    for (SIZE_TYPE j = 0; j < NUM_VERT_PER_QUAD; j++) {
+      new_quad_vert.push_back(quad_vert[j]);
+    }
+  }
+
   /// Get non-degenerate quadrilaterals.
-  /// Quadrilaterals with 3 distinct vertices are reported as triangles.
+  /// Quadrilaterals with a single edge collapse are reported as triangles.
+  /// Note: Does not clear new_quad_vert or new_tri_vert.
   template <typename VTYPE1, typename VTYPE2, typename VTYPE3,
             typename NTYPE>
   void get_non_degenerate_quad
   (const VTYPE1 * quad_vert, const NTYPE num_quad,
-   std::vector<VTYPE2> & new_quad_vert,
-   std::vector<VTYPE3> & new_tri_vert)
+   std::vector<VTYPE2> & new_tri_vert,
+   std::vector<VTYPE3> & new_quad_vert)
   {
     const NTYPE NUM_VERT_PER_QUAD = 4;
     NTYPE num_distinct;
@@ -213,18 +256,30 @@ namespace IJK {
 
     for (NTYPE iquad = 0; iquad < num_quad; iquad++) {
       NTYPE k = iquad*NUM_VERT_PER_QUAD;
-      get_distinct(quad_vert+k, NUM_VERT_PER_QUAD,
-                   vlist, num_distinct);
 
-      if (num_distinct == 4) {
-        for (NTYPE j = 0; j < num_distinct; j++) 
-          { new_quad_vert.push_back(vlist[j]); }
-      }
-      else if (num_distinct == 3) {
-        for (NTYPE j = 0; j < num_distinct; j++) 
-          { new_tri_vert.push_back(vlist[j]); }
-      }
+      IJK::get_non_degenerate_quad(quad_vert+k, new_tri_vert, new_quad_vert);
     }
+
+  }
+
+  /// Get non-degenerate quadrilaterals.
+  /// C++ vector version for quad_vert.
+  template <typename VTYPE1, typename VTYPE2, typename VTYPE3>
+  void get_non_degenerate_quad
+  (const std::vector<VTYPE1> & quad_vert,
+   std::vector<VTYPE2> & new_tri_vert,
+   std::vector<VTYPE3> & new_quad_vert)
+  {
+    typedef typename std::vector<VTYPE1>::size_type SIZE_TYPE;
+
+    const SIZE_TYPE NUM_VERT_PER_QUAD = 4;
+
+    SIZE_TYPE num_quad = quad_vert.size()/NUM_VERT_PER_QUAD;
+
+    if (quad_vert.size() == 0) { return; }
+    get_non_degenerate_quad
+      (IJK::vector2pointer(quad_vert), num_quad,
+       new_tri_vert, new_quad_vert);
   }
 
 
