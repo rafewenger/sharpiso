@@ -142,6 +142,38 @@ namespace IJK {
     remap_list(remap_pair, &(list.front()), list.size());
   }
 
+  // **************************************************
+  // GET DISTINCT LIST ELEMENTS
+  // **************************************************
+
+  /// Get distinct elements of list[] and store in distinct_list[].
+  /// Retains the order of the distinct elements given in list[].
+  /// O(n^2) appropriate only for small lists.
+  /// @param distinct_list[] is preallocated with length at least list_length.
+  template <typename T1, typename T2, typename NTYPE1, typename NTYPE2>
+  void get_distinct(const T1 * list, const NTYPE1 list_length,
+                    T2 * distinct_list, NTYPE2 & num_distinct)
+  {
+    if (list_length == 0) { 
+      num_distinct = 0;
+      return; 
+    };
+
+    distinct_list[0] = list[0];
+    num_distinct = 1;
+
+    for (NTYPE1 i = 1; i < list_length; i++) {
+      const T1 * previous_ptr = find(list, list+i, list[i]);
+
+      if (previous_ptr == list+i) {
+        // new element
+        distinct_list[num_distinct] = list[i];
+        num_distinct++;
+      }
+    }
+
+  }
+
 }
 
 #endif

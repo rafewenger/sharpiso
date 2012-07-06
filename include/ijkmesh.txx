@@ -25,6 +25,8 @@
 #define _IJKMESH_
 
 #include "ijk.txx"
+#include "ijklist.txx"
+
 #include <algorithm>
 #include <vector>
 
@@ -161,7 +163,7 @@ namespace IJK {
   }
 
   // **************************************************
-  // REORDER QUAD VERTICES
+  // PROCESS QUADRILATERALS
   // **************************************************
 
   /// Reorder quad vertices.
@@ -181,6 +183,36 @@ namespace IJK {
       std::swap(quad_vert[k+2], quad_vert[k+3]);
     }
   }
+
+  /// Get non-degenerate quadrilaterals.
+  /// Quadrilaterals with 3 distinct vertices are reported as triangles.
+  template <typename VTYPE1, typename VTYPE2, typename VTYPE3,
+            typename NTYPE>
+  void get_non_degenerate_quad
+  (const VTYPE1 * quad_vert, const NTYPE num_quad,
+   std::vector<VTYPE2> & new_quad_vert,
+   std::vector<VTYPE3> & new_tri_vert)
+  {
+    const NTYPE NUM_VERT_PER_QUAD = 4;
+    NTYPE num_distinct;
+    VTYPE1 vlist[NUM_VERT_PER_QUAD];
+
+    for (NTYPE iquad = 0; iquad < num_quad; iquad++) {
+      NTYPE k = iquad*NUM_VERT_PER_QUAD;
+      get_distinct(quad_vert+k, NUM_VERT_PER_QUAD,
+                   vlist, num_distinct);
+
+      if (num_distinct == 4) {
+        for (NTYPE j = 0; j < num_distinct; j++) 
+          { new_quad_vert.push_back(vlist[j]); }
+      }
+      else if (num_distinct == 3) {
+        for (NTYPE j = 0; j < num_distinct; j++) 
+          { new_tri_vert.push_back(vlist[j]); }
+      }
+    }
+  }
+
 
   // **************************************************
   // TRIANGULATE POLYGONS
@@ -257,7 +289,6 @@ namespace IJK {
     SIZE_TYPE num_quad = quad_vert.size()/NUM_VERT_PER_QUAD;
     triangulate_quad(IJK::vector2pointer(quad_vert), num_quad, tri_vert);
   }
-
 
 }
 
