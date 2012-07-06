@@ -184,6 +184,20 @@ namespace IJK {
     }
   }
 
+  /// Reorder quad vertices.
+  /// C++ vector version of quad_vert.
+  template <typename VTYPE>
+  void reorder_quad_vertices(std::vector<VTYPE> & quad_vert)
+  {
+    typedef typename std::vector<VTYPE>::size_type SIZE_TYPE;
+    const SIZE_TYPE NUM_VERT_PER_QUAD = 4;
+    const SIZE_TYPE num_quad = quad_vert.size()/NUM_VERT_PER_QUAD;
+
+    if (num_quad == 0) { return; }
+
+    reorder_quad_vertices(&(quad_vert.front()), num_quad);
+  }
+
   /// Get non-degenerate quadrilaterals.
   /// Quadrilaterals with 3 distinct vertices are reported as triangles.
   template <typename VTYPE1, typename VTYPE2, typename VTYPE3,

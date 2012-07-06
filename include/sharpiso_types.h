@@ -74,8 +74,15 @@ namespace SHARPISO {
     (NUM_CUBE_EDGES3D-NUM_CUBE_FACET_VERTICES3D)/2;
   const NUM_TYPE NUM_CUBE_DIAGONALS3D = NUM_CUBE_FACET_VERTICES3D;
 
+  // *** DEPRECATED ***
   /// Number of quadrilateral vertices.
   const NUM_TYPE NUM_QUAD_VERTICES = 4;
+
+  /// Number of quadrilateral vertices.
+  const NUM_TYPE NUM_VERT_PER_TRI = 3;
+
+  /// Number of quadrilateral vertices.
+  const NUM_TYPE NUM_VERT_PER_QUAD = 4;
 
   /// Number of vertices in two cubes sharing a facet.
   const NUM_TYPE NUM_TWO_CUBE_VERTICES3D = DIM3 * NUM_CUBE_VERTICES3D;

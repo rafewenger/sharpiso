@@ -236,38 +236,6 @@ namespace ISODUAL3D {
      const DUAL_ISOSURFACE & dual_isosurface,
      const ISODUAL_INFO & isodual_info, IO_TIME & io_time);
 
-  /// Output isosurface of quadrilaterals.
-  void output_quad_isosurface
-    (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
-     const std::vector<COORD_TYPE> & vertex_coord, 
-     const std::vector<VERTEX_INDEX> & quad_vert,
-     const ISODUAL_INFO & isodual_info, IO_TIME & io_time);
-
-  /// Output isosurface of triangles.
-  void output_tri_isosurface
-    (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
-     const std::vector<COORD_TYPE> & vertex_coord, 
-     const std::vector<VERTEX_INDEX> & tri_vert,
-     const ISODUAL_INFO & isodual_info, IO_TIME & io_time);
-
-  void output_dual_isosurface_color
-    (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
-     const DUAL_ISOSURFACE & dual_isosurface,
-     const COLOR_TYPE * front_color, const COLOR_TYPE * back_color,
-     const ISODUAL_INFO & isodual_info, IO_TIME & io_time);
-
-  void output_dual_isosurface_color
-    (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
-     const std::vector<COORD_TYPE> & vertex_coord, 
-     const std::vector<VERTEX_INDEX> & slist,
-     const COLOR_TYPE * front_color, const COLOR_TYPE * back_color,
-     const ISODUAL_INFO & isodual_info, IO_TIME & io_time);
-
-  void output_dual_isosurface_color_alternating
-    (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
-     const DUAL_ISOSURFACE & dual_isosurface,
-     const ISODUAL_INFO & isodual_info, IO_TIME & io_time);
-
 // **************************************************
 // RESCALE ROUTINES
 // **************************************************
@@ -287,53 +255,37 @@ namespace ISODUAL3D {
 // WRITE_DUAL_MESH
 // **************************************************
 
-  /// Write dual isosurface quadrilateral mesh.
+  /// Write dual mesh.
   /// @param output_info Output information.
   /// @param vertex_coord List of vertex coordinates.
-  /// @param quad_vert[] List of triangle vertices.
-  ///        quad_vert[4*i+k] is k'th vertex of triangle i.
-  ///        Quadrilateral vertices are listed in order:
-  ///            Lower-Left, Lower-Right, Upper-Left, Upper-Right
-  void write_dual_quad_mesh
-    (const OUTPUT_INFO & output_info,
-     const std::vector<COORD_TYPE> & vertex_coord, 
-     const std::vector<VERTEX_INDEX> & quad_vert);
-
-  void write_dual_quad_mesh
-    (const OUTPUT_INFO & output_info,
-     const std::vector<COORD_TYPE> & vertex_coord, 
-     const std::vector<VERTEX_INDEX> & slist,
-     IO_TIME & io_time);
-
-  void write_dual_mesh_color
-    (const OUTPUT_INFO & output_info,
-     const std::vector<COORD_TYPE> & vertex_coord, 
-     const std::vector<VERTEX_INDEX> & slist,
-     const COLOR_TYPE * front_color, const COLOR_TYPE * back_color);
-
-  void write_dual_mesh_color
-    (const OUTPUT_INFO & output_info,
-     const std::vector<COORD_TYPE> & vertex_coord, 
-     const std::vector<VERTEX_INDEX> & slist, 
-     const COLOR_TYPE * front_color, const COLOR_TYPE * back_color,
-     IO_TIME & io_time);
-
-  /// Write dual isosurface triangular mesh.
-  /// @param output_info Output information.
-  /// @param vertex_coord List of vertex coordinates.
-  /// @param tri_vert[] List of triangle vertices.
-  ///        tri_vert[3*i+k] is k'th vertex of triangle i.
-  void write_dual_tri_mesh
-  (const OUTPUT_INFO & output_info,
-   const std::vector<COORD_TYPE> & vertex_coord, 
-   const std::vector<VERTEX_INDEX> & quad_vert);
-
-  /// Write dual isosurface triangular mesh.
-  /// Record write time.
-  void write_dual_tri_mesh
+  /// @param tri_vert[] Array of triangle vertices.
+  /// @param quad_vert[] Array of triangle vertices.
+  /// @param flag_reorder_vertices If true, need to reorder quad vertices
+  ///           for clockwise/counter-clockwise order.
+  void write_dual_mesh3D
   (const OUTPUT_INFO & output_info,
    const std::vector<COORD_TYPE> & vertex_coord, 
    const std::vector<VERTEX_INDEX> & tri_vert,
+   const std::vector<VERTEX_INDEX> & quad_vert,
+   const bool flag_reorder_quad_vertices);
+
+
+  // Write dual mesh.
+  // Return time to write data.
+  void write_dual_mesh3D
+  (const OUTPUT_INFO & output_info,
+   const std::vector<COORD_TYPE> & vertex_coord, 
+   const std::vector<VERTEX_INDEX> & tri_vert,
+   const std::vector<VERTEX_INDEX> & quad_vert,
+   const bool flag_reorder_quad_vertices,
+   IO_TIME & io_time);
+
+  /// Write dual mesh.
+  /// Version with DUAL_ISOSURFACE parameter.
+  void write_dual_mesh3D
+  (const OUTPUT_INFO & output_info,
+   const DUAL_ISOSURFACE & dual_isosurface,
+   const bool flag_reorder_quad_vertices,
    IO_TIME & io_time);
 
 // **************************************************
@@ -385,6 +337,11 @@ namespace ISODUAL3D {
     (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
      const std::vector<COORD_TYPE> & vertex_coord, 
      const std::vector<VERTEX_INDEX> & slist, 
+     const ISODUAL_INFO & isodual_info);
+
+  void report_iso_info3D
+    (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
+     const DUAL_ISOSURFACE & dual_isosurface,
      const ISODUAL_INFO & isodual_info);
 
 // **************************************************
