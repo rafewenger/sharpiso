@@ -3,7 +3,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2006,2007,2009 Rephael Wenger
+  Copyright (C) 2006,2007,2009,2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -58,12 +58,12 @@ namespace ISODUAL3D {
   /// @param merge_data = Data structure for merging edges.
   /// Requires memory of size(MERGE_INDEX) for each grid edge.
   void dual_contouring
-    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-     const SCALAR_TYPE isovalue,
-     const ISODUAL_PARAM & isodual_param,
-     std::vector<VERTEX_INDEX> & isopoly_vert,
-     std::vector<COORD_TYPE> & vertex_coord,
-     MERGE_DATA & merge_data, ISODUAL_INFO & isodual_info);
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   std::vector<VERTEX_INDEX> & isoquad_vert,
+   std::vector<COORD_TYPE> & vertex_coord,
+   MERGE_DATA & merge_data, ISODUAL_INFO & isodual_info);
 
   /// Dual contouring algorithm.
   /// Position isosurface vertices at cube centers.
@@ -72,7 +72,7 @@ namespace ISODUAL3D {
   void dual_contouring_cube_center
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const SCALAR_TYPE isovalue,
-   std::vector<VERTEX_INDEX> & isopoly_vert,
+   std::vector<VERTEX_INDEX> & isoquad_vert,
    std::vector<COORD_TYPE> & vertex_coord,
    MERGE_DATA & merge_data,
    ISODUAL_INFO & isodual_info);
@@ -82,7 +82,7 @@ namespace ISODUAL3D {
   void dual_contouring_centroid
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const SCALAR_TYPE isovalue,
-   std::vector<VERTEX_INDEX> & isopoly_vert,
+   std::vector<VERTEX_INDEX> & isoquad_vert,
    std::vector<COORD_TYPE> & vertex_coord,
    MERGE_DATA & merge_data,
    ISODUAL_INFO & isodual_info);
@@ -94,7 +94,7 @@ namespace ISODUAL3D {
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const SCALAR_TYPE isovalue,
    const bool flag_separate_neg,
-   std::vector<VERTEX_INDEX> & isopoly_vert,
+   std::vector<VERTEX_INDEX> & isoquad_vert,
    std::vector<COORD_TYPE> & vertex_coord,
    MERGE_DATA & merge_data,
    ISODUAL_INFO & isodual_info);
@@ -104,18 +104,17 @@ namespace ISODUAL3D {
   // DUAL CONTOURING USING SCALAR & GRADIENT DATA
   // **************************************************
 
-  /// Dual Contouring Algorithm using scalar and gradient data.
-  /// Represents each grid edge by a single integer.
-  /// @param merge_data = Data structure for merging edges.
-  /// Requires memory of size(MERGE_INDEX) for each grid edge.
-  void dual_contouring
-    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-     const GRADIENT_GRID_BASE & gradient_grid,
-     const SCALAR_TYPE isovalue,
-     const ISODUAL_PARAM & isodual_param,
-     std::vector<VERTEX_INDEX> & isopoly_vert,
-     std::vector<COORD_TYPE> & vertex_coord,
-     MERGE_DATA & merge_data, ISODUAL_INFO & isodual_info);
+  /// Dual Contouring algorithm for sharp isosurface features.
+  /// Return list of isosurface triangle and quad vertices
+  ///   and list of isosurface vertex coordinates.
+  void dual_contouring_sharp
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   DUAL_ISOSURFACE & dual_isosurface,
+   MERGE_DATA & merge_data,
+   ISODUAL_INFO & isodual_info);
 
 }
 

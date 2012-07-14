@@ -24,7 +24,7 @@
 #ifndef _SHARPISO_TYPES_
 #define _SHARPISO_TYPES_
 
-
+#include <utility>
 
 /// Definitions for sharp isosurface processing.
 namespace SHARPISO {
@@ -50,6 +50,8 @@ namespace SHARPISO {
   typedef int NUM_TYPE;
   typedef int VERTEX_INDEX;
 
+  typedef std::pair<VERTEX_INDEX, VERTEX_INDEX> VERTEX_PAIR;
+
   typedef enum { LOC_NONE, CENTROID, CUBE_CENTER, LOC_SVD } LOC_TYPE ;
 
   typedef enum { GRAD_C, GRAD_N, GRAD_CS, GRAD_NS, GRAD_IE, GRAD_IES,
@@ -72,8 +74,15 @@ namespace SHARPISO {
     (NUM_CUBE_EDGES3D-NUM_CUBE_FACET_VERTICES3D)/2;
   const NUM_TYPE NUM_CUBE_DIAGONALS3D = NUM_CUBE_FACET_VERTICES3D;
 
+  // *** DEPRECATED ***
   /// Number of quadrilateral vertices.
   const NUM_TYPE NUM_QUAD_VERTICES = 4;
+
+  /// Number of quadrilateral vertices.
+  const NUM_TYPE NUM_VERT_PER_TRI = 3;
+
+  /// Number of quadrilateral vertices.
+  const NUM_TYPE NUM_VERT_PER_QUAD = 4;
 
   /// Number of vertices in two cubes sharing a facet.
   const NUM_TYPE NUM_TWO_CUBE_VERTICES3D = DIM3 * NUM_CUBE_VERTICES3D;

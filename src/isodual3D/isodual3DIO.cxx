@@ -55,6 +55,7 @@ typedef enum {
 	REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
 	ALLOW_CONFLICT_PARAM,
 	CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
+  MERGE_CONFLICT_PARAM,
 	CLAMP_FAR_PARAM, CENTROID_FAR_PARAM,
 	RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,
 	REMOVEG_PARAM, NO_REMOVEG_PARAM,
@@ -76,7 +77,8 @@ typedef enum {
     "-gradient", "-position", "-pos", "-trimesh", "-uniform_trimesh",
     "-max_eigen", "-max_dist", "-gradS_offset", "-max_mag", "-snap_dist",
     "-reposition", "-no_reposition", "-sepdist",
-    "-allow_conflict", "-clamp_conflict", "-centroid_conflict",
+    "-allow_conflict", "-clamp_conflict", "-centroid_conflict", 
+    "-merge_conflict",
     "-clamp_far", "-centroid_far",
     "-recompute_eigen2", "-no_recompute_eigen2",
     "-removeg", "-no_removeg",
@@ -328,6 +330,10 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 		case CENTROID_CONFLICT_PARAM:
 			input_info.flag_clamp_conflict = false;
 			break;
+
+		case MERGE_CONFLICT_PARAM:
+			input_info.flag_merge_conflict = true;
+      break;
 
 		case CLAMP_FAR_PARAM:
 			input_info.flag_clamp_far = true;
@@ -661,316 +667,95 @@ void ISODUAL3D::output_dual_isosurface
 		const DUAL_ISOSURFACE & dual_isosurface,
 		const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
 {
-	if (output_info.OutputTriMesh()) {
-		output_tri_isosurface
-		(output_info, isodual_data,
-				dual_isosurface.vertex_coord, dual_isosurface.tri_vert,
-				isodual_info, io_time);
-	}
-	else {
-		output_quad_isosurface
-		(output_info, isodual_data,
-				dual_isosurface.vertex_coord, dual_isosurface.isopoly_vert,
-				isodual_info, io_time);
-	}
-}
-
-/// Output isosurface of quadrilaterals.
-void ISODUAL3D::output_quad_isosurface
-(const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
-		const vector<COORD_TYPE> & vertex_coord,
-		const vector<VERTEX_INDEX> & quad_vert,
-		const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
-{
 	if (!output_info.use_stdout && !output_info.flag_silent) {
-		report_iso_info(output_info, isodual_data,
-				vertex_coord, quad_vert, isodual_info);
+		report_iso_info3D
+      (output_info, isodual_data, dual_isosurface, isodual_info);
 	}
 
 	if (!output_info.nowrite_flag) {
-		write_dual_quad_mesh(output_info, vertex_coord, quad_vert, io_time);
+    bool flag_reorder_quad_vertices = true;
+		write_dual_mesh3D
+      (output_info, dual_isosurface, flag_reorder_quad_vertices, io_time);
 	}
 }
 
-/// Output isosurface of triangles.
-void ISODUAL3D::output_tri_isosurface
-(const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
-		const vector<COORD_TYPE> & vertex_coord,
-		const vector<VERTEX_INDEX> & tri_vert,
-		const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
-{
-	if (!output_info.use_stdout && !output_info.flag_silent) {
-		report_iso_info(output_info, isodual_data,
-				vertex_coord, tri_vert, isodual_info);
-	}
-
-	if (!output_info.nowrite_flag) {
-		write_dual_tri_mesh(output_info, vertex_coord, tri_vert, io_time);
-	}
-}
-
-void ISODUAL3D::output_dual_isosurface_color
-(const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
-		const DUAL_ISOSURFACE & dual_isosurface,
-		const COLOR_TYPE * front_color, const COLOR_TYPE * back_color,
-		const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
-{
-	output_dual_isosurface_color
-	(output_info, isodual_data,
-			dual_isosurface.vertex_coord, dual_isosurface.isopoly_vert,
-			front_color, back_color, isodual_info, io_time);
-}
-
-void ISODUAL3D::output_dual_isosurface_color
-(const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
-		const vector<COORD_TYPE> & vertex_coord, const vector<VERTEX_INDEX> & slist,
-		const COLOR_TYPE * front_color, const COLOR_TYPE * back_color,
-		const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
-{
-	if (!output_info.use_stdout && !output_info.flag_silent) {
-		report_iso_info(output_info, isodual_data,
-				vertex_coord, slist, isodual_info);
-	}
-
-	if (!output_info.nowrite_flag) {
-		write_dual_mesh_color
-		(output_info, vertex_coord, slist, front_color, back_color, io_time);
-	}
-}
-
-void ISODUAL3D::output_dual_isosurface_color_alternating
-(const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
-		const DUAL_ISOSURFACE & dual_isosurface,
-		const ISODUAL_INFO & isodual_info, IO_TIME & io_time)
-{
-	const VERTEX_INDEX num_poly = dual_isosurface.NumIsoPoly();
-
-	IJK::ARRAY<COLOR_TYPE> front_color(4*num_poly);
-	IJK::ARRAY<COLOR_TYPE> back_color(4*num_poly);
-	set_color_alternating
-	(isodual_data.ScalarGrid(), dual_isosurface.cube_containing_isopoly,
-			front_color.Ptr());
-	set_color_alternating
-	(isodual_data.ScalarGrid(), dual_isosurface.cube_containing_isopoly,
-			back_color.Ptr());
-
-	output_dual_isosurface_color
-	(output_info, isodual_data, dual_isosurface.vertex_coord,
-			dual_isosurface.isopoly_vert,
-			front_color.PtrConst(), back_color.PtrConst(),
-			isodual_info, io_time);
-}
 
 // **************************************************
 // WRITE_DUAL_MESH
 // **************************************************
 
-void ISODUAL3D::write_dual_quad_mesh
+// Write dual mesh.
+void ISODUAL3D::write_dual_mesh3D
 (const OUTPUT_INFO & output_info,
-		const vector<COORD_TYPE> & vertex_coord, const vector<VERTEX_INDEX> & plist)
+ const std::vector<COORD_TYPE> & vertex_coord, 
+ const std::vector<VERTEX_INDEX> & tri_vert,
+ const std::vector<VERTEX_INDEX> & quad_vert,
+ const bool flag_reorder_quad_vertices)
 {
-	const int dimension = output_info.dimension;
-	const int numv_per_simplex = output_info.NumVerticesPerIsopoly();
-	const bool use_stdout = output_info.use_stdout;
+  const string output_filename = output_info.output_filename;
 	ofstream output_file;
-	ERROR error_mcube("write_dual_mesh");
+  IJK::PROCEDURE_ERROR error("write_dual_mesh");
 
-	// Output vertices in counter-clockwise order around quadrilateral.
-	const bool flag_reorder_quad_vertices = true;
+  if (output_filename == "") {
+    error.AddMessage("Programming error. Missing output filename.");
+    throw error;
+  }
 
-	string ofilename = output_info.output_filename;
+  output_file.open(output_filename.c_str(), ios::out);
+  if (!output_file.good()) {
+    cerr << "Unable to open output file " << output_filename << "." << endl;
+    exit(65);
+  };
 
-	switch (output_info.output_format) {
+  if (flag_reorder_quad_vertices) {
+    std::vector<VERTEX_INDEX> quad_vert2(quad_vert);
+    IJK::reorder_quad_vertices(quad_vert2);
+    ijkoutOFF(output_file, DIM3, vertex_coord, 
+              tri_vert, NUM_VERT_PER_TRI, quad_vert2, NUM_VERT_PER_QUAD);
+  }
+  else {
+    ijkoutOFF(output_file, DIM3, vertex_coord, 
+              tri_vert, NUM_VERT_PER_TRI, quad_vert, NUM_VERT_PER_QUAD);
+  }
 
-	case OFF:
-		if (!use_stdout) {
-			output_file.open(ofilename.c_str(), ios::out);
-			if (dimension == 3) {
-				ijkoutQuadOFF(output_file, dimension, vertex_coord, plist,
-						flag_reorder_quad_vertices);
-			}
-			else {
-				ijkoutOFF(output_file, dimension, numv_per_simplex,
-						vertex_coord, plist);
-			}
-			output_file.close();
-		}
-		else {
-			if (dimension == 3) {
-				ijkoutQuadOFF(dimension, vertex_coord, plist,
-						flag_reorder_quad_vertices);
-			}
-			else {
-				ijkoutOFF(dimension, numv_per_simplex, vertex_coord, plist);
-			}
-		};
-		break;
+  output_file.close();
 
-	case IV:
-		if (dimension == 3) {
-			if (!use_stdout) {
-				output_file.open(ofilename.c_str(), ios::out);
-				ijkoutIV(output_file, dimension, vertex_coord, plist);
-				output_file.close();
-			}
-			else {
-				ijkoutIV(dimension, vertex_coord, plist);
-			}
-		}
-		else throw error_mcube("Illegal dimension. OpenInventor format is only for dimension 3.");
-		break;
-
-	default:
-		throw error_mcube("Illegal output format.");
-		break;
-	}
-
-	if (!use_stdout && !output_info.flag_silent)
-		cout << "Wrote output to file: " << ofilename << endl;
+	if (!output_info.flag_silent)
+		cout << "Wrote output to file: " << output_filename << endl;
 }
 
-void ISODUAL3D::write_dual_quad_mesh
+// Write dual mesh.
+// Time write.
+void ISODUAL3D::write_dual_mesh3D
 (const OUTPUT_INFO & output_info,
-		const vector<COORD_TYPE> & vertex_coord, const vector<VERTEX_INDEX> & plist,
-		IO_TIME & io_time)
+ const std::vector<COORD_TYPE> & vertex_coord, 
+ const std::vector<VERTEX_INDEX> & tri_vert,
+ const std::vector<VERTEX_INDEX> & quad_vert,
+ const bool flag_reorder_quad_vertices,
+ IO_TIME & io_time)
 {
 	ELAPSED_TIME wall_time;
 
-	write_dual_quad_mesh(output_info, vertex_coord, plist);
+	write_dual_mesh3D(output_info, vertex_coord, tri_vert, quad_vert, 
+                    flag_reorder_quad_vertices);
 
 	io_time.write_time += wall_time.getElapsed();
 }
 
-void ISODUAL3D::write_dual_mesh_color
+// Write dual mesh.
+// Version with DUAL_ISOSURFACE parameter.
+void ISODUAL3D::write_dual_mesh3D
 (const OUTPUT_INFO & output_info,
-		const vector<COORD_TYPE> & vertex_coord, const vector<VERTEX_INDEX> & plist,
-		const COLOR_TYPE * front_color, const COLOR_TYPE * back_color)
+ const DUAL_ISOSURFACE & dual_isosurface,
+ const bool flag_reorder_quad_vertices,
+ IO_TIME & io_time)
 {
-	const int dimension = output_info.dimension;
-	const int numv_per_simplex = output_info.NumVerticesPerIsopoly();
-	const bool use_stdout = output_info.use_stdout;
-
-	ofstream output_file;
-	ERROR error_mcube("write_dual_mesh_color");
-
-	string ofilename = output_info.output_filename;
-
-	switch (output_info.output_format) {
-
-	case OFF:
-		if (!use_stdout) {
-			output_file.open(ofilename.c_str(), ios::out);
-			ijkoutColorFacesOFF(output_file, dimension, numv_per_simplex,
-					vertex_coord, plist, front_color, back_color);
-			output_file.close();
-		}
-		else {
-			ijkoutColorFacesOFF(std::cout, dimension, numv_per_simplex,
-					vertex_coord, plist, front_color, back_color);
-		};
-		break;
-
-	case IV:
-		if (dimension == 3) {
-			if (!use_stdout) {
-				output_file.open(ofilename.c_str(), ios::out);
-				ijkoutIV(output_file, dimension, vertex_coord, plist);
-				output_file.close();
-			}
-			else {
-				ijkoutOFF(dimension, vertex_coord, plist);
-			}
-		}
-		else throw error_mcube("Illegal dimension. OpenInventor format is only for dimension 3.");
-		break;
-
-	default:
-		throw error_mcube("Illegal output format.");
-		break;
-	}
-
-	if (!use_stdout && !output_info.flag_silent)
-		cout << "Wrote output to file: " << ofilename << endl;
+  write_dual_mesh3D
+    (output_info, dual_isosurface.vertex_coord,
+     dual_isosurface.tri_vert, dual_isosurface.quad_vert,
+     flag_reorder_quad_vertices, io_time);
 }
 
-void ISODUAL3D::write_dual_mesh_color
-(const OUTPUT_INFO & output_info,
-		const vector<COORD_TYPE> & vertex_coord, const vector<VERTEX_INDEX> & plist,
-		const COLOR_TYPE * front_color, const COLOR_TYPE * back_color,
-		IO_TIME & io_time)
-{
-	ELAPSED_TIME wall_time;
-
-	write_dual_mesh_color(output_info, vertex_coord, plist,
-			front_color, back_color);
-
-	io_time.write_time += wall_time.getElapsed();
-}
-
-/// Write dual isosurface triangular mesh.
-/// @param output_info Output information.
-/// @param vertex_coord List of vertex coordinates.
-/// @param tri_vert[] List of triangle vertices.
-///        tri_vert[3*i+k] is k'th vertex of triangle i.
-void ISODUAL3D::write_dual_tri_mesh
-(const OUTPUT_INFO & output_info,
-		const std::vector<COORD_TYPE> & vertex_coord,
-		const std::vector<VERTEX_INDEX> & tri_vert)
-{
-	const int NUMV_PER_QUAD = 4;
-	const int NUMV_PER_TRI = 3;
-	const int dimension = output_info.dimension;
-	const bool use_stdout = output_info.use_stdout;
-	ofstream output_file;
-	PROCEDURE_ERROR error("write_dual_tri_mesh");
-
-	if (dimension != 3) {
-		error.AddMessage("Programming error.  Illegal dimension ", dimension, ".");
-		error.AddMessage("   Routine only allowed for dimension 3.");
-		throw error;
-	}
-
-	string ofilename = output_info.output_filename;
-
-	switch (output_info.output_format) {
-
-	case OFF:
-		if (!use_stdout) {
-			output_file.open(ofilename.c_str(), ios::out);
-			ijkoutOFF(output_file, dimension, NUMV_PER_TRI,
-					vertex_coord, tri_vert);
-			output_file.close();
-		}
-		else {
-			ijkoutOFF(dimension, NUMV_PER_TRI, vertex_coord, tri_vert);
-		};
-		break;
-
-	case IV:
-		ijkoutIV(dimension, vertex_coord, tri_vert);
-		break;
-
-	default:
-		throw error("Illegal output format.");
-		break;
-	}
-
-	if (!use_stdout && !output_info.flag_silent)
-		cout << "Wrote output to file: " << ofilename << endl;
-}
-
-void ISODUAL3D::write_dual_tri_mesh
-(const OUTPUT_INFO & output_info,
-		const vector<COORD_TYPE> & vertex_coord,
-		const vector<VERTEX_INDEX> & tri_vert,
-		IO_TIME & io_time)
-{
-	ELAPSED_TIME wall_time;
-
-	write_dual_tri_mesh(output_info, vertex_coord, tri_vert);
-
-	io_time.write_time += wall_time.getElapsed();
-}
 
 // **************************************************
 // RESCALE ROUTINES
@@ -1203,21 +988,19 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
 }
 
 
-void ISODUAL3D::report_iso_info
+void ISODUAL3D::report_iso_info3D
 (const OUTPUT_INFO & output_info, const ISODUAL_DATA & isodual_data,
-		const vector<COORD_TYPE> & vertex_coord,
-		const vector<VERTEX_INDEX> & plist,
-		const ISODUAL_INFO & isodual_info)
+ const DUAL_ISOSURFACE & dual_isosurface,
+ const ISODUAL_INFO & isodual_info)
 {
-	const int dimension = output_info.dimension;
-	const int numv_per_simplex = output_info.NumVerticesPerIsopoly();
-
 	const char * indent4 = "    ";
 	string grid_element_name = "cubes";
-	if (dimension == 2) { grid_element_name = "squares"; };
 
-	VERTEX_INDEX numv = (vertex_coord.size())/dimension;
-	VERTEX_INDEX num_poly = (plist.size())/numv_per_simplex;
+	VERTEX_INDEX numv = (dual_isosurface.vertex_coord.size())/DIM3;
+	VERTEX_INDEX num_tri = 
+    (dual_isosurface.tri_vert.size())/NUM_VERT_PER_TRI;
+	VERTEX_INDEX num_quad = 
+    (dual_isosurface.quad_vert.size())/NUM_VERT_PER_QUAD;
 	VERTEX_INDEX num_grid_cubes = isodual_info.grid.num_cubes;
 	VERTEX_INDEX num_non_empty_cubes = isodual_info.scalar.num_non_empty_cubes;
 
@@ -1227,12 +1010,15 @@ void ISODUAL3D::report_iso_info
 	int ipercent = int(100*percent);
 	cout << "  Isovalue " << output_info.isovalue << ".  "
 			<< numv << " isosurface vertices.  ";
-	if (output_info.OutputTriMesh()) {
-		cout << num_poly << " isosurface triangles." << endl;
+  if (num_tri > 0) {
+		cout << num_tri << " isosurface triangles." << endl;
 	}
-	else {
-		cout << num_poly << " isosurface quadrilaterals." << endl;
-	}
+  if (num_quad > 0) {
+		cout << num_quad << " isosurface quadrilaterals." << endl;
+  }
+  if (num_tri+num_quad == 0) {
+		cout << "No isosurface polygons." << endl;
+  }
 
 	if (output_info.flag_output_alg_info) {
 		cout << endl;
@@ -1248,6 +1034,11 @@ void ISODUAL3D::report_iso_info
 			cout << "  Number of vertices at min Linf distance to cube center: "
 					<< isodual_info.sharpiso.num_Linf_iso_vertex_locations << endl;
 		}
+
+    if (output_info.flag_merge_conflict) {
+      cout << "  Number of edge collapses: " 
+           << isodual_info.sharpiso.num_edge_collapses << endl;
+    }
 
 		if (output_info.flag_reposition) {
 			cout << "  Number of repositioned isosurface vertices: "
@@ -1347,7 +1138,7 @@ void options_msg()
 	cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}] [-snap_dist {D}]" << endl;
 	cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
 	cerr << "  [-lindstrom]" << endl;
-	cerr << "  [-allow_conflict] [-clamp_conflict] [-centroid_conflict]" << endl;
+	cerr << "  [-allow_conflict |-clamp_conflict | centroid_conflict] [-merge_conflict]" << endl;
 	cerr << "  [-clamp_far] [-centroid_far]" << endl;
 	cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
 	cerr << "  [-Linf | -no_Linf]" << endl;
@@ -1466,6 +1257,8 @@ void ISODUAL3D::help()
 			<< " (Default.)"  << endl;
 	cout << "  -centroid_conflict:  Settle conflicts by using centroid."
 			<< endl;
+	cout << "  -merge_conflict:  Settle conflicting isosurface vertices."
+       << endl;
 	cout << "  -clamp_far: Clamp isosurface vertices at distance greater"
 			<< " than max_dist." << endl;
 	cout << "  -centroid_far: Revert to centroid when an isosurface vertex is"

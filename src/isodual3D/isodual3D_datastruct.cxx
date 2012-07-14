@@ -3,7 +3,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011,2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -41,8 +41,8 @@ using namespace ISODUAL3D;
 
 void DUAL_ISOSURFACE::Clear()
 {
-  isopoly_vert.clear();
   vertex_coord.clear();
+  quad_vert.clear();
   tri_vert.clear();
 }
 
@@ -56,6 +56,7 @@ void ISODUAL_PARAM::Init()
   interpolation_type = LINEAR_INTERPOLATION;
   vertex_position_method = CENTROID_EDGE_ISO;
   flag_reposition = false;
+  flag_merge_conflict = false;
   quad_tri_method = UNDEFINED_TRI;
   flag_convert_quad_to_tri = false;
   use_only_cube_gradients = false;
@@ -357,6 +358,7 @@ ISODUAL3D::ISODUAL_INFO::ISODUAL_INFO()
 void ISODUAL3D::SHARPISO_INFO::Clear()
 {
   num_conflicts = 0;
+  num_edge_collapses = 0;
   num_sharp_corners = 0;
   num_sharp_edges = 0;
   num_smooth_vertices = 0;

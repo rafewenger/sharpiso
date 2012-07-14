@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011,2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -164,41 +164,15 @@ void construct_isosurface
 
     const SCALAR_TYPE isovalue = input_info.isovalue[i];
 
-    DUAL_ISOSURFACE dual_isosurface(num_cube_vertices);
+    DUAL_ISOSURFACE dual_isosurface;
     ISODUAL_INFO isodual_info(dimension);
     isodual_info.grid.num_cubes = num_cubes;
 
     dual_contouring(isodual_data, isovalue, dual_isosurface, isodual_info);
     isodual_time.Add(isodual_info.time);
 
-    if (isodual_data.flag_convert_quad_to_tri) {
-
-      VERTEX_INDEX_ARRAY quad_vert(dual_isosurface.isopoly_vert);
-      std::copy(dual_isosurface.isopoly_vert.begin(),
-                dual_isosurface.isopoly_vert.end(),
-                quad_vert.begin());
-      NUM_TYPE num_quad = quad_vert.size()/NUM_QUAD_VERTICES;
-      if (num_quad > 0) {
-        reorder_quad_vertices(&(quad_vert[0]), num_quad);
-      }
-
-      if (isodual_data.quad_tri_method == SPLIT_MAX_ANGLE) {
-
-        // *** CREATE create_dual_tri IN isodual3D.cxx ***
-        triangulate_quad_split_max_angle
-          (DIM3, dual_isosurface.vertex_coord, quad_vert,
-           isodual_data.max_small_magnitude, dual_isosurface.tri_vert);
-      }
-      else {
-        triangulate_quad
-          (dual_isosurface.isopoly_vert, dual_isosurface.tri_vert);
-      }
-    }
-
     OUTPUT_INFO output_info;
     set_output_info(input_info, i, output_info);
-
-    VERTEX_INDEX num_poly = dual_isosurface.NumIsoPoly();
 
     int grow_factor = 1;
     int shrink_factor = 1;
@@ -210,8 +184,35 @@ void construct_isosurface
     rescale_vertex_coord(grow_factor, shrink_factor, input_info.grid_spacing,
                          dual_isosurface.vertex_coord);
 
-    output_dual_isosurface
-      (output_info, isodual_data, dual_isosurface, isodual_info, io_time);
+
+    if (isodual_data.flag_convert_quad_to_tri) {
+
+      VERTEX_INDEX_ARRAY quad_vert(dual_isosurface.quad_vert);
+      DUAL_ISOSURFACE isosurface_tri_mesh;
+      isosurface_tri_mesh.vertex_coord = dual_isosurface.vertex_coord;
+      isosurface_tri_mesh.tri_vert = dual_isosurface.tri_vert;
+
+      IJK::reorder_quad_vertices(quad_vert);
+
+      if (isodual_data.quad_tri_method == SPLIT_MAX_ANGLE) {
+
+        // *** CREATE create_dual_tri IN isodual3D.cxx ***
+        triangulate_quad_split_max_angle
+          (DIM3, isosurface_tri_mesh.vertex_coord, quad_vert,
+           isodual_data.max_small_magnitude, isosurface_tri_mesh.tri_vert);
+      }
+      else {
+        triangulate_quad(quad_vert, isosurface_tri_mesh.tri_vert);
+      }
+
+      output_dual_isosurface
+        (output_info, isodual_data, isosurface_tri_mesh, isodual_info, io_time);
+
+    }
+    else {
+      output_dual_isosurface
+        (output_info, isodual_data, dual_isosurface, isodual_info, io_time);
+    }
   }
 }
 

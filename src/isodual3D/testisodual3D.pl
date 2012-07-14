@@ -249,6 +249,10 @@ sub compare_executables_all_options {
   print "\n";
   compare_executables("-position gradNS -trimesh @input_options");
   print "\n";
+  compare_executables("-position centroid -uniform_trimesh @input_options");
+  print "\n";
+  compare_executables("-position gradEC -uniform_trimesh @input_options");
+  print "\n";
 }
 
 sub compare_executables {
