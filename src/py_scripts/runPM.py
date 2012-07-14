@@ -4,7 +4,7 @@ import subprocess as sp
 
 
 '''
-the first argument is the name of the file {has to be a .ply}
+the first argument is the name of the file {has to be a .stl}
 the second argument is the the depth of the octree 
 the third argument is the scale
 
@@ -42,11 +42,11 @@ show=['meshview',onameOFF,onameLine]
 sp.call(show)
 
 print 'fname',sys.argv[1]
-oname=''.join([sys.argv[1].split('.')[0],'-dc.ply'])
+
 print 'oname',oname
-onameOFF= ''.join([sys.argv[1].split('.')[0],'-dc.off'])
+
 print 'onameOFF',onameOFF
-onameOFFTRI= ''.join([sys.argv[1].split('.')[0],'-dc-tri.off'])
+
 print 'onameOFFTRI',onameOFFTRI
-onameLine= ''.join([sys.argv[1].split('.')[0],'-dc.line'])
+
 print 'onameLine',onameLine
