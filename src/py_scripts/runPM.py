@@ -16,9 +16,9 @@ scale = sys.argv[3]
 oname=''.join([sys.argv[1].split('.')[0],'-dc.ply'])
 onameDCF=''.join([sys.argv[1].split('.')[0],'-dc-',sys.argv[2],'-',sys.argv[3],'.dcf'])
 
-onameOFF= ''.join([sys.argv[1].split('.')[0],'-dc-',sys.argv[2],'-',sys.argv[3],'.off'])
+onameOFF= ''.join([sys.argv[1].split('.')[0],'-dc.off'])
 
-onameOFFTRI= ''.join([sys.argv[1].split('.')[0],'-dc-tri.off'])
+onameOFFTRI= ''.join([sys.argv[1].split('.')[0],'-dc-tri',sys.argv[2],'-',sys.argv[3],'.off'])
 
 onameLine= ''.join([sys.argv[1].split('.')[0],'-dc-tri.line'])
 
