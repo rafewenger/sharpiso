@@ -18,7 +18,7 @@ onameDCF=''.join([sys.argv[1].split('.')[0],'-dc-',sys.argv[2],'-',sys.argv[3],'
 
 onameOFF= ''.join([sys.argv[1].split('.')[0],'-dc.off'])
 
-onameOFFTRI= ''.join([sys.argv[1].split('.')[0],'-dc-tri',sys.argv[2],'-',sys.argv[3],'.off'])
+onameOFFTRI= ''.join([sys.argv[1].split('.')[0],'-dc-tri-',sys.argv[2],'-',sys.argv[3],'.off'])
 
 onameLine= ''.join([sys.argv[1].split('.')[0],'-dc-tri.line'])
 
@@ -38,8 +38,8 @@ tri=['ijkmesh','triangulate','-uniform',onameOFF, onameOFFTRI]
 sp.call(tri)
 findedge=['findedge','140',onameOFFTRI]
 sp.call(findedge)
-show=['meshview',onameOFF,onameLine]
-sp.call(show)
+#show=['meshview',onameOFF,onameLine]
+#sp.call(show)
 
 print 'fname',sys.argv[1]
 
