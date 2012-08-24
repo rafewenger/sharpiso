@@ -802,17 +802,9 @@ void SHARPISO::compute_isosurface_grid_edge_centroid
       VERTEX_INDEX iend0 = scalar_grid.FacetVertex(iv, edge_dir, k);
       VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0, edge_dir);
 
-      SCALAR_TYPE s0 = scalar_grid.Scalar(iend0);
-      bool is_end0_positive = true;
-      if (s0 < isovalue)
-        { is_end0_positive = false; };
-
-      SCALAR_TYPE s1 = scalar_grid.Scalar(iend1);
-      bool is_end1_positive = true;
-      if (s1 < isovalue)
-        { is_end1_positive = false; };
-
-      if (is_end0_positive != is_end1_positive) {
+      if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
+        SCALAR_TYPE s0 = scalar_grid.Scalar(iend0);
+        SCALAR_TYPE s1 = scalar_grid.Scalar(iend1);
 
         scalar_grid.ComputeCoord(iend0, coord0);
         scalar_grid.ComputeCoord(iend1, coord1);
