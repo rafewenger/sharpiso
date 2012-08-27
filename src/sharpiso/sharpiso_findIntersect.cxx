@@ -27,17 +27,17 @@ int findmax(const float dir[]);
 // If the bool is true , intersect[] returns the MID-point of intersection of the ray and the cube.
 
 bool SHARPISO::calculate_point_intersect
-(const SCALAR_TYPE *p,
- const SCALAR_TYPE *dir,
- SCALAR_TYPE *intersect)
+(const COORD_TYPE *p,
+ const COORD_TYPE *dir,
+ COORD_TYPE *intersect)
 {
   
   int ind  = findmax(dir);
   //find t0 and t1
-  SCALAR_TYPE t0 = ( -1.0*p[ind])/(dir[ind]);
-  SCALAR_TYPE t1 = (1.0 - p[ind])/(dir[ind]);
-  SCALAR_TYPE min_coord_j;
-  SCALAR_TYPE max_coord_j;
+  COORD_TYPE t0 = ( -1.0*p[ind])/(dir[ind]);
+  COORD_TYPE t1 = (1.0 - p[ind])/(dir[ind]);
+  COORD_TYPE min_coord_j;
+  COORD_TYPE max_coord_j;
   
   for (int j=0; j<3; j++)
   {
@@ -81,17 +81,17 @@ bool SHARPISO::calculate_point_intersect
     }
   }
   
-  SCALAR_TYPE endPt0[3];
-  SCALAR_TYPE endPt1[3];
+  COORD_TYPE endPt0[3];
+  COORD_TYPE endPt1[3];
   for (int i=0; i<3; i++)
   {
-    SCALAR_TYPE temp = p[i] + t0*dir[i];
+    COORD_TYPE temp = p[i] + t0*dir[i];
     endPt0[i] = temp;
   }
   //t1
   for (int i=0; i<3; i++)
   {
-    SCALAR_TYPE temp = p[i] + t1*dir[i];
+    COORD_TYPE temp = p[i] + t1*dir[i];
     endPt1[i] = temp;
   }
   //Find the point of intersection.
@@ -109,21 +109,21 @@ bool SHARPISO::calculate_point_intersect
 
 bool SHARPISO::calculate_point_intersect
 (const GRID_COORD_TYPE cube_coord[],
- const SCALAR_TYPE *original_pt,
- const SCALAR_TYPE *dir,
- SCALAR_TYPE *intersect)
+ const COORD_TYPE *original_pt,
+ const COORD_TYPE *dir,
+ COORD_TYPE *intersect)
 {
-	SCALAR_TYPE p[DIM3] ={0.0};
+	COORD_TYPE p[DIM3] ={0.0};
 	for (int i=0; i < DIM3; i++){
 		p[i] = original_pt[i] - cube_coord[i];
 	}
   
   int ind  = findmax(dir);
   //find t0 and t1
-  SCALAR_TYPE t0 = ( -1.0*p[ind])/(dir[ind]);
-  SCALAR_TYPE t1 = (1.0 - p[ind])/(dir[ind]);
-  SCALAR_TYPE min_coord_j;
-  SCALAR_TYPE max_coord_j;
+  COORD_TYPE t0 = ( -1.0*p[ind])/(dir[ind]);
+  COORD_TYPE t1 = (1.0 - p[ind])/(dir[ind]);
+  COORD_TYPE min_coord_j;
+  COORD_TYPE max_coord_j;
   
   for (int j=0; j<3; j++)
   {
@@ -168,17 +168,17 @@ bool SHARPISO::calculate_point_intersect
     }
   }
   
-  SCALAR_TYPE endPt0[DIM3];
-  SCALAR_TYPE endPt1[DIM3];
+  COORD_TYPE endPt0[DIM3];
+  COORD_TYPE endPt1[DIM3];
   for (int i=0; i<DIM3; i++)
   {
-    SCALAR_TYPE temp = p[i] + t0*dir[i];
+    COORD_TYPE temp = p[i] + t0*dir[i];
     endPt0[i] = temp;
   }
   //t1
   for (int i=0; i<DIM3; i++)
   {
-    SCALAR_TYPE temp = p[i] + t1*dir[i];
+    COORD_TYPE temp = p[i] + t1*dir[i];
     endPt1[i] = temp;
   }
 
@@ -202,12 +202,12 @@ bool SHARPISO::calculate_point_intersect
 
 bool SHARPISO::calculate_point_intersect_complex
 (const GRID_COORD_TYPE cube_coord[],
- const SCALAR_TYPE *original_pt,
- const SCALAR_TYPE *dir,
+ const COORD_TYPE *original_pt,
+ const COORD_TYPE *dir,
  const float th
  )
 {
-	SCALAR_TYPE p[DIM3] ={0.0};
+	COORD_TYPE p[DIM3] ={0.0};
   
 	for (int i = 0; i < DIM3; i++){
 		p[i] = original_pt[i] - cube_coord[i];
@@ -215,10 +215,10 @@ bool SHARPISO::calculate_point_intersect_complex
   
   int ind  = findmax(dir);
   //find t0 and t1
-  SCALAR_TYPE t0 = (-th -p[ind])/(dir[ind]);
-  SCALAR_TYPE t1 = (1.0 + th - p[ind])/(dir[ind]);
-  SCALAR_TYPE min_coord_j;
-  SCALAR_TYPE max_coord_j;
+  COORD_TYPE t0 = (-th -p[ind])/(dir[ind]);
+  COORD_TYPE t1 = (1.0 + th - p[ind])/(dir[ind]);
+  COORD_TYPE min_coord_j;
+  COORD_TYPE max_coord_j;
   
   for (int j = 0; j < DIM3; j++)
   {
@@ -263,12 +263,12 @@ bool SHARPISO::calculate_point_intersect_complex
 
 bool SHARPISO::calculate_point_intersect_complex
 (const GRID_COORD_TYPE cube_coord[],
- const SCALAR_TYPE *original_pt,
- const SCALAR_TYPE *dir,
+ const COORD_TYPE *original_pt,
+ const COORD_TYPE *dir,
  const float th,
- SCALAR_TYPE *intersect)
+ COORD_TYPE *intersect)
 {
-	SCALAR_TYPE p[DIM3] ={0.0};
+	COORD_TYPE p[DIM3] ={0.0};
   
 	for (int i = 0; i < DIM3; i++){
 		p[i] = original_pt[i] - cube_coord[i];
@@ -276,10 +276,10 @@ bool SHARPISO::calculate_point_intersect_complex
   
   int ind  = findmax(dir);
   //find t0 and t1
-  SCALAR_TYPE t0 = (-th -p[ind])/(dir[ind]);
-  SCALAR_TYPE t1 = (1.0 + th - p[ind])/(dir[ind]);
-  SCALAR_TYPE min_coord_j;
-  SCALAR_TYPE max_coord_j;
+  COORD_TYPE t0 = (-th -p[ind])/(dir[ind]);
+  COORD_TYPE t1 = (1.0 + th - p[ind])/(dir[ind]);
+  COORD_TYPE min_coord_j;
+  COORD_TYPE max_coord_j;
   
   for (int j = 0; j < DIM3; j++)
   {
@@ -316,8 +316,8 @@ bool SHARPISO::calculate_point_intersect_complex
     }
   }
   
-  SCALAR_TYPE endPt0[3];
-  SCALAR_TYPE endPt1[3];
+  COORD_TYPE endPt0[3];
+  COORD_TYPE endPt1[3];
   for (int i=0; i<3; i++)
   {
     endPt0[i] = p[i] + t0*dir[i];
@@ -482,10 +482,10 @@ void SHARPISO::compute_closest_point_to_cube_center_linf
 
 // HELPER FUNCTIONS:
 // find the max direction
-int findmax(const SCALAR_TYPE dir[])
+int findmax(const COORD_TYPE dir[])
 {
   int ind=0;
-  SCALAR_TYPE max = abs(dir[ind]);
+  COORD_TYPE max = abs(dir[ind]);
   for (int j=0;j<3;j++)
   {
     if (abs(dir[j]) >= max)
