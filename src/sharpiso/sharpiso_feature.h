@@ -203,10 +203,27 @@ namespace SHARPISO {
   // **************************************************
   // COMPUTE ISO VERTEX AT CENTROID
   // **************************************************
-  
-  /// Compute centroid of intersections of isosurface and grid edges
-  void compute_isosurface_grid_edge_centroid
+
+  /// Compute centroid of intersections of isosurface and grid edges.
+  /// @param use_sharp_edgeI If true, use sharp formula for
+  ///          intersection of isosurface and grid edges.
+  void compute_edgeI_centroid
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
+   const bool use_sharp_edgeI, COORD_TYPE * coord);
+
+  /// Compute centroid of intersections of isosurface and grid edges.
+  void compute_edgeI_centroid
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
+   COORD_TYPE * coord);
+
+  /// Compute centroid of intersections of isosurface and grid edges.
+  /// Use sharp formula for computing intersection of isosurface and grid edge.
+  void compute_edgeI_sharp_centroid
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
    const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
    COORD_TYPE * coord);
 
@@ -227,6 +244,7 @@ namespace SHARPISO {
   ///   move points in occupied grid cubes, and round coordinates.
   void postprocess_isovert_location
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
    const GRID_COORD_TYPE cube_coord[DIM3],
    const SCALAR_TYPE isovalue,
@@ -237,6 +255,7 @@ namespace SHARPISO {
   /// Move point which lies in an occupied grid cube.
   void process_conflict
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
    const GRID_COORD_TYPE cube_coord[DIM3],
    const SCALAR_TYPE isovalue,
@@ -276,6 +295,10 @@ namespace SHARPISO {
     bool use_lindstrom2;
     bool use_Linf_dist;            ///< If true, use Linf dist.
 
+
+    /// If true, use sharp formula to calculate intersections
+    ///   of isosurface and grid edges.
+    bool use_sharp_edgeI;
 
     /// If true, use distance to centroid of isosurface-edge intersections.
     /// Otherwise, use distance to cube center.

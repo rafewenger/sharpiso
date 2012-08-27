@@ -28,10 +28,12 @@
 #include "ijkcoord.txx"
 #include "ijkgrid_macros.h"
 #include "ijkgrid_nrrd.txx"
+#include "ijkinterpolate.txx"
 #include "ijkprint.txx"
 #include "ijkstring.txx"
 
 #include "sharpiso_feature.h"
+#include "sharpiso_intersect.h"
 #include "sharpiso_eigen.h"
 #include "sharpiso_types.h"
 #include "sharpiso_scalar.txx"
@@ -55,6 +57,7 @@ std::vector<GRID_COORD_TYPE> vertex_coord;
 AXIS_SIZE_TYPE subgrid_axis_size(3);
 bool flag_list_gradients(false);
 bool flag_list_subgrid(false);
+bool flag_list_edgeI(false);
 std::vector<COORD_TYPE> location;
 bool flag_location_set(false);
 bool flag_isovalue_set(false);
@@ -72,7 +75,6 @@ bool flag_use_lindstrom2(false);
 bool flag_edge_intersection(false);
 bool flag_subgrid(false);
 bool flag_output_param(true);
-bool flag_sharp_edgeI(false);
 bool flag_facet_set(false);
 
 // compute isosurface vertices
@@ -313,8 +315,9 @@ int main(int argc, char **argv)
 
         if (flag_centroid) {
           COORD_TYPE coord[DIM3];
-          compute_isosurface_grid_edge_centroid
-            (scalar_grid, isovalue, cube_index, coord);
+          compute_edgeI_centroid
+            (scalar_grid, gradient_grid, isovalue, cube_index, 
+             sharpiso_param.use_sharp_edgeI, coord);
 
           output_centroid_results(cout, coord);
           cout << endl;
@@ -364,7 +367,7 @@ int main(int argc, char **argv)
           }
         }
 
-        if (flag_sharp_edgeI) {
+        if (flag_list_edgeI) {
           output_edge_intersections
             (cout, scalar_grid, gradient_grid, cube_index, isovalue,
              sharpiso_param.zero_tolerance);
@@ -832,6 +835,7 @@ void output_edge_intersections
   const int dimension = scalar_grid.Dimension();
   COORD_TYPE vcoord0[DIM3];
   COORD_TYPE vcoord1[DIM3];
+  COORD_TYPE pcoord[DIM3];
   GRADIENT_COORD_TYPE grad[DIM3];
   SCALAR_TYPE s, s_split, t_split;
   bool flag_no_split;
@@ -840,12 +844,13 @@ void output_edge_intersections
     for (int k = 0; k < scalar_grid.NumFacetVertices(); k++) {
       VERTEX_INDEX iv0 = scalar_grid.FacetVertex(cube_index, d, k);
       VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, d);
+      VERTEX_INDEX iv2;
 
       if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
 
-        compute_gradient_change_on_edge
-          (scalar_grid, gradient_grid, iv0, iv1, d,
-           zero_tolerance, flag_no_split, t_split, s_split);
+        SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
+        SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
+
         scalar_grid.ComputeCoord(iv0, vcoord0);
         scalar_grid.ComputeCoord(iv1, vcoord1);
 
@@ -853,12 +858,37 @@ void output_edge_intersections
         IJK::ijkgrid_output_coord(output, DIM3, vcoord0);
         IJK::ijkgrid_output_coord(output, DIM3, vcoord1);
 
-        if (flag_no_split) {
-          output << "  No split." << endl;
+        if (sharpiso_param.use_sharp_edgeI) {
+
+          intersect_isosurface_grid_edge_sharp3D
+            (scalar_grid, gradient_grid, isovalue,
+             iv0, iv1, d, iv2, pcoord);
+
+          output << " Intersection point: ";
+          IJK::ijkgrid_output_coord(output, DIM3, pcoord);
+
+          cout << endl << "     ";
+
+          compute_gradient_change_on_edge
+            (scalar_grid, gradient_grid, iv0, iv1, d,
+             zero_tolerance, flag_no_split, t_split, s_split);
+
+          if (flag_no_split) {
+            output << "  No split." << endl;
+          }
+          else {
+            output << "  split scalar: " << s_split;
+            output << "  split t: " << t_split << endl;
+          }
         }
         else {
-          output << "  split scalar: " << s_split;
-          output << "  split t: " << t_split << endl;
+          IJK::linear_interpolate_coord
+            (DIM3, s0, vcoord0, s1, vcoord1, isovalue, pcoord);
+
+          output << " Intersection point: ";
+          IJK::ijkgrid_output_coord(output, DIM3, pcoord);
+
+          output << endl;
         }
       }
     }
@@ -1145,7 +1175,8 @@ void usage_error()
     cerr << "  -max_eigen <value>" << endl;
     cerr << "  -gradS_offset <value> | -max_dist <value> | max_mag <value>" 
          << endl;
-    cerr << "  -listg | -list_subgrid | -edgeI" << endl;
+    cerr << "  -listg | -list_subgrid | -list_edgeI" << endl;
+    cerr << "  -sharp_edgeI" << endl;
     cerr << "  -help | -no_output_param" << endl;
     exit(10);
 }
@@ -1273,6 +1304,9 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-list_subgrid") {
       flag_list_subgrid = true;
     }
+    else if (s == "-list_edgeI") {
+      flag_list_edgeI = true;
+    }
     else if (s == "-list_eigen") {
       flag_list_eigen = true;
     }
@@ -1292,6 +1326,7 @@ void parse_command_line(int argc, char **argv)
       use_selected_gradients = false;
       use_gradients_determining_edge_intersections = true;
       flag_edge_intersection = true;
+      sharpiso_param.use_sharp_edgeI = true;
     }
     else if (s == "-centroid") {
       flag_centroid = true;
@@ -1359,8 +1394,8 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-subgrid") {
       flag_subgrid = true;
     }
-    else if (s == "-edgeI") {
-      flag_sharp_edgeI = true;
+    else if (s == "-sharp_edgeI") {
+      sharpiso_param.use_sharp_edgeI = true;
     }
     else if (s == "-gradS_offset") {
       sharpiso_param.grad_selection_cube_offset = get_float(iarg, argc, argv);
@@ -1610,6 +1645,11 @@ void help()
   cerr << "  -sortg: Sort gradients by distance of isoplane to cube center."
        << endl;
   cerr << "  -list_subgrid:  List all scalar values at vertices of subgrid." << endl;
+  cerr << "  -list_edgeI: List intersections of isosurface and grid edges."
+       << endl;
+  cerr << "  -sharp_edgeI: Use sharp formula for calculating intersectons"
+       << endl
+       << "                of isosurface and grid edges." << endl;
   cerr << "  -dist2vert: Distance from vertex to planes defined by gradients" 
        << endl
        << "              at neighboring vertices." << endl;

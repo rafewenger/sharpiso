@@ -51,7 +51,8 @@ typedef enum {
   GRADIENT_PARAM, POSITION_PARAM, POS_PARAM, 
   TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
   MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, 
-  MAX_MAG_PARAM, SNAP_DIST_PARAM,
+  MAX_MAG_PARAM, SNAP_DIST_PARAM, 
+  SHARP_EDGEI_PARAM, INTERPOLATE_EDGEI_PARAM,
 	REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
 	ALLOW_CONFLICT_PARAM,
 	CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
@@ -76,6 +77,7 @@ typedef enum {
 	{ "-subsample",
     "-gradient", "-position", "-pos", "-trimesh", "-uniform_trimesh",
     "-max_eigen", "-max_dist", "-gradS_offset", "-max_mag", "-snap_dist",
+    "-sharp_edgeI", "-interpolate_edgeI",
     "-reposition", "-no_reposition", "-sepdist",
     "-allow_conflict", "-clamp_conflict", "-centroid_conflict", 
     "-merge_conflict",
@@ -258,6 +260,14 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 			input_info.snap_dist = get_float(iarg, argc, argv);
 			iarg++;
 			break;
+
+    case SHARP_EDGEI_PARAM:
+      input_info.use_sharp_edgeI = true;
+      break;
+
+    case INTERPOLATE_EDGEI_PARAM:
+      input_info.use_sharp_edgeI = false;
+      break;
 
 		case GRAD_S_OFFSET_PARAM:
 			input_info.grad_selection_cube_offset = get_float(iarg, argc, argv);
@@ -1136,6 +1146,7 @@ void options_msg()
 			<< endl;
 	cerr << "  [-max_eigen {max}]" << endl;
 	cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}] [-snap_dist {D}]" << endl;
+  cerr << "  [-sharp_edgeI | -interpolate_edgeI]" << endl;
 	cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
 	cerr << "  [-lindstrom]" << endl;
 	cerr << "  [-allow_conflict |-clamp_conflict | centroid_conflict] [-merge_conflict]" << endl;
@@ -1264,6 +1275,10 @@ void ISODUAL3D::help()
 	cout << "  -centroid_far: Revert to centroid when an isosurface vertex is"
 			<< endl
 			<< "                 at distance greater than max_dist." << endl;
+  cout << "  -sharp_edgeI:  Use sharp formula for computing intersections" << endl
+       << "                 of isosurface and grid edges." << endl;
+  cout << "  -interpolate_edgeI:  Interpolate intersections of isosurface and grid edges."
+       << endl;
 	cout << "  -recompute_eigen2:  Recompute with only 2 eigenvalues to settle conflicts." << endl;
 	cout << "  -no_recompute_eigen2:  Don't recompute with only 2 eigenvalues."
 			<< endl;
