@@ -246,10 +246,13 @@ void ISODUAL3D::dual_contouring_centroid_multiv
   std::vector<ISO_VERTEX_INDEX> iso_vlist_cube;
   std::vector<FACET_VERTEX_INDEX> iso_vlist_patch;
 
+  VERTEX_INDEX num_split;
   IJK::split_dual_isovert
     (scalar_grid, isodual_table, isovalue, 
      cube_list, isoquad_cube, facet_vertex,
-     iso_vlist_cube, iso_vlist_patch, isoquad_vert);
+     iso_vlist_cube, iso_vlist_patch, isoquad_vert, num_split);
+  isodual_info.sharpiso.num_cube_multi_isov = num_split;
+  isodual_info.sharpiso.num_cube_single_isov = cube_list.size() - num_split;
 
   clock_t t2 = clock();
 
@@ -396,10 +399,12 @@ void ISODUAL3D::dual_contouring_sharp
 
     }
     else {
+      VERTEX_INDEX num_split;
       IJK::split_dual_isovert
         (scalar_grid, isodual_table, isovalue, 
          cube_list, isoquad_cube, facet_vertex,
-         iso_vlist_cube, iso_vlist_patch, dual_isosurface.quad_vert);
+         iso_vlist_cube, iso_vlist_patch, dual_isosurface.quad_vert,
+         num_split);
 
       t2 = clock();
 

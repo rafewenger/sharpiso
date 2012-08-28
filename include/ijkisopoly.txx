@@ -588,7 +588,7 @@ namespace IJK {
             typename CINDEX_TYPE0, typename CINDEX_TYPE1,
             typename CINDEX_TYPE2, 
             typename FACETV_TYPE, typename PINDEX_TYPE,
-            typename ISOV_TYPE>
+            typename ISOV_TYPE, typename NTYPE>
   void split_dual_isovert
   (const GRID_TYPE & scalar_grid, const ISODUAL_TABLE & isodual_table,
    const SCALAR_TYPE isovalue,
@@ -597,7 +597,8 @@ namespace IJK {
    const std::vector<FACETV_TYPE> & facet_vertex,
    std::vector<CINDEX_TYPE2> & iso_vlist_cube, 
    std::vector<PINDEX_TYPE> & iso_vlist_patch, 
-   std::vector<ISOV_TYPE> & isopoly)
+   std::vector<ISOV_TYPE> & isopoly,
+   NTYPE & num_split)
   {
     typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
     typedef typename GRID_TYPE::VERTEX_INDEX_TYPE VTYPE;
@@ -614,6 +615,8 @@ namespace IJK {
     first_cube_isov.resize(cube_list.size());
     IJK::CUBE_FACE_INFO<DTYPE,NUM_TYPE,NUM_TYPE> cube(dimension);
 
+    num_split = 0;
+
     cube_table_index.resize(cube_list.size());
     ISOV_TYPE total_num_isov = 0;
     for (ISOV_TYPE i = 0; i < cube_list.size(); i++) {
@@ -625,6 +628,8 @@ namespace IJK {
       cube_table_index[i] = it;
       num_isov[i] = isodual_table.NumIsoVertices(it);
       total_num_isov += num_isov[i];
+
+      if (num_isov[i] > 1) { num_split++; }
     }
 
     iso_vlist_cube.resize(total_num_isov);
