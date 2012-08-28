@@ -24,6 +24,7 @@
 
 #include "sharpiso_feature.h"
 #include "sharpiso_svd.h"
+#include "sharpiso_intersect.h"
 #include "sharpiso_findIntersect.h"
 #include "sh_point_find.h"
 
@@ -123,8 +124,9 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
   // svd_calculate_sharpiso vertex using lindstrom
   COORD_TYPE central_point[DIM3];
   if (sharpiso_param.flag_dist2centroid) {
-    compute_isosurface_grid_edge_centroid
-      (scalar_grid, isovalue, cube_index, central_point);
+    compute_edgeI_centroid
+      (scalar_grid, gradient_grid, isovalue, cube_index, 
+       sharpiso_param.use_sharp_edgeI, central_point);
   }
   else {
     scalar_grid.ComputeCubeCenterCoord(cube_index, central_point);
@@ -159,7 +161,8 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
              check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
 
         svd_calculate_sharpiso_vertex_using_lindstrom
-          (sharpiso_param.use_lindstrom2, &(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
+          (sharpiso_param.use_lindstrom2, &(point_coord[0]), 
+           &(gradient_coord[0]), &(scalar[0]),
            numg2, isovalue, max_small_eigenvalue,
            num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
         numg2--;
@@ -169,15 +172,16 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 
   if (sharpiso_param.flag_centroid_eigen1) {
     if (num_large_eigenvalues <= 1) {
-      compute_isosurface_grid_edge_centroid
-        (scalar_grid, isovalue, cube_index, sharp_coord);
+      compute_edgeI_centroid
+        (scalar_grid, gradient_grid, isovalue, cube_index, 
+         sharpiso_param.use_sharp_edgeI, sharp_coord);
       svd_info.location = CENTROID;
     }
   }
 
   postprocess_isovert_location
-    (scalar_grid, cube_index, cube_coord, isovalue, sharpiso_param, 
-     sharp_coord, svd_info);
+    (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue, 
+     sharpiso_param, sharp_coord, svd_info);
 }
 
 /// Compute sharp isosurface vertex using singular valued decomposition.
@@ -301,8 +305,8 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
   }
 
   postprocess_isovert_location
-    (scalar_grid, cube_index, cube_coord, isovalue, sharpiso_param, 
-     sharp_coord, svd_info);
+    (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue, 
+     sharpiso_param, sharp_coord, svd_info);
 }
 
 /// Compute sharp isosurface vertex using singular valued decomposition.
@@ -362,8 +366,9 @@ void local_svd_compute_sharp_vertex_for_cube_lc_intersection
     svd_info.SetRayInfo(line_origin, line_direction, sharp_coord);
   }
   else if (num_large_eigenvalues  == 1) {
-    compute_isosurface_grid_edge_centroid
-      (scalar_grid, isovalue, cube_index, sharp_coord);
+    compute_edgeI_centroid
+      (scalar_grid, gradient_grid, isovalue, cube_index, 
+       sharpiso_param.use_sharp_edgeI, sharp_coord);
     svd_info.location = CENTROID;
   }
   else if (num_large_eigenvalues == 0 ) {
@@ -533,8 +538,9 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_sharp_gradient
       if (flag_conflict) {
         svd_info.flag_conflict = true;
         svd_info.cube_containing_coord = conflicting_cube;
-        process_conflict(scalar_grid, cube_index, cube_coord, isovalue,
-                         sharpiso_param, coord, svd_info);
+        process_conflict
+          (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
+           sharpiso_param, coord, svd_info);
       }
     }
   }
@@ -781,8 +787,27 @@ void SHARPISO::subgrid_calculate_iso_vertex_in_cube
 // COMPUTE ISO VERTEX AT CENTROID
 // **************************************************
 
+/// Compute centroid of intersections of isosurface and grid edges.
+/// @param use_sharp_edgeI If true, use sharp formula for
+///          intersection of isosurface and grid edges.
+void SHARPISO::compute_edgeI_centroid
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
+ const bool use_sharp_edgeI, COORD_TYPE * coord)
+{
+  if (use_sharp_edgeI) {
+    compute_edgeI_sharp_centroid
+      (scalar_grid, gradient_grid, isovalue, iv, coord);
+  }
+  else {
+    compute_edgeI_centroid(scalar_grid, isovalue, iv, coord);
+  }
+
+}
+
 /// Compute centroid of intersections of isosurface and grid edges
-void SHARPISO::compute_isosurface_grid_edge_centroid
+void SHARPISO::compute_edgeI_centroid
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
  COORD_TYPE * coord)
@@ -802,23 +827,64 @@ void SHARPISO::compute_isosurface_grid_edge_centroid
       VERTEX_INDEX iend0 = scalar_grid.FacetVertex(iv, edge_dir, k);
       VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0, edge_dir);
 
-      SCALAR_TYPE s0 = scalar_grid.Scalar(iend0);
-      bool is_end0_positive = true;
-      if (s0 < isovalue)
-        { is_end0_positive = false; };
-
-      SCALAR_TYPE s1 = scalar_grid.Scalar(iend1);
-      bool is_end1_positive = true;
-      if (s1 < isovalue)
-        { is_end1_positive = false; };
-
-      if (is_end0_positive != is_end1_positive) {
+      if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
+        SCALAR_TYPE s0 = scalar_grid.Scalar(iend0);
+        SCALAR_TYPE s1 = scalar_grid.Scalar(iend1);
 
         scalar_grid.ComputeCoord(iend0, coord0);
         scalar_grid.ComputeCoord(iend1, coord1);
 
         IJK::linear_interpolate_coord
           (dimension, s0, coord0, s1, coord1, isovalue, coord2);
+
+        IJK::add_coord(dimension, vcoord, coord2, vcoord);
+
+        num_intersected_edges++;
+      }
+    }
+
+  if (num_intersected_edges > 0) {
+    IJK::multiply_coord
+      (dimension, 1.0/num_intersected_edges, vcoord, vcoord);
+  }
+  else {
+    scalar_grid.ComputeCoord(iv, vcoord);
+    for (int d = 0; d < dimension; d++)
+      { vcoord[d] += 0.5; };
+  }
+
+  IJK::copy_coord(dimension, vcoord, coord);
+}
+
+/// Compute centroid of intersections of isosurface and grid edges.
+/// Use sharp formula for computing intersection of isosurface and grid edge.
+void SHARPISO::compute_edgeI_sharp_centroid
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
+ COORD_TYPE * coord)
+{
+  const int dimension = scalar_grid.Dimension();
+  GRID_COORD_TYPE grid_coord[dimension];
+  COORD_TYPE vcoord[dimension];
+  COORD_TYPE coord0[dimension];
+  COORD_TYPE coord1[dimension];
+  COORD_TYPE coord2[dimension];
+  VERTEX_INDEX iv2;
+
+  int num_intersected_edges = 0;
+  IJK::set_coord(dimension, 0.0, vcoord);
+
+  for (int edge_dir = 0; edge_dir < dimension; edge_dir++)
+    for (int k = 0; k < scalar_grid.NumFacetVertices(); k++) {
+      VERTEX_INDEX iend0 = scalar_grid.FacetVertex(iv, edge_dir, k);
+      VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0, edge_dir);
+
+      if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
+
+        intersect_isosurface_grid_edge_sharp3D
+          (scalar_grid, gradient_grid, isovalue,
+           iend0, iend1, edge_dir, iv2, coord2);
 
         IJK::add_coord(dimension, vcoord, coord2, vcoord);
 
@@ -893,6 +959,7 @@ void SHARPISO::clamp_point
 
 void SHARPISO::postprocess_isovert_location
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const GRID_COORD_TYPE cube_coord[DIM3],
  const SCALAR_TYPE isovalue,
@@ -914,8 +981,9 @@ void SHARPISO::postprocess_isovert_location
                        conflicting_cube);
 
       if (flag_conflict) {
-        process_conflict(scalar_grid, cube_index, cube_coord, isovalue,
-                         sharpiso_param, iso_coord, svd_info);
+        process_conflict
+          (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
+           sharpiso_param, iso_coord, svd_info);
         svd_info.flag_conflict = true;
         svd_info.cube_containing_coord = conflicting_cube;
       }
@@ -933,6 +1001,7 @@ void SHARPISO::postprocess_isovert_location
 
 void SHARPISO::process_conflict
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const GRID_COORD_TYPE cube_coord[DIM3],
  const SCALAR_TYPE isovalue,
@@ -948,7 +1017,7 @@ void SHARPISO::process_conflict
     }
     else {
       // Use the centroid.
-      compute_isosurface_grid_edge_centroid
+      compute_edgeI_centroid
         (scalar_grid, isovalue, cube_index, iso_coord);
       svd_info.location = CENTROID;
     }
@@ -971,7 +1040,7 @@ void SHARPISO::process_far_point
   }
   else {
     // Use the centroid.
-    compute_isosurface_grid_edge_centroid
+    compute_edgeI_centroid
       (scalar_grid, isovalue, cube_index, iso_coord);
     svd_info.location = CENTROID;
   }
@@ -1187,6 +1256,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   flag_reselect_gradients = false;
   flag_dist2centroid = false;
   flag_centroid_eigen1 = false;
+  use_sharp_edgeI = false;
   use_Linf_dist = true;
   max_dist = 1.0;
   snap_dist = 1.0/16.0;

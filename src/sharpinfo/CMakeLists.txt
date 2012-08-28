@@ -29,6 +29,7 @@ LINK_LIBRARIES(NrrdIO z)
 
 ADD_EXECUTABLE(sharpinfo sharpinfo.cxx sharpiso_feature.cxx 
                          sharpiso_get_gradients.cxx sharpiso_svd.cxx
+                         sharpiso_intersect.cxx
                          sh_point_find.cxx sh_point_datastruct.cxx 
                          sh_point_svdcal.cxx sharpiso_findIntersect.cxx)
 

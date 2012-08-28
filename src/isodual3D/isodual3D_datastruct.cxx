@@ -369,6 +369,9 @@ void ISODUAL3D::SHARPISO_INFO::Clear()
   num_cube_separate_pos = 0;
   num_cube_separate_neg = 0;
   num_cube_unresolved_ambiguity = 0;
+
+  num_cube_single_isov = 0;
+  num_cube_multi_isov = 0;
 }
 
 // Increment num_sharp_corners or num_sharp_edges or num_smooth_vertices
