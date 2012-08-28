@@ -31,7 +31,11 @@ def main():
     #DEBUG
     print "x[", XLength, "]y[", YLength, "]z[", ZLength, "]"
     global data
-    data=numpy.ones((XLength, YLength, ZLength))
+    data=numpy.zeros((XLength+1, YLength+1, ZLength+1))
+    for i in range (XLength+1):
+        for j in range (YLength+1):
+            for k in range (ZLength+1):
+                data[i][j][k]= 1
     
     #set the current Level
     currLevel=[depth]
@@ -40,14 +44,19 @@ def main():
     #Process the nodes
     ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel , currLoc, )
     f = open('data.txt', 'w')
-    print >>f, data
+    for i in range (ZLength+1):
+        for j in range (XLength+1):
+            for k in range (YLength+1):
+                print >>f, " ",data[i][j][k],
+            print >>f," "
+        print >>f," "
 
 
 
 
 #Process the nodes
 def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
-    
+    global data
     #Compute Node Type (0,1,2)
     NodeType = convert("i", pointerLocInDataBytes, dataBytes, 4)
     
@@ -55,35 +64,38 @@ def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
         print "Node Type 0 , level ",currLevel
         #decrease the level
         currLevel[0]=currLevel[0]-1
+        
         TempCurrLevel = currLevel
         TempCurrLoc = currLoc
         Length = pow(2,currLevel[0])
         for nodeNum in range(8):
-            print "Node Number ", nodeNum
+            print " ------- "
+            print "children Node Number ", nodeNum,
             #reset the currLevel, and Location
-            currLevel = TempCurrLevel
-            currLoc = TempCurrLoc
-            
+            TempCurrLevel = currLevel
+            TempCurrLoc = currLoc 
             
             #Compute the child locations
             childLoc = [TempCurrLoc[x] + offset[nodeNum][x]*Length for x in range(3)]
-            print "Child Loc ",childLoc
+            print "Child Loc  base ",childLoc
             ProcessNode(pointerLocInDataBytes, dataBytes, input, TempCurrLevel, childLoc)
+            print " ------- "
+        currLevel[0]=currLevel[0]+1
             
     if NodeType == 1 :
         isOutside = convert("h", pointerLocInDataBytes, dataBytes, 2)
         print "Node Type 1, empty node level ",currLevel, "is Outside ", isOutside
+    #data[currLoc[0]][currLoc[1]][currLoc[2]] = isOutside
     
     if NodeType == 2 :
         Length = pow(2,currLevel[0])
         print "Node Type 2, leaf node reached level ",currLevel
-        #print "base ",currLoc
         
         for nodeNum in range (8):
-            nodeLoc  = [currLoc[x] + Length*offset[nodeNum][x] for x in range (3)]
+            nodeLoc  = [currLoc[x] + offset[nodeNum][x] for x in range (3)]
             scalar = convert("h", pointerLocInDataBytes, dataBytes, 2)
             data[nodeLoc[0]][nodeLoc[1]][nodeLoc[2]] = scalar
-        print " "
+        
         for edgeNum in range(12):
             NumPointsOnEdge = convert("i", pointerLocInDataBytes, dataBytes, 4)
             for pointsInEdge in range(NumPointsOnEdge):
