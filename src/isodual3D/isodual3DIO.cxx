@@ -1030,45 +1030,63 @@ void ISODUAL3D::report_iso_info3D
 		cout << "No isosurface polygons." << endl;
   }
 
+
 	if (output_info.flag_output_alg_info) {
-		cout << endl;
-		cout << "  Number of conflicts: "
-				<< isodual_info.sharpiso.num_conflicts << endl;
-		cout << "  Number of sharp corners: "
-				<< isodual_info.sharpiso.num_sharp_corners << endl;
-		cout << "  Number of sharp edges: "
-				<< isodual_info.sharpiso.num_sharp_edges << endl;
-		cout << "  Number of smooth isosurface vertices: "
-				<< isodual_info.sharpiso.num_smooth_vertices << endl;
-		if (output_info.use_Linf_dist) {
-			cout << "  Number of vertices at min Linf distance to cube center: "
-					<< isodual_info.sharpiso.num_Linf_iso_vertex_locations << endl;
+    VERTEX_POSITION_METHOD vpos_method = output_info.VertexPositionMethod();
+
+    if (vpos_method == GRADIENT_POSITIONING ||
+        vpos_method == EDGEI_INTERPOLATE ||
+        vpos_method == EDGEI_GRADIENT) {
+
+      cout << endl;
+      cout << "  Number of conflicts: "
+           << isodual_info.sharpiso.num_conflicts << endl;
+      cout << "  Number of sharp corners: "
+           << isodual_info.sharpiso.num_sharp_corners << endl;
+      cout << "  Number of sharp edges: "
+           << isodual_info.sharpiso.num_sharp_edges << endl;
+      cout << "  Number of smooth isosurface vertices: "
+           << isodual_info.sharpiso.num_smooth_vertices << endl;
+      if (output_info.use_Linf_dist) {
+        cout << "  Number of vertices at min Linf distance to cube center: "
+             << isodual_info.sharpiso.num_Linf_iso_vertex_locations << endl;
+      }
+
+      if (output_info.flag_merge_conflict) {
+        cout << "  Number of edge collapses: " 
+             << isodual_info.sharpiso.num_edge_collapses << endl;
+      }
+
+      if (output_info.flag_reposition) {
+        cout << "  Number of repositioned isosurface vertices: "
+             << isodual_info.sharpiso.num_repositioned_vertices << endl;
+      }
+
+      if (output_info.allow_multiple_iso_vertices &&
+          output_info.flag_resolve_ambiguous_facets) {
+        cout << "  Number of non-ambiguous cubes: "
+             << isodual_info.sharpiso.num_cube_not_ambiguous << endl;
+        cout << "  Number of separate positive cubes: "
+             << isodual_info.sharpiso.num_cube_separate_pos << endl;
+        cout << "  Number of separate negative cubes: "
+             << isodual_info.sharpiso.num_cube_separate_neg << endl;
+        cout << "  Number of unresolved ambiguous cubes: "
+             << isodual_info.sharpiso.num_cube_unresolved_ambiguity << endl;
+      }
+
+      cout << endl;
 		}
 
-    if (output_info.flag_merge_conflict) {
-      cout << "  Number of edge collapses: " 
-           << isodual_info.sharpiso.num_edge_collapses << endl;
+    if (vpos_method == CENTROID_EDGE_ISO) {
+      if (output_info.allow_multiple_iso_vertices) {
+        cout << endl;
+        cout << "  Number of cubes with single isov: "
+             << isodual_info.sharpiso.num_cube_single_isov << endl;
+        cout << "  Number of cubes with multi isov: "
+             << isodual_info.sharpiso.num_cube_multi_isov << endl;
+        cout << endl;
+      }
     }
-
-		if (output_info.flag_reposition) {
-			cout << "  Number of repositioned isosurface vertices: "
-					<< isodual_info.sharpiso.num_repositioned_vertices << endl;
-		}
-
-		if (output_info.allow_multiple_iso_vertices &&
-				output_info.flag_resolve_ambiguous_facets) {
-			cout << "  Number of non-ambiguous cubes: "
-					<< isodual_info.sharpiso.num_cube_not_ambiguous << endl;
-			cout << "  Number of separate positive cubes: "
-					<< isodual_info.sharpiso.num_cube_separate_pos << endl;
-			cout << "  Number of separate negative cubes: "
-					<< isodual_info.sharpiso.num_cube_separate_neg << endl;
-			cout << "  Number of unresolved ambiguous cubes: "
-					<< isodual_info.sharpiso.num_cube_unresolved_ambiguity << endl;
-
-		}
-
-		cout << endl;
 	}
 }
 
