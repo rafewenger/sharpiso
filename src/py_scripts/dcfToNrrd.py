@@ -2,7 +2,7 @@
 import sys
 import struct
 import numpy
-
+from array import array
 
 
 
@@ -43,17 +43,22 @@ def main():
     currLoc=[0,0,0]
     #Process the nodes
     ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel , currLoc, )
-    f = open('data.txt', 'w')
-    for i in range (ZLength+1):
-        for j in range (XLength+1):
-            for k in range (YLength+1):
-                print >>f, " ",data[i][j][k],
-            print >>f," "
-        print >>f," "
-
-
-
-
+    
+    
+    #write to the nrrd file 
+    
+    f = open('data.nhdr', 'w')
+    print >>f, "NRRD0001"
+    print >>f, "content: data \ndimension: 3 \ntype: float"
+    print >>f, "sizes: ", ZLength+1,YLength+1,XLength+1 
+    print >>f, "spacings: 1 1 1" 
+    scalarData=[]
+    for i in range (XLength+1):
+      for j in range (YLength+1):
+        for k in range (ZLength+1):
+          scalarData.append(data[i][j][k])
+    print >>f, "".join(scalarData[:])
+    f.close()
 #Process the nodes
 def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
     global data
