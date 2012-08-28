@@ -812,7 +812,8 @@ void ISODUAL3D::split_dual_isovert
  std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
  std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
  std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
- std::vector<VERTEX_INDEX> & isoquad_vert)
+ std::vector<VERTEX_INDEX> & isoquad_vert,
+ VERTEX_INDEX & num_split)
 {
   const int dimension = scalar_grid.Dimension();
   const NUM_TYPE num_cube_vertices = scalar_grid.NumCubeVertices();
@@ -823,6 +824,8 @@ void ISODUAL3D::split_dual_isovert
   num_isov.resize(cube_list.size());
   first_cube_isov.resize(cube_list.size());
   IJK::CUBE_FACE_INFO<int,NUM_TYPE,NUM_TYPE> cube(dimension);
+
+  num_split = 0;
 
   cube_table_index.resize(cube_list.size());
   ISO_VERTEX_INDEX total_num_isov = 0;
@@ -838,6 +841,8 @@ void ISODUAL3D::split_dual_isovert
     cube_table_index[i] = it;
     num_isov[i] = isodual_table.NumIsoVertices(it);
     total_num_isov += num_isov[i];
+
+    if (num_isov[i] > 1) { num_split++; }
   }
 
   iso_vlist_cube.resize(total_num_isov);

@@ -300,7 +300,8 @@ namespace ISODUAL3D {
    std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
-   std::vector<VERTEX_INDEX> & isoquad_vert);
+   std::vector<VERTEX_INDEX> & isoquad_vert,
+   VERTEX_INDEX & num_split);
 
   // **************************************************
   // Reposition routine

@@ -341,11 +341,14 @@ void ISODUAL3D::dual_contouring_sharp
 
       set_ambiguity_info(cube_ambig, isodual_info.sharpiso);
 
+      VERTEX_INDEX num_split;
       split_dual_isovert
         (scalar_grid, isodual_table, isovalue, 
          cube_list, cube_ambig, isoquad_cube, facet_vertex, 
          iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
-         dual_isosurface.quad_vert);
+         dual_isosurface.quad_vert, num_split);
+      isodual_info.sharpiso.num_cube_multi_isov = num_split;
+      isodual_info.sharpiso.num_cube_single_isov = cube_list.size() - num_split;
 
       t2 = clock();
 
@@ -405,6 +408,8 @@ void ISODUAL3D::dual_contouring_sharp
          cube_list, isoquad_cube, facet_vertex,
          iso_vlist_cube, iso_vlist_patch, dual_isosurface.quad_vert,
          num_split);
+      isodual_info.sharpiso.num_cube_multi_isov = num_split;
+      isodual_info.sharpiso.num_cube_single_isov = cube_list.size() - num_split;
 
       t2 = clock();
 

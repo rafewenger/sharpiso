@@ -1062,16 +1062,23 @@ void ISODUAL3D::report_iso_info3D
              << isodual_info.sharpiso.num_repositioned_vertices << endl;
       }
 
-      if (output_info.allow_multiple_iso_vertices &&
-          output_info.flag_resolve_ambiguous_facets) {
-        cout << "  Number of non-ambiguous cubes: "
-             << isodual_info.sharpiso.num_cube_not_ambiguous << endl;
-        cout << "  Number of separate positive cubes: "
-             << isodual_info.sharpiso.num_cube_separate_pos << endl;
-        cout << "  Number of separate negative cubes: "
-             << isodual_info.sharpiso.num_cube_separate_neg << endl;
-        cout << "  Number of unresolved ambiguous cubes: "
-             << isodual_info.sharpiso.num_cube_unresolved_ambiguity << endl;
+      if (output_info.allow_multiple_iso_vertices) {
+
+        if (output_info.flag_resolve_ambiguous_facets) {
+          cout << "  Number of non-ambiguous cubes: "
+               << isodual_info.sharpiso.num_cube_not_ambiguous << endl;
+          cout << "  Number of separate positive cubes: "
+               << isodual_info.sharpiso.num_cube_separate_pos << endl;
+          cout << "  Number of separate negative cubes: "
+               << isodual_info.sharpiso.num_cube_separate_neg << endl;
+          cout << "  Number of unresolved ambiguous cubes: "
+               << isodual_info.sharpiso.num_cube_unresolved_ambiguity << endl;
+        }
+
+        cout << "  Number of cubes with single isov: "
+             << isodual_info.sharpiso.num_cube_single_isov << endl;
+        cout << "  Number of cubes with multi isov: "
+             << isodual_info.sharpiso.num_cube_multi_isov << endl;
       }
 
       cout << endl;
