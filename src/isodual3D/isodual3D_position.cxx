@@ -357,9 +357,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
       // Complement table entry.
       { it = isodual_table.NumTableEntries()-1 - it; }
 
-    if (isodual_table.NumIsoVertices(it) == 1 ||
-        (iso_vlist_cube_ambig[i] != SEPARATE_POS &&
-         iso_vlist_cube_ambig[i] != SEPARATE_NEG)) {
+    if (isodual_table.NumIsoVertices(it) == 1) {
 
       svd_compute_sharp_vertex_for_cube
         (scalar_grid, gradient_grid, icube, isovalue,

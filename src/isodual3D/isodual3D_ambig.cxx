@@ -303,6 +303,7 @@ void ISODUAL3D::set_cube_ambiguity
       { cube_ambig[i] = SEPARATE_NEG; }
     else 
       { cube_ambig[i] = NOT_AMBIGUOUS; }
+
   }
 }
 

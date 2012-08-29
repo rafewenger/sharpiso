@@ -519,7 +519,8 @@ namespace {
   {
     const NUM_TYPE dir = plane_orth_dir;
 
-    if (line_dir[plane_orth_dir] <= max_small_grad) {
+    if (-max_small_grad <= line_dir[plane_orth_dir] &&
+        line_dir[plane_orth_dir] <= max_small_grad) {
       flag_intersect = false;
       return;
     }
