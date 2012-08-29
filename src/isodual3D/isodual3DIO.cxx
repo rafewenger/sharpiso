@@ -1174,7 +1174,7 @@ void options_msg()
   cerr << "  [-sharp_edgeI | -interpolate_edgeI]" << endl;
 	cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
 	cerr << "  [-lindstrom]" << endl;
-	cerr << "  [-allow_conflict |-clamp_conflict | centroid_conflict] [-merge_conflict]" << endl;
+	cerr << "  [-allow_conflict |-clamp_conflict | -centroid_conflict] [-merge_conflict]" << endl;
 	cerr << "  [-clamp_far] [-centroid_far]" << endl;
 	cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
 	cerr << "  [-Linf | -no_Linf]" << endl;

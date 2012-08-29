@@ -632,10 +632,6 @@ void output_svd_results
     compute_closest_point_to_cube_center
       (cube_coord, svd_info.ray_initial_point, svd_info.ray_direction,
        closest_point);
-
-    output <<"  Vertex on ray: ";
-    print_coord3D(output, closest_point);
-    output << endl;
   }
 
   if (svd_info.flag_conflict) {
