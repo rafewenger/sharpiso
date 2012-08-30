@@ -10,9 +10,6 @@ offset=[[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]
 
 data=[]
 
-
-
-
 # main start
 def main():
     pointerLocInDataBytes=[10]# starts from 10 to accomodate 'multisign'
