@@ -2,7 +2,7 @@
 import sys
 import struct
 import numpy
-from array import array
+import array
 
 
 
@@ -28,10 +28,8 @@ def main():
     XLength = convert("i", pointerLocInDataBytes, dataBytes, 4)
     YLength = convert("i", pointerLocInDataBytes, dataBytes, 4)
     ZLength = convert("i", pointerLocInDataBytes, dataBytes, 4)
-    #DEBUG
-    print "x[", XLength, "]y[", YLength, "]z[", ZLength, "]"
     global data
-    data=numpy.zeros((XLength+1, YLength+1, ZLength+1))
+    data=numpy.ones((XLength+1, YLength+1, ZLength+1))
     for i in range (XLength+1):
         for j in range (YLength+1):
             for k in range (ZLength+1):
@@ -47,18 +45,21 @@ def main():
     
     #write to the nrrd file 
     
-    f = open('data.nhdr', 'w')
+    f = open('data.nrrd', 'w ')
     print >>f, "NRRD0001"
-    print >>f, "content: data \ndimension: 3 \ntype: float"
-    print >>f, "sizes: ", ZLength+1,YLength+1,XLength+1 
-    print >>f, "spacings: 1 1 1" 
+    print >>f, "dimension: 3 \ntype: int"
+    print >>f, "sizes:", ZLength+1,YLength+1,XLength+1
+    print >>f, "spacings: 1 1 1"
+    print >>f, "encoding: text"
+    print >>f, "\n" 
+    
     scalarData=[]
+    binaryData=""
     for i in range (XLength+1):
       for j in range (YLength+1):
         for k in range (ZLength+1):
-          scalarData.append(data[i][j][k])
-    print >>f, "".join(scalarData[:])
-    f.close()
+        	print >>f, data[i][j][k],
+	
 #Process the nodes
 def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
     global data
@@ -66,7 +67,6 @@ def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
     NodeType = convert("i", pointerLocInDataBytes, dataBytes, 4)
     
     if NodeType == 0 :
-        print "Node Type 0 , level ",currLevel
         #decrease the level
         currLevel[0]=currLevel[0]-1
         
@@ -74,27 +74,21 @@ def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
         TempCurrLoc = currLoc
         Length = pow(2,currLevel[0])
         for nodeNum in range(8):
-            print " ------- "
-            print "children Node Number ", nodeNum,
             #reset the currLevel, and Location
             TempCurrLevel = currLevel
             TempCurrLoc = currLoc 
             
             #Compute the child locations
             childLoc = [TempCurrLoc[x] + offset[nodeNum][x]*Length for x in range(3)]
-            print "Child Loc  base ",childLoc
             ProcessNode(pointerLocInDataBytes, dataBytes, input, TempCurrLevel, childLoc)
-            print " ------- "
         currLevel[0]=currLevel[0]+1
             
     if NodeType == 1 :
         isOutside = convert("h", pointerLocInDataBytes, dataBytes, 2)
-        print "Node Type 1, empty node level ",currLevel, "is Outside ", isOutside
-    #data[currLoc[0]][currLoc[1]][currLoc[2]] = isOutside
+    	data[currLoc[0]][currLoc[1]][currLoc[2]] = isOutside
     
     if NodeType == 2 :
         Length = pow(2,currLevel[0])
-        print "Node Type 2, leaf node reached level ",currLevel
         
         for nodeNum in range (8):
             nodeLoc  = [currLoc[x] + offset[nodeNum][x] for x in range (3)]
@@ -108,7 +102,6 @@ def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
                 N0 = convert("f", pointerLocInDataBytes, dataBytes, 4)
                 N1 = convert("f", pointerLocInDataBytes, dataBytes, 4)
                 N2 = convert("f", pointerLocInDataBytes, dataBytes, 4)
-                #print " ", edgeOffset, "[",N0," ",N1," ",N2,"]"
             
 
     
