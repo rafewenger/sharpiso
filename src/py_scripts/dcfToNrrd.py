@@ -82,7 +82,8 @@ def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
             
     if NodeType == 1 :
         isOutside = convert("h", pointerLocInDataBytes, dataBytes, 2)
-    	data[currLoc[0]][currLoc[1]][currLoc[2]] = isOutside
+    	setIntermidiate ( currLoc, currLevel, isOutside)
+    	
     
     if NodeType == 2 :
         Length = pow(2,currLevel[0])
@@ -101,6 +102,19 @@ def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
                 N2 = convert("f", pointerLocInDataBytes, dataBytes, 4)
             
 
+#set the scalar values in the intermediate case by travelling down the Levels
+def setIntermidiate (currLoc, currLevel, scalarVal):
+	while (currLevel[0] > 0):
+		currLevel[0]= currLevel[0] - 1
+		for i in range (8):
+			tempCurrLevel = [currLevel[0]]
+			tempCurrLoc = [currLoc[x] + 2**tempCurrLevel[0]*offset[i][x] for x in range (3)]
+			setIntermidiate (tempCurrLoc, tempCurrLevel, scalarVal)
+	if currLevel[0] == 0:	
+		for nodeNum in range (8):
+			nodeLoc  = [currLoc[x] + offset[nodeNum][x] for x in range (3)]
+			data[nodeLoc[0]][nodeLoc[1]][nodeLoc[2]] = scalarVal
+		return 
     
 
 
