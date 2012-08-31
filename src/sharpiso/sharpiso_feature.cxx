@@ -51,6 +51,9 @@ bool check_conflict
  const GRID_COORD_TYPE cube_coord[DIM3], 
  const COORD_TYPE point_coord[DIM3],
  VERTEX_INDEX & conflicting_cube);
+void diff_coord
+(const GRID_COORD_TYPE coordA[DIM3], const GRID_COORD_TYPE coordB[DIM3],
+ NUM_TYPE & num_diff, VERTEX_INDEX & icoord);
 
 
 // **************************************************
@@ -393,7 +396,11 @@ void SHARPISO::compute_vertex_on_line
  SVD_INFO & svd_info)
 {
   const SIGNED_COORD_TYPE max_dist = sharpiso_param.max_dist;
+  VERTEX_INDEX conflicting_cube;
+  static GRID_COORD_TYPE conflicting_cube_coord[DIM3];
   static COORD_TYPE Linf_coord[DIM3];
+  VERTEX_INDEX icoord;
+  NUM_TYPE num_diff;
 
   // Compute the closest point (L2 distance) on the line to sharp_coord.
   compute_closest_point_to_cube_center
@@ -402,18 +409,26 @@ void SHARPISO::compute_vertex_on_line
   if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
 
     snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
-    if (check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
+    if (check_conflict(scalar_grid, isovalue, cube_coord, 
+                       sharp_coord, conflicting_cube)) {
   
       if (sharpiso_param.use_Linf_dist) {
-        // Use Linf distance instead of L1 distance.
-        compute_closest_point_to_cube_center_linf
-          (cube_coord, line_origin, line_direction, Linf_coord);
+        scalar_grid.ComputeCoord(conflicting_cube, conflicting_cube_coord);
 
-        snap_to_cube(cube_coord, sharpiso_param.snap_dist, Linf_coord);
-        if (!check_conflict(scalar_grid, isovalue, cube_coord, Linf_coord)) {
-          // No conflict.  Use Linf coord.
-          IJK::copy_coord_3D(Linf_coord, sharp_coord);
-          svd_info.flag_Linf_iso_vertex_location = true;
+        diff_coord(cube_coord, conflicting_cube_coord, num_diff, icoord);
+        if (num_diff == 1 &&
+            abs(line_direction[icoord]) >= sharpiso_param.max_small_grad_coord_Linf) {
+
+          // Use Linf distance instead of L1 distance.
+          compute_closest_point_to_cube_center_linf
+            (cube_coord, line_origin, line_direction, Linf_coord);
+
+          snap_to_cube(cube_coord, sharpiso_param.snap_dist, Linf_coord);
+          if (!check_conflict(scalar_grid, isovalue, cube_coord, Linf_coord)) {
+            // No conflict.  Use Linf coord.
+            IJK::copy_coord_3D(Linf_coord, sharp_coord);
+            svd_info.flag_Linf_iso_vertex_location = true;
+          }
         }
       }
     }
@@ -1156,6 +1171,20 @@ void snap_to_cube
   }
 }
 
+// Count number of different coordinates
+void diff_coord
+(const GRID_COORD_TYPE coordA[DIM3], const GRID_COORD_TYPE coordB[DIM3],
+ NUM_TYPE & num_diff, VERTEX_INDEX & icoord)
+{
+  icoord = 0;
+  num_diff = 0;
+  for (NUM_TYPE d = 0; d < DIM3; d++) {
+    if (coordA[d] != coordB[d]) { 
+      num_diff++;
+      icoord = d;
+    }
+  }
+}
 
 // **************************************************
 // Check for conflict
@@ -1263,6 +1292,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   max_small_eigenvalue = 0.1;
   separation_distance = 0.1;
   round_denominator = 16;
+  max_small_grad_coord_Linf = 0.2;
 }
 
 // **************************************************
