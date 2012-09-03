@@ -317,6 +317,10 @@ namespace SHARPISO {
     /// Minimum separation distance between isosurface vertices.
     COORD_TYPE separation_distance;
 
+    /// Maximum value of a small gradient coordinate.
+    /// Used in determining whether to use Linf distance.
+    COORD_TYPE max_small_grad_coord_Linf;
+
     /// Round to nearest 1/round_denominator
     int round_denominator;
 
