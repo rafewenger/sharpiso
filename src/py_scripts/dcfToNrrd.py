@@ -26,11 +26,11 @@ def main():
     YLength = convert("i", pointerLocInDataBytes, dataBytes, 4)
     ZLength = convert("i", pointerLocInDataBytes, dataBytes, 4)
     global data
-    data=numpy.ones((XLength+1, YLength+1, ZLength+1))
+    data=numpy.zeros((XLength+1, YLength+1, ZLength+1))
     for i in range (XLength+1):
         for j in range (YLength+1):
             for k in range (ZLength+1):
-                data[i][j][k]= 1
+                data[i][j][k]= 0
     
     #set the current Level
     currLevel=[depth]
@@ -53,9 +53,18 @@ def main():
     scalarData=[]
     binaryData=""
     for i in range (XLength+1):
-      for j in range (YLength+1):
-        for k in range (ZLength+1):
-        	print >>f, data[i][j][k],
+    	for j in range (YLength+1):
+    		for k in range (ZLength+1):
+    			print >>f, data[i][j][k],
+    
+    ### DEBUG write to  a  garb file 
+    fgarb = open ('data.txt','w')
+    for i in range (XLength+1):
+    	for j in range (YLength+1):
+    		for k in range (ZLength+1):
+    			print >>fgarb, data[i][j][k],
+    		print >> fgarb," "
+    	print >>fgarb, "\n "
 	
 #Process the nodes
 def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
@@ -81,8 +90,14 @@ def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
         currLevel[0]=currLevel[0]+1
             
     if NodeType == 1 :
-        isOutside = convert("h", pointerLocInDataBytes, dataBytes, 2)
-    	setIntermidiate ( currLoc, currLevel, isOutside)
+        isInside = convert("h", pointerLocInDataBytes, dataBytes, 2)
+        print "node type 1 level  ", currLevel[0], " loc ", currLoc , "isInside", isInside
+        if isInside == 1 :
+        	data[currLoc[0]][currLoc[1]][currLoc[2]] = 0
+        else:
+        	data[currLoc[0]][currLoc[1]][currLoc[2]] = 1
+        setIntermidiate ( currLoc, currLevel, isInside)
+    	
     	
     
     if NodeType == 2 :
@@ -91,7 +106,11 @@ def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
         for nodeNum in range (8):
             nodeLoc  = [currLoc[x] + offset[nodeNum][x] for x in range (3)]
             scalar = convert("h", pointerLocInDataBytes, dataBytes, 2)
-            data[nodeLoc[0]][nodeLoc[1]][nodeLoc[2]] = scalar
+            if scalar == 0:
+            	data[nodeLoc[0]][nodeLoc[1]][nodeLoc[2]] = 1
+            else:
+            	data[nodeLoc[0]][nodeLoc[1]][nodeLoc[2]] = 0
+            	
         
         for edgeNum in range(12):
             NumPointsOnEdge = convert("i", pointerLocInDataBytes, dataBytes, 4)
@@ -103,17 +122,23 @@ def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
             
 
 #set the scalar values in the intermediate case by travelling down the Levels
-def setIntermidiate (currLoc, currLevel, scalarVal):
-	while (currLevel[0] > 0):
-		currLevel[0]= currLevel[0] - 1
+def setIntermidiate ( currLoc, currLevel, scalarVal):
+	tempCurrLevel = currLevel[0]
+	
+	while (tempCurrLevel > 0):
+		tempCurrLevel= tempCurrLevel - 1
 		for i in range (8):
-			tempCurrLevel = [currLevel[0]]
-			tempCurrLoc = [currLoc[x] + 2**tempCurrLevel[0]*offset[i][x] for x in range (3)]
-			setIntermidiate (tempCurrLoc, tempCurrLevel, scalarVal)
-	if currLevel[0] == 0:	
+			tempCurrLoc = [currLoc[x] + 2**tempCurrLevel*offset[i][x] for x in range (3)]
+			setIntermidiate (tempCurrLoc, [tempCurrLevel], scalarVal)
+	if tempCurrLevel == 0:	
 		for nodeNum in range (8):
 			nodeLoc  = [currLoc[x] + offset[nodeNum][x] for x in range (3)]
-			data[nodeLoc[0]][nodeLoc[1]][nodeLoc[2]] = scalarVal
+			print "-", nodeLoc[:],
+			if scalarVal == 0:
+				data[nodeLoc[0]][nodeLoc[1]][nodeLoc[2]] = 0
+			else:
+				data[nodeLoc[0]][nodeLoc[1]][nodeLoc[2]] = 1
+			print "scalarVal ", scalarVal
 		return 
     
 
@@ -131,7 +156,8 @@ def readBytes(fileName, dataBytes):
 def convert(Datatyp, pointerLocInDataBytes, dataBytes, num): 
     s = pointerLocInDataBytes[0]
     pointerLocInDataBytes[0] = pointerLocInDataBytes[0] + num
-    return   struct.unpack("<"+Datatyp, ''.join(dataBytes[s:s+num]))[0]
+    #return   struct.unpack("<"+Datatyp, ''.join(dataBytes[s:s+num]))[0]
+    return   struct.unpack(Datatyp, ''.join(dataBytes[s:s+num]))[0]
 
 # call the main function
 if __name__ == "__main__":
