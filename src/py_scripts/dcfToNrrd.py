@@ -58,6 +58,7 @@ def main():
     		for k in range (ZLength+1):
     			print >>f, data[i][j][k],
     f.close()
+    print '****** File ', outNrrd , 'created.'
     ### DEBUG write to  a  garb file 
     '''
     fgarb = open ('data.txt','w')
