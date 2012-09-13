@@ -1,2 +1,16 @@
 python programs to test the runs of isodual3D
 and findEdge
+
+
+singleVertCheck.py 
+find cubes which are intersected but do not have any sharp points 
+
+ python runPM.py temp/cube02/cube02.stl 3 0.8 
+ python dcfToNrrd.py temp/cube02/cube02-dc-3-0.8.dcf 3 0.8 
+ python singleVertCheck.py temp/cube02/cube02-dc-tri-3-0.8.off  3 0.8 temp/cube02/cube02.txt 3 3 3 > garb 
+
+data sets
+cube 01
+1.0 on all sides  height 3 scale 0.8
+cube02
+1.0 on all sides  height 3 scale 0.8 but it is origin at 3,3,3
