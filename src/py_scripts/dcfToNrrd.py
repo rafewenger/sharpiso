@@ -4,7 +4,9 @@ import sys
 import struct
 import numpy
 import array
-
+'''
+python dcfToNrrd.py temp/cube01/cube01-dc-3-0.8.dcf 3
+'''
 
 
 offset=[[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]
@@ -17,8 +19,9 @@ def main():
     
     fileName=sys.argv[1]
     depth=int(sys.argv[2])
-    input=[fileName, depth]
-    outNrrd =  fileName.split("-")[0]+'.nrrd';
+    inpt=[fileName, depth]
+    outNrrd =  fileName.split("-")[0]+'.nrrd'
+    outTxt  = fileName.split("-")[0]+'.txt'
     dataBytes=[]
     #Read the data from the .dcf file into dataBytes
     readBytes(fileName, dataBytes)
@@ -38,7 +41,7 @@ def main():
     #set the current Location to 0
     currLoc=[0,0,0]
     #Process the nodes
-    ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel , currLoc, )
+    ProcessNode(pointerLocInDataBytes, dataBytes, inpt, currLevel , currLoc, )
     
     
     #write to the nrrd file 
@@ -60,17 +63,15 @@ def main():
     f.close()
     print '****** File ', outNrrd , 'created.'
     ### DEBUG write to  a  garb file 
-    '''
-    fgarb = open ('data.txt','w')
+    
+    fgarb = open (outTxt,'w')
     for i in range (XLength+1):
     	for j in range (YLength+1):
     		for k in range (ZLength+1):
     			print >>fgarb, data[i][j][k],
-    		print >> fgarb," "
-    	print >>fgarb, "\n "
-	'''
+	
 #Process the nodes
-def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
+def ProcessNode(pointerLocInDataBytes, dataBytes, inpt, currLevel, currLoc):
     global data
     #Compute Node Type (0,1,2)
     NodeType = convert("i", pointerLocInDataBytes, dataBytes, 4)
@@ -89,7 +90,7 @@ def ProcessNode(pointerLocInDataBytes, dataBytes, input, currLevel, currLoc):
             
             #Compute the child locations
             childLoc = [TempCurrLoc[x] + offset[nodeNum][x]*Length for x in range(3)]
-            ProcessNode(pointerLocInDataBytes, dataBytes, input, TempCurrLevel, childLoc)
+            ProcessNode(pointerLocInDataBytes, dataBytes, inpt, TempCurrLevel, childLoc)
         currLevel[0]=currLevel[0]+1
             
     '''
