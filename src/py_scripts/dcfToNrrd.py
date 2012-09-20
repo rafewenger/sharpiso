@@ -20,8 +20,8 @@ def main():
     fileName=sys.argv[1]
     depth=int(sys.argv[2])
     inpt=[fileName, depth]
-    outNrrd =  fileName.split("-")[0]+'.nrrd'
-    outTxt  = fileName.split("-")[0]+'.txt'
+    outNrrd =  fileName.split("-")[0]+'-'+fileName.split("-")[2]+'-'+fileName.split("-")[3]+'.nrrd'
+    outTxt  = fileName.split("-")[0]+'-'+fileName.split("-")[2]+'-'+fileName.split("-")[3]+'.txt'
     dataBytes=[]
     #Read the data from the .dcf file into dataBytes
     readBytes(fileName, dataBytes)

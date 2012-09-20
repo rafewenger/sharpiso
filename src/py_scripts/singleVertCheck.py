@@ -11,6 +11,7 @@ class gridVertType:
   z=0
   isIntersect = False
   numIntersection = 0
+  sm=0
   gridLoc=[]
   ptsLocs=[]
 
@@ -46,7 +47,9 @@ def buildGrid(vertLoc, height):
   for i in range (numVertPerDirection):
     for j in range (numVertPerDirection):
       for k in range (numVertPerDirection):
+        #n = (numVertPerDirection)*(numVertPerDirection)*i + (numVertPerDirection)*j + k
         n = (numVertPerDirection)*(numVertPerDirection)*i + (numVertPerDirection)*j + k
+        #print '(',i,j,k,')--', n
         gv = gridVertType()
         gv.ind = n
         gv.isIntersect = False
@@ -76,27 +79,35 @@ def setNrrdData(grid, height):
       for k in range (numVertPerDirection):        
         tempGrid[i][j][k]=float(nrrddata[indx])
         indx=indx+1
-  '''
-  print 'tempGrid'
+  
+  fw = open ('asciiFile.txt', 'w')
+  print 'tempGrid', numVertPerDirection
   for i in range (numVertPerDirection):
     for j in range (numVertPerDirection):
       for k in range (numVertPerDirection):
-        print tempGrid[i][j][k],
-      print ' '
-    print ' '
-  return [0,0,0]
-  '''        
+        #print >>fw, '(',i,j,k,')',tempGrid[i][j][k],
+        print >>fw,tempGrid[i][j][k],
+      print >>fw,' '
+    print >>fw,' '
+  
+      
   for i in range (numVertPerDirection):
     for j in range (numVertPerDirection):
       for k in range (numVertPerDirection):
-        sum=0
+        sm=0
         if i < (numVertPerDirection -1) and j < (numVertPerDirection -1) and k < (numVertPerDirection -1):
-					sum = tempGrid[i][j][k]+tempGrid[i][j][k+1]+\
-					tempGrid[i][j+1][k]+tempGrid[i][j+1][k+1]+tempGrid[i+1][j][k]+\
-					tempGrid[i+1][j][k+1]+tempGrid[i+1][j+1][k]+tempGrid[i+1][j+1][k+1]
-					if sum >=1 and sum <=7:
-						ind = i*numVertPerDirection*numVertPerDirection+j*numVertPerDirection+k
-						tempgv = gridVertType()
+					for m in range (2):
+					  for n in range (2):
+					    for p in range (2):
+					      sm = sm + tempGrid[i+m][j+n][k+p]
+					      #print >>fw1,'(',i+m,j+n,k+p,')=',tempGrid[i+m][j+n][k+p],
+					      
+					ind = i*numVertPerDirection*numVertPerDirection+j*numVertPerDirection+k
+					#print ' --',i,j,k,'ind',ind,'--',sm
+					tempgv = gridVertType()
+					tempgv = grid[ind]
+					tempgv.sm = sm
+					if sm >=1 and sm <=7:
 						tempgv = grid[ind]
 						tempgv.isIntersect = True
           
@@ -127,17 +138,20 @@ def main():
     print 'scale', scale
     origin = [int(sys.argv[5+x]) for x in range (3)]
     print 'origin',origin
+    halfl = (1.0/scale)/2.0
     ul = (1.0/scale)/(2**height)
     print ' unit length ' , ul
     numVertPerDirection = 2**height+1
+    print 'origin ',( origin[x] -halfl)
     for i in range (numv):
-      baseLoc = [ int ( (vertLoc[3*i+x] - origin[x]+0.5) /ul ) for x in  range (3)]
+      #baseLoc = [ int ( (vertLoc[3*i+x] - origin[x]+0.5) /ul ) for x in  range (3)]
+      baseLoc = [ int ( (vertLoc[3*i+x] - ( origin[x] - halfl)) /ul ) for x in  range (3)]
       ind = baseLoc[0]*numVertPerDirection*numVertPerDirection + baseLoc[1]*numVertPerDirection+ baseLoc[2]
       tempgv = gridVertType()
       tempgv = grid[ind]
       tempgv.gridLoc=baseLoc
       tempgv.numIntersection = tempgv.numIntersection + 1 
-      tempgv.ptsLocs.append([vertLoc[3*i+0] - origin[0]+0.5, vertLoc[3*i+1] - origin[1]+0.5, vertLoc[3*i+2] - origin[2]+0.5])
+      tempgv.ptsLocs.append([vertLoc[3*i+0] , vertLoc[3*i+1], vertLoc[3*i+2]])
     
     #read Nrrd data and set isIntersect
     NrrdsetGrid = setNrrdData(grid, height)
@@ -160,15 +174,39 @@ def main():
 					if tempgv.isIntersect == True:
 						print  tempgv.x,tempgv.y,tempgv.z   
     '''
+    
     print 'OUT'
+    fw2 = open ('out1.off','w')
     for i in range (numVertPerDirection):
 			for j in range (numVertPerDirection):
 				for k in range (numVertPerDirection):
 					n = (numVertPerDirection)*(numVertPerDirection)*i + (numVertPerDirection)*j + k
 					tempgv = gridVertType()
 					tempgv = grid[n]
-					if tempgv.numIntersection  < 1 and tempgv.isIntersect == True  :
-						print  tempgv.x,tempgv.y,tempgv.z     
+					if  tempgv.numIntersection == 1 : 
+						#print  tempgv.gridLoc
+						#print   tempgv.gridLoc[0],' ',tempgv.gridLoc[1],' ',tempgv.gridLoc[2]
+						print >>fw2, " ".join(map(str, tempgv.ptsLocs[0])), ' grid location ',
+						print >>fw2, tempgv.gridLoc
+
+    print 'OUT2'
+    fw3 = open ('out2.off','w')
+    for i in range (numVertPerDirection):
+			for j in range (numVertPerDirection):
+				for k in range (numVertPerDirection):
+					n = (numVertPerDirection)*(numVertPerDirection)*i + (numVertPerDirection)*j + k
+					tempgv = gridVertType()
+					tempgv = grid[n]
+					if  tempgv.numIntersection > 1:
+					  print >>fw3, 'grid loc ',[tempgv.gridLoc[x] *ul for x in range (3)]
+					  for m in  range (len(tempgv.ptsLocs)): 
+						  #print >>fw3," ".join(map(str, tempgv.ptsLocs[m])),' grid location ',
+						   
+						  print >> fw3 , ' '.join(map(str,[tempgv.ptsLocs[m][x] - ( origin[x] - halfl) for x in range (3)]))
+						  print >> fw3 ,'diff', [(tempgv.ptsLocs[m][x] - ( origin[x] - halfl))-tempgv.gridLoc[x] *ul  for x in range (3)],'--', ul
+					  print >>fw3, ' '
+						  
+						  #print >> fw3, tempgv.gridLoc
 if __name__ == "__main__":
     main()
     
