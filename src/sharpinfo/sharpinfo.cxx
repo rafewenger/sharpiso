@@ -593,14 +593,9 @@ void output_svd_results
   IJK::ijkgrid_output_coord(output, DIM3, sharp_coord);
   output << endl;
 
-  if (sharpiso_param.use_lindstrom ||
-      sharpiso_param.use_lindstrom2) {
-
-    output << "Central point for distance: ";
-    IJK::ijkgrid_output_coord(output, DIM3, svd_info.central_point);
-    output << endl;
-  }
-      
+  output << "Central point for distance: ";
+  IJK::ijkgrid_output_coord(output, DIM3, svd_info.central_point);
+  output << endl;
 
   output << "Eigenvalues: ";
   IJK::ijkgrid_output_coord(output, DIM3, eigenvalues);
@@ -625,23 +620,31 @@ void output_svd_results
     print_coord3D(output, svd_info.ray_direction);
     output << endl;
 
-    compute_closest_point_to_cube_center
-      (cube_coord, svd_info.ray_initial_point, svd_info.ray_direction,
-       closest_point);
-    output <<"  Closest (L2) point on ray to cube center: ";
+    compute_closest_point_on_line
+      (svd_info.central_point, 
+       svd_info.ray_initial_point, svd_info.ray_direction,
+       sharpiso_param.zero_tolerance, closest_point);
+    output <<"  Closest (L2) point on ray to central point: ";
     print_coord3D(output, closest_point);
     output << endl;
 
+    /* OBSOLETE
     compute_closest_point_to_cube_center_linf
       (cube_coord, svd_info.ray_initial_point, svd_info.ray_direction,
        closest_point);
-    output <<"  Closest (Linf) point on ray to cube center: ";
+    */
+    compute_closest_point_on_line_linf
+      (svd_info.central_point, 
+       svd_info.ray_initial_point, svd_info.ray_direction,
+       sharpiso_param.zero_tolerance, closest_point);
+    output <<"  Closest (Linf) point on ray to central point: ";
     print_coord3D(output, closest_point);
     output << endl;
 
-    compute_closest_point_to_cube_center
-      (cube_coord, svd_info.ray_initial_point, svd_info.ray_direction,
-       closest_point);
+    compute_closest_point_on_line
+      (svd_info.central_point, 
+       svd_info.ray_initial_point, svd_info.ray_direction,
+       sharpiso_param.zero_tolerance, closest_point);
   }
 
   if (svd_info.flag_conflict) {

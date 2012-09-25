@@ -365,8 +365,8 @@ void local_svd_compute_sharp_vertex_for_cube_lc_intersection
     IJK::copy_coord_3D(sharp_coord, line_origin);
 
     compute_vertex_on_line
-      (scalar_grid, gradient_grid, cube_coord, isovalue, sharpiso_param,
-       line_origin, line_direction, sharp_coord, svd_info);
+      (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue, 
+       sharpiso_param, line_origin, line_direction, sharp_coord, svd_info);
     svd_info.SetRayInfo(line_origin, line_direction, sharp_coord);
   }
   else if (num_large_eigenvalues  == 1) {
@@ -383,11 +383,13 @@ void local_svd_compute_sharp_vertex_for_cube_lc_intersection
 
 }
 
+
 /// Compute sharp isosurface vertex on the line
 /// @param flag_conflict True if sharp_coord conflicts with other cube.
 void SHARPISO::compute_vertex_on_line
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
  const GRID_COORD_TYPE cube_coord[DIM3],
  const SCALAR_TYPE isovalue,
  const SHARP_ISOVERT_PARAM & sharpiso_param,
@@ -398,15 +400,27 @@ void SHARPISO::compute_vertex_on_line
 {
   const SIGNED_COORD_TYPE max_dist = sharpiso_param.max_dist;
   const GRADIENT_COORD_TYPE zero_tolerance = sharpiso_param.zero_tolerance;
+  COORD_TYPE central_point[DIM3];
   VERTEX_INDEX conflicting_cube;
   static GRID_COORD_TYPE conflicting_cube_coord[DIM3];
   static COORD_TYPE Linf_coord[DIM3];
   VERTEX_INDEX icoord;
   NUM_TYPE num_diff;
 
-  // Compute the closest point (L2 distance) on the line to sharp_coord.
-  compute_closest_point_to_cube_center
-    (cube_coord, line_origin, line_direction, zero_tolerance, sharp_coord);
+  if (sharpiso_param.flag_dist2centroid) {
+    compute_edgeI_centroid
+      (scalar_grid, gradient_grid, isovalue, cube_index, 
+       sharpiso_param.use_sharp_edgeI, central_point);
+  }
+  else {
+    for (int d = 0; d < DIM3; d++) 
+      { central_point[d] = cube_coord[d] + 0.5; }
+  }
+
+  // Compute the closest point (L2 distance) on the line to central_point.
+  compute_closest_point_on_line
+    (central_point, line_origin, line_direction, zero_tolerance, sharp_coord);
+  IJK::copy_coord(DIM3, central_point, svd_info.central_point);
 
   if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
 
@@ -422,8 +436,8 @@ void SHARPISO::compute_vertex_on_line
             abs(line_direction[icoord]) >= sharpiso_param.max_small_grad_coord_Linf) {
 
           // Use Linf distance instead of L1 distance.
-          compute_closest_point_to_cube_center_linf
-            (cube_coord, line_origin, line_direction, Linf_coord);
+          compute_closest_point_on_line_linf
+            (central_point, line_origin, line_direction, zero_tolerance, Linf_coord);
 
           snap_to_cube(cube_coord, sharpiso_param.snap_dist, Linf_coord);
           if (!check_conflict(scalar_grid, isovalue, cube_coord, Linf_coord)) {
@@ -453,9 +467,9 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_interpolate_gradients
 {
   const EIGENVALUE_TYPE max_small_eigenvalue =
     sharpiso_param.max_small_eigenvalue;
-  NUM_TYPE num_gradients(0);
   GRADIENT_COORD_TYPE gradient_coord[NUM_CUBE_VERTICES3D*DIM3];
   SCALAR_TYPE scalar[NUM_CUBE_VERTICES3D];
+  NUM_TYPE num_gradients(0);
 
   get_cube_gradients
     (scalar_grid, gradient_grid, cube_index,

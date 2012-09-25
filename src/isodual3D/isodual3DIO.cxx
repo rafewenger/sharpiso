@@ -999,19 +999,21 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
   }
 
   if (isodual_param.use_sharp_edgeI) {
-    cout << "Use sharp formula to calculate intersections of isosurface and grid edges." << endl;
+    cout << "Using sharp formula to calculate intersections of isosurface and grid edges." << endl;
   }
   else {
-    cout << "Use interpolation to calculate intersections of isosurface and grid edges." << endl;
+    cout << "Using interpolation to calculate intersections of isosurface and grid edges." << endl;
   }
 
   if (isodual_param.use_lindstrom) {
-    if (isodual_param.flag_dist2centroid) {
-      cout << "Using Lindstrom formula (distance to centroid)." << endl;
-    }
-    else {
-      cout << "Using Lindstrom formula (distance to center)." << endl;
-    }
+    cout << "Using Lindstrom formula." << endl;
+  }
+
+  if (isodual_param.flag_dist2centroid) {
+    cout << "Using distance to centroid." << endl;
+  }
+  else {
+    cout << "Using distance to center." << endl;
   }
 
   if (isodual_param.flag_allow_conflict) {
