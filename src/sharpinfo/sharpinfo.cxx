@@ -592,6 +592,16 @@ void output_svd_results
 
   IJK::ijkgrid_output_coord(output, DIM3, sharp_coord);
   output << endl;
+
+  if (sharpiso_param.use_lindstrom ||
+      sharpiso_param.use_lindstrom2) {
+
+    output << "Central point for distance: ";
+    IJK::ijkgrid_output_coord(output, DIM3, svd_info.central_point);
+    output << endl;
+  }
+      
+
   output << "Eigenvalues: ";
   IJK::ijkgrid_output_coord(output, DIM3, eigenvalues);
   output << endl;
@@ -1161,6 +1171,8 @@ void usage_error()
     cerr << "  [-allow_conflict | -clamp_conflict | -centroid_conflict]" 
          << endl;
     cerr << "  -clamp_far | [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
+    cerr << "  [-sharp_edgeI | -interpolate_edgeI]" << endl;
+    cerr << "  [-dist2center | -dist2centroid]" << endl;
     cerr << "  [-removeg | -no_removeg]"
          << "  [-centroid_eigen1 | -no_centroid_eigen1] [-no_Linf]" << endl;
     cerr << "  [-no_round | -round <n>]" << endl;
@@ -1172,7 +1184,6 @@ void usage_error()
     cerr << "  -gradS_offset <value> | -max_dist <value> | max_mag <value>" 
          << endl;
     cerr << "  -listg | -list_subgrid | -list_edgeI" << endl;
-    cerr << "  -sharp_edgeI" << endl;
     cerr << "  -help | -no_output_param" << endl;
     exit(10);
 }
@@ -1621,6 +1632,15 @@ void help()
        << "                using gradient assignment and apply svd." << endl;
   cerr << "  -subgrid:   Output isosurface vertex based on subgrid." << endl;
   cerr << "  -lindstrom: Use Lindstrom's equation for calculating point on sharp feature." << endl;
+  cerr << "  -sharp_edgeI: Use sharp formula for calculating"
+       << endl
+       << "                intersections of isosurface and grid edges." << endl;
+  cerr << "  -interpolate_edgeI: Use linear interpolation for calculating"
+       << endl
+       << "                intersections of isosurface and grid edges." << endl;
+  cout << "  -dist2center:  Use distance to center in lindstrom." << endl;
+  cout << "  -dist2centroid:  Use distance to centroid of isourface-edge"
+       << "                   intersections in lindstrom." << endl;
   cerr << "  -edgeI:     Output edge intersection information." << endl;
   cerr << "  -rayI:      Use intersection of ray and cubes for calculating point on sharp feature." << endl;
   cerr << "  -coord \"point_coord\":  Compute scalar values at coordinate point_coord." << endl;
@@ -1643,9 +1663,6 @@ void help()
   cerr << "  -list_subgrid:  List all scalar values at vertices of subgrid." << endl;
   cerr << "  -list_edgeI: List intersections of isosurface and grid edges."
        << endl;
-  cerr << "  -sharp_edgeI: Use sharp formula for calculating intersectons"
-       << endl
-       << "                of isosurface and grid edges." << endl;
   cerr << "  -dist2vert: Distance from vertex to planes defined by gradients" 
        << endl
        << "              at neighboring vertices." << endl;

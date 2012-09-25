@@ -134,6 +134,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
   else {
     scalar_grid.ComputeCubeCenterCoord(cube_index, central_point);
   }
+  IJK::copy_coord(DIM3, central_point, svd_info.central_point);
 
   svd_calculate_sharpiso_vertex_using_lindstrom
     (sharpiso_param.use_lindstrom2, &(point_coord[0]), 

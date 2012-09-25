@@ -349,6 +349,9 @@ namespace SHARPISO {
     bool flag_conflict;
     VERTEX_INDEX cube_containing_coord;
     bool flag_Linf_iso_vertex_location;
+
+    /// Compute distance to this point.
+    COORD_TYPE central_point[DIM3];
     
     /// Set ray information.
     void SetRayInfo

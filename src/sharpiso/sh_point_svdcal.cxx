@@ -224,7 +224,7 @@ void sh_cube::findPoint
  const SCALAR_TYPE EIGEN_VALUE_CUTOFF,
  float singular_vals[DIM3],
  int &num_singular_vals,
- SVD_INFO &svd_debug_info,
+ SVD_INFO & svd_info,
  COORD_TYPE * isoVertcoords)
 {
   //set m
@@ -245,10 +245,11 @@ void sh_cube::findPoint
     }
   }
 
-  for (int i=0; i<3;i++) {
-    centroid(i)=centroid(i)/cb.ne_intersect;
-  }
+  for (int i=0; i<3;i++) 
+    { centroid(i)=centroid(i)/cb.ne_intersect; }
 
+  for (int d=0; d<3; d++) 
+    { svd_info.central_point[d] = centroid(d); }
 
   //set b
   RowVectorXf b(cb.ne_intersect);
