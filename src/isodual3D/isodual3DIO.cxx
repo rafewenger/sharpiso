@@ -195,7 +195,8 @@ typedef enum {
 
 }
 
-void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_info)
+void ISODUAL3D::parse_command_line
+(int argc, char **argv, INPUT_INFO & input_info)
 // parse command line
 // control parameters, followed by one or more isovalues,
 // followed by input file name
@@ -204,6 +205,7 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 
 	int iarg = 1;
 	bool is_vertex_position_method_set = false;
+  bool is_use_sharp_edgeI_set = false;
 	while (iarg < argc && argv[iarg][0] == '-') {
 		PARAMETER param = get_parameter_token(argv[iarg]);
 		if (param == UNKNOWN_PARAM) break;
@@ -263,10 +265,12 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 
     case SHARP_EDGEI_PARAM:
       input_info.use_sharp_edgeI = true;
+      is_use_sharp_edgeI_set = true;
       break;
 
     case INTERPOLATE_EDGEI_PARAM:
       input_info.use_sharp_edgeI = false;
+      is_use_sharp_edgeI_set = true;
       break;
 
 		case GRAD_S_OFFSET_PARAM:
@@ -489,6 +493,31 @@ void ISODUAL3D::parse_command_line(int argc, char **argv, INPUT_INFO & input_inf
 		input_info.vertex_position_method = GRADIENT_POSITIONING;
     input_info.SetGradSelectionMethod(GRAD_NS);
 	}
+
+  if (is_use_sharp_edgeI_set) {
+    if (input_info.use_sharp_edgeI) {
+      if (input_info.vertex_position_method == EDGEI_INTERPOLATE) {
+        cerr << "Error.  Cannot use -interpolate_edgeI with -position gradES."
+             << endl;
+        exit(230);
+      }
+    }
+    else {
+      if (input_info.vertex_position_method == EDGEI_GRADIENT) {
+        cerr << "Error.  Cannot use -interpolate_edgeI with -position gradEC."
+             << endl;
+        exit(230);
+      }
+    }
+  }
+
+  if (input_info.vertex_position_method == EDGEI_GRADIENT) {
+    input_info.use_sharp_edgeI = true;
+  }
+
+  if (input_info.vertex_position_method == EDGEI_INTERPOLATE) {
+    input_info.use_sharp_edgeI = false;
+  }
 
 	if (input_info.flag_subsample && input_info.subsample_resolution <= 1) {
 		cerr << "Error.  Subsample resolution must be an integer greater than 1."
@@ -969,13 +998,31 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
     break;
   }
 
-  if (isodual_param.use_lindstrom) 
-    { cout << "Using Lindstrom formula." << endl; }
+  if (isodual_param.use_sharp_edgeI) {
+    cout << "Use sharp formula to calculate intersections of isosurface and grid edges." << endl;
+  }
+  else {
+    cout << "Use interpolation to calculate intersections of isosurface and grid edges." << endl;
+  }
 
-  if (isodual_param.flag_clamp_conflict) 
-    { cout << "Resolve conflict by clamping coordinates." << endl; }
-  else
-    { cout << "Resolve conflict by reverting to centroid." << endl; }
+  if (isodual_param.use_lindstrom) {
+    if (isodual_param.flag_dist2centroid) {
+      cout << "Using Lindstrom formula (distance to centroid)." << endl;
+    }
+    else {
+      cout << "Using Lindstrom formula (distance to center)." << endl;
+    }
+  }
+
+  if (isodual_param.flag_allow_conflict) {
+    cout << "Allow isosurface vertex conflicts." << endl;
+  }
+  else {
+    if (isodual_param.flag_clamp_conflict) 
+      { cout << "Resolve conflict by clamping coordinates." << endl; }
+    else
+      { cout << "Resolve conflict by reverting to centroid." << endl; }
+  }
 
   if (isodual_param.allow_multiple_iso_vertices) {
     cout << "Allow multiple isosurface vertices per grid cube." << endl;
