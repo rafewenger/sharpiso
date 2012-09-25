@@ -397,6 +397,7 @@ void SHARPISO::compute_vertex_on_line
  SVD_INFO & svd_info)
 {
   const SIGNED_COORD_TYPE max_dist = sharpiso_param.max_dist;
+  const GRADIENT_COORD_TYPE zero_tolerance = sharpiso_param.zero_tolerance;
   VERTEX_INDEX conflicting_cube;
   static GRID_COORD_TYPE conflicting_cube_coord[DIM3];
   static COORD_TYPE Linf_coord[DIM3];
@@ -405,7 +406,7 @@ void SHARPISO::compute_vertex_on_line
 
   // Compute the closest point (L2 distance) on the line to sharp_coord.
   compute_closest_point_to_cube_center
-    (cube_coord, line_origin, line_direction, sharp_coord);
+    (cube_coord, line_origin, line_direction, zero_tolerance, sharp_coord);
 
   if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
 

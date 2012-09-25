@@ -40,11 +40,20 @@ namespace SHARPISO {
    const float th
    );
   
+  ///  Compute the closest point to point p on a given line.
+  void compute_closest_point_on_line
+  (const COORD_TYPE point[DIM3],
+   const COORD_TYPE line_origin[DIM3],
+   const COORD_TYPE line_direction[DIM3],
+   const GRADIENT_COORD_TYPE zero_tolerance_squared,
+   COORD_TYPE closest_point[DIM3]);
+
   // Calculate the closest point to a cube center
   void compute_closest_point_to_cube_center
-  (const GRID_COORD_TYPE cube_coord[],
-   const COORD_TYPE coord[],
-   const COORD_TYPE ray_direction[],
+  (const GRID_COORD_TYPE cube_coord[DIM3],
+   const COORD_TYPE coord[DIM3],
+   const COORD_TYPE ray_direction[DIM3],
+   const GRADIENT_COORD_TYPE zero_tolerance_squared,
    COORD_TYPE closest_point[DIM3]);
   
   // compute the linf dis
