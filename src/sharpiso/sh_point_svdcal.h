@@ -32,7 +32,7 @@ namespace sh_cube
      const SCALAR_TYPE EIGEN_VALUE_CUTOFF,
      float eigenvalues[DIM3],
      int &num_large_eigenvalues,
-     SVD_INFO &svd_debug_info,
+     SVD_INFO &svd_info,
      COORD_TYPE *shpoint);
 }
 

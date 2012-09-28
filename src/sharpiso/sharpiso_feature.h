@@ -96,6 +96,7 @@ namespace SHARPISO {
   void compute_vertex_on_line
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
    const GRID_COORD_TYPE cube_coord[DIM3],
    const SCALAR_TYPE isovalue,
    const SHARP_ISOVERT_PARAM & sharpiso_param,
@@ -349,6 +350,9 @@ namespace SHARPISO {
     bool flag_conflict;
     VERTEX_INDEX cube_containing_coord;
     bool flag_Linf_iso_vertex_location;
+
+    /// Compute distance to this point.
+    COORD_TYPE central_point[DIM3];
     
     /// Set ray information.
     void SetRayInfo

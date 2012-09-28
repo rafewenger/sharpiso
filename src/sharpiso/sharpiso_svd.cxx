@@ -73,7 +73,8 @@ void svd_calculate_sharpiso_vertex_using_lindstrom(
 		const SCALAR_TYPE * vert_scalars, const NUM_TYPE num_vert,
 		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
 		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE * cubecenter, COORD_TYPE * isoVertcoords) {
+		COORD_TYPE * cubecenter, COORD_TYPE * isoVertcoords) 
+{
 	if (num_vert == 0)
 		return;
 	// Initialize variables
@@ -101,11 +102,13 @@ void svd_calculate_sharpiso_vertex_using_lindstrom(
 	// check which one to use lindstrom2 or lindstrom
 	if (useLindstrom2 == false)
 		// Compute the cube vertex
-		compute_cube_vertex(A, B, singular_values, err_tolerance,
-				num_singular_vals, eigen_cubecenter, isoVertcoords);
+		compute_cube_vertex
+      (A, B, singular_values, err_tolerance,
+       num_singular_vals, eigen_cubecenter, isoVertcoords);
 	else
-		compute_cube_vertex_lind2(A, B, singular_values, err_tolerance,
-				num_singular_vals, eigen_cubecenter, isoVertcoords);
+		compute_cube_vertex_lind2
+      (A, B, singular_values, err_tolerance,
+       num_singular_vals, eigen_cubecenter, isoVertcoords);
 
 	//set up singular values. convert from eigen data type to floating type.
 	for (int i = 0; i < num_singular_vals; i++) {
@@ -485,9 +488,11 @@ void compute_A_pseudoinverse(const MatrixXf &A, MatrixXf & singular_values,
 // Compute_point for edge based dual contouring
 // applying the formula used in  lindstrom
 // need not be the centroid , may even be the cube_center
-void compute_cube_vertex(const MatrixXf &A, const RowVectorXf &b,
-		MatrixXf &singular_values, const float err_tolerance,
-		int & num_large_sval, const RowVectorXf &centroid, float * sharp_point) {
+void compute_cube_vertex
+(const MatrixXf &A, const RowVectorXf &b,
+ MatrixXf &singular_values, const float err_tolerance,
+ int & num_large_sval, const RowVectorXf &centroid, float * sharp_point) 
+{
 	// Compute the singular values for the matrix
 	JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
 
@@ -497,12 +502,13 @@ void compute_cube_vertex(const MatrixXf &A, const RowVectorXf &b,
 	// Compute sigma using only large singular values
 	MatrixXf sigma(num_sval, num_sval);
 	MatrixXf sigma_plus(num_sval, num_sval);
-	compute_sigma(singular_values, err_tolerance, num_sval, sigma_plus, sigma,
-			num_large_sval);
+	compute_sigma
+    (singular_values, err_tolerance, num_sval, sigma_plus, sigma,
+     num_large_sval);
 
-	MatrixXf point = centroid.transpose() + svd.matrixV() * sigma_plus
-			* svd.matrixU().transpose() * (b.transpose() - A
-					* centroid.transpose());
+	MatrixXf point = centroid.transpose() + 
+    svd.matrixV() * sigma_plus * svd.matrixU().transpose() * 
+    (b.transpose() - A * centroid.transpose());
 
 	for (int i = 0; i < 3; i++) { sharp_point[i] = point(i); }
 }
@@ -511,9 +517,11 @@ void compute_cube_vertex(const MatrixXf &A, const RowVectorXf &b,
 // applying the formula used in  lindstrom2
 // sharp point = centroid + V*Sigma * U^t *(b - A'*centroid)
 // where A' = U*Sigma *V^t
-void compute_cube_vertex_lind2(const MatrixXf &A, const RowVectorXf &b,
-		MatrixXf &singular_values, const float err_tolerance,
-		int & num_large_sval, const RowVectorXf &centroid, float * sharp_point) {
+void compute_cube_vertex_lind2
+(const MatrixXf &A, const RowVectorXf &b,
+ MatrixXf &singular_values, const float err_tolerance,
+ int & num_large_sval, const RowVectorXf &centroid, float * sharp_point) 
+{
 	// Compute the singular values for the matrix
 	JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
 
@@ -526,11 +534,12 @@ void compute_cube_vertex_lind2(const MatrixXf &A, const RowVectorXf &b,
 	compute_sigma(singular_values, err_tolerance, num_sval, sigma_plus, sigma,
 			num_large_sval);
 	MatrixXf A2 = svd.matrixU()*sigma*svd.matrixV().transpose();
-	MatrixXf point = centroid.transpose() + svd.matrixV() * sigma_plus
-			* svd.matrixU().transpose() * (b.transpose() - A2
-					* centroid.transpose());
+	MatrixXf point = centroid.transpose() + 
+    svd.matrixV() * sigma_plus * svd.matrixU().transpose() * 
+    (b.transpose() - A2 * centroid.transpose());
 	for (int i = 0; i < 3; i++) { sharp_point[i] = point(i); }
 }
+
 ///
 // FUNCTION compute the pseudo inverse of A using the TOP 2 singular values.
 // helper function to compute_A_inverse.

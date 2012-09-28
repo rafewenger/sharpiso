@@ -333,54 +333,49 @@ bool SHARPISO::calculate_point_intersect_complex
 };
 
 
-//  Given a point and a ray direction and the cord of the cube index
-//  Find a point on the ray which is at the closest distance to the cube-center
-//  Note calculate the cube center from the cube coord (index) by adding 0.5 0.5 0.5
-void SHARPISO::compute_closest_point_to_cube_center
-(const GRID_COORD_TYPE cube_coord[],
- const COORD_TYPE coord[],
- const COORD_TYPE ray_direction[],
+///  Compute the closest point to point p on a given line.
+void SHARPISO::compute_closest_point_on_line
+(const COORD_TYPE point[DIM3],
+ const COORD_TYPE line_origin[DIM3],
+ const COORD_TYPE line_direction[DIM3],
+ const GRADIENT_COORD_TYPE zero_tolerance_squared,
  COORD_TYPE closest_point[DIM3])
 {
-  COORD_TYPE ray_direction_normalized[DIM3]={0.0};
-  bool is_ray_direc_zero = false;
-  // Normalize the ray_direction
+  COORD_TYPE a[DIM3];
+  COORD_TYPE c[DIM3];
+  COORD_TYPE line_direction_normalized[DIM3];
+  float dotpdt;
+  bool is_zero = false;
+
+  // Normalize the line direction
   normalize_vector_3D
-  (ray_direction, ray_direction_normalized, is_ray_direc_zero, 0.0001);
-  
-  // find the cube center
-  COORD_TYPE center_offset[DIM3] = {0.5, 0.5, 0.5};
-  COORD_TYPE cube_center[DIM3];
-  IJK::add_coord(DIM3, center_offset, cube_coord, cube_center);
-  
+    (line_direction, line_direction_normalized, 
+     is_zero, zero_tolerance_squared);
   
   // the vector perpendicular is given by
-  // c =a -(a dot b^)* b^
-  COORD_TYPE a[DIM3]={0.0};
+  // c = a - (a dot b^)* b^
   //set a and b is given  by the ray direction
-  IJK::subtract_coord(DIM3, cube_center, coord, a);
+  IJK::subtract_coord(DIM3, point, line_origin, a);
   
-  COORD_TYPE c[DIM3]={0.0};
   // dot product
-  float dotpdt=0.0;
-  IJK::compute_inner_product(DIM3, a, ray_direction_normalized, dotpdt);
+  IJK::compute_inner_product(DIM3, a, line_direction_normalized, dotpdt);
   
   // compute c and invert it at same time
   for (int d=0; d<DIM3; d++)
-    c[d]=-(a[d]-dotpdt*ray_direction_normalized[d]);
+    { c[d] = -(a[d]-dotpdt*line_direction_normalized[d]); }
   
-  IJK::add_coord(DIM3, cube_center, c, closest_point);
+  IJK::add_coord(DIM3, point, c, closest_point);
 }
 
 
 void update_t_minus
-(const int X,const int Y, COORD_TYPE ray_direction_normalized[DIM3],
- COORD_TYPE cube_center[DIM3],const COORD_TYPE coord[DIM3], 
+(const int X,const int Y, const COORD_TYPE ray_direction_normalized[DIM3],
+ const COORD_TYPE point[DIM3],const COORD_TYPE line_origin[DIM3], 
  COORD_TYPE &t, bool &istTrue)
 {
   float RxMinusRy=ray_direction_normalized[X]-ray_direction_normalized[Y];
   if (RxMinusRy!=0) {
-    t = ((coord[Y]-cube_center[Y]) - (coord[X]-cube_center[X]))/ RxMinusRy;
+    t = ((line_origin[Y]-point[Y]) - (line_origin[X]-point[X]))/ RxMinusRy;
     istTrue = true;
   }
   else
@@ -388,12 +383,13 @@ void update_t_minus
 }
 
 void update_t_plus
-(const int X,const int Y, COORD_TYPE ray_direction_normalized[DIM3],
-                   COORD_TYPE cube_center[DIM3],const  COORD_TYPE coord[DIM3], COORD_TYPE &t, bool &istTrue)
+(const int X,const int Y, const COORD_TYPE ray_direction_normalized[DIM3],
+ const COORD_TYPE point[DIM3], const COORD_TYPE line_origin[DIM3], 
+ COORD_TYPE &t, bool &istTrue)
 {
   float RxPlusRy=(ray_direction_normalized[X]+ ray_direction_normalized[Y]);
   if (RxPlusRy !=0) {
-    t =((cube_center[X]-coord[X])-(coord[Y]-cube_center[Y]))/ RxPlusRy;
+    t =((point[X]-line_origin[X])-(line_origin[Y]-point[Y]))/ RxPlusRy;
     istTrue=true;
   }
   else
@@ -411,16 +407,73 @@ void compute_linf_point
 }
 
 void compute_linf_dist
-(const COORD_TYPE cube_center[DIM3],
- const COORD_TYPE point[DIM3], float & new_dist)
+(const COORD_TYPE pointA[DIM3],
+ const COORD_TYPE pointB[DIM3], float & new_dist)
 {
-  float max =abs(cube_center[0]-point[0]);
+  float max =abs(pointA[0]-pointB[0]);
   for (int d=0; d<DIM3; d++) {
-    if (abs(cube_center[d]-point[d]) > max) {
-      max=abs(cube_center[d]-point[d]) ;
+    if (abs(pointA[d]-pointB[d]) > max) {
+      max=abs(pointA[d]-pointB[d]) ;
     }
   }
   new_dist=max;
+}
+
+///  Compute the closest point under the Linf metric to point p on a given line.
+void SHARPISO::compute_closest_point_on_line_linf
+(const COORD_TYPE point[DIM3],
+ const COORD_TYPE line_origin[DIM3],
+ const COORD_TYPE line_direction[DIM3],
+ const GRADIENT_COORD_TYPE zero_tolerance_squared,
+ COORD_TYPE closest_point[DIM3])
+{
+  COORD_TYPE line_direction_normalized[DIM3];
+  bool is_zero = false;
+
+  // initialize closest_point to line_origin
+  IJK::copy_coord(DIM3, line_origin, closest_point);
+
+  // Normalize the line direction
+  normalize_vector_3D
+    (line_direction, line_direction_normalized, 
+     is_zero, zero_tolerance_squared);
+
+  int X=0,Y=1,Z=2;
+  // store the values of t (2 for each)
+  float t[6]={0.0};
+  bool  istTrue[6];
+  
+  update_t_minus(X, Y, line_direction_normalized, point, 
+                 line_origin, t[0], istTrue[0]);
+  update_t_plus(X, Y, line_direction_normalized, point, 
+                line_origin, t[1], istTrue[1]);
+  
+  update_t_minus(X, Z, line_direction_normalized, point, 
+                 line_origin, t[2], istTrue[2]);
+  update_t_plus(X, Z, line_direction_normalized, point, 
+                line_origin, t[3], istTrue[3]);
+  
+  update_t_minus( Y,Z, line_direction_normalized, point, 
+                  line_origin, t[4], istTrue[4]);
+  update_t_plus( Y,Z, line_direction_normalized, point, 
+                 line_origin, t[5], istTrue[5]);
+
+  COORD_TYPE point_on_line[DIM3];
+  COORD_TYPE dist(0);
+  bool is_dist_set = false;
+  COORD_TYPE new_dist;
+  for (int i=0; i<6; i++) {
+    if (istTrue[i]) {
+      compute_linf_point(line_origin, line_direction_normalized, t[i], point_on_line);
+      compute_linf_dist(point, point_on_line, new_dist); 
+      if (!is_dist_set || (new_dist < dist)) {
+        dist = new_dist;
+        IJK::copy_coord_3D(point_on_line, closest_point);
+        is_dist_set = true;
+      }
+    }
+  }
+
 }
 
 // compute the linf distance between a point and a ray
@@ -430,52 +483,16 @@ void SHARPISO::compute_closest_point_to_cube_center_linf
  const COORD_TYPE ray_direction[],
  COORD_TYPE closest_point[DIM3])
 {
-  COORD_TYPE ray_direction_normalized[DIM3]={0.0};
-  bool is_ray_direc_zero = false;
-  // Normalize the ray_direction
-  normalize_vector_3D
-  (ray_direction, ray_direction_normalized, is_ray_direc_zero, 0.0001);
-  
+  const GRADIENT_COORD_TYPE ZERO_TOLERANCE_SQUARED = 0.0001;
+
   // find the cube center
   COORD_TYPE center_offset[DIM3] = {0.5, 0.5, 0.5};
   COORD_TYPE cube_center[DIM3];
   IJK::add_coord(DIM3, center_offset, cube_coord, cube_center);
-  
-  int X=0,Y=1,Z=2;
-  // store the values of t (2 for each)
-  float t[6]={0.0};
-  bool  istTrue[6];
-  
-  update_t_minus(X, Y, ray_direction_normalized, cube_center, 
-                 coord, t[0], istTrue[0]);
-  update_t_plus(X, Y, ray_direction_normalized, cube_center, 
-                coord, t[1], istTrue[1]);
-  
-  update_t_minus(X, Z, ray_direction_normalized, cube_center, 
-                 coord, t[2], istTrue[2]);
-  update_t_plus(X, Z, ray_direction_normalized, cube_center, 
-                coord, t[3], istTrue[3]);
-  
-  update_t_minus( Y,Z, ray_direction_normalized, cube_center, 
-                  coord, t[4], istTrue[4]);
-  update_t_plus( Y,Z, ray_direction_normalized, cube_center, 
-                 coord, t[5], istTrue[5]);
-  
-  COORD_TYPE point[DIM3]={0.0};
-  IJK::copy_coord_3D(coord ,point);
-  float dist=999.0; // ???
-  float new_dist=0.0;
-  //compute_linf_dist(cube_center, point, dist);
-  for (int i=0; i<6; i++) {
-    if (istTrue[i]) {
-      compute_linf_point(coord, ray_direction_normalized, t[i], point);
-      compute_linf_dist(cube_center, point, new_dist); 
-      if (new_dist < dist) {
-        dist = new_dist;
-        IJK::copy_coord_3D(point, closest_point);
-      }
-    }
-  }
+
+  compute_closest_point_on_line_linf
+    (cube_center, coord, ray_direction, ZERO_TOLERANCE_SQUARED,
+     closest_point);
 }
 
 
