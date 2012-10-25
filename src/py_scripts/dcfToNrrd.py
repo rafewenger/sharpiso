@@ -62,14 +62,17 @@ def main():
     			print >>f, data[i][j][k],
     f.close()
     print '****** File ', outNrrd , 'created.'
-    ### DEBUG write to  a  garb file 
-    
+
+    #################################
+    #create the txt file with the data
+    #################################
     fgarb = open (outTxt,'w')
     for i in range (XLength+1):
     	for j in range (YLength+1):
     		for k in range (ZLength+1):
     			print >>fgarb, data[i][j][k],
-	
+    print '****** File ', outTxt, 'created.'
+    	
 #Process the nodes
 def ProcessNode(pointerLocInDataBytes, dataBytes, inpt, currLevel, currLoc):
     global data

@@ -50,7 +50,7 @@ def main():
     global width_of_grid
     longest_dim_of_model = float(sys.argv[2])
     scale = float(sys.argv[3])
-    octtree_depth = sys.argv[4]
+    octtree_depth = int(sys.argv[4])
     width_of_grid =  longest_dim_of_model / scale
     
     CreateEmptyGrid(width_of_grid, octtree_depth )
@@ -104,9 +104,9 @@ def readNode(l):
             #Compute the end points of the edge which is intersected
             #DEBUG also compute the actual point of intersection
                     endPts = ComputeEdgePoints(edge_number, child_location, curr_width)
-                    print >>fi2, endPts[0] , ' ', 0
-                    print >>fi2, endPts[1], ' ', curr_width
-                    
+                    print endPts[0] , ' ', 0
+                    print endPts[1], ' ', curr_width
+                    UpdateScalar(endPts[1] , curr_width)
                     #print 'edge Number', edge_number, 'endpoints', endPts
                     #display the endpoints
                     for i in range(2):
@@ -182,11 +182,27 @@ def computeOriginOfTheChildLocation(curr_width, n, parent_location, child_locati
 # create the empty scalar grid
 def CreateEmptyGrid(width_of_grid, octtree_depth ):
     for i in range (2**octtree_depth+1):
-    for j in range (2**octtree_depth+1):
-        for k in range (2**octtree_depth+1):    
-            tempLoc =[ i * width_of_grid/(2**octtree_depth), j * width_of_grid/(2**octtree_depth),
-                       k * width_of_grid/(2**octtree_depth)]
-            locations.append (tempLoc)
+        for j in range (2**octtree_depth+1):
+            for k in range (2**octtree_depth+1):    
+                tempLoc =[ i * width_of_grid/(2**octtree_depth), j * width_of_grid/(2**octtree_depth),
+                       k * width_of_grid/(2**octtree_depth),0]
+                locations.append (tempLoc)
+
+#Helper function for UpdateScalar
+def checkPoint(i, endPt):
+    global locations
+    if (abs(locations[i][0]-endPt[0]) < 0.001 and abs(locations[i][1]-endPt[1]) < 0.001 
+    and abs(locations[i][2]-endPt[2]) < 0.001):
+        return True
+    else:
+        return False
+     
+#update the scalar of the locations 
+def UpdateScalar(endpt , scalar_val):
+    global locations
+    for i in range (len(locations)):
+        if (checkPoint(i, endPt)):
+            locations[i][3]=scalar_val
 
 # call the main function
 if __name__ == "__main__":

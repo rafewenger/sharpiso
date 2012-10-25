@@ -26,28 +26,37 @@ def readOffFile ():
 def computeVertLoc (data):
   
   numv=int(data[1].split(' ')[0])
+  numTri = int (data[1].split(' ')[1])
   locList =[]
+  posList=[]
+  #read the location data
   for i in range (2,2+numv):
     loc = data[i].split(' ')
     locList.append(float(loc[0]))
     locList.append(float(loc[1]))
     locList.append(float(loc[2]))
-  return [locList, numv]
+  #read the indices
+  for j in range (3+numv, 3+numv+numTri):
+    pos = data[j].split(' ')
+    posList.append(float(pos[0]))
+    posList.append(float(pos[1]))
+    posList.append(float(pos[2]))
+    posList.append(float(pos[3]))
+
+  return [locList, numv, posList, numTri]
   
 
 def buildGrid(vertLoc, height):
   '''
-  build the grid, which should be {2^height}^3. DEBUG 
+  build the grid, which should be {2^height+1}^3.
   each point has a isIntersect which is gonna be fixed by the nrrd data
   the numPoints and there locations are set by the ...
   '''
-  print 'height', height
   grid=[]
-  numVertPerDirection = 2**height+1 ## DEBUG 
+  numVertPerDirection = 2**height+1 
   for i in range (numVertPerDirection):
     for j in range (numVertPerDirection):
       for k in range (numVertPerDirection):
-        #n = (numVertPerDirection)*(numVertPerDirection)*i + (numVertPerDirection)*j + k
         n = (numVertPerDirection)*(numVertPerDirection)*i + (numVertPerDirection)*j + k
         #print '(',i,j,k,')--', n
         gv = gridVertType()
@@ -64,14 +73,19 @@ def buildGrid(vertLoc, height):
 
 
 
+###################
+#READ THE NRRD DATA
+###################
+
 def setNrrdData(grid, height):
   fi = open (sys.argv[4],'r')
   nrrddata=fi.read().split(' ')
   numVertPerDirection = 2**height+1
-  '''
-  tempgrid store the scalar values from the nrrd
-  must be of size , 2^d+1
-  '''
+  
+  
+  #tempgrid store the scalar values from the nrrd
+  #must be of size , 2^d+1
+ 
   tempGrid=numpy.zeros((numVertPerDirection, numVertPerDirection, numVertPerDirection))
   indx = 0
   for i in range (numVertPerDirection):
@@ -79,6 +93,8 @@ def setNrrdData(grid, height):
       for k in range (numVertPerDirection):        
         tempGrid[i][j][k]=float(nrrddata[indx])
         indx=indx+1
+       
+  #generate the ascii file 
   
   fw = open ('asciiFile.txt', 'w')
   print 'tempGrid', numVertPerDirection
@@ -125,6 +141,11 @@ def computeCentroid(vertLoc, numv):
     sm[2] = sm[2] + vertLoc[3*i+2]    
   centroid =[sm[x] / (numv) for x in range(3)]
   return centroid
+
+
+###################
+#     main 
+###################
   
 def main():
   if  len(sys.argv) != 9:
@@ -139,6 +160,8 @@ def main():
     
     vertLoc = vertLocAndNumv[0]
     numv = vertLocAndNumv[1]
+    posLoc = vertLocAndNumv[2]
+    numTri = vertLocAndNumv[3]
     #build grid
     height = int (sys.argv[2])
     
@@ -148,7 +171,7 @@ def main():
     scale = float(sys.argv[3])
     print '***********************'
     print 'scale', scale
-    originCompare = [int(sys.argv[5+x]) for x in range (3)]
+    originCompare = [float(sys.argv[5+x]) for x in range (3)]
     print 'originCompare', originCompare
     
     L = float (sys.argv[8])
@@ -159,27 +182,40 @@ def main():
     centroid = computeCentroid(vertLoc, numv)
     halfl = (L/scale)/2.0
     ul = (L /scale)/(2**height)
-    print 'unit length ' , ul
+    print 'unit length ' , ul 
     numVertPerDirection = 2**height+1
     print "numVertPerDirection ", numVertPerDirection 
     
     print 'computed centroid ', centroid
+    print 'numTri', numTri
     print '***********************'
+    
     for i in range (numv):
-      baseLoc = [ int ( (vertLoc[3*i+x] - ( centroid[x] - halfl)) /ul ) for x in  range (3)]
-      #debug
-      print baseLoc, 
+      baseLoc = [ int ( (vertLoc[3*i+x] - ( centroid[x] - halfl)) /ul ) for x in  range (3)] 
       ind = baseLoc[0]*numVertPerDirection*numVertPerDirection + baseLoc[1]*numVertPerDirection+ baseLoc[2]
-      print ind, 
       tempgv = gridVertType()
       tempgv = grid[ind]
       tempgv.gridLoc=baseLoc
-      print tempgv.gridLoc
       tempgv.numIntersection = tempgv.numIntersection + 1 
       tempgv.ptsLocs.append([vertLoc[3*i+0] , vertLoc[3*i+1], vertLoc[3*i+2]])
     
     #read Nrrd data and set isIntersect
     NrrdsetGrid = setNrrdData(grid, height)
+    
+    ######################
+    #  output the meshfile 
+    #######################
+    fwMesh = open ('out.off', 'w')
+    print >> fwMesh, 'OFF\n',numv,numTri,'0'
+    for i in range (numv):
+      for j in range (3):
+        print >>fwMesh, vertLoc[3*i+j]- ( centroid[j] - halfl),
+      print >> fwMesh, ' '
+    
+    for i in range (numTri):
+      for j in range (4):
+        print >> fwMesh, posLoc[4*i+j]
+      print >>fwMesh, ' '
     
     print 'Should not have  a  point but does '  
     for i in range (numVertPerDirection):
