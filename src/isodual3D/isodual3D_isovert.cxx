@@ -212,10 +212,14 @@ void ISODUAL3D::computeDualIsovert(
 
 	std::vector<NUM_TYPE> sortd_ind2gcube_list;
 
+	//// commented out for now
+	/*
 	sort_gcube_list(sortd_ind2gcube_list,isovertData.gcube_list);
 
 	select_3x3_regions (scalar_grid, gradient_grid, isovalue,
 			isodual_param, isovertData);
+
+	 */
 }
 
 
