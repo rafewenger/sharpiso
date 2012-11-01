@@ -1,17 +1,12 @@
-/*
- * isodual3D_isovert.h
- *
- *  Created on: Oct 29, 2012
- *      Author: arindam
- */
+/// \file isodual3D_isovert.h
+/// Data structures for creating and processing sharp isosurface vertices.
+/// Created on: Oct 29, 2012
+/// Author: arindam
 
-#ifndef ISODUAL3D_ISOVERT_H_
-#define ISODUAL3D_ISOVERT_H_
 
-#include "ijkgrid.txx"
-#include "ijkscalar_grid.txx"
-#include "sharpiso_types.h"
-#include "sharpiso_grids.h"
+#ifndef _ISODUAL3D_ISOVERT_H_
+#define _ISODUAL3D_ISOVERT_H_
+
 #include "isodual3D_types.h"
 #include "isodual3D_datastruct.h"
 
@@ -19,6 +14,10 @@
 
 #include <vector>
 namespace SHARPISO{
+
+// **************************************************
+// GRID CUBES INFORMATION
+// **************************************************
 
 typedef enum{
 	AVAILABLE_GCUBE,   // available
@@ -39,6 +38,9 @@ public:
 };
 
 
+// **************************************************
+// ISOSURFACE VERTEX DATA
+// **************************************************
 
 // grid contains the index to the gcube_list defined in ISOVERT
 // If tube is not sharp then it has [-1]
@@ -59,13 +61,13 @@ public:
 namespace ISODUAL3D{
 
 // compute the ISOVERT object
-void computeDualIsovert(
-		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+void compute_dual_isovert(
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const GRADIENT_GRID_BASE & gradient_grid,
 		const SCALAR_TYPE isovalue,
-		const ISODUAL_PARAM & isodual_param,
+		const SHARP_ISOVERT_PARAM & isovert_param,
 		ISOVERT &isovertData
 );
 }
 
-#endif /* ISODUAL3D_ISOVERT_H_ */
+#endif /* _ISODUAL3D_ISOVERT_H_ */

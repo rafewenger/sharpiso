@@ -1218,3 +1218,24 @@ void ISODUAL3D::get_edge_collapses
   }
 
 }
+
+
+// **************************************************
+// Copy routine
+// **************************************************
+
+/// Copy isovert position from data structure isovert
+void ISODUAL3D::copy_isovert_positions
+(const std::vector<GRID_CUBE> & gcube_list,
+ COORD_ARRAY & vertex_coord)
+{
+  VERTEX_INDEX num_isovert = gcube_list.size();
+
+  vertex_coord.clear();
+  vertex_coord.resize(DIM3*num_isovert);
+  for (VERTEX_INDEX i = 0; i < num_isovert; i++) {
+    std::copy(gcube_list[i].isovert_coord, 
+              gcube_list[i].isovert_coord+DIM3,
+              vertex_coord.begin() + i*DIM3);
+  }
+}

@@ -95,3 +95,33 @@ void ISODUAL3D::extract_dual_isopoly
   clock2seconds(t1-t0, isodual_info.time.extract);
 }
 
+
+/// Extract dual isosurface polytopes using isovert data structure.
+/// @param scalar_grid = scalar grid data
+/// @param isovalue = isosurface scalar value
+void ISODUAL3D::extract_dual_isopoly
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue, 
+ const ISOVERT & isovert,
+ DUAL_ISOSURFACE & dual_isosurface,
+ ISODUAL_INFO & isodual_info)
+{
+  isodual_info.time.extract = 0;
+
+  clock_t t0 = clock();
+
+  // initialize output
+  dual_isosurface.tri_vert.clear();
+  dual_isosurface.quad_vert.clear();
+
+  if (scalar_grid.NumCubeVertices() < 1) { return; }
+
+  IJK_FOR_EACH_INTERIOR_GRID_EDGE(iend0, edge_dir, scalar_grid, VERTEX_INDEX) {
+
+    extract_dual_isopoly_around_bipolar_edge
+      (scalar_grid, isovalue, iend0, edge_dir, dual_isosurface.quad_vert);
+  }
+
+  clock_t t1 = clock();
+  clock2seconds(t1-t0, isodual_info.time.extract);
+}

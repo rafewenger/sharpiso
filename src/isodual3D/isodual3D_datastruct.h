@@ -35,6 +35,8 @@
 #include "sharpiso_feature.h"
 
 #include "isodual3D_types.h"
+#include "isodual3D_isovert.h"
+
 
 namespace ISODUAL3D {
 

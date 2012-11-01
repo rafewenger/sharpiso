@@ -30,8 +30,8 @@ LINK_LIBRARIES(expat NrrdIO z)
 ADD_DEFINITIONS(-DIJK_ISOTABLE_DIR=\"${IJK_ISOTABLE_DIR}\")
 
 ADD_EXECUTABLE(isodual3D isodual3D_main.cxx isodual3DIO.cxx isodual3D.cxx 
-                         isodual3D_datastruct.cxx isodual3D_extract.cxx 
-                         isodual3D_position.cxx 
+                         isodual3D_datastruct.cxx isodual3D_isovert.cxx
+                         isodual3D_extract.cxx isodual3D_position.cxx 
                          ijkdualtable.cxx ijktable_poly.cxx
                          ijktable_ambig.cxx isodual3D_ambig.cxx
                          sharpiso_feature.cxx sharpiso_get_gradients.cxx

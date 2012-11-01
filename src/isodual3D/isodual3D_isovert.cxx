@@ -26,7 +26,7 @@ using namespace IJK;
 
 
 void compute_l2_dist
-( const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const VERTEX_INDEX iv,
+( const SHARPISO_SCALAR_GRID_BASE & scalar_grid, const VERTEX_INDEX iv,
 		COORD_TYPE isovert_coord[DIM3],SCALAR_TYPE &l2dist);
 
 /*
@@ -35,14 +35,14 @@ void compute_l2_dist
  * set grid_cube_flag to be avaliable
  */
 void compute_isovert_positions (
-		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const GRADIENT_GRID_BASE & gradient_grid,
 		const SCALAR_TYPE isovalue,
-		const ISODUAL_PARAM & isodual_param,
+		const SHARP_ISOVERT_PARAM & isovert_param,
 		ISOVERT &isovertData)
 {
 	const SIGNED_COORD_TYPE grad_selection_cube_offset =
-			isodual_param.grad_selection_cube_offset;
+			isovert_param.grad_selection_cube_offset;
 	OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
 
 	SVD_INFO svd_info;
@@ -57,7 +57,7 @@ void compute_isovert_positions (
 			VERTEX_INDEX num_large_eigenvalues;
 
 			svd_compute_sharp_vertex_for_cube
-			(scalar_grid, gradient_grid, iv, isovalue, isodual_param, cube_111,
+			(scalar_grid, gradient_grid, iv, isovalue, isovert_param, cube_111,
 					isovertData.gcube_list[index].isovert_coord,
 					eigenvalues, num_large_eigenvalues, svd_info);
 			//set the sharp vertex type to be *AVAILABLE*
@@ -108,7 +108,7 @@ void sort_gcube_list(vector<NUM_TYPE> &sortd_ind2gcube_list, vector<GRID_CUBE> &
 
 bool is_cube(const GRID_CUBE_FLAG flag,
 		const VERTEX_INDEX iv,
-		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		ISOVERT &isovertData)
 {
 	//check if intersected
@@ -126,10 +126,10 @@ bool is_cube(const GRID_CUBE_FLAG flag,
  */
 void select_3x3_regions
 (
-		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const GRADIENT_GRID_BASE & gradient_grid,
 		const SCALAR_TYPE isovalue,
-		const ISODUAL_PARAM & isodual_param,
+		const SHARP_ISOVERT_PARAM & isovert_param,
 		ISOVERT &isovertData)
 
 {
@@ -172,7 +172,7 @@ void select_3x3_regions
  * push the corresponding *grid_cube* into the *gcube_list*
  */
 void create_active_cubes (
-		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const GRADIENT_GRID_BASE & gradient_grid,
 		const SCALAR_TYPE isovalue,
 		ISOVERT &isovertData)
@@ -198,16 +198,16 @@ void create_active_cubes (
 }
 
 
-void ISODUAL3D::computeDualIsovert(
-		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+void ISODUAL3D::compute_dual_isovert(
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const GRADIENT_GRID_BASE & gradient_grid,
 		const SCALAR_TYPE isovalue,
-		const ISODUAL_PARAM & isodual_param,
+		const SHARP_ISOVERT_PARAM & isovert_param,
 		ISOVERT &isovertData)
 {
 	create_active_cubes(scalar_grid, gradient_grid, isovalue, isovertData);
 
-	compute_isovert_positions (scalar_grid, gradient_grid, isovalue, isodual_param,
+	compute_isovert_positions (scalar_grid, gradient_grid, isovalue, isovert_param,
 			isovertData);
 
 	std::vector<NUM_TYPE> sortd_ind2gcube_list;
@@ -217,7 +217,7 @@ void ISODUAL3D::computeDualIsovert(
 	sort_gcube_list(sortd_ind2gcube_list,isovertData.gcube_list);
 
 	select_3x3_regions (scalar_grid, gradient_grid, isovalue,
-			isodual_param, isovertData);
+			isovert_param, isovertData);
 
 	 */
 }
@@ -226,7 +226,7 @@ void ISODUAL3D::computeDualIsovert(
 /*
  * Find the distance between the sharp vertex for the cube and the center of the cube
  */
-void compute_l2_dist( const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+void compute_l2_dist( const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const VERTEX_INDEX iv,
 		COORD_TYPE isovert_coord[DIM3],
 		SCALAR_TYPE &l2dist)

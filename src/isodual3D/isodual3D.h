@@ -37,6 +37,7 @@
 #include "isodual3D_types.h"
 #include "isodual3D_datastruct.h"
 
+
 /// isodual3D classes and routines.
 namespace ISODUAL3D {
 
@@ -115,6 +116,19 @@ namespace ISODUAL3D {
    DUAL_ISOSURFACE & dual_isosurface,
    MERGE_DATA & merge_data,
    ISODUAL_INFO & isodual_info);
+
+  /// Dual Contouring algorithm B for sharp isosurface features.
+  // Uses 3x3x3 regions around sharp vertices.
+  /// Return list of isosurface triangle and quad vertices
+  ///   and list of isosurface vertex coordinates.
+  void dual_contouring_sharp_B
+    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+     const GRADIENT_GRID_BASE & gradient_grid,
+     const SCALAR_TYPE isovalue,
+     const ISODUAL_PARAM & isodual_param,
+     DUAL_ISOSURFACE & dual_isosurface,
+     ISOVERT & isovert,
+     ISODUAL_INFO & isodual_info);
 
 }
 

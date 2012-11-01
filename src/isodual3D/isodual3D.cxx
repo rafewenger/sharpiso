@@ -496,3 +496,73 @@ void ISODUAL3D::dual_contouring_sharp
   clock2seconds(t3-t0, isodual_info.time.total);
 }
 
+
+// Extract isosurface using Dual Contouring algorithm B.
+// Uses 3x3x3 regions around sharp vertices.
+// Returns list of isosurface triangle and quad vertices
+//   and list of isosurface vertex coordinates.
+// Use gradients to place isosurface vertices on sharp features. 
+void ISODUAL3D::dual_contouring_sharp_B
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const ISODUAL_PARAM & isodual_param,
+ DUAL_ISOSURFACE & dual_isosurface,
+ ISOVERT & isovert,
+ ISODUAL_INFO & isodual_info)
+{
+  const int dimension = scalar_grid.Dimension();
+  const VERTEX_POSITION_METHOD vertex_position_method =
+    isodual_param.vertex_position_method;
+  const bool use_selected_gradients =
+    isodual_param.use_selected_gradients;
+  const bool use_only_cube_gradients =
+    isodual_param.use_only_cube_gradients;
+  const SIGNED_COORD_TYPE grad_selection_cube_offset =
+    isodual_param.grad_selection_cube_offset;
+  const bool allow_multiple_iso_vertices =
+    isodual_param.allow_multiple_iso_vertices;
+  const bool flag_separate_neg = isodual_param.flag_separate_neg;
+  const bool flag_resolve_ambiguous_facets =
+    isodual_param.flag_resolve_ambiguous_facets;
+  PROCEDURE_ERROR error("dual_contouring");
+
+  clock_t t0, t1, t2, t3;
+  t0 = clock();
+
+  dual_isosurface.Clear();
+  isodual_info.time.Clear();
+
+  if (allow_multiple_iso_vertices) {
+
+    error.AddMessage("Algorithm B: Multiple isosurface vertices not yet implemented.");
+    throw error;
+  }
+  else {
+
+    /* DEBUG
+    compute_dual_isovert
+      (scalar_grid, gradient_grid, isovalue, isodual_param, isovert);
+    t1 = clock();
+    */
+
+    extract_dual_isopoly
+      (scalar_grid, isovalue, isovert, dual_isosurface, isodual_info);
+    t2 = clock();
+
+    /* DEBUG
+       decimate_dual_isopoly(dual_isosurface);
+    */
+
+    copy_isovert_positions
+      (isovert.gcube_list, dual_isosurface.vertex_coord);
+  }
+
+  t3 = clock();
+
+  // store times
+  clock2seconds(t1-t0, isodual_info.time.position);
+  clock2seconds(t2-t1, isodual_info.time.extract);
+  clock2seconds(t3-t0, isodual_info.time.total);
+}
+

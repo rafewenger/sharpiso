@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "isodual3D_types.h"
 #include "isodual3D_datastruct.h"
 
+
 #include "ijkdualtable.h"
 
 namespace ISODUAL3D {
@@ -365,6 +366,15 @@ namespace ISODUAL3D {
    const FACET_VERTEX_INDEX ipatch, const IJKDUALTABLE::TABLE_INDEX it,
    const ISODUAL3D_CUBE_FACE_INFO & cube,
    COORD_TYPE * coord);
+
+  // **************************************************
+  // Copy routine
+  // **************************************************
+
+  /// Copy isovert position from data structure isovert
+  void copy_isovert_positions
+    (const std::vector<GRID_CUBE> & gcube_list,
+     COORD_ARRAY & vertex_coord);
 
 };
 
