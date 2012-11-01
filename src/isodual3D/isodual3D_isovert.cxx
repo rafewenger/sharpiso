@@ -88,9 +88,10 @@ public:
 	}
 
 };
-void sort_gcube_list(std::vector<NUM_TYPE> &sortd_ind2gcube_list,std::vector<GRID_CUBE> &gcube_list)
+void sort_gcube_list(vector<NUM_TYPE> &sortd_ind2gcube_list, vector<GRID_CUBE> &gcube_list)
 {
 	//set up the *sortd_ind2gcube_list*
+	sortd_ind2gcube_list.resize(gcube_list.size(), 0);
 	vector<NUM_TYPE>::iterator it;
 	for (int i=0;i<sortd_ind2gcube_list.size();i++)
 	{
@@ -204,18 +205,15 @@ void ISODUAL3D::computeDualIsovert(
 		const ISODUAL_PARAM & isodual_param,
 		ISOVERT &isovertData)
 {
-	// debug
-	const int dimension = scalar_grid.Dimension();
-	cout <<"dimension  "<<dimension<<endl;
-
 	create_active_cubes(scalar_grid, gradient_grid, isovalue, isovertData);
 
 	compute_isovert_positions (scalar_grid, gradient_grid, isovalue, isodual_param,
 			isovertData);
+
 	std::vector<NUM_TYPE> sortd_ind2gcube_list;
 
 	sort_gcube_list(sortd_ind2gcube_list,isovertData.gcube_list);
-	sortd_ind2gcube_list.resize(isovertData.gcube_list.size(), 0);
+
 	select_3x3_regions (scalar_grid, gradient_grid, isovalue,
 			isodual_param, isovertData);
 }
