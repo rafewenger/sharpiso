@@ -49,6 +49,7 @@ namespace SHARPISO {
 
   typedef int NUM_TYPE;
   typedef int VERTEX_INDEX;
+  typedef int INDEX_DIFF_TYPE;
 
   typedef std::pair<VERTEX_INDEX, VERTEX_INDEX> VERTEX_PAIR;
 
