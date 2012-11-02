@@ -117,11 +117,11 @@ namespace ISODUAL3D {
    MERGE_DATA & merge_data,
    ISODUAL_INFO & isodual_info);
 
-  /// Dual Contouring algorithm B for sharp isosurface features.
-  // Uses 3x3x3 regions around sharp vertices.
+  /// Dual Contouring algorithm for sharp isosurface features.
+  /// Merges grid cubes around sharp vertices.
   /// Return list of isosurface triangle and quad vertices
   ///   and list of isosurface vertex coordinates.
-  void dual_contouring_sharp_B
+  void dual_contouring_merge_sharp
     (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
      const GRADIENT_GRID_BASE & gradient_grid,
      const SCALAR_TYPE isovalue,

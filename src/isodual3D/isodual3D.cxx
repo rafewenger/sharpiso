@@ -65,10 +65,19 @@ void ISODUAL3D::dual_contouring
       || isodual_data.VertexPositionMethod() == EDGEI_INTERPOLATE
       || isodual_data.VertexPositionMethod() == EDGEI_GRADIENT) {
 
-    dual_contouring_sharp
-      (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
-       isovalue, isodual_data, dual_isosurface,
-       merge_data, isodual_info);
+    if (isodual_data.flag_merge_sharp) {
+      ISOVERT isovert;
+      dual_contouring_merge_sharp
+        (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
+         isovalue, isodual_data, dual_isosurface, isovert,
+         isodual_info);
+    }
+    else {
+      dual_contouring_sharp
+        (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
+         isovalue, isodual_data, dual_isosurface,
+         merge_data, isodual_info);
+    }
   }
   else {
     dual_contouring
@@ -498,11 +507,11 @@ void ISODUAL3D::dual_contouring_sharp
 
 
 // Extract isosurface using Dual Contouring algorithm B.
-// Uses 3x3x3 regions around sharp vertices.
+// Merges grid cubes around sharp vertices.
 // Returns list of isosurface triangle and quad vertices
 //   and list of isosurface vertex coordinates.
 // Use gradients to place isosurface vertices on sharp features. 
-void ISODUAL3D::dual_contouring_sharp_B
+void ISODUAL3D::dual_contouring_merge_sharp
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
@@ -540,11 +549,9 @@ void ISODUAL3D::dual_contouring_sharp_B
   }
   else {
 
-    /* DEBUG
     compute_dual_isovert
       (scalar_grid, gradient_grid, isovalue, isodual_param, isovert);
     t1 = clock();
-    */
 
     extract_dual_isopoly
       (scalar_grid, isovalue, isovert, dual_isosurface, isodual_info);

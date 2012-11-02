@@ -120,6 +120,9 @@ namespace ISODUAL3D {
     bool flag_convert_quad_to_tri;
     QUAD_TRI_METHOD quad_tri_method;
 
+    /// If true, merge grid cube near sharp vertices.
+    bool flag_merge_sharp;
+
     /// If true, allow multiple isosurface vertices in a single cube
     ///   to represent multiple isosurface patches.
     bool allow_multiple_iso_vertices;

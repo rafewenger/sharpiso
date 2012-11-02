@@ -106,6 +106,9 @@ void ISODUAL3D::extract_dual_isopoly
  DUAL_ISOSURFACE & dual_isosurface,
  ISODUAL_INFO & isodual_info)
 {
+  IJK::PROCEDURE_ERROR error("extract_dual_isopoly");
+
+
   isodual_info.time.extract = 0;
 
   clock_t t0 = clock();
@@ -114,12 +117,24 @@ void ISODUAL3D::extract_dual_isopoly
   dual_isosurface.tri_vert.clear();
   dual_isosurface.quad_vert.clear();
 
-  if (scalar_grid.NumCubeVertices() < 1) { return; }
+  extract_dual_isopoly(scalar_grid, isovalue, dual_isosurface.quad_vert, 
+                       isodual_info);
 
-  IJK_FOR_EACH_INTERIOR_GRID_EDGE(iend0, edge_dir, scalar_grid, VERTEX_INDEX) {
+  // Map cube indices in quad_vert to cube locations in isovert.gcube_list()
+  for (VERTEX_INDEX i = 0; i < dual_isosurface.quad_vert.size(); i++) {
+    VERTEX_INDEX icube = dual_isosurface.quad_vert[i];
+    VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(icube);
 
-    extract_dual_isopoly_around_bipolar_edge
-      (scalar_grid, isovalue, iend0, edge_dir, dual_isosurface.quad_vert);
+    if (gcube_index < 0 || gcube_index >= isovert.gcube_list.size()) {
+      error.AddMessage("Programming error.  Inconsistency between quad_vert and isovert.");
+      error.AddMessage("  quad_vert[", i, "] = ", icube, " but");
+      error.AddMessage("  isovert.sharp_ind_grid[", icube, "] = ",
+                       gcube_index, ".");
+      throw error;
+    }
+
+    // Replace quad_vert[i].
+    dual_isosurface.quad_vert[i] = gcube_index;
   }
 
   clock_t t1 = clock();

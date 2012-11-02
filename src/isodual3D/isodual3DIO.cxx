@@ -56,7 +56,7 @@ typedef enum {
 	REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
 	ALLOW_CONFLICT_PARAM,
 	CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
-  MERGE_CONFLICT_PARAM,
+  MERGE_CONFLICT_PARAM, MERGE_SHARP_PARAM,
 	CLAMP_FAR_PARAM, CENTROID_FAR_PARAM,
 	RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,
 	REMOVEG_PARAM, NO_REMOVEG_PARAM,
@@ -80,7 +80,7 @@ typedef enum {
     "-sharp_edgeI", "-interpolate_edgeI",
     "-reposition", "-no_reposition", "-sepdist",
     "-allow_conflict", "-clamp_conflict", "-centroid_conflict", 
-    "-merge_conflict",
+    "-merge_conflict", "-merge_sharp",
     "-clamp_far", "-centroid_far",
     "-recompute_eigen2", "-no_recompute_eigen2",
     "-removeg", "-no_removeg",
@@ -347,6 +347,10 @@ void ISODUAL3D::parse_command_line
 
 		case MERGE_CONFLICT_PARAM:
 			input_info.flag_merge_conflict = true;
+      break;
+
+		case MERGE_SHARP_PARAM:
+			input_info.flag_merge_sharp = true;
       break;
 
 		case CLAMP_FAR_PARAM:
@@ -1224,6 +1228,7 @@ void options_msg()
 	cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
 	cerr << "  [-lindstrom]" << endl;
 	cerr << "  [-allow_conflict |-clamp_conflict | -centroid_conflict] [-merge_conflict]" << endl;
+  cerr << "  [-merge_sharp]" << endl;
 	cerr << "  [-clamp_far] [-centroid_far]" << endl;
 	cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
 	cerr << "  [-Linf | -no_Linf]" << endl;
