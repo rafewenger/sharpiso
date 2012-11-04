@@ -43,7 +43,7 @@ void ISODUAL3D::decimate_dual_isopoly
   VERTEX_INDEX cube_index, neighbor_index;
   SHARPISO_GRID_NEIGHBORS gridn;
   GRID_COORD_TYPE cube_coord[DIM3];
-  int boundary_bits;
+  int boundary_bits, boundary_bits2;
 
   // Set size of grid neighbors grid.
   gridn.SetSize(isovert.sharp_ind_grid);
@@ -70,8 +70,14 @@ void ISODUAL3D::decimate_dual_isopoly
           if (k != ISOVERT::NO_INDEX) {
 
             if (isovert.gcube_list[k].flag != SELECTED_GCUBE) {
-              // Map gcube_list[k] to isosurface vertex in cube i.
-              gcube_map[k] = i;
+
+              isovert.sharp_ind_grid.ComputeBoundaryBits
+                (neighbor_index, boundary_bits2);
+
+              if (boundary_bits2 == 0) {
+                // Map gcube_list[k] to isosurface vertex in cube i.
+                gcube_map[k] = i;
+              }
             }
           }
         }
