@@ -31,7 +31,7 @@ void compute_l2_dist
 
 /*
  * Traverse the *isovertData.sharp_ind_grid*
- * if index is not -1 then compute the sharp vertex for the cube
+ * if index is not ISOVERT::NO_INDEX then compute the sharp vertex for the cube
  * set grid_cube_flag to be avaliable
  */
 void compute_isovert_positions (
@@ -105,12 +105,14 @@ void sort_gcube_list(vector<NUM_TYPE> &sortd_ind2gcube_list, vector<GRID_CUBE> &
  * Helper functions to select_3x3_regions
  */
 
+/* OBSOLETE
 bool is_cube(const GRID_CUBE_FLAG flag,
 		const VERTEX_INDEX iv,
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		ISOVERT &isovertData)
 {
 	//check if intersected
+  // *** CHANGE -1 TO ISOVERT::NO_INDEX ***
 	if(isovertData.sharp_ind_grid.Scalar(iv)!=-1)
 	{
 		NUM_TYPE index = isovertData.sharp_ind_grid.Scalar(iv);
@@ -119,6 +121,7 @@ bool is_cube(const GRID_CUBE_FLAG flag,
 	}
 	return false;
 }
+*/
 
 /*
  * select the 3x3 regions
@@ -145,6 +148,7 @@ void select_3x3_regions
 		GRID_CUBE c;
 		c = isovertData.gcube_list[sortd_ind2gcube_list[ind]];
 
+    // *** USE PARAMETER, NOT 0.8.  (PARAMETER SHOULD BE 1.4.)
 		if ( c.flag == AVAILABLE_GCUBE && c.l2dist < 0.8)
 		{
 			isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag= SELECTED_GCUBE;
@@ -152,6 +156,7 @@ void select_3x3_regions
 			{
 				VERTEX_INDEX n = gridn.VertexNeighborC
 						(isovertData.gcube_list[sortd_ind2gcube_list[ind]].index2sg,i);
+        // *** CHANGE -1 TO ISOVERT::NO_INDEX ***
 				if(isovertData.sharp_ind_grid.Scalar(n)!=-1)
 				{
 					VERTEX_INDEX neighbor_index_2_gclist
@@ -247,3 +252,30 @@ void compute_l2_dist( const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		squareDist = squareDist + (isovert_coord[d]-cc[d])*(isovert_coord[d]-cc[d]);
 	l2dist=sqrt(squareDist);
 };
+
+
+// **************************************************
+// Set ISOVERT_INFO
+// **************************************************
+
+/// Count number of vertices on sharp corners or sharp edges.
+/// Count number of smooth vertices.
+void ISODUAL3D::count_vertices
+(const ISOVERT & isovert, ISOVERT_INFO & isovert_info)
+{
+  isovert_info.num_sharp_corners = 0;
+  isovert_info.num_sharp_edges = 0;
+  isovert_info.num_smooth_vertices = 0;
+  for (VERTEX_INDEX i = 0; i < isovert.gcube_list.size(); i++) {
+    if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
+      if (isovert.gcube_list[i].num_eigen == 2) 
+        { isovert_info.num_sharp_edges++; }
+      else if (isovert.gcube_list[i].num_eigen == 3) {
+        { isovert_info.num_sharp_corners++; }
+      }
+    }
+    else if (isovert.gcube_list[i].flag == SMOOTH_GCUBE) {
+      isovert_info.num_smooth_vertices++;
+    }
+  }
+}

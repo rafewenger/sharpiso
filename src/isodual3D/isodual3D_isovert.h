@@ -8,12 +8,12 @@
 #define _ISODUAL3D_ISOVERT_H_
 
 #include "isodual3D_types.h"
-#include "isodual3D_datastruct.h"
-
-
+#include "sharpiso_grids.h"
+#include "sharpiso_feature.h"
 
 #include <vector>
-namespace SHARPISO{
+
+namespace ISODUAL3D {
 
 // **************************************************
 // GRID CUBES INFORMATION
@@ -60,19 +60,38 @@ public:
 };
 
 
+// **************************************************
+// ISOVERT INFO
+// **************************************************
+
+class ISOVERT_INFO {
+
+ public:
+
+  int num_sharp_corners;
+  int num_sharp_edges;
+  int num_smooth_vertices;
+  int num_vertex_collapses;
+};
 
 
-}
+// **************************************************
+// ROUTINES
+// **************************************************
 
-namespace ISODUAL3D{
-// compute the ISOVERT object
-void compute_dual_isovert(
-		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID_BASE & gradient_grid,
-		const SCALAR_TYPE isovalue,
-		const SHARP_ISOVERT_PARAM & isovert_param,
-		ISOVERT &isovertData
-);
+  // Compute the ISOVERT object.
+  void compute_dual_isovert
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & isovert_param,
+   ISOVERT &isovertData);
+
+  /// Count number of vertices on sharp corners or sharp edges.
+  /// Count number of smooth vertices.
+  void count_vertices
+  (const ISOVERT & isovert, ISOVERT_INFO & isovert_info);
+
 }
 
 #endif /* _ISODUAL3D_ISOVERT_H_ */

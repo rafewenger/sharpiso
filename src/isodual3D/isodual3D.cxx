@@ -29,6 +29,7 @@
 
 #include "isodual3D.h"
 #include "isodual3D_ambig.h"
+#include "isodual3D_decimate.h"
 #include "isodual3D_extract.h"
 #include "isodual3D_position.h"
 
@@ -549,22 +550,30 @@ void ISODUAL3D::dual_contouring_merge_sharp
   }
   else {
 
+    ISOVERT_INFO isovert_info;
+    
     compute_dual_isovert
       (scalar_grid, gradient_grid, isovalue, isodual_param, isovert);
     t1 = clock();
+
+    count_vertices(isovert, isovert_info);
 
     extract_dual_isopoly
       (scalar_grid, isovalue, isovert, dual_isosurface, isodual_info);
     t2 = clock();
 
-    /* DEBUG
-       decimate_dual_isopoly(dual_isosurface);
-    */
+    decimate_dual_isopoly(isovert, dual_isosurface);
 
     // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
 
     copy_isovert_positions
       (isovert.gcube_list, dual_isosurface.vertex_coord);
+
+    // Set isodual_info
+    isodual_info.sharpiso.num_sharp_corners = isovert_info.num_sharp_corners;
+    isodual_info.sharpiso.num_sharp_edges = isovert_info.num_sharp_edges;
+    isodual_info.sharpiso.num_smooth_vertices = 
+      isovert_info.num_smooth_vertices;
   }
 
   t3 = clock();
