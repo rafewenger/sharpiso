@@ -561,6 +561,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
        decimate_dual_isopoly(dual_isosurface);
     */
 
+    // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
+
     copy_isovert_positions
       (isovert.gcube_list, dual_isosurface.vertex_coord);
   }

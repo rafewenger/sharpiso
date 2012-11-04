@@ -30,11 +30,13 @@ typedef enum{
 
 class GRID_CUBE{
 public:
-	COORD_TYPE isovert_coord[DIM3];//location of the sharp isovertex
-	unsigned char num_eigen;
-	GRID_CUBE_FLAG flag;    // defines the type for this cube
-	SCALAR_TYPE l2dist;     // this is the l2 dist between the sharp point and the cube-center
-	VERTEX_INDEX index2sg;  // index to scalar_grid
+	COORD_TYPE isovert_coord[DIM3]; ///< Location of the sharp isovertex.
+  unsigned char num_eigen;        ///< Number of eigenvalues.
+	GRID_CUBE_FLAG flag;            ///< Type for this cube.
+	SCALAR_TYPE l2dist;             /// L2-dist from sharp point to cube-center.
+
+  // *** RENAME AS cube_index ***/
+	VERTEX_INDEX index2sg;          /// Index of cube in scalar grid.
 };
 
 

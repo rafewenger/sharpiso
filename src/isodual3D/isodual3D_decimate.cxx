@@ -23,9 +23,12 @@
 
 #include <vector>
 
+#include "ijkmesh.txx"
+
 #include "isodual3D_types.h"
 #include "isodual3D_datastruct.h"
 #include "isodual3D_decimate.h"
+
 
 // **************************************************
 // Merge some isosurface vertices
@@ -65,6 +68,11 @@ void ISODUAL3D::decimate_dual_isopoly
 
           INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
           if (k != ISOVERT::NO_INDEX) {
+
+            if (isovert.gcube_list[k].flag != SELECTED_GCUBE) {
+              // Map gcube_list[k] to isosurface vertex in cube i.
+              gcube_map[k] = i;
+            }
           }
         }
       }
@@ -74,4 +82,18 @@ void ISODUAL3D::decimate_dual_isopoly
       
     }
   }
+
+  const NUM_TYPE quad_vert_size = dual_isosurface.quad_vert.size();
+  std::vector<VERTEX_INDEX> quad_vert2(quad_vert_size);
+
+  for (VERTEX_INDEX i = 0; i < quad_vert_size; i++) {
+    VERTEX_INDEX cube_index = dual_isosurface.quad_vert[i];
+    quad_vert2[i] = gcube_map[cube_index];
+  }
+
+  dual_isosurface.tri_vert.clear();
+  dual_isosurface.quad_vert.clear();
+  
+  IJK::get_non_degenerate_quad
+    (quad_vert2, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
 }
