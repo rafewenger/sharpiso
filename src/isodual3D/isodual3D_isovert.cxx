@@ -15,6 +15,7 @@
 #include "ijkcoord.txx"
 #include "ijkgrid.txx"
 #include "ijkscalar_grid.txx"
+#include "sharpiso_grids.h"
 
 
 
@@ -60,6 +61,8 @@ void compute_isovert_positions (
 			(scalar_grid, gradient_grid, iv, isovalue, isovert_param, cube_111,
 					isovertData.gcube_list[index].isovert_coord,
 					eigenvalues, num_large_eigenvalues, svd_info);
+			//set num eigen
+			isovertData.gcube_list[index].num_eigen = num_large_eigenvalues;
 			//set the sharp vertex type to be *AVAILABLE*
 			if(num_large_eigenvalues > 1)
 				isovertData.gcube_list[index].flag=AVAILABLE_GCUBE;
@@ -72,9 +75,6 @@ void compute_isovert_positions (
 					isovertData.gcube_list[index].l2dist);
 		}
 	}
-
-
-
 }
 
 
@@ -124,43 +124,52 @@ bool is_cube(const GRID_CUBE_FLAG flag,
 /*
  * select the 3x3 regions
  */
+/// does not check for boundary regions
+
 void select_3x3_regions
 (
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const GRADIENT_GRID_BASE & gradient_grid,
 		const SCALAR_TYPE isovalue,
 		const SHARP_ISOVERT_PARAM & isovert_param,
+		vector<NUM_TYPE> sortd_ind2gcube_list,
 		ISOVERT &isovertData)
 
 {
 	const int dimension = scalar_grid.Dimension();
-	for  (VERTEX_INDEX iv=0;iv<scalar_grid.NumVertices();iv++)
+
+	SHARPISO_GRID_NEIGHBORS gridn;
+	gridn.SetSize(scalar_grid);
+
+	for (int ind=0;ind<sortd_ind2gcube_list.size();ind++)
 	{
-		/*
-		//check if the vertex is being intersected
-		if(isovertData.sharp_ind_grid.Scalar(iv)!=-1)
+		GRID_CUBE c;
+		c = isovertData.gcube_list[sortd_ind2gcube_list[ind]];
+
+		if ( c.flag == AVAILABLE_GCUBE && c.l2dist < 0.8)
 		{
-			NUM_TYPE index = isovertData.sharp_ind_grid.Scalar(iv);
-			if( ! is_in_boundary (scalar_grid,iv))
+			isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag= SELECTED_GCUBE;
+			for (int i=0;i<gridn.NumVertexNeighborsC();i++)
 			{
-				//not in boudary
-				if(isovertData.gcube_list[index].flag == AVAILABLE_GCUBE)
+				VERTEX_INDEX n = gridn.VertexNeighborC
+						(isovertData.gcube_list[sortd_ind2gcube_list[ind]].index2sg,i);
+				if(isovertData.sharp_ind_grid.Scalar(n)!=-1)
 				{
-					for (int d = 0; d < dimension; d++) {
-						VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv, d);
-						if(is_cube(AVAILABLE_GCUBE, iv0, scalar_grid, isovertData))
-						{
-
-						}
-						VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv, d);
-
+					VERTEX_INDEX neighbor_index_2_gclist
+					= isovertData.sharp_ind_grid.Scalar(n);
+					if (isovertData.gcube_list[neighbor_index_2_gclist].flag == COVERED_GCUBE)
+					{
+						// set unavailable : not implemented yet
+					}
+					else
+					{
+						isovertData.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
 					}
 				}
 			}
 		}
-
-		 */
 	}
+
 }
 
 
@@ -187,6 +196,7 @@ void create_active_cubes (
 			index=isovertData.gcube_list.size();
 			isovertData.sharp_ind_grid.Set(iv,index);
 			GRID_CUBE gc;
+			gc.index2sg = iv;
 			isovertData.gcube_list.push_back(gc);
 		}
 		else
@@ -210,16 +220,16 @@ void ISODUAL3D::compute_dual_isovert(
 	compute_isovert_positions (scalar_grid, gradient_grid, isovalue, isovert_param,
 			isovertData);
 
+	// keep track of the sorted indices
 	std::vector<NUM_TYPE> sortd_ind2gcube_list;
 
-	//// commented out for now
-	/*
+
 	sort_gcube_list(sortd_ind2gcube_list,isovertData.gcube_list);
 
 	select_3x3_regions (scalar_grid, gradient_grid, isovalue,
-			isovert_param, isovertData);
+			isovert_param, sortd_ind2gcube_list, isovertData);
 
-	 */
+
 }
 
 

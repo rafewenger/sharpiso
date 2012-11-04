@@ -73,6 +73,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info)
 {
+
   if (sharpiso_param.use_lindstrom) {
     svd_compute_sharp_vertex_for_cube_lindstrom
       (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
@@ -190,7 +191,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 
 /// Compute sharp isosurface vertex using singular valued decomposition.
 /// Use line-cube intersection to compute sharp isosurface vertex
-///    when number of eigenvalues is 2.
+/// when number of eigenvalues is 2.
 /// Use centroid to compute isosurface vertex when number of eigenvalues is 1.
 void local_svd_compute_sharp_vertex_for_cube_lc_intersection
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -528,8 +529,7 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_sharp_gradient
   svd_info.flag_conflict = false;
 
   get_cube_gradients
-    (scalar_grid, gradient_grid, cube_index,
-     gradient_coord, scalar);
+    (scalar_grid, gradient_grid, cube_index, gradient_coord, scalar);
 
   // Ray Direction to calculate intersection if there are 2 singular values.
   GRADIENT_COORD_TYPE ray_direction[3]={0.0};

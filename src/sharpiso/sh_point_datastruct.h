@@ -47,7 +47,7 @@ namespace sh_cube {
         int num_edges, num_pts, dim, ne_intersect;
         vector<POINT> pts;
         vector<EDGE> edges;
-        int intersects_ind[12];
+        int intersects_ind[12]; // set to 1 if the edge is intersected
     };
     
     /// set up the cube data structure 

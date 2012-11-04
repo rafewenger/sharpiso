@@ -7,10 +7,39 @@ find cubes which are intersected but do not have any sharp points
 
  python runPM.py temp/cube02/cube02.stl 3 0.8 
  python dcfToNrrd.py temp/cube02/cube02-dc-3-0.8.dcf 3 0.8 
- python singleVertCheck.py temp/cube02/cube02-dc-tri-3-0.8.off  3 0.8 temp/cube02/cube02.txt 3 3 3 > garb 
+ python singleVertCheck.py temp/cube02/cube02-dc-tri-3-0.8.off  3 0.8 temp/cube02/cube02.txt 3 3 3 > garb
+  
 
+
+python runs
+
+python dcfToNrrd.py temp/ann01/ann01-dc-4-0.8.dcf 4 0.8 
+python singleVertCheck.py temp/ann01/ann01-dc-tri-4-0.8.off 4 0.8  temp/ann01/ann01-4-0.8.dcf.txt 4 4 4 > garb 
+
+python singleVertCheck.py temp/ann01/ann01-dc-tri-4-0.8.off 4 0.8  temp/ann01/ann01-4-0.8.dcf.txt 4 4 4 > garb 
+
+
+new code 
+ ./singleVertCheck.py ann02/ann02-dc-tri-5-0.8.off 5 0.8 ann02/ann02-5-0.8.dcf.txt 10 10 10 10.9282032303 > garb 
 data sets
 cube 01
 1.0 on all sides  height 3 scale 0.8
 cube02
 1.0 on all sides  height 3 scale 0.8 but it is origin at 3,3,3
+Cube03
+
+location + length = 16 (8*2
+)
+
+
+ann02
+10 10 10 location , scale 4  so max length = 8 angle acroxx x is 30 deg
+
+Cube04
+location 4,4,4 scale (2,1,1)
+flange01
+location 3.0 3.0 3.0 scale 2.0
+flange02
+location 3.17 3.49 4.89 rotation 22 52 69 scale 0.73 0.73 2.0
+
+flange03 4 4 4 rotation 45 45 45 scale 2 2 0.5

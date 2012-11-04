@@ -228,7 +228,7 @@ void sh_cube::findPoint
  COORD_TYPE * isoVertcoords)
 {
   //set m
-  int ind[cb.ne_intersect]; //ind (index) keeep tracks of the edges which are intersected
+  int ind[cb.ne_intersect]; //ind (index) keep tracks of the edges which are intersected
   RowVectorXf centroid(3);
   centroid<<0.0,0.0,0.0;
 

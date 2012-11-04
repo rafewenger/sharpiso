@@ -32,9 +32,9 @@ class GRID_CUBE{
 public:
 	COORD_TYPE isovert_coord[DIM3];//location of the sharp isovertex
 	unsigned char num_eigen;
-	GRID_CUBE_FLAG flag; // defines the type for this cube
-	SCALAR_TYPE l2dist;  // this is the l2 dist between the sharp point and the cube-center
-
+	GRID_CUBE_FLAG flag;    // defines the type for this cube
+	SCALAR_TYPE l2dist;     // this is the l2 dist between the sharp point and the cube-center
+	VERTEX_INDEX index2sg;  // index to scalar_grid
 };
 
 
@@ -59,7 +59,6 @@ public:
 }
 
 namespace ISODUAL3D{
-
 // compute the ISOVERT object
 void compute_dual_isovert(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
