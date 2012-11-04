@@ -93,7 +93,15 @@ void ISODUAL3D::decimate_dual_isopoly
 
   dual_isosurface.tri_vert.clear();
   dual_isosurface.quad_vert.clear();
-  
+
+  // Change lower-left, lower-right, upper-left, upper-right order
+  //   to counter-clockwise order.
+  IJK::reorder_quad_vertices(quad_vert2);
+
   IJK::get_non_degenerate_quad
     (quad_vert2, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
+
+  // Change counter-clockwise order to lower-left, lower-right, 
+  //   upper-left, upper-right order.
+  IJK::reorder_quad_vertices(dual_isosurface.quad_vert);
 }

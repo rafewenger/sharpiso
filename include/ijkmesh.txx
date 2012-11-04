@@ -231,6 +231,10 @@ namespace IJK {
           new_tri_vert.push_back(quad_vert[j4]);
           return;
         }
+        else {
+          // Degenerate quad. Collapses to two edges.
+          return;
+        }
       }
     }
 
