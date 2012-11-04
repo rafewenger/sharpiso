@@ -43,12 +43,14 @@ namespace SHARPISO {
   typedef int AXIS_SIZE_TYPE;
   typedef int GRADIENT_LENGTH_TYPE;
 
-  // Coordinate type which is guaranteed to be signed.
-  // Note: COORD_TYPE may be signed or unsigned.
+  /// Coordinate type which is guaranteed to be signed.
+  /// (Note: COORD_TYPE may be signed or unsigned.)
   typedef float SIGNED_COORD_TYPE;
 
   typedef int NUM_TYPE;
   typedef int VERTEX_INDEX;
+
+  /// Index difference type.  Must be signed.
   typedef int INDEX_DIFF_TYPE;
 
   typedef std::pair<VERTEX_INDEX, VERTEX_INDEX> VERTEX_PAIR;

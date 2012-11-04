@@ -37,8 +37,13 @@ void ISODUAL3D::decimate_dual_isopoly
 {
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
   std::vector<VERTEX_INDEX> gcube_map(num_gcube);
-  VERTEX_INDEX cube_index;
+  VERTEX_INDEX cube_index, neighbor_index;
+  SHARPISO_GRID_NEIGHBORS gridn;
   GRID_COORD_TYPE cube_coord[DIM3];
+  int boundary_bits;
+
+  // Set size of grid neighbors grid.
+  gridn.SetSize(isovert.sharp_ind_grid);
 
   for (NUM_TYPE i = 0; i < num_gcube; i++)
     { gcube_map[i] = i; }
@@ -48,9 +53,24 @@ void ISODUAL3D::decimate_dual_isopoly
 
       cube_index = isovert.gcube_list[i].index2sg;
 
-      isovert.sharp_ind_grid.ComputeCoord(cube_index, cube_coord);
+      isovert.sharp_ind_grid.ComputeBoundaryBits
+        (cube_index, boundary_bits);
 
-      // *** TO BE CONTINUED. ***
+      if (boundary_bits == 0) {
+        // Cube cube_index is an interior cube.
+
+        for (NUM_TYPE j = 0; j < gridn.NumVertexNeighborsC(); j++) {
+
+          neighbor_index = gridn.VertexNeighborC(cube_index, j);
+
+          INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
+          if (k != ISOVERT::NO_INDEX) {
+          }
+        }
+      }
+      else {
+        // *** Fill in. ***
+      }
       
     }
   }

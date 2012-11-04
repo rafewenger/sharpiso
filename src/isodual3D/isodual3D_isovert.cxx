@@ -1,9 +1,8 @@
-/*
- * isodual3D_isovert.cxx
- *
- *  Created on: Oct 29, 2012
- *      Author: arindam
- */
+/// \file isodual3D_isovert.cxx
+/// Data structures for creating and processing sharp isosurface vertices.
+/// Created on: Oct 29, 2012
+/// Author: arindam
+
 
 #include <iostream>
 #include <cmath>

@@ -63,6 +63,8 @@ namespace SHARPISO {
     <SHARPISO_GRID, GRADIENT_LENGTH_TYPE, GRADIENT_COORD_TYPE>
     GRADIENT_GRID;                  ///< sharpiso gradient grid
 
+  /// Index grid.  Signed to allow for -1.
+  typedef IJK::SCALAR_GRID<SHARPISO_GRID, INDEX_DIFF_TYPE> SHARPISO_INDEX_GRID;
 };
 
 #endif

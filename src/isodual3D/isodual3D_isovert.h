@@ -42,15 +42,19 @@ public:
 // ISOSURFACE VERTEX DATA
 // **************************************************
 
-// grid contains the index to the gcube_list defined in ISOVERT
-// If tube is not sharp then it has [-1]
-typedef IJK::SCALAR_GRID<SHARPISO_GRID, NUM_TYPE>SHARPISO_INDEX_GRID;
-
-class ISOVERT{
+class ISOVERT {
 public:
-	std::vector<GRID_CUBE> gcube_list; // vector containing the cubes which has sharp vertex
+
+  /// gcube_list containing the active cubes and their vertices.
+	std::vector<GRID_CUBE> gcube_list; 
+
+  static const int NO_INDEX = -1;       ///< Flag for no index.
+
+  /// Grid containing the index to the gcube_list.
+  /// If cube is not active, then it is defined as NO_INDEX.
 	SHARPISO_INDEX_GRID sharp_ind_grid;
-	SCALAR_TYPE linf_dist_to_sharp_pt;/// linf distance variable
+
+	SCALAR_TYPE linf_dist_to_sharp_pt;    ///< L-inf distance variable.
 };
 
 
