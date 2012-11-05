@@ -60,6 +60,7 @@ void compute_isovert_positions (
 			(scalar_grid, gradient_grid, iv, isovalue, isovert_param, cube_111,
 					isovertData.gcube_list[index].isovert_coord,
 					eigenvalues, num_large_eigenvalues, svd_info);
+
 			//set num eigen
 			isovertData.gcube_list[index].num_eigen =  (unsigned char)num_large_eigenvalues;
 			//set the sharp vertex type to be *AVAILABLE*
@@ -167,6 +168,7 @@ void select_3x3_regions
 						    isovertData.gcube_list[isovertData.sharp_ind_grid.Scalar(k)].flag == UNAVAILABLE_GCUBE;
 						  }
 						}
+
 					}
 					else
 					{
@@ -224,18 +226,14 @@ void ISODUAL3D::compute_dual_isovert(
 		ISOVERT &isovertData)
 {
 	create_active_cubes(scalar_grid, gradient_grid, isovalue, isovertData);
-    cout <<"create active cubes done"<<endl;
+
 	compute_isovert_positions (scalar_grid, gradient_grid, isovalue, isovert_param,
 			isovertData);
-    cout <<"compute isovert pos done"<<endl;
 	// keep track of the sorted indices
 	std::vector<NUM_TYPE> sortd_ind2gcube_list;
 	sort_gcube_list(sortd_ind2gcube_list,isovertData.gcube_list);
-	cout <<"sort gcube list done"<<endl;
 	select_3x3_regions (scalar_grid, gradient_grid, isovalue,
 			isovert_param, sortd_ind2gcube_list, isovertData);
-    cout <<"select 3x3 regions pos done"<<endl;
-
 }
 
 
