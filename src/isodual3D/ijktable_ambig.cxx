@@ -33,6 +33,7 @@
 #include <vector>
 
 #include "ijktable_ambig.h"
+#include "ijkbits.txx"
 
 using namespace IJK;
 using namespace IJKTABLE;
@@ -95,7 +96,7 @@ void ISOSURFACE_TABLE_AMBIG_INFO::ComputeAmbiguityInformation
     ("ISOSURFACE_TABLE_AMBIG_INFO::ComputeAmbiguityInformation");
 
   for (AMBIG_TABLE_INDEX i = 0; i < num_table_entries; i++) {
-    convert2base(i, BASE2, vertex_sign.Ptr(), poly_numv, error);
+    IJK::convert2base(i, BASE2, vertex_sign.Ptr(), poly_numv, error);
     is_ambiguous[i] = 
       is_poly_ambiguous(poly, vertex_sign.PtrConst());
 
@@ -107,7 +108,7 @@ void ISOSURFACE_TABLE_AMBIG_INFO::ComputeAmbiguityInformation
 
 // Set ambiguity table.
 void ISOSURFACE_TABLE_AMBIG_INFO::SetAmbiguityTable
-(const IJKTABLE::ISOSURFACE_TABLE_POLYHEDRON & poly)
+(const ISOSURFACE_TABLE_POLYHEDRON & poly)
 {
   const int poly_numv = poly.NumVertices();
   const int BASE2 = 2;

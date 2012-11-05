@@ -69,6 +69,7 @@ typedef enum {
 	SINGLE_ISOV_PARAM, MULTI_ISOV_PARAM,
 	SEP_NEG_PARAM, SEP_POS_PARAM, RESOLVE_AMBIG_PARAM,
 	ROUND_PARAM, NO_ROUND_PARAM,
+  MINC_PARAM, MAXC_PARAM,
 	HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
 	OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
 	NOWRITE_PARAM, OUTPUT_INFO_PARAM, SILENT_PARAM,
@@ -92,6 +93,7 @@ typedef enum {
     "-single_isov", "-multi_isov",
     "-sep_neg", "-sep_pos", "-resolve_ambig",
     "-round", "-no_round",
+    "-minc", "-maxc",
     "-help", "-off", "-iv", "-out_param",
     "-o", "-stdout",
     "-nowrite", "-info", "-s", "-time", "-unknown"};
@@ -192,6 +194,25 @@ typedef enum {
 
 		return(x);
 	}
+
+  /// Get string and convert to list of arguments.
+  /// Does not modify iarg.
+  template <typename ETYPE>
+  void get_multiple_arguments
+  (const int iarg, const int argc, char **argv, vector<ETYPE> & v)
+  {
+    if (iarg+1 >= argc) { 
+      cerr << "Usage error. Missing argument for option " 
+           << argv[iarg] << " and missing file name." << endl;
+      usage_error();
+    }
+
+    if (!IJK::string2vector(argv[iarg+1], v)) {
+      cerr << "Error in argument for option: " << argv[iarg] << endl;
+      cerr << "Non-numeric character in string: " << argv[iarg+1] << endl;
+      exit(50);
+    }
+  }
 
 }
 
@@ -410,6 +431,16 @@ void ISODUAL3D::parse_command_line
 		case NO_ROUND_PARAM:
 			input_info.flag_round = false;
 			break;
+
+    case MINC_PARAM:
+      get_multiple_arguments(iarg, argc, argv, input_info.minc);
+      iarg++;
+      break;
+
+    case MAXC_PARAM:
+      get_multiple_arguments(iarg, argc, argv, input_info.maxc);
+      iarg++;
+      break;
 
 		case OFF_PARAM:
 			input_info.output_format = OFF;

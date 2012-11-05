@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "isodual3D_ambig.h"
 #include "sharpiso_feature.h"
 
+#include "ijkbits.txx"
 #include "ijkisopoly.txx"
 
 #include <queue>

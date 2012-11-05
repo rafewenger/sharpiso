@@ -69,6 +69,9 @@ namespace IJK {
     COORD_TYPE AxisSize(const int d) const
     { return(max_coord[d]+1-min_coord[d]); }
 
+    template <typename CTYPE2>
+    bool Contains(const CTYPE2 * coord) const;
+
     // set functions
     void SetDimension(const int d);
     void SetMinCoord(const int d, const COORD_TYPE c)
@@ -285,29 +288,6 @@ namespace IJK {
     }
   }
 
-  // **************************************************
-  // CONVERT INTEGER TO BASE "base"
-  // **************************************************
-
-  template <typename ITYPE, typename BTYPE, typename DTYPE,
-            typename NTYPE, typename ETYPE>
-  void convert2base(const ITYPE ival, const BTYPE base, 
-                    DTYPE * digit, const NTYPE max_num_digits,
-                    ETYPE & error)
-  {
-    ITYPE jval = ival;
-    for (NTYPE i = 0; i < max_num_digits; i++) {
-      digit[i] = jval % base;
-      jval = jval/base;
-    }
-
-    if (jval != 0) {
-      error.AddMessage("Error converting ", ival, " to base ", base, ".");
-      error.AddMessage("Output has more than ", max_num_digits, " digits.");
-
-      throw error;
-    };
-  }
 
   // **************************************************
   // CONVERT A C++ VECTOR TO A POINTER
@@ -678,6 +658,17 @@ namespace IJK {
 
   template <class T> BOX<T>::BOX(const int dimension)
   { Init(); SetDimension(dimension); }
+
+  template <class COORD_TYPE>
+  template <class CTYPE2>
+  bool BOX<COORD_TYPE>::Contains(const CTYPE2 * coord) const
+  {
+    for (int d = 0; d < dimension; d++) {
+      if (coord[d] < min_coord[d]) { return(false); }
+      if (coord[d] > max_coord[d]) { return(false); }
+    }
+    return(true);
+  }
 
   template <class COORD_TYPE> 
   void BOX<COORD_TYPE>::SetDimension(const int d)
