@@ -68,10 +68,13 @@ void compute_isovert_positions (
 			else
 				isovertData.gcube_list[index].flag=SMOOTH_GCUBE;
 
-			// STORE DISTANCE
+			// store distance
 			compute_linf_dist( scalar_grid, iv,
 					isovertData.gcube_list[index].isovert_coord,
 					isovertData.gcube_list[index].linf_dist);
+			// store boundary bits
+			scalar_grid.ComputeBoundaryBits
+			(iv,isovertData.gcube_list[index].boundary_bits);
 		}
 	}
 }
@@ -138,6 +141,8 @@ void select_3x3_regions
 		c = isovertData.gcube_list[sortd_ind2gcube_list[ind]];
 
     // *** USE PARAMETER, NOT 0.8.  (PARAMETER SHOULD BE 1.4.)
+		// check boundary
+		if(c.boundary_bits == 0)
 		if ( c.flag == AVAILABLE_GCUBE && c.linf_dist < 1.4 && c.num_eigen == neigen)
 		{
 			isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag= SELECTED_GCUBE;
@@ -150,18 +155,18 @@ void select_3x3_regions
 				{
 					VERTEX_INDEX neighbor_index_2_gclist
 					= isovertData.sharp_ind_grid.Scalar(n);
-					if (isovertData.gcube_list[neighbor_index_2_gclist].flag == COVERED_GCUBE)
+					//if covered and not boundary
+					if (isovertData.gcube_list[neighbor_index_2_gclist].flag == COVERED_GCUBE &&
+							(isovertData.gcube_list[neighbor_index_2_gclist].boundary_bits == 0))
 					{
 						for(int j=0;j<gridn.NumVertexNeighborsC();j++)
 						{
-
 						  VERTEX_INDEX k=gridn.VertexNeighborC(isovertData.gcube_list[neighbor_index_2_gclist].cube_index,j);
 						  if(isovertData.sharp_ind_grid.Scalar(k)!=ISOVERT::NO_INDEX){
 						    if(isovertData.gcube_list[isovertData.sharp_ind_grid.Scalar(k)].flag == AVAILABLE_GCUBE)
 						    isovertData.gcube_list[isovertData.sharp_ind_grid.Scalar(k)].flag == UNAVAILABLE_GCUBE;
 						  }
 						}
-
 					}
 					else
 					{
@@ -219,19 +224,17 @@ void ISODUAL3D::compute_dual_isovert(
 		ISOVERT &isovertData)
 {
 	create_active_cubes(scalar_grid, gradient_grid, isovalue, isovertData);
-
+    cout <<"create active cubes done"<<endl;
 	compute_isovert_positions (scalar_grid, gradient_grid, isovalue, isovert_param,
 			isovertData);
-
+    cout <<"compute isovert pos done"<<endl;
 	// keep track of the sorted indices
 	std::vector<NUM_TYPE> sortd_ind2gcube_list;
-
-
 	sort_gcube_list(sortd_ind2gcube_list,isovertData.gcube_list);
-
+	cout <<"sort gcube list done"<<endl;
 	select_3x3_regions (scalar_grid, gradient_grid, isovalue,
 			isovert_param, sortd_ind2gcube_list, isovertData);
-
+    cout <<"select 3x3 regions pos done"<<endl;
 
 }
 

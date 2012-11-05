@@ -33,8 +33,8 @@ public:
 	COORD_TYPE isovert_coord[DIM3]; ///< Location of the sharp isovertex.
   unsigned char num_eigen;        ///< Number of eigenvalues.
 	GRID_CUBE_FLAG flag;            ///< Type for this cube.
-	SCALAR_TYPE linf_dist;             /// L2-dist from sharp point to cube-center.
-
+	SCALAR_TYPE linf_dist;          /// Linf-dist from sharp point to cube-center.
+	int boundary_bits;             /// boundary bits for the cube
 	VERTEX_INDEX cube_index;          /// Index of cube in scalar grid.
 };
 
