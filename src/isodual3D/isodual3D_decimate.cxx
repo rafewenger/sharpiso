@@ -54,7 +54,7 @@ void ISODUAL3D::decimate_dual_isopoly
   for (NUM_TYPE i = 0; i < num_gcube; i++) {
     if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
 
-      cube_index = isovert.gcube_list[i].index2sg;
+      cube_index = isovert.gcube_list[i].cube_index;
 
       isovert.sharp_ind_grid.ComputeBoundaryBits
         (cube_index, boundary_bits);
@@ -85,7 +85,7 @@ void ISODUAL3D::decimate_dual_isopoly
       else {
         // *** Fill in. ***
       }
-      
+
     }
   }
 
@@ -107,7 +107,7 @@ void ISODUAL3D::decimate_dual_isopoly
   IJK::get_non_degenerate_quad
     (quad_vert2, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
 
-  // Change counter-clockwise order to lower-left, lower-right, 
+  // Change counter-clockwise order to lower-left, lower-right,
   //   upper-left, upper-right order.
   IJK::reorder_quad_vertices(dual_isosurface.quad_vert);
 }

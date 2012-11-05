@@ -25,9 +25,9 @@ using namespace IJK;
 
 
 
-void compute_l2_dist
+void compute_linf_dist
 ( const SHARPISO_SCALAR_GRID_BASE & scalar_grid, const VERTEX_INDEX iv,
-		COORD_TYPE isovert_coord[DIM3],SCALAR_TYPE &l2dist);
+		COORD_TYPE isovert_coord[DIM3],SCALAR_TYPE &linf_dist);
 
 /*
  * Traverse the *isovertData.sharp_ind_grid*
@@ -49,7 +49,7 @@ void compute_isovert_positions (
 	IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX)
 	{
 		NUM_TYPE index = isovertData.sharp_ind_grid.Scalar(iv);
-		if (index!=-1)
+		if (index!=ISOVERT::NO_INDEX)
 		{
 			// this is an active cube
 			// compute the sharp vertex for this cube
@@ -61,7 +61,7 @@ void compute_isovert_positions (
 					isovertData.gcube_list[index].isovert_coord,
 					eigenvalues, num_large_eigenvalues, svd_info);
 			//set num eigen
-			isovertData.gcube_list[index].num_eigen = num_large_eigenvalues;
+			isovertData.gcube_list[index].num_eigen =  (unsigned char)num_large_eigenvalues;
 			//set the sharp vertex type to be *AVAILABLE*
 			if(num_large_eigenvalues > 1)
 				isovertData.gcube_list[index].flag=AVAILABLE_GCUBE;
@@ -69,9 +69,9 @@ void compute_isovert_positions (
 				isovertData.gcube_list[index].flag=SMOOTH_GCUBE;
 
 			// STORE DISTANCE
-			compute_l2_dist( scalar_grid, iv,
+			compute_linf_dist( scalar_grid, iv,
 					isovertData.gcube_list[index].isovert_coord,
-					isovertData.gcube_list[index].l2dist);
+					isovertData.gcube_list[index].linf_dist);
 		}
 	}
 }
@@ -83,7 +83,18 @@ public:
 	gcube_compare(vector<GRID_CUBE> & gcube_list_ ){gcube_list= gcube_list_;};
 	bool operator () (int i,int j)
 	{
-		return gcube_list[i].l2dist < gcube_list[j].l2dist;
+		return gcube_list[i].linf_dist < gcube_list[j].linf_dist;
+    /*
+		if( gcube_list[i].num_eigen == 3 && gcube_list[j].num_eigen < 3)
+		{
+		  cout <<" "<<(int)gcube_list[i].num_eigen<<endl;
+		  return true;
+		}
+		else
+		{
+		  return gcube_list[i].linf_dist < gcube_list[j].linf_dist;
+		}
+		*/
 	}
 
 };
@@ -101,32 +112,10 @@ void sort_gcube_list(vector<NUM_TYPE> &sortd_ind2gcube_list, vector<GRID_CUBE> &
 }
 
 
-/*
- * Helper functions to select_3x3_regions
- */
-
-/* OBSOLETE
-bool is_cube(const GRID_CUBE_FLAG flag,
-		const VERTEX_INDEX iv,
-		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		ISOVERT &isovertData)
-{
-	//check if intersected
-  // *** CHANGE -1 TO ISOVERT::NO_INDEX ***
-	if(isovertData.sharp_ind_grid.Scalar(iv)!=-1)
-	{
-		NUM_TYPE index = isovertData.sharp_ind_grid.Scalar(iv);
-		if (isovertData.gcube_list[index].flag == flag)
-			return true;
-	}
-	return false;
-}
-*/
 
 /*
  * select the 3x3 regions
  */
-/// does not check for boundary regions
 
 void select_3x3_regions
 (
@@ -142,28 +131,37 @@ void select_3x3_regions
 
 	SHARPISO_GRID_NEIGHBORS gridn;
 	gridn.SetSize(scalar_grid);
-
+  for (int neigen=3;neigen>0;neigen--)
 	for (int ind=0;ind<sortd_ind2gcube_list.size();ind++)
 	{
 		GRID_CUBE c;
 		c = isovertData.gcube_list[sortd_ind2gcube_list[ind]];
 
     // *** USE PARAMETER, NOT 0.8.  (PARAMETER SHOULD BE 1.4.)
-		if ( c.flag == AVAILABLE_GCUBE && c.l2dist < 0.8)
+		if ( c.flag == AVAILABLE_GCUBE && c.linf_dist < 1.4 && c.num_eigen == neigen)
 		{
 			isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag= SELECTED_GCUBE;
 			for (int i=0;i<gridn.NumVertexNeighborsC();i++)
 			{
 				VERTEX_INDEX n = gridn.VertexNeighborC
-						(isovertData.gcube_list[sortd_ind2gcube_list[ind]].index2sg,i);
-        // *** CHANGE -1 TO ISOVERT::NO_INDEX ***
-				if(isovertData.sharp_ind_grid.Scalar(n)!=-1)
+						(isovertData.gcube_list[sortd_ind2gcube_list[ind]].cube_index,i);
+
+				if(isovertData.sharp_ind_grid.Scalar(n)!=ISOVERT::NO_INDEX)
 				{
 					VERTEX_INDEX neighbor_index_2_gclist
 					= isovertData.sharp_ind_grid.Scalar(n);
 					if (isovertData.gcube_list[neighbor_index_2_gclist].flag == COVERED_GCUBE)
 					{
-						// set unavailable : not implemented yet
+						for(int j=0;j<gridn.NumVertexNeighborsC();j++)
+						{
+
+						  VERTEX_INDEX k=gridn.VertexNeighborC(isovertData.gcube_list[neighbor_index_2_gclist].cube_index,j);
+						  if(isovertData.sharp_ind_grid.Scalar(k)!=ISOVERT::NO_INDEX){
+						    if(isovertData.gcube_list[isovertData.sharp_ind_grid.Scalar(k)].flag == AVAILABLE_GCUBE)
+						    isovertData.gcube_list[isovertData.sharp_ind_grid.Scalar(k)].flag == UNAVAILABLE_GCUBE;
+						  }
+						}
+
 					}
 					else
 					{
@@ -174,13 +172,14 @@ void select_3x3_regions
 		}
 	}
 
+
 }
 
 
 
 /*
  * Traverse the scalar grid,
- * set everything to be -1
+ * set everything to be ISOVERT::NO_INDEX
  * if isosurface intersects the cube then set *index*
  * push the corresponding *grid_cube* into the *gcube_list*
  */
@@ -200,13 +199,13 @@ void create_active_cubes (
 			index=isovertData.gcube_list.size();
 			isovertData.sharp_ind_grid.Set(iv,index);
 			GRID_CUBE gc;
-			gc.index2sg = iv;
+			gc.cube_index = iv;
 			isovertData.gcube_list.push_back(gc);
 		}
 		else
 		{
-			// if it is not intersected then mark as -1
-			isovertData.sharp_ind_grid.Set(iv,-1);
+			// if it is not intersected then mark as ISOVERT::NO_INDEX
+			isovertData.sharp_ind_grid.Set(iv,ISOVERT::NO_INDEX);
 		}
 	}
 }
@@ -238,19 +237,24 @@ void ISODUAL3D::compute_dual_isovert(
 
 
 /*
- * Find the distance between the sharp vertex for the cube and the center of the cube
+ * Find the linf distance between the sharp vertex for the cube and the center of the cube
  */
-void compute_l2_dist( const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+void compute_linf_dist( const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const VERTEX_INDEX iv,
 		COORD_TYPE isovert_coord[DIM3],
-		SCALAR_TYPE &l2dist)
+		SCALAR_TYPE &linf_dist)
 {
 	SCALAR_TYPE squareDist=0.0;
 	COORD_TYPE cc[DIM3];
 	scalar_grid.ComputeCubeCenterCoord(iv,cc);
-	for (int d=0;d<DIM3;d++	)
-		squareDist = squareDist + (isovert_coord[d]-cc[d])*(isovert_coord[d]-cc[d]);
-	l2dist=sqrt(squareDist);
+  SCALAR_TYPE temp_d   = 0.0;
+  SCALAR_TYPE max_dist = -1.0;
+	for (int d=0;d<DIM3;d++){
+	  temp_d = abs(isovert_coord[d]-cc[d]);
+	  if (temp_d > max_dist)
+        max_dist=temp_d;
+  }
+ linf_dist = max_dist;
 };
 
 
@@ -268,7 +272,7 @@ void ISODUAL3D::count_vertices
   isovert_info.num_smooth_vertices = 0;
   for (VERTEX_INDEX i = 0; i < isovert.gcube_list.size(); i++) {
     if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
-      if (isovert.gcube_list[i].num_eigen == 2) 
+      if (isovert.gcube_list[i].num_eigen == 2)
         { isovert_info.num_sharp_edges++; }
       else if (isovert.gcube_list[i].num_eigen == 3) {
         { isovert_info.num_sharp_corners++; }

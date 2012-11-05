@@ -43,12 +43,12 @@ void snap_to_cube
 bool check_conflict
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
- const GRID_COORD_TYPE cube_coord[DIM3], 
+ const GRID_COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE point_coord[DIM3]);
 bool check_conflict
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
- const GRID_COORD_TYPE cube_coord[DIM3], 
+ const GRID_COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE point_coord[DIM3],
  VERTEX_INDEX & conflicting_cube);
 void diff_coord
@@ -129,7 +129,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
   COORD_TYPE central_point[DIM3];
   if (sharpiso_param.flag_dist2centroid) {
     compute_edgeI_centroid
-      (scalar_grid, gradient_grid, isovalue, cube_index, 
+      (scalar_grid, gradient_grid, isovalue, cube_index,
        sharpiso_param.use_sharp_edgeI, central_point);
   }
   else {
@@ -138,18 +138,17 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
   IJK::copy_coord(DIM3, central_point, svd_info.central_point);
 
   svd_calculate_sharpiso_vertex_using_lindstrom
-    (sharpiso_param.use_lindstrom2, &(point_coord[0]), 
+    (sharpiso_param.use_lindstrom2, &(point_coord[0]),
      &(gradient_coord[0]), &(scalar[0]),
      num_gradients, isovalue, max_small_eigenvalue,
      num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
 
-  if (!sharpiso_param.flag_allow_conflict && 
+  if (!sharpiso_param.flag_allow_conflict &&
       sharpiso_param.flag_remove_gradients ) {
     snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
 
     if (check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
       svd_info.flag_conflict = true;
-
       point_coord.clear();
       gradient_coord.clear();
       scalar.clear();
@@ -162,11 +161,11 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 
       // Decrease number of gradients.
       NUM_TYPE numg2 = num_gradients - 1;
-      while (numg2 > 0 && 
+      while (numg2 > 0 &&
              check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
 
         svd_calculate_sharpiso_vertex_using_lindstrom
-          (sharpiso_param.use_lindstrom2, &(point_coord[0]), 
+          (sharpiso_param.use_lindstrom2, &(point_coord[0]),
            &(gradient_coord[0]), &(scalar[0]),
            numg2, isovalue, max_small_eigenvalue,
            num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
@@ -178,14 +177,14 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
   if (sharpiso_param.flag_centroid_eigen1) {
     if (num_large_eigenvalues <= 1) {
       compute_edgeI_centroid
-        (scalar_grid, gradient_grid, isovalue, cube_index, 
+        (scalar_grid, gradient_grid, isovalue, cube_index,
          sharpiso_param.use_sharp_edgeI, sharp_coord);
       svd_info.location = CENTROID;
     }
   }
 
   postprocess_isovert_location
-    (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue, 
+    (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
      sharpiso_param, sharp_coord, svd_info);
 }
 
@@ -249,7 +248,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
   svd_info.flag_Linf_iso_vertex_location = false;
 
   local_svd_compute_sharp_vertex_for_cube_lc_intersection
-    (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue, 
+    (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
      sharpiso_param, point_coord, gradient_coord, scalar, num_gradients,
      sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
 
@@ -272,12 +271,12 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
 
         // Decrease number of gradients.
         NUM_TYPE numg2 = num_gradients - 1;
-        while (numg2 > 0 && 
+        while (numg2 > 0 &&
                check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord) &&
                num_large_eigenvalues > 1) {
 
           local_svd_compute_sharp_vertex_for_cube_lc_intersection
-            (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue, 
+            (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
              sharpiso_param, point_coord, gradient_coord, scalar, numg2,
              sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
 
@@ -302,7 +301,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
            point_coord, gradient_coord, scalar, num_gradients);
 
         local_svd_compute_sharp_vertex_for_cube_lc_intersection
-          (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue, 
+          (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
            sharpiso_param, point_coord, gradient_coord, scalar, num_gradients,
            sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
       }
@@ -310,7 +309,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
   }
 
   postprocess_isovert_location
-    (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue, 
+    (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
      sharpiso_param, sharp_coord, svd_info);
 }
 
@@ -339,10 +338,10 @@ void local_svd_compute_sharp_vertex_for_cube_lc_intersection
   GRADIENT_COORD_TYPE line_direction[DIM3];
 
   svd_calculate_sharpiso_vertex_unit_normals
-    (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]), 
-     num_gradients, isovalue, max_eigen, num_large_eigenvalues, 
+    (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
+     num_gradients, isovalue, max_eigen, num_large_eigenvalues,
      eigenvalues, sharp_coord, line_direction);
-    
+
   if (num_large_eigenvalues == 3) {
 
     // Check for far point or conflict and recompute using 2 eigenvalues.
@@ -352,7 +351,7 @@ void local_svd_compute_sharp_vertex_for_cube_lc_intersection
           check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
 
         svd_calculate_sharpiso_vertex_2_svals_unit_normals
-          (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]), 
+          (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
            num_gradients, isovalue, max_eigen, num_large_eigenvalues,
            eigenvalues, sharp_coord, line_direction);
       }
@@ -366,13 +365,13 @@ void local_svd_compute_sharp_vertex_for_cube_lc_intersection
     IJK::copy_coord_3D(sharp_coord, line_origin);
 
     compute_vertex_on_line
-      (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue, 
+      (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
        sharpiso_param, line_origin, line_direction, sharp_coord, svd_info);
     svd_info.SetRayInfo(line_origin, line_direction, sharp_coord);
   }
   else if (num_large_eigenvalues  == 1) {
     compute_edgeI_centroid
-      (scalar_grid, gradient_grid, isovalue, cube_index, 
+      (scalar_grid, gradient_grid, isovalue, cube_index,
        sharpiso_param.use_sharp_edgeI, sharp_coord);
     svd_info.location = CENTROID;
   }
@@ -410,11 +409,11 @@ void SHARPISO::compute_vertex_on_line
 
   if (sharpiso_param.flag_dist2centroid) {
     compute_edgeI_centroid
-      (scalar_grid, gradient_grid, isovalue, cube_index, 
+      (scalar_grid, gradient_grid, isovalue, cube_index,
        sharpiso_param.use_sharp_edgeI, central_point);
   }
   else {
-    for (int d = 0; d < DIM3; d++) 
+    for (int d = 0; d < DIM3; d++)
       { central_point[d] = cube_coord[d] + 0.5; }
   }
 
@@ -426,9 +425,9 @@ void SHARPISO::compute_vertex_on_line
   if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
 
     snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
-    if (check_conflict(scalar_grid, isovalue, cube_coord, 
+    if (check_conflict(scalar_grid, isovalue, cube_coord,
                        sharp_coord, conflicting_cube)) {
-  
+
       if (sharpiso_param.use_Linf_dist) {
         scalar_grid.ComputeCoord(conflicting_cube, conflicting_cube_coord);
 
@@ -562,7 +561,7 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_sharp_gradient
       VERTEX_INDEX conflicting_cube;
 
       snap_to_cube(cube_coord, sharpiso_param.snap_dist, coord);
-      bool flag_conflict = 
+      bool flag_conflict =
         check_conflict(scalar_grid, isovalue, cube_coord, coord,
                        conflicting_cube);
 
@@ -591,7 +590,7 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_sharp_gradient
 }
 
 
-/// Compute sharp isosurface vertex near facet 
+/// Compute sharp isosurface vertex near facet
 ///    using singular valued decomposition.
 /// @param facet_v0 Index of primary (lowest-left) facet vertex.
 /// @param orth_dir Direction orthogonal to facet.
@@ -612,7 +611,7 @@ void SHARPISO::svd_compute_sharp_vertex_near_facet
  EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues)
 {
-  const GRADIENT_COORD_TYPE max_small_mag = 
+  const GRADIENT_COORD_TYPE max_small_mag =
     sharpiso_param.max_small_magnitude;
   const EIGENVALUE_TYPE max_eigen = sharpiso_param.max_small_eigenvalue;
   const COORD_TYPE snap_dist = sharpiso_param.snap_dist;
@@ -628,13 +627,13 @@ void SHARPISO::svd_compute_sharp_vertex_near_facet
   sharp_vertex_location = 0;
 
   get_two_cube_gradients
-    (scalar_grid, gradient_grid, facet_v0, facet_orth_dir, 
+    (scalar_grid, gradient_grid, facet_v0, facet_orth_dir,
      isovalue, sharpiso_param,
      point_coord, gradient_coord, scalar, num_gradients);
 
   svd_calculate_sharpiso_vertex_unit_normals
-    (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]), 
-     num_gradients, isovalue, max_eigen, num_large_eigenvalues, 
+    (&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
+     num_gradients, isovalue, max_eigen, num_large_eigenvalues,
      eigenvalues, sharp_coord, line_direction);
 
   if (num_large_eigenvalues > 1) {
@@ -642,10 +641,10 @@ void SHARPISO::svd_compute_sharp_vertex_near_facet
     scalar_grid.ComputeCoord(facet_v0, v0_coord);
 
     if (num_large_eigenvalues == 3) {
-      
-      if (sharp_coord[facet_orth_dir] > v0_coord[facet_orth_dir]+snap_dist) 
+
+      if (sharp_coord[facet_orth_dir] > v0_coord[facet_orth_dir]+snap_dist)
         { sharp_vertex_location = 1; }
-      else if (sharp_coord[facet_orth_dir]+snap_dist < 
+      else if (sharp_coord[facet_orth_dir]+snap_dist <
                v0_coord[facet_orth_dir]+snap_dist)
         { sharp_vertex_location = -1; }
     }
@@ -666,9 +665,9 @@ void SHARPISO::svd_compute_sharp_vertex_near_facet
 
         if (endc[0] > endc[1]) { std::swap(endc[0], endc[1]); }
 
-        if (endc[0] > v0_coord[facet_orth_dir]) 
+        if (endc[0] > v0_coord[facet_orth_dir])
           { sharp_vertex_location = 1; }
-        else if (endc[1] < v0_coord[facet_orth_dir]) 
+        else if (endc[1] < v0_coord[facet_orth_dir])
           { sharp_vertex_location = -1; }
         // else default (sharp_vertex_location = 0).
       }
@@ -679,7 +678,7 @@ void SHARPISO::svd_compute_sharp_vertex_near_facet
 
 }
 
-/// Compute sharp isosurface vertex near facet 
+/// Compute sharp isosurface vertex near facet
 ///    using singular valued decomposition.
 /// Short parameter list.
 void SHARPISO::svd_compute_sharp_vertex_near_facet
@@ -691,7 +690,7 @@ void SHARPISO::svd_compute_sharp_vertex_near_facet
  const SHARP_ISOVERT_PARAM & sharpiso_param,
  NUM_TYPE & sharp_vertex_location)
 {
-  NUM_TYPE num_large_eigenvalues;  
+  NUM_TYPE num_large_eigenvalues;
   COORD_TYPE sharp_coord[DIM3];
   GRADIENT_COORD_TYPE line_direction[DIM3];
   EIGENVALUE_TYPE eigenvalues[DIM3];
@@ -1007,7 +1006,7 @@ void SHARPISO::postprocess_isovert_location
       bool flag_conflict;
       VERTEX_INDEX conflicting_cube;
       snap_to_cube(cube_coord, sharpiso_param.snap_dist, iso_coord);
-      flag_conflict = 
+      flag_conflict =
         check_conflict(scalar_grid, isovalue, cube_coord, iso_coord,
                        conflicting_cube);
 
@@ -1108,7 +1107,7 @@ void get_cube_containing_point
   for (int d = 0; d < DIM3; d++) {
     coord2[d] = floor(coord[d]);
 
-    if (coord2[d] == coord[d]) 
+    if (coord2[d] == coord[d])
       { flag_boundary = true; }
 
     if (coord2[d] >= grid.AxisSize(d))
@@ -1129,7 +1128,7 @@ void get_all_cubes_containing_point
   static COORD_TYPE coord2[DIM3];
 
   cube_list.clear();
-  
+
 
   for (int index = 0; index < 8; index++) {
 
@@ -1140,7 +1139,7 @@ void get_all_cubes_containing_point
       if (coord2[d] == coord[d]) {
         int mask = (1L << d);
         if ((mask & index) == 0) {
-          if (coord2[d] > 0) 
+          if (coord2[d] > 0)
             { coord2[d]--; }
           else
             { flag_skip = true; }
@@ -1174,13 +1173,13 @@ void snap_to_cube
 {
   for (int d = 0; d < DIM3; d++) {
     if (coord[d] < cube_coord[d]) {
-      if (coord[d] + snap_dist >= cube_coord[d]) 
+      if (coord[d] + snap_dist >= cube_coord[d])
         { coord[d] = cube_coord[d]; }
     }
     else {
       GRID_COORD_TYPE right_coord = cube_coord[d]+1;
       if (coord[d] > right_coord) {
-        if (coord[d] <= right_coord+snap_dist) 
+        if (coord[d] <= right_coord+snap_dist)
           { coord[d] = right_coord; }
       }
     }
@@ -1195,7 +1194,7 @@ void diff_coord
   icoord = 0;
   num_diff = 0;
   for (NUM_TYPE d = 0; d < DIM3; d++) {
-    if (coordA[d] != coordB[d]) { 
+    if (coordA[d] != coordB[d]) {
       num_diff++;
       icoord = d;
     }
@@ -1228,7 +1227,7 @@ bool cube_contains_point
 bool check_conflict
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
- const GRID_COORD_TYPE cube_coord[DIM3], 
+ const GRID_COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE point_coord[DIM3],
  VERTEX_INDEX & conflicting_cube)
 {
@@ -1274,7 +1273,7 @@ bool check_conflict
 bool check_conflict
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
- const GRID_COORD_TYPE cube_coord[DIM3], 
+ const GRID_COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE point_coord[DIM3])
 {
   VERTEX_INDEX conflicting_cube;

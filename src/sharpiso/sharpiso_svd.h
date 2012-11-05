@@ -71,7 +71,7 @@ void svd_calculate_sharpiso_vertex_unit_normals
 		COORD_TYPE * isoVertcoords,
 		GRADIENT_COORD_TYPE *ray_direction);
 
-// Calculate the sharp iso vertex using SVD, 
+// Calculate the sharp iso vertex using SVD,
 // and the lindstrom approach
 // this is called from svd_compute_sharp_vertex_for_cube in sharpiso_feature.cxx
 void svd_calculate_sharpiso_vertex_using_lindstrom

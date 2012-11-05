@@ -33,10 +33,9 @@ public:
 	COORD_TYPE isovert_coord[DIM3]; ///< Location of the sharp isovertex.
   unsigned char num_eigen;        ///< Number of eigenvalues.
 	GRID_CUBE_FLAG flag;            ///< Type for this cube.
-	SCALAR_TYPE l2dist;             /// L2-dist from sharp point to cube-center.
+	SCALAR_TYPE linf_dist;             /// L2-dist from sharp point to cube-center.
 
-  // *** RENAME AS cube_index ***/
-	VERTEX_INDEX index2sg;          /// Index of cube in scalar grid.
+	VERTEX_INDEX cube_index;          /// Index of cube in scalar grid.
 };
 
 
@@ -48,7 +47,7 @@ class ISOVERT {
 public:
 
   /// gcube_list containing the active cubes and their vertices.
-	std::vector<GRID_CUBE> gcube_list; 
+	std::vector<GRID_CUBE> gcube_list;
 
   static const int NO_INDEX = -1;       ///< Flag for no index.
 
