@@ -92,6 +92,8 @@ namespace ISODUAL3D {
     bool flag_color_alternating;  ///< Color simplices in alternating cubes
     int region_length;
     bool flag_output_param;
+    std::vector<COORD_TYPE> minc;
+    std::vector<COORD_TYPE> maxc;
 
   public:
     IO_INFO() { Init(); };
