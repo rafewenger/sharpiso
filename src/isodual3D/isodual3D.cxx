@@ -68,6 +68,7 @@ void ISODUAL3D::dual_contouring
 
     if (isodual_data.flag_merge_sharp) {
       ISOVERT isovert;
+      isovert.linf_dist_threshold = isodual_data.linf_dist_thresh_merge_sharp;
       dual_contouring_merge_sharp
         (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
          isovalue, isodual_data, dual_isosurface, isovert,

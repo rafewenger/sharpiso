@@ -141,10 +141,11 @@ void select_3x3_regions
 		GRID_CUBE c;
 		c = isovertData.gcube_list[sortd_ind2gcube_list[ind]];
 
-    // *** USE PARAMETER, NOT 0.8.  (PARAMETER SHOULD BE 1.4.)
+
 		// check boundary
 		if(c.boundary_bits == 0)
-		if ( c.flag == AVAILABLE_GCUBE && c.linf_dist < 1.4 && c.num_eigen == neigen)
+		if ( c.flag == AVAILABLE_GCUBE && c.linf_dist <
+				isovertData.linf_dist_threshold && c.num_eigen == neigen)
 		{
 			isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag= SELECTED_GCUBE;
 			for (int i=0;i<gridn.NumVertexNeighborsC();i++)
@@ -257,6 +258,24 @@ void compute_linf_dist( const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
   }
  linf_dist = max_dist;
 };
+
+bool ISOVERT::isFlag(const int cube_index,  GRID_CUBE_FLAG _flag){
+	if (isActive(cube_index)){
+		if (gcube_list[sharp_ind_grid.Scalar(cube_index)].flag == _flag)
+			return true;
+		else
+			return false;
+	}
+	else
+		return false;
+}
+
+bool ISOVERT::isActive(const int cube_index){
+	if (sharp_ind_grid.Scalar(cube_index) != NO_INDEX)
+		return true;
+	else
+		return false;
+}
 
 
 // **************************************************

@@ -295,6 +295,7 @@ namespace SHARPISO {
     bool use_lindstrom;            ///< If true, use Lindstrom formula
     bool use_lindstrom2;
     bool use_Linf_dist;            ///< If true, use Linf dist.
+    float linf_dist_thresh_merge_sharp;
 
 
     /// If true, use sharp formula to calculate intersections
