@@ -192,6 +192,7 @@ void out_gcube(std::ostream & out, const GRID_CUBE & gcube,
   out_gcube_type(out, gcube.flag);
   out << ".  Isovert: ";
   IJK::print_coord3D(out, gcube.isovert_coord);
+  out << ". Linf dist: " << gcube.linf_dist << ".";
   out << endl;
 }
 
