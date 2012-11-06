@@ -29,6 +29,7 @@
 #include "isodual3D.h"
 #include "isodual3D_isovert.h"
 
+#include "ijkcoord.txx"
 #include "ijkmesh.txx"
 #include "ijkmesh_geom.txx"
 #include "ijkprint.txx"
@@ -42,10 +43,15 @@ using namespace std;
 void memory_exhaustion();
 void print_isovert_info
 (const INPUT_INFO & input_info, const ISODUAL_DATA & isodual_data);
-void out_gcube(std::ostream & out, const GRID_CUBE & gcube,
-               const GRID_COORD_TYPE cube_coord[DIM3]);
+void compute_eigenvalues
+(const SCALAR_TYPE isovalue, 
+ const ISODUAL_DATA & isodual_data, const GRID_CUBE & gcube,
+ EIGENVALUE_TYPE eigenvalues[DIM3], 
+ EIGENVALUE_TYPE normalized_eigenvalues[DIM3],
+ NUM_TYPE num_large_eigenvalues);
+void out_gcube(std::ostream & out, const SCALAR_TYPE isovalue,
+               const ISODUAL_DATA & isodual_data, const GRID_CUBE & gcube);
 void out_gcube_type(std::ostream & out, const GRID_CUBE_FLAG flag);
-
 
 // **************************************************
 // MAIN
@@ -93,7 +99,8 @@ int main(int argc, char **argv)
 
       if (!full_gradient_grid.CompareSize(full_scalar_grid)) {
         error.AddMessage("Input error. Grid mismatch.");
-        error.AddMessage("  Dimension or axis sizes of gradient grid and scalar grid do not match.");
+        error.AddMessage
+          ("  Dimension or axis sizes of gradient grid and scalar grid do not match.");
         throw error;
       }
     }
@@ -176,24 +183,44 @@ void print_isovert_info
       isodual_data.ScalarGrid().ComputeCoord(cube_index, cube_coord);
 
       if (box.Contains(cube_coord)) 
-        { out_gcube(cout, isovert.gcube_list[i], cube_coord); };
+        { out_gcube(cout, isovalue, isodual_data, isovert.gcube_list[i]); };
 
      }
   }
 }
 
-void out_gcube(std::ostream & out, const GRID_CUBE & gcube,
-               const GRID_COORD_TYPE cube_coord[DIM3])
+void out_gcube
+(std::ostream & out, const SCALAR_TYPE isovalue, 
+ const ISODUAL_DATA & isodual_data, const GRID_CUBE & gcube)
 {
+  const VERTEX_INDEX cube_index = gcube.cube_index;
+  GRID_COORD_TYPE cube_coord[DIM3];
+  COORD_TYPE isovert_coord[DIM3];
+  EIGENVALUE_TYPE eigenvalues[DIM3];
+  EIGENVALUE_TYPE normalized_eigenvalues[DIM3];
+  NUM_TYPE num_large_eigenvalues;
+
+  isodual_data.ScalarGrid().ComputeCoord(cube_index, cube_coord);
+
+  compute_eigenvalues
+    (isovalue, isodual_data, gcube, eigenvalues, normalized_eigenvalues,
+     num_large_eigenvalues);
+
   out << "Cube: " << setw(6) << gcube.cube_index << " ";
   print_coord3D(out, cube_coord);
-  out << ".  # eigen: " << int(gcube.num_eigen)
-      << ". Type ";
+  out << ". Type ";
   out_gcube_type(out, gcube.flag);
   out << ".  Isovert: ";
   IJK::print_coord3D(out, gcube.isovert_coord);
   out << ". Linf dist: " << gcube.linf_dist << ".";
   out << endl;
+  out << "  ";
+  out << "    # eigen: " << int(gcube.num_eigen);
+  out << ".  Eigenvalues: ";
+  print_coord3D(out, eigenvalues);
+  out << ".  Normalized eigenvalues: ";
+  print_coord3D(out, normalized_eigenvalues);
+  out << "." << endl;
 }
 
 void out_gcube_type(std::ostream & out, const GRID_CUBE_FLAG flag)
@@ -225,6 +252,52 @@ void out_gcube_type(std::ostream & out, const GRID_CUBE_FLAG flag)
     break;
   }
 }
+
+void compute_eigenvalues
+(const SCALAR_TYPE isovalue, 
+ const ISODUAL_DATA & isodual_data, const GRID_CUBE & gcube,
+ EIGENVALUE_TYPE eigenvalues[DIM3], 
+ EIGENVALUE_TYPE normalized_eigenvalues[DIM3],
+ NUM_TYPE num_large_eigenvalues)
+{
+  const VERTEX_INDEX cube_index = gcube.cube_index;
+	const SIGNED_COORD_TYPE grad_selection_cube_offset =
+			isodual_data.grad_selection_cube_offset;
+  COORD_TYPE isovert_coord[DIM3];
+	OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+	SVD_INFO svd_info;
+
+  svd_compute_sharp_vertex_for_cube
+    (isodual_data.ScalarGrid(), isodual_data.GradientGrid(), cube_index, 
+     isovalue, isodual_data, cube_111, isovert_coord,
+     eigenvalues, num_large_eigenvalues, svd_info);
+
+  if (num_large_eigenvalues != gcube.num_eigen) {
+    cerr << "Warning: Number of large eigenvalues mismatch for cube "
+         << cube_index << endl;
+    cerr << "  gcube.num_eigen: " << gcube.num_eigen << ".";
+    cerr << "  svd_compute...() num_large_eigen: "
+         << num_large_eigenvalues << endl;
+  }
+
+  if (!is_coord_equal(DIM3, isovert_coord, gcube.isovert_coord)) {
+    cerr << "Warning: Number of large eigenvalues mismatch for cube "
+         << cube_index << endl;
+    cerr << "  gcube.isovert_coord[] = ";
+    print_coord3D(cerr, gcube.isovert_coord);
+    cerr << ".  svd_compute...() isovert_coord[] = ";
+    print_coord3D(cerr, isovert_coord);
+    cerr << "." << endl;
+  }
+
+  if (eigenvalues[0] > isodual_data.max_small_eigenvalue) {
+    multiply_coord_3D(1.0/eigenvalues[0], eigenvalues, normalized_eigenvalues);
+  }
+  else {
+    set_coord_3D(0, normalized_eigenvalues);
+  }
+}
+
 
 void memory_exhaustion()
 {
