@@ -174,6 +174,7 @@ void print_isovert_info
 
     ISOVERT isovert;
 
+    isovert.linf_dist_threshold = isodual_data.linf_dist_thresh_merge_sharp;
     compute_dual_isovert
       (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
        isovalue, isodual_data, isovert);
