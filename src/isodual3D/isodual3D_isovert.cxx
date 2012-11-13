@@ -80,7 +80,7 @@ void compute_isovert_positions (
 					isovertData.gcube_list[index].isovert_coord,
 					isovertData.gcube_list[index].linf_dist);
 			// store boundary bits
-			scalar_grid.ComputeBoundaryBits
+			scalar_grid.ComputeBoundaryCubeBits
 			(iv,isovertData.gcube_list[index].boundary_bits);
 		}
 	}

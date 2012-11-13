@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2008,2009,2010,2011 Rephael Wenger
+  Copyright (C) 2008,2009,2010,2011,2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -109,6 +109,9 @@ namespace IJK {
     void ComputeCubeCenterCoord(const VTYPE iv, GTYPE * coord) const;
     template <class BTYPE>
     void ComputeBoundaryBits(const VTYPE iv, BTYPE & boundary_bits) const;
+    template <class BTYPE>
+    void ComputeBoundaryCubeBits
+    (const VTYPE icube, BTYPE & boundary_bits) const;
 
     // compare
     template <class DTYPE2, class ATYPE2>
@@ -721,6 +724,38 @@ namespace IJK {
       if (c == 0) { boundary_bits = boundary_bits | flag; };
       flag = (flag << 1);
       if (c+1 >= axis_size[d]) { boundary_bits = boundary_bits | flag; };
+      flag = (flag << 1);
+    };
+  }
+
+  /// Compute boundary bits for cube \a icube.
+  /// @param icube Cube index.
+  /// @param dimension Dimension of grid.
+  /// @param axis_size  Array. 
+  ///       <em>axis_size[d]</em> = Number of vertices along axis \a d.
+  /// @param [out] boundary_bits Bits flagging boundaries 
+  ///              containing vertex \a iv.
+  ///       If bit \a 2d is true, then <em>d</em>'th coordinate 
+  ///              of cube \a icube is zero.
+  ///       If bit <em>(2d+1)</em> is true, then <em>d</em>'th coordinate 
+  ///              of cube \a icube equals <em>axis_size[d]-2</em>.
+  /// @pre \li Variable \a boundary_bits has at least <em>(2*dimension)</em> bits.
+  /// @pre \li axis_size[d] > 0 for all \a d = 0,..., \a dimension-1.
+  template <class VTYPE, class DTYPE, class ATYPE, class BTYPE>
+  void compute_boundary_cube_bits
+  (const VTYPE iv, const DTYPE dimension,
+   const ATYPE * axis_size, BTYPE & boundary_bits)
+  {
+    VTYPE k = iv;
+    BTYPE flag = 1;
+    boundary_bits = 0;
+    for (DTYPE d = 0; d < dimension; d++) {
+      ATYPE c = k % axis_size[d];
+      k = k / axis_size[d];
+
+      if (c == 0) { boundary_bits = boundary_bits | flag; };
+      flag = (flag << 1);
+      if (c+2 >= axis_size[d]) { boundary_bits = boundary_bits | flag; };
       flag = (flag << 1);
     };
   }
@@ -3264,6 +3299,23 @@ namespace IJK {
   ComputeBoundaryBits(const VTYPE iv, BTYPE & boundary_bits) const
   {
     compute_boundary_bits(iv, Dimension(), AxisSize(), boundary_bits);
+  }
+
+  /// Compute bits identifying which boundary contains cube \a icube.
+  /// @param icube  Cube index.
+  /// @param [out] boundary_bits Bits flagging boundaries containing cube \a icube.
+  ///       If bit \a 2d is true, then <em>d</em>'th coordinate 
+  ///              of cube \a icube is zero.
+  ///       If bit <em>(2d+1)</em> is true, then <em>d</em>'th coordinate 
+  ///              of vertex \a iv equals <em>axis_size[d]-2</em>.
+  /// @pre \li Variable \a boundary_bits has at least <em>(2*dimension)</em> bits.
+  /// @pre \li AxisSize(d) > 0 for all \a d = 0,..., \a dimension-1.
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
+  template <class BTYPE>
+  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  ComputeBoundaryCubeBits(const VTYPE icube, BTYPE & boundary_bits) const
+  {
+    compute_boundary_cube_bits(icube, Dimension(), AxisSize(), boundary_bits);
   }
 
   /// Return true if grid dimension and axis size match parameters.

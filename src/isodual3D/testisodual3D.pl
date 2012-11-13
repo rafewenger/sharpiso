@@ -157,7 +157,7 @@ if ($use_all_data || defined($data_flag{flange})) {
   }
 
   $testdata{flange_F61}{fname} = "flange3D.F61x.nrrd";
-  $testdata{flange_F61}{isovalue} = [ 4, 4.5 ];
+  $testdata{flange_F61}{isovalue} = [ 4, 4.5, 8 ];
 }
 
 
