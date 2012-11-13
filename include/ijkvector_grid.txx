@@ -1,4 +1,4 @@
-/// \file ijksvector_grid.txx
+/// \file ijkvector_grid.txx
 /// ijk templates defining vector grid classes and functions.
 /// Note: vector grid stores mathematical vectors, not C++ vectors.
 /// - Version 0.1.1
