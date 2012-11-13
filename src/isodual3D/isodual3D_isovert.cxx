@@ -319,8 +319,8 @@ bool find_overlap(
 
 	for (int d=0;d<DIM3;d++)
 	{
-		if(rmin[d]-rmax[d]<=0)
-			return false;
+		if(rmin[d] > rmax[d])
+			{ return false; }
 	}
 	return true;
 }
@@ -350,8 +350,11 @@ bool are_connected (
 	// find the overlap region
 	COORD_TYPE rmin[DIM3], rmax[DIM3];
 	//debug
-	bool is_overlap = find_overlap(scalar_grid, cube_index1, cube_index2, rmin, rmax);
 
+  bool is_overlap =
+    find_overlap(scalar_grid, cube_index1, cube_index2, rmin, rmax);
+
+  if (!is_overlap) { return false; }
 
 	COORD_TYPE vbase = scalar_grid.ComputeVertexIndex(rmin);
 	COORD_TYPE base_coord[DIM3];
