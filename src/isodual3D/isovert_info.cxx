@@ -25,8 +25,10 @@
 #include <iostream>
 #include <iomanip>
 
-#include "isodual3DIO.h"
 #include "isodual3D.h"
+#include "isodual3DIO.h"
+#include "isodual3D_decimate.h"
+#include "isodual3D_extract.h"
 #include "isodual3D_isovert.h"
 
 #include "ijkcoord.txx"
@@ -173,18 +175,36 @@ void print_isovert_info
     const SCALAR_TYPE isovalue = input_info.isovalue[i];
 
     ISOVERT isovert;
+    DUAL_ISOSURFACE dual_isosurface;
+    ISODUAL_INFO isodual_info;
 
     isovert.linf_dist_threshold = isodual_data.linf_dist_thresh_merge_sharp;
     compute_dual_isovert
       (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
        isovalue, isodual_data, isovert);
 
+    extract_dual_isopoly
+      (isodual_data.ScalarGrid(), isovalue, isovert, 
+       dual_isosurface, isodual_info);
+
+    const NUM_TYPE num_gcube = isovert.gcube_list.size();
+    std::vector<VERTEX_INDEX> gcube_map(num_gcube);
+    decimate_dual_isopoly(isovert, dual_isosurface, gcube_map);
+
     for (int i = 0; i < isovert.gcube_list.size(); i++) {
       VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
       isodual_data.ScalarGrid().ComputeCoord(cube_index, cube_coord);
 
-      if (box.Contains(cube_coord)) 
-        { out_gcube(cout, isovalue, isodual_data, isovert.gcube_list[i]); };
+      if (box.Contains(cube_coord)) {
+        out_gcube(cout, isovalue, isodual_data, isovert.gcube_list[i]); 
+
+        VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
+        ISO_VERTEX_INDEX isov = isovert.sharp_ind_grid.Scalar(cube_index);
+        if (gcube_map[isov] != isov) {
+          cout << "      Mapped to isovert for cube: "
+               << isovert.gcube_list[gcube_map[isov]].cube_index << endl;
+        }
+      }
 
      }
   }
@@ -207,7 +227,7 @@ void out_gcube
     (isovalue, isodual_data, gcube, eigenvalues, normalized_eigenvalues,
      num_large_eigenvalues);
 
-  out << "Cube: " << setw(6) << gcube.cube_index << " ";
+  out << "Cube: " << setw(6) << cube_index << " ";
   print_coord3D(out, cube_coord);
   out << ". Type ";
   out_gcube_type(out, gcube.flag);

@@ -36,10 +36,10 @@
 
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 void ISODUAL3D::decimate_dual_isopoly
-(const ISOVERT & isovert, DUAL_ISOSURFACE & dual_isosurface)
+(const ISOVERT & isovert, DUAL_ISOSURFACE & dual_isosurface,
+ std::vector<VERTEX_INDEX> & gcube_map)
 {
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
-  std::vector<VERTEX_INDEX> gcube_map(num_gcube);
   VERTEX_INDEX cube_index, neighbor_index;
   SHARPISO_GRID_NEIGHBORS gridn;
   GRID_COORD_TYPE cube_coord[DIM3];
@@ -65,7 +65,8 @@ void ISODUAL3D::decimate_dual_isopoly
           INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
           if (k != ISOVERT::NO_INDEX) {
 
-            if (isovert.gcube_list[k].flag != SELECTED_GCUBE) {
+            if (isovert.gcube_list[k].flag != SELECTED_GCUBE &&
+                gcube_map[k] == k) {
               if (isovert.gcube_list[k].boundary_bits == 0) {
                 // Map gcube_list[k] to isosurface vertex in cube i.
                 gcube_map[k] = i;
@@ -102,4 +103,14 @@ void ISODUAL3D::decimate_dual_isopoly
   // Change counter-clockwise order to lower-left, lower-right,
   //   upper-left, upper-right order.
   IJK::reorder_quad_vertices(dual_isosurface.quad_vert);
+}
+
+// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
+void ISODUAL3D::decimate_dual_isopoly
+(const ISOVERT & isovert, DUAL_ISOSURFACE & dual_isosurface)
+{
+  const NUM_TYPE num_gcube = isovert.gcube_list.size();
+  std::vector<VERTEX_INDEX> gcube_map(num_gcube);
+
+  decimate_dual_isopoly(isovert, dual_isosurface, gcube_map);
 }

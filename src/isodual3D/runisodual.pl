@@ -16,10 +16,12 @@ my $predefined_data = 0;
 my $data_dir = "data";
 my $print_command_line = 1;
 my $print_count_filename = 1;
+my $program_name = "isodual3D";
+my $flag_old = 0;
 
 # isodual3D arguments which take an input value/string.
 my @isodual3D_options = ( "-subsample",  "-position", "-pos", "-gradient",
-                          "-round", "-max_dist", "-snap_dist" );
+                          "-round", "-max_dist", "-snap_dist", "-max_eigen" );
 
 my @input_options=();
 while (scalar(@input_list) > 0 &&
@@ -50,6 +52,11 @@ while (scalar(@input_list) > 0 &&
     next;
   }
 
+  if ("$new_option" eq "-old") {
+    $flag_old = 1;
+    next;
+  }
+
   push(@input_options, $new_option);
 
   if (scalar(@input_list) > 0) {
@@ -59,6 +66,10 @@ while (scalar(@input_list) > 0 &&
     }
   }
 
+}
+
+if ($flag_old) {
+  $program_name = "isodual3D.old";
 }
 
 if ($annulus_flag || $twocubes_flag || $flange_flag) {
@@ -119,9 +130,9 @@ sub run_isodual3D {
   $count_filename =~ s/.off/.count/;
 
   my $command_line =
-      "isodual3D @option_list -trimesh -o $output_filename $isovalue $input_filename";
+      "$program_name @option_list -trimesh -o $output_filename $isovalue $input_filename";
 
-  if (-e "./isodual3D") {
+  if (-e "./$program_name") {
     # Use version in current directory
     $command_line = "./" . "$command_line";
   }
@@ -307,7 +318,7 @@ sub is_isodual3D_option {
 
 sub usage_error {
  print "Usage: runisodual3D.pl [OPTIONS] {isovalue} {scalar input file}]\n";
- print "OPTIONS: [-allpos] [isodual3D options]\n";
+ print "OPTIONS: [-allpos] [-old] [-annulus] [-flange] [-twocubes] [isodual3D options]\n";
  exit(10);
 }
 
