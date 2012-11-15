@@ -18,7 +18,7 @@ my $print_command_line = 1;
 my $print_count_filename = 1;
 
 # isodual3D arguments which take an input value/string.
-my @isodual3D_options = ( "-subsample",  "-position", "-pos",
+my @isodual3D_options = ( "-subsample",  "-position", "-pos", "-gradient",
                           "-round", "-max_dist", "-snap_dist" );
 
 my @input_options=();

@@ -227,6 +227,7 @@ void ISODUAL3D::parse_command_line
 	int iarg = 1;
 	bool is_vertex_position_method_set = false;
   bool is_use_sharp_edgeI_set = false;
+  bool is_conflict_set = false;
 	while (iarg < argc && argv[iarg][0] == '-') {
 		PARAMETER param = get_parameter_token(argv[iarg]);
 		if (param == UNKNOWN_PARAM) break;
@@ -356,14 +357,17 @@ void ISODUAL3D::parse_command_line
 
 		case ALLOW_CONFLICT_PARAM:
 			input_info.flag_allow_conflict = true;
+      is_conflict_set = true;
 			break;
 
 		case CLAMP_CONFLICT_PARAM:
 			input_info.flag_clamp_conflict = true;
+      is_conflict_set = true;
 			break;
 
 		case CENTROID_CONFLICT_PARAM:
 			input_info.flag_clamp_conflict = false;
+      is_conflict_set = true;
 			break;
 
 		case MERGE_CONFLICT_PARAM:
@@ -536,6 +540,12 @@ void ISODUAL3D::parse_command_line
 		input_info.vertex_position_method = GRADIENT_POSITIONING;
     input_info.SetGradSelectionMethod(GRAD_NS);
 	}
+
+  if (!is_conflict_set && input_info.flag_merge_sharp) {
+    // Set merge_sharp defaults.
+    input_info.flag_allow_conflict = true;
+    input_info.flag_clamp_conflict = false;
+  }
 
   if (is_use_sharp_edgeI_set) {
     if (input_info.use_sharp_edgeI) {
