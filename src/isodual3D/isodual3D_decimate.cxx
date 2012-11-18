@@ -109,7 +109,6 @@ namespace {
     }
   }
     
-
   void determine_gcube_map
   (const ISODUAL3D::ISOVERT & isovert, 
    ISODUAL3D::DUAL_ISOSURFACE & dual_isosurface,
@@ -127,6 +126,42 @@ namespace {
 
     for (NUM_TYPE i = 0; i < num_gcube; i++)
       { gcube_map[i] = i; }
+
+    // Set cubes which share facets with selected cubes.
+    for (NUM_TYPE i = 0; i < num_gcube; i++) {
+      if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
+
+        cube_index = isovert.gcube_list[i].cube_index;
+
+        if (isovert.gcube_list[i].boundary_bits == 0) {
+          // Cube cube_index is an interior cube.
+
+          for (NUM_TYPE j = 0; j < gridn.NumVertexNeighborsE(); j++) {
+
+            neighbor_index = gridn.VertexNeighborE(cube_index, j);
+
+            INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
+            map_iso_vertex(isovert.gcube_list, k, i, gcube_map);
+          }
+        }
+        else {
+          // *** Handle boundary case. ***
+        }
+      }
+    }
+
+    // Set cubes which share edges with selected cubes.
+    for (NUM_TYPE i = 0; i < num_gcube; i++) {
+      if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
+
+        cube_index = isovert.gcube_list[i].cube_index;
+
+        if (isovert.gcube_list[i].boundary_bits == 0) {
+          // Cube cube_index is an interior cube.
+
+        }
+      }
+    }
 
     for (NUM_TYPE i = 0; i < num_gcube; i++) {
       if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {

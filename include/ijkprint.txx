@@ -32,6 +32,7 @@
 // *** SHOULD BE <ctime> ***
 #include <time.h>
 
+#include "ijk.txx"
 
 namespace IJK {
 
