@@ -43,8 +43,8 @@ SET(ISODUAL3D_SUB_LIST  isodual3DIO.cxx isodual3D.cxx
 
 ADD_EXECUTABLE(isodual3D isodual3D_main.cxx ${ISODUAL3D_SUB_LIST} )
 
-ADD_EXECUTABLE(isovert_info isovert_info.cxx ${ISODUAL3D_SUB_LIST} )
-
+ADD_EXECUTABLE(isovert_info EXCLUDE_FROM_ALL
+                            isovert_info.cxx ${ISODUAL3D_SUB_LIST} )
 
 SET(CMAKE_INSTALL_PREFIX ${IJK_DIR})
 INSTALL(TARGETS isodual3D DESTINATION "bin/$ENV{OSTYPE}")
