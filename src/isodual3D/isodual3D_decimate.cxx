@@ -47,9 +47,18 @@ namespace {
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 void ISODUAL3D::decimate_dual_isopoly
 (const ISOVERT & isovert, DUAL_ISOSURFACE & dual_isosurface,
- std::vector<VERTEX_INDEX> & gcube_map)
+ std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info)
 {
+  const NUM_TYPE num_gcube = isovert.gcube_list.size();
+
   determine_gcube_map(isovert, dual_isosurface, gcube_map);
+
+  // Count number merged isosurface vertices.
+  NUM_TYPE num_merged = 0;
+  for (int i = 0; i < num_gcube; i++) {
+    if (gcube_map[i] != i) { num_merged++; }
+  }
+  sharpiso_info.num_merged_iso_vertices = num_merged;
 
   const NUM_TYPE quad_vert_size = dual_isosurface.quad_vert.size();
   std::vector<VERTEX_INDEX> quad_vert2(quad_vert_size);
@@ -76,12 +85,12 @@ void ISODUAL3D::decimate_dual_isopoly
 
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 void ISODUAL3D::decimate_dual_isopoly
-(const ISOVERT & isovert, DUAL_ISOSURFACE & dual_isosurface)
+(const ISOVERT & isovert, DUAL_ISOSURFACE & dual_isosurface, SHARPISO_INFO & sharpiso_info)
 {
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
   std::vector<VERTEX_INDEX> gcube_map(num_gcube);
 
-  decimate_dual_isopoly(isovert, dual_isosurface, gcube_map);
+  decimate_dual_isopoly(isovert, dual_isosurface, gcube_map, sharpiso_info);
 }
 
 // **************************************************
@@ -136,9 +145,9 @@ namespace {
         if (isovert.gcube_list[i].boundary_bits == 0) {
           // Cube cube_index is an interior cube.
 
-          for (NUM_TYPE j = 0; j < gridn.NumVertexNeighborsE(); j++) {
+          for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsF(); j++) {
 
-            neighbor_index = gridn.VertexNeighborE(cube_index, j);
+            neighbor_index = gridn.CubeNeighborF(cube_index, j);
 
             INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
             map_iso_vertex(isovert.gcube_list, k, i, gcube_map);
@@ -159,6 +168,16 @@ namespace {
         if (isovert.gcube_list[i].boundary_bits == 0) {
           // Cube cube_index is an interior cube.
 
+          for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsE(); j++) {
+
+            neighbor_index = gridn.CubeNeighborE(cube_index, j);
+
+            INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
+            map_iso_vertex(isovert.gcube_list, k, i, gcube_map);
+          }
+        }
+        else {
+          // *** Handle boundary case. ***
         }
       }
     }
@@ -171,13 +190,14 @@ namespace {
         if (isovert.gcube_list[i].boundary_bits == 0) {
           // Cube cube_index is an interior cube.
 
-          for (NUM_TYPE j = 0; j < gridn.NumVertexNeighborsC(); j++) {
+          for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsV(); j++) {
 
-            neighbor_index = gridn.VertexNeighborC(cube_index, j);
+            neighbor_index = gridn.CubeNeighborV(cube_index, j);
 
             INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
             map_iso_vertex(isovert.gcube_list, k, i, gcube_map);
           }
+
         }
         else {
           // *** Fill in. ***

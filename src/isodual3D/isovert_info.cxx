@@ -189,7 +189,8 @@ void print_isovert_info
 
     const NUM_TYPE num_gcube = isovert.gcube_list.size();
     std::vector<VERTEX_INDEX> gcube_map(num_gcube);
-    decimate_dual_isopoly(isovert, dual_isosurface, gcube_map);
+    decimate_dual_isopoly
+      (isovert, dual_isosurface, gcube_map, isodual_info.sharpiso);
 
     for (int i = 0; i < isovert.gcube_list.size(); i++) {
       VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;

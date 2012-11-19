@@ -39,7 +39,7 @@ namespace ISODUAL3D {
 
   /// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
   void decimate_dual_isopoly
-    (const ISOVERT & isovert, DUAL_ISOSURFACE & dual_isosurface);
+    (const ISOVERT & isovert, DUAL_ISOSURFACE & dual_isosurface, SHARPISO_INFO & sharpiso_info);
 
   /// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
   /// Returns remapping of gcube vertices.
@@ -48,7 +48,7 @@ namespace ISODUAL3D {
   /// @pre gcube_map is preallocated to size at least isovert.gcube_list.size().
   void decimate_dual_isopoly
     (const ISOVERT & isovert, DUAL_ISOSURFACE & dual_isosurface,
-     std::vector<VERTEX_INDEX> & gcube_map);
+     std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info);
 };
 
 #endif

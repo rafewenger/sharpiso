@@ -1141,15 +1141,17 @@ void ISODUAL3D::report_iso_info3D
         vpos_method == EDGEI_GRADIENT) {
 
       cout << endl;
-      cout << "  Number of conflicts: "
-           << isodual_info.sharpiso.num_conflicts << endl;
+      if (!output_info.flag_merge_sharp) {
+        cout << "  Number of conflicts: "
+             << isodual_info.sharpiso.num_conflicts << endl;
+      }
       cout << "  Number of sharp corners: "
            << isodual_info.sharpiso.num_sharp_corners << endl;
-      cout << "  Number of sharp edges: "
+      cout << "  Number of isosurface vertices on sharp edges: "
            << isodual_info.sharpiso.num_sharp_edges << endl;
       cout << "  Number of smooth isosurface vertices: "
            << isodual_info.sharpiso.num_smooth_vertices << endl;
-      if (output_info.use_Linf_dist) {
+      if (!output_info.flag_merge_sharp && output_info.use_Linf_dist) {
         cout << "  Number of vertices at min Linf distance to cube center: "
              << isodual_info.sharpiso.num_Linf_iso_vertex_locations << endl;
       }
@@ -1162,6 +1164,11 @@ void ISODUAL3D::report_iso_info3D
       if (output_info.flag_reposition) {
         cout << "  Number of repositioned isosurface vertices: "
              << isodual_info.sharpiso.num_repositioned_vertices << endl;
+      }
+
+      if (output_info.flag_merge_sharp) {
+        cout << "  Number of merged isosurface vertices: "
+             << isodual_info.sharpiso.num_merged_iso_vertices << endl;
       }
 
       if (output_info.allow_multiple_iso_vertices) {
@@ -1209,14 +1216,34 @@ void ISODUAL3D::report_isodual_time
 {
 	cout << "CPU time to run Marching Cubes: "
 			<< isodual_time.total << " seconds." << endl;
-	cout << "    Time to extract " << mesh_type_string << " triangles: "
-			<< isodual_time.extract << " seconds." << endl;
-	cout << "    Time to merge identical "
-			<< mesh_type_string << " vertices: "
-			<< isodual_time.merge << " seconds." << endl;
-	cout << "    Time to position "
-			<< mesh_type_string << " vertices: "
-			<< isodual_time.position << " seconds." << endl;
+
+  if (input_info.flag_merge_sharp) {
+
+    cout << "    Time to position "
+         << mesh_type_string << " vertices: "
+         << isodual_time.position << " seconds." << endl;
+
+    cout << "    Time to extract " << mesh_type_string << " triangles: "
+         << isodual_time.extract << " seconds." << endl;
+
+    cout << "    Time to merge sharp "
+         << mesh_type_string << " vertices: "
+         << isodual_time.merge_sharp << " seconds." << endl;
+  }
+  else {
+
+    cout << "    Time to extract " << mesh_type_string << " triangles: "
+         << isodual_time.extract << " seconds." << endl;
+
+    cout << "    Time to merge identical "
+         << mesh_type_string << " vertices: "
+         << isodual_time.merge_identical << " seconds." << endl;
+
+    cout << "    Time to position "
+         << mesh_type_string << " vertices: "
+         << isodual_time.position << " seconds." << endl;
+  }
+
 }
 
 

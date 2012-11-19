@@ -244,10 +244,11 @@ namespace ISODUAL3D {
     // all times are in seconds
     float preprocessing;  
     // time to create data structure for faster isosurface extraction
-    float extract;    // time to extract isosurface mesh
-    float merge;      // time to merge identical vertices
-    float position;   // time to position isosurface vertices
-    float total;      // extract_time+merge_time+position_time
+    float extract;          // time to extract isosurface mesh
+    float merge_identical;  // time to merge identical vertices
+    float position;         // time to position isosurface vertices
+    float merge_sharp;      // time to merge sharp isosurface vertices
+    float total;            // extract_time+merge_time+position_time
 
     ISODUAL_TIME();
     void Clear();
@@ -318,6 +319,7 @@ namespace ISODUAL3D {
   public:
     int num_conflicts;
     int num_edge_collapses;
+    int num_merged_iso_vertices;
     int num_sharp_corners;
     int num_sharp_edges;
     int num_smooth_vertices;
