@@ -46,7 +46,8 @@ namespace {
 
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 void ISODUAL3D::merge_sharp_iso_vertices
-(const ISOVERT & isovert, DUAL_ISOSURFACE & dual_isosurface,
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const ISOVERT & isovert, 
+ DUAL_ISOSURFACE & dual_isosurface, 
  std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info)
 {
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
@@ -85,13 +86,14 @@ void ISODUAL3D::merge_sharp_iso_vertices
 
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 void ISODUAL3D::merge_sharp_iso_vertices
-(const ISOVERT & isovert, DUAL_ISOSURFACE & dual_isosurface, SHARPISO_INFO & sharpiso_info)
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const ISOVERT & isovert, 
+ DUAL_ISOSURFACE & dual_isosurface, SHARPISO_INFO & sharpiso_info)
 {
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
   std::vector<VERTEX_INDEX> gcube_map(num_gcube);
 
   merge_sharp_iso_vertices
-    (isovert, dual_isosurface, gcube_map, sharpiso_info);
+    (scalar_grid, isovert, dual_isosurface, gcube_map, sharpiso_info);
 }
 
 // **************************************************

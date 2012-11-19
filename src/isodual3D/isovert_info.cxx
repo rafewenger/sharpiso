@@ -190,7 +190,8 @@ void print_isovert_info
     const NUM_TYPE num_gcube = isovert.gcube_list.size();
     std::vector<VERTEX_INDEX> gcube_map(num_gcube);
     merge_sharp_iso_vertices
-      (isovert, dual_isosurface, gcube_map, isodual_info.sharpiso);
+      (isodual_data.ScalarGrid(), isovert, 
+       dual_isosurface, gcube_map, isodual_info.sharpiso);
 
     for (int i = 0; i < isovert.gcube_list.size(); i++) {
       VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;

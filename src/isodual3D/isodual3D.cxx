@@ -545,7 +545,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
   if (allow_multiple_iso_vertices) {
 
-    error.AddMessage("Algorithm B: Multiple isosurface vertices not yet implemented.");
+    error.AddMessage
+      ("Algorithm B: Multiple isosurface vertices not yet implemented.");
     throw error;
   }
   else {
@@ -563,7 +564,7 @@ void ISODUAL3D::dual_contouring_merge_sharp
     t2 = clock();
 
     merge_sharp_iso_vertices
-      (isovert, dual_isosurface, isodual_info.sharpiso);
+      (scalar_grid, isovert, dual_isosurface, isodual_info.sharpiso);
 
     // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
 
