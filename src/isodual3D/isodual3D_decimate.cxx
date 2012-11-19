@@ -45,7 +45,7 @@ namespace {
 // **************************************************
 
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
-void ISODUAL3D::decimate_dual_isopoly
+void ISODUAL3D::merge_sharp_iso_vertices
 (const ISOVERT & isovert, DUAL_ISOSURFACE & dual_isosurface,
  std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info)
 {
@@ -84,13 +84,14 @@ void ISODUAL3D::decimate_dual_isopoly
 }
 
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
-void ISODUAL3D::decimate_dual_isopoly
+void ISODUAL3D::merge_sharp_iso_vertices
 (const ISOVERT & isovert, DUAL_ISOSURFACE & dual_isosurface, SHARPISO_INFO & sharpiso_info)
 {
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
   std::vector<VERTEX_INDEX> gcube_map(num_gcube);
 
-  decimate_dual_isopoly(isovert, dual_isosurface, gcube_map, sharpiso_info);
+  merge_sharp_iso_vertices
+    (isovert, dual_isosurface, gcube_map, sharpiso_info);
 }
 
 // **************************************************

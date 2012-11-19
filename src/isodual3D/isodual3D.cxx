@@ -562,7 +562,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
       (scalar_grid, isovalue, isovert, dual_isosurface, isodual_info);
     t2 = clock();
 
-    decimate_dual_isopoly(isovert, dual_isosurface, isodual_info.sharpiso);
+    merge_sharp_iso_vertices
+      (isovert, dual_isosurface, isodual_info.sharpiso);
 
     // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
 
