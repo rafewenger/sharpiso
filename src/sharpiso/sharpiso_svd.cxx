@@ -95,6 +95,7 @@ void compute_cube_vertex_lindstrom_3x3
 	Matrix3f pseudo_inv_sigma = Matrix3f::Zero();
 	Matrix3f sigma = Matrix3f::Zero();
 	EIGENVALUE_TYPE scaled_error_tolerance = err_tolerance * singVals[0];
+
 	for (int i=0; i< svd.nonzeroSingularValues(); i++)
 	{
 
