@@ -88,7 +88,17 @@ void svd_calculate_sharpiso_vertex_using_lindstrom
 		COORD_TYPE * cubecenter,
 		COORD_TYPE * isoVertcoords);
 
-
+void svd_calculate_sharpiso_vertex_using_lindstorm_fast(
+		const NUM_TYPE num_vert,
+		const EIGENVALUE_TYPE err_tolerance,
+		const SCALAR_TYPE isovalue,
+		const SCALAR_TYPE * vert_scalars,
+		const COORD_TYPE * vert_coords,
+		const GRADIENT_COORD_TYPE * vert_grads,
+		NUM_TYPE & num_singular_vals,
+		EIGENVALUE_TYPE singular_vals[DIM3],
+		COORD_TYPE * mass_point,
+		COORD_TYPE * isoVertcoords);
 
 // Calculate the svd based sharp isovertex but force it to have 2 singular values.
 void svd_calculate_sharpiso_vertex_2_svals_unit_normals

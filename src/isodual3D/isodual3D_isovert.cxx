@@ -108,27 +108,6 @@ void sort_gcube_list(vector<NUM_TYPE> &sortd_ind2gcube_list, vector<GRID_CUBE> &
 	}
 
 	sort (sortd_ind2gcube_list.begin(),sortd_ind2gcube_list.end(), gcube_compare(gcube_list));
-
-	//debug
-	/*
-	int num3=0;
-	cout <<gcube_list.size()<<" "<<sortd_ind2gcube_list.size()<<endl;
-
-	for (int i=0;i<sortd_ind2gcube_list.size();i++)
-	{
-		if((int)gcube_list[sortd_ind2gcube_list[i]].num_eigen==3)
-		cout <<"["<<(int)gcube_list[sortd_ind2gcube_list[i]].num_eigen<<"] "<<
-				gcube_list[sortd_ind2gcube_list[i]].linf_dist<<" ["<<
-				gcube_list[sortd_ind2gcube_list[i]].isovert_coord[0]<<" "<<
-				gcube_list[sortd_ind2gcube_list[i]].isovert_coord[1]<<" "<<
-				gcube_list[sortd_ind2gcube_list[i]].isovert_coord[2]<<"] "
-				<<endl;
-
-		if((int)gcube_list[sortd_ind2gcube_list[i]].num_eigen==3)
-			num3++;
-	}
-	cout <<"num3 "<<num3<<endl;
-	 */
 }
 
 /// Compute the cube index from the gc index
@@ -211,15 +190,6 @@ void select_3x3_regions
 						&& c.linf_dist < isovertData.linf_dist_threshold
 						&& (int)c.num_eigen == neigen)
 				{
-					/*
-					// DEBUG
-					cout <<"cube index  "<< c.cube_index;
-					COORD_TYPE test[DIM3];
-					scalar_grid.ComputeCoord(c.cube_index, test);
-					cout <<" ["<<test[0]<<" "<<test[1]<<" "<<test[2]<<"] ";
-					cout <<" ne ["<<(int)c.num_eigen<<"] ";
-					cout <<" ["<<c.isovert_coord[0]<<" "<<c.isovert_coord[1]<<" "<<c.isovert_coord[2]<<"]"<<endl;
-					 */
 
 					if (creates_triangle(scalar_grid, c.cube_index, isovalue, selected_list) == false)
 					{
@@ -234,12 +204,16 @@ void select_3x3_regions
 
 							if(isovertData.sharp_ind_grid.Scalar(n)!=ISOVERT::NO_INDEX)
 							{
+
 								VERTEX_INDEX neighbor_index_2_gclist
 								= isovertData.sharp_ind_grid.Scalar(n);
+								/// DEBUG *****
+
 								//if covered and not boundary
 								if (isovertData.gcube_list[neighbor_index_2_gclist].flag == COVERED_GCUBE &&
 										(isovertData.gcube_list[neighbor_index_2_gclist].boundary_bits == 0))
 								{
+
 									for(int j=0;j<gridn.NumVertexNeighborsC();j++)
 									{
 										VERTEX_INDEX k=
@@ -255,6 +229,8 @@ void select_3x3_regions
 								{
 									isovertData.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
 								}
+
+								//isovertData.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
 							}
 						}
 					}
@@ -333,11 +309,8 @@ void process_edge(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 {
 	COORD_TYPE coord1[DIM3];
 	scalar_grid.ComputeCoord(v0,coord1);
-	//cout <<"["<<coord1[0]<<" "<<coord1[1]<<" "<<coord1[2]<<"]";
 	scalar_grid.ComputeCoord(v1,coord1);
-	//cout <<"["<<coord1[0]<<" "<<coord1[1]<<" "<<coord1[2]<<"]";
 	is_intersect = is_gt_min_le_max(scalar_grid, v0, v1, isovalue);
-	//cout <<"  -- "<<(int)is_intersect<<" "<<endl;
 }
 
 /// Decide if two  cube-indices are connected
@@ -345,11 +318,10 @@ bool are_connected (
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const VERTEX_INDEX &cube_index1,
 		const VERTEX_INDEX &cube_index2,
-		const SCALAR_TYPE isovalue ){
-
+		const SCALAR_TYPE isovalue )
+{
 	// find the overlap region
 	COORD_TYPE rmin[DIM3], rmax[DIM3];
-	//debug
 
   bool is_overlap =
     find_overlap(scalar_grid, cube_index1, cube_index2, rmin, rmax);
@@ -390,13 +362,7 @@ bool are_connected (
 			v1=scalar_grid.NextVertex(v1,d1);
 		}
 	}
-	/*	DEBUG
-		if(num >0){
-			cout <<" rmin "<<rmin[0]<<" "<<rmin[1]<<" "<<rmin[2]<<endl;
-			cout <<" rmax "<<rmax[0]<<" "<<rmax[1]<<" "<<rmax[2]<<endl;
-			cout <<" num of edges "<<num<<endl;
-		}
-	 */
+
 	return false;
 }
 

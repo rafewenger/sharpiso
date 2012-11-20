@@ -63,6 +63,24 @@ namespace SHARPISO {
    SVD_INFO & svd_info);
 
   /// Compute sharp isosurface vertex using singular valued decomposition.
+  /// Use Lindstrom's formula , this is the *fast* version which follows the
+  /// garland heckbert approach of storing n'n
+  void svd_compute_sharp_vertex_for_cube_lindstrom_fast
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & sharpiso_param,
+   const OFFSET_CUBE_111 & cube_111,
+   COORD_TYPE sharp_coord[DIM3],
+   EIGENVALUE_TYPE eigenvalues[DIM3],
+   NUM_TYPE & num_large_eigenvalues,
+   SVD_INFO & svd_info);
+
+
+
+
+  /// Compute sharp isosurface vertex using singular valued decomposition.
   /// Use Lindstrom's formula.
   void svd_compute_sharp_vertex_for_cube_lindstrom
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -294,6 +312,7 @@ namespace SHARPISO {
     bool flag_centroid_eigen1;     ///< Use centroid for 1 or fewer eigenvalues
     bool use_lindstrom;            ///< If true, use Lindstrom formula
     bool use_lindstrom2;
+    bool use_lindstrom_fast;        /// use the garland heckbert approach
     bool use_Linf_dist;            ///< If true, use Linf dist.
     float linf_dist_thresh_merge_sharp;
 

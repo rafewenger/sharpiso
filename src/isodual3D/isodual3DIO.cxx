@@ -66,6 +66,7 @@ typedef enum {
 	LINF_PARAM, NO_LINF_PARAM,
 	USE_LINDSTROM_PARAM,
 	USE_LINDSTROM2_PARAM,
+	USE_LINDSTROM_FAST,
 	SINGLE_ISOV_PARAM, MULTI_ISOV_PARAM,
 	SEP_NEG_PARAM, SEP_POS_PARAM, RESOLVE_AMBIG_PARAM,
 	ROUND_PARAM, NO_ROUND_PARAM,
@@ -89,7 +90,7 @@ typedef enum {
     "-dist2center", "-dist2centroid",
     "-centroid_eigen1", "-no_centroid_eigen1",
     "-Linf", "-no_Linf",
-    "-lindstrom",	"-lindstrom2",
+    "-lindstrom",	"-lindstrom2","-lindstrom_fast",
     "-single_isov", "-multi_isov",
     "-sep_neg", "-sep_pos", "-resolve_ambig",
     "-round", "-no_round",
@@ -328,6 +329,11 @@ void ISODUAL3D::parse_command_line
 			input_info.use_lindstrom = true;
 			input_info.use_lindstrom2 = true;
 			break;
+
+		case USE_LINDSTROM_FAST:
+					input_info.use_lindstrom = true;
+					input_info.use_lindstrom_fast = true;
+					break;
 
 		case SINGLE_ISOV_PARAM:
 			input_info.allow_multiple_iso_vertices = false;

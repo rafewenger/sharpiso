@@ -44,7 +44,7 @@ void ISODUAL3D::extract_dual_isopoly
 {
   isodual_info.time.extract = 0;
 
-  clock_t t0 = clock();
+  clock_t t0 = std::clock();
 
   // initialize output
   iso_poly.clear();

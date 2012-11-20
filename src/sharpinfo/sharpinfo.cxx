@@ -72,6 +72,7 @@ bool flag_cube_set(false);
 bool flag_vertex_set(false);
 bool flag_use_lindstrom(false);
 bool flag_use_lindstrom2(false);
+bool flag_use_lindstrom_fast(false);
 bool flag_edge_intersection(false);
 bool flag_subgrid(false);
 bool flag_output_param(true);
@@ -469,6 +470,7 @@ void compute_iso_vertex_using_svd
   else {
 
     OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+
     svd_compute_sharp_vertex_for_cube
       (scalar_grid, gradient_grid, cube_index, isovalue,
        sharpiso_param, cube_111,
@@ -1418,6 +1420,10 @@ void parse_command_line(int argc, char **argv)
       flag_use_lindstrom = true;
       flag_use_lindstrom2 = true;
     }
+    else if (s == "-lindstrom_fast"){
+    	flag_use_lindstrom = true;
+    	      flag_use_lindstrom_fast = true;
+    }
     else if (s == "-rayI") {
       flag_use_lindstrom = false;
     }
@@ -1577,6 +1583,7 @@ void parse_command_line(int argc, char **argv)
     use_gradients_determining_edge_intersections;
   sharpiso_param.use_lindstrom = flag_use_lindstrom;
   sharpiso_param.use_lindstrom2 = flag_use_lindstrom2;
+  sharpiso_param.use_lindstrom_fast = flag_use_lindstrom_fast;
   sharpiso_param.select_based_on_grad_dir = select_based_on_grad_dir;
 }
 

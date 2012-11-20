@@ -60,7 +60,7 @@ void out_gcube_type(std::ostream & out, const GRID_CUBE_FLAG flag);
 int main(int argc, char **argv)
 {
   time_t start_time;
-  time(&start_time);
+  //time(&start_time);  // debug
 
   ISODUAL_TIME isodual_time;
   IO_TIME io_time = {0.0, 0.0, 0.0};
