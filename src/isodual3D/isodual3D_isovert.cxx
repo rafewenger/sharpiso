@@ -206,30 +206,7 @@ void select_3x3_regions
 							{
 
 								VERTEX_INDEX neighbor_index_2_gclist = isovertData.sharp_ind_grid.Scalar(n);
-								/// DEBUG *****
-
-								//if covered and not boundary
-								if (isovertData.gcube_list[neighbor_index_2_gclist].flag == COVERED_GCUBE &&
-										(isovertData.gcube_list[neighbor_index_2_gclist].boundary_bits == 0))
-								{
-
-									for(int j=0;j<gridn.NumVertexNeighborsC();j++)
-									{
-										VERTEX_INDEX k=
-												gridn.VertexNeighborC(isovertData.gcube_list[neighbor_index_2_gclist].cube_index,j);
-										if(isovertData.sharp_ind_grid.Scalar(k)!=ISOVERT::NO_INDEX){
-											if(isovertData.gcube_list[isovertData.sharp_ind_grid.Scalar(k)].flag == AVAILABLE_GCUBE)
-												isovertData.gcube_list[isovertData.sharp_ind_grid.Scalar(k)].flag = UNAVAILABLE_GCUBE;
-										}
-									}
-
-								}
-								else
-								{
-									isovertData.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
-								}
-
-								//isovertData.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
+								isovertData.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
 							}
 						}
 					}
@@ -292,12 +269,20 @@ bool find_overlap(
 		rmax[d]=min(coord1[d]+2, coord2[d]+2);
 	}
 
+	// track the dimension of the tracked,
+	// if the tracked regions has at least 2 dimension
+	int dim_of_overlap=0;
 	for (int d=0;d<DIM3;d++)
 	{
 		if(rmin[d] > rmax[d])
-			{ return false; }
+		{ return false; }
+		if(rmin[d] < rmax[d])
+			dim_of_overlap++;
 	}
-	return true;
+	if (dim_of_overlap>=2)
+		return true;
+	else
+		return false;
 }
 /// process edge called from are connected
 void process_edge(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
