@@ -93,7 +93,10 @@ public:
 	gcube_compare(vector<GRID_CUBE> & gcube_list_ ){gcube_list= gcube_list_;};
 	bool operator () (int i,int j)
 	{
-		return gcube_list[i].linf_dist < gcube_list[j].linf_dist;
+    if (gcube_list[i].num_eigen == gcube_list[j].num_eigen)
+      { return (gcube_list[i].linf_dist < gcube_list[j].linf_dist); }
+    else
+      { return (gcube_list[i].num_eigen > gcube_list[j].num_eigen); }
 	}
 
 };
@@ -159,10 +162,10 @@ bool creates_triangle (
 
 
 /*
- * select the 3x3 regions
+ * select the 3x3x3 regions
  */
 
-void select_3x3_regions
+void select_3x3x3_regions
 (
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const GRADIENT_GRID_BASE & gradient_grid,
@@ -178,7 +181,6 @@ void select_3x3_regions
 	vector<VERTEX_INDEX> selected_list;
 	SHARPISO_GRID_NEIGHBORS gridn;
 	gridn.SetSize(scalar_grid);
-	for (int neigen=3;neigen>0;neigen--)
 		for (int ind=0;ind<sortd_ind2gcube_list.size();ind++)
 		{
 			GRID_CUBE c;
@@ -187,8 +189,10 @@ void select_3x3_regions
 			if(c.boundary_bits == 0)
 				if (isovertData.isFlag
 						(cube_ind_frm_gc_ind(isovertData, sortd_ind2gcube_list[ind]),AVAILABLE_GCUBE)
-						&& c.linf_dist < isovertData.linf_dist_threshold
+						&& c.linf_dist < isovertData.linf_dist_threshold)
+          /* OBSOLETE
 						&& (int)c.num_eigen == neigen)
+          */
 				{
 
 					if (creates_triangle(scalar_grid, c.cube_index, isovalue, selected_list) == false)
@@ -365,25 +369,8 @@ void ISODUAL3D::compute_dual_isovert(
 	// keep track of the sorted indices
 	std::vector<NUM_TYPE> sortd_ind2gcube_list;
 	sort_gcube_list(sortd_ind2gcube_list,isovertData.gcube_list);
-	select_3x3_regions (scalar_grid, gradient_grid, isovalue,
+	select_3x3x3_regions (scalar_grid, gradient_grid, isovalue,
 			isovert_param, sortd_ind2gcube_list, isovertData);
-
-
-
-
-	/*  DEBUG
-	VERTEX_INDEX v1,v2;
-//	COORD_TYPE coord1[DIM3]={16.0,20.0,14.0};
-//	COORD_TYPE coord2[DIM3]={19.0,18.0,13.0};
-
-	COORD_TYPE coord1[DIM3]={16.0,20.0,14.0};
-	COORD_TYPE coord2[DIM3]={17.0,19.0,12.0};
-
-	v1=scalar_grid.ComputeVertexIndex(coord1);
-	v2 =scalar_grid.ComputeVertexIndex(coord2);
-	cout <<"---- v1 "<<v1<<"v2 "<<v2<<endl;
-	are_connected(scalar_grid,v1,v2,isovalue);
-	 */
 }
 
 
