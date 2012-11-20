@@ -206,30 +206,7 @@ void select_3x3_regions
 							{
 
 								VERTEX_INDEX neighbor_index_2_gclist = isovertData.sharp_ind_grid.Scalar(n);
-								/// DEBUG *****
-
-								//if covered and not boundary
-								if (isovertData.gcube_list[neighbor_index_2_gclist].flag == COVERED_GCUBE &&
-										(isovertData.gcube_list[neighbor_index_2_gclist].boundary_bits == 0))
-								{
-
-									for(int j=0;j<gridn.NumVertexNeighborsC();j++)
-									{
-										VERTEX_INDEX k=
-												gridn.VertexNeighborC(isovertData.gcube_list[neighbor_index_2_gclist].cube_index,j);
-										if(isovertData.sharp_ind_grid.Scalar(k)!=ISOVERT::NO_INDEX){
-											if(isovertData.gcube_list[isovertData.sharp_ind_grid.Scalar(k)].flag == AVAILABLE_GCUBE)
-												isovertData.gcube_list[isovertData.sharp_ind_grid.Scalar(k)].flag = UNAVAILABLE_GCUBE;
-										}
-									}
-
-								}
-								else
-								{
-									isovertData.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
-								}
-
-								//isovertData.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
+                isovertData.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
 							}
 						}
 					}
