@@ -112,6 +112,9 @@ namespace IJK {
     template <class BTYPE>
     void ComputeBoundaryCubeBits
     (const VTYPE icube, BTYPE & boundary_bits) const;
+    template <typename PTYPE, typename ATYPE2>
+    void ComputeSubsampledAxisSizes
+    (const PTYPE subsample_period, ATYPE2 subsampled_axis_size[]) const;
 
     // compare
     template <class DTYPE2, class ATYPE2>
@@ -327,6 +330,14 @@ namespace IJK {
     /// iv + vertex_neighborE[k] = k'th neighbor sharing an edge with vertex iv.
     DIFFTYPE * vertex_neighborE;
 
+    /// cube_index + cube_neighborE[k] = 
+    ///   k'th neighbor sharing an edgex with cube cube_index.
+    DIFFTYPE * cube_neighborE;
+
+    /// cube_index + cube_neighborV[k] = 
+    ///   k'th neighbor sharing a vertex with cube cube_index.
+    DIFFTYPE * cube_neighborV;
+
     /// \brief Number of vertices in cubes containing a facet, 
     ///   not including facet vertices.
     NTYPE num_facet_neighborsC;
@@ -375,6 +386,18 @@ namespace IJK {
     NTYPE NumVertexNeighborsE() const   
     { return(num_vertex_neighborsE); };
 
+    /// \brief Return number of cubes which share a facet with a cube.
+    NTYPE NumCubeNeighborsF() const   
+    { return(this->NumCubeFacets()); };
+
+    /// \brief Return number of cubes which share an edge with a cube.
+    NTYPE NumCubeNeighborsE() const   
+    { return(this->NumCubeEdges()); };
+
+    /// \brief Return number of cubes which share a vertex with a cube.
+    NTYPE NumCubeNeighborsV() const   
+    { return(this->NumCubeVertices()); };
+
     /// \brief Return number of neighbors of a facet.
     /// \details All vertices in a cube containing the facet are counted as neighbors,
     ///          not including vertices lying on the facet.
@@ -402,6 +425,27 @@ namespace IJK {
     VTYPE VertexNeighborE
     (const VTYPE iv, const NTYPE k) const
     { return(iv+vertex_neighborE[k]); };
+
+    /// \brief Return k'th cube which shares a facet with cube_index.
+    /// @pre Cube \a cube_index must be an internal grid cube, 
+    ///    i.e., not on the grid boundary.
+    VTYPE CubeNeighborF
+    (const VTYPE cube_index, const NTYPE k) const
+    { return(this->VertexNeighborE(cube_index, k)); };
+
+    /// \brief Return k'th cube which shares an edge with cube_index.
+    /// @pre Cube \a cube_index must be an internal grid cube, 
+    ///    i.e., not on the grid boundary.
+    VTYPE CubeNeighborE
+    (const VTYPE cube_index, const NTYPE k) const
+    { return(cube_index+cube_neighborE[k]); };
+
+    /// \brief Return k'th cube which shares a vertex with cube_index.
+    /// @pre Cube \a cube_index must be an internal grid cube, 
+    ///    i.e., not on the grid boundary.
+    VTYPE CubeNeighborV
+    (const VTYPE cube_index, const NTYPE k) const
+    { return(cube_index+ cube_neighborV[k]); };
 
     /// \brief Return k'th neighbor of facet.
     /// @param iv  Primary facet vertex (facet vertex with lowest coordinates.)
@@ -1330,6 +1374,27 @@ namespace IJK {
     return(subsample_size);
   }
 
+  /// Compute axis size for each axis in subsampled grid.
+  /// @param dimension Grid dimension.
+  /// @param axis_size  Array: <em>axis_size[d]</em> = 
+  ///                     Number of vertices along axis \a d.
+  /// @param[out] subsampled_axis_size Array: 
+  ///     <em>subsampled_axis_size[d]</em> = 
+  ///        Number of vertices along subsampled axis \a d.
+  /// @pre Array subsampled_axis_size[] is preallocated 
+  ///        to size at least \a dimension.
+  template <typename DTYPE, typename ATYPE, typename PTYPE, 
+            typename ATYPE2>
+  void compute_subsample_axis_sizes
+  (const DTYPE dimension, const ATYPE axis_size[], 
+   const PTYPE subsample_period, ATYPE2 subsampled_axis_size[])
+  {
+    for (DTYPE d = 0; d < dimension; d++) {
+      subsampled_axis_size[d] = 
+        compute_subsample_size(axis_size[d], subsample_period); 
+    }
+  }
+
   /// Return number of vertices in subsampled grid.
   /// @param dimension  Dimension of grid.
   /// @param axis_size  Array: <em>axis_size[d]</em> = Number of vertices along axis \a d.
@@ -1775,7 +1840,6 @@ namespace IJK {
 
   /// Compute increment to add to vertex 0 to compute vertex i of facet.
   /// @param dimension  Dimension of grid.
-  /// @param orth_dir = Direction orthogonal to facet.
   /// @param cube_vertex_increment[] = Cube vertex increment. iv0+cube_vertex_increment[i] is the i'th vertex of the hypercube with primary vertex iv0.
   /// @param[out] facet_vertex_increment[] = Facet vertex increment. iv0+facet_vertex_increment[i] is the i'th vertex of the facet with primary vertex iv0.
   /// @pre Array facet_vertex_increment[] is allocated with size at least number of facet vertices
@@ -2928,7 +2992,8 @@ namespace IJK {
       throw error;
   }
 
-  /// Compute integer to add to vertex index to compute vertex neighbors across edges.
+  /// Compute integer to add to vertex index to compute vertex neighbors 
+  ///   across edges.
   template <class DTYPE, class ATYPE, class DIFFTYPE>
   void compute_vertex_neighborE
   (const DTYPE dimension, const ATYPE * axis_size,
@@ -2950,6 +3015,85 @@ namespace IJK {
 
     for (DIFFTYPE d = 0; d < dimension; d++) 
       { vertex_neighborE[d + dimension] = axis_increment[d]; };
+  }
+
+  /// Compute integer to add to cube_index to compute cubes sharing
+  ///   an edge with cube cube_index.
+  template <class DTYPE, class ATYPE, class DIFFTYPE>
+  void compute_cube_neighborE
+  (const DTYPE dimension, const ATYPE * axis_size,
+   DIFFTYPE * cube_neighborE)
+  {
+    const DIFFTYPE num_cube_vertices = compute_num_cube_vertices(dimension);
+    const DIFFTYPE num_facet_vertices = 
+      compute_num_cube_facet_vertices(dimension);
+    const DIFFTYPE num_cube_edges = compute_num_cube_edges(dimension);
+    const DIFFTYPE facet_vlast = num_facet_vertices-1;
+    IJK::ARRAY<DIFFTYPE> axis_increment(dimension);
+    IJK::ARRAY<DIFFTYPE> cube_vertex_increment(num_cube_vertices);
+    IJK::ARRAY<DIFFTYPE> facet_vertex_increment(num_facet_vertices);
+    IJK::PROCEDURE_ERROR error("compute_cube_neighborE");
+
+    if (!check_difftype<DIFFTYPE>(1, error)) 
+      { throw error; }
+
+    if (num_cube_vertices <= 0) { return; }
+    if (num_cube_edges <= 0) { return; }
+
+    compute_increment(dimension, axis_size, axis_increment.Ptr());
+    compute_cube_vertex_increment
+      (dimension, axis_increment.PtrConst(), cube_vertex_increment.Ptr());
+
+    facet_vertex_increment[0] = -cube_vertex_increment[0];
+
+    DIFFTYPE k = 0;
+    for (DTYPE d = 0; d < dimension; d++) {
+      compute_facet_vertex_increment
+        (dimension, d, cube_vertex_increment.PtrConst(), 
+         facet_vertex_increment.Ptr());
+
+      for (int i = 0; i < num_facet_vertices; i++) {
+        cube_neighborE[k] = 
+          2*facet_vertex_increment[i] - facet_vertex_increment[facet_vlast];
+        k++;
+      }
+    }
+
+    if (k != num_cube_edges) {
+      error.AddMessage
+        ("Programming error.  Wrong number of cubes added to cube_neighborE.");
+      throw error;
+    }
+
+  }
+
+  /// Compute integer to add to cube_index to compute cubes sharing
+  ///   a vertex with cube cube_index.
+  template <class DTYPE, class ATYPE, class DIFFTYPE>
+  void compute_cube_neighborV
+  (const DTYPE dimension, const ATYPE * axis_size,
+   DIFFTYPE * cube_neighborV)
+  {
+    const DIFFTYPE num_cube_vertices = compute_num_cube_vertices(dimension);
+    IJK::ARRAY<DIFFTYPE> axis_increment(dimension);
+    IJK::ARRAY<DIFFTYPE> cube_vertex_increment(num_cube_vertices);
+    IJK::PROCEDURE_ERROR error("compute_cube_neighborV");
+
+    if (!check_difftype<DIFFTYPE>(1, error)) 
+      { throw error; }
+
+    if (num_cube_vertices <= 0) { return; }
+
+    compute_increment(dimension, axis_size, axis_increment.Ptr());
+    compute_cube_vertex_increment
+      (dimension, axis_increment.PtrConst(), cube_vertex_increment.Ptr());
+
+    cube_neighborV[0] = 0;
+    for (DTYPE d = 0; d < dimension; d++)
+      { cube_neighborV[0] -= axis_increment[d]; }
+
+    for (DIFFTYPE k = 0; k < num_cube_vertices; k++)
+      { cube_neighborV[k] = cube_neighborV[0] + 2*cube_vertex_increment[k]; }
   }
 
   /// Compute integer to add to vertex index to compute facet neighbors.
@@ -3299,6 +3443,16 @@ namespace IJK {
   ComputeBoundaryBits(const VTYPE iv, BTYPE & boundary_bits) const
   {
     compute_boundary_bits(iv, Dimension(), AxisSize(), boundary_bits);
+  }
+
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
+  template <typename PTYPE, typename ATYPE2>
+  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  ComputeSubsampledAxisSizes
+  (const PTYPE subsample_period, ATYPE2 subsampled_axis_size[]) const
+  {
+    compute_subsample_axis_sizes
+      (Dimension(), AxisSize(), subsample_period, subsampled_axis_size);
   }
 
   /// Compute bits identifying which boundary contains cube \a icube.
@@ -3862,6 +4016,7 @@ namespace IJK {
   {
     this->vertex_neighborC = NULL;
     this->vertex_neighborE = NULL;
+    this->cube_neighborV = NULL;
     this->facet_neighborC = NULL;
     this->edge_neighborF2 = NULL;
     this->num_vertex_neighborsC = 0;
@@ -3909,6 +4064,12 @@ namespace IJK {
       (dimension, num_vertex_neighborsE);
     vertex_neighborE = new DIFFTYPE[num_vertex_neighborsE];
     compute_vertex_neighborE(dimension, axis_size, vertex_neighborE);
+
+    cube_neighborV = new DIFFTYPE[this->NumCubeVertices()];
+    compute_cube_neighborV(dimension, axis_size, cube_neighborV);
+
+    cube_neighborE = new DIFFTYPE[this->NumCubeEdges()];
+    compute_cube_neighborE(dimension, axis_size, cube_neighborE);
 
     compute_num_facet_neighborsC
       (dimension, num_facet_neighborsC);

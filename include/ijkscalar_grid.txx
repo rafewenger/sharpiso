@@ -1903,6 +1903,41 @@ namespace IJK {
     }
   }
 
+  /// Sets bool_grid[iv] to true if scalar_grid[iv] >= isovalue.
+  /// @pre Dimensions and axis_sizes of scalar_grid[] and bool_grid[] match.
+  template <typename SCALAR_GRID_TYPE, typename STYPE,
+            typename BOOL_GRID_TYPE>
+  void flag_ge_isovalue
+  (const SCALAR_GRID_TYPE & scalar_grid, const STYPE isovalue,
+   BOOL_GRID_TYPE & bool_grid)
+  {
+    typedef typename SCALAR_GRID_TYPE::VERTEX_INDEX_TYPE VERTEX_INDEX;
+
+    for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) {
+      if (scalar_grid.Scalar(iv) >= isovalue) 
+        { bool_grid.Set(iv, true); }
+      else
+        { bool_grid.Set(iv, false); }
+    }
+  }
+
+  /// Sets bool_grid[iv] to true if scalar_grid[iv] < isovalue.
+  /// @pre Dimensions and axis_sizes of scalar_grid[] and bool_grid[] match.
+  template <typename SCALAR_GRID_TYPE, typename STYPE,
+            typename BOOL_GRID_TYPE>
+  void flag_lt_isovalue
+  (const SCALAR_GRID_TYPE & scalar_grid, const STYPE isovalue,
+   BOOL_GRID_TYPE & bool_grid)
+  {
+    typedef typename SCALAR_GRID_TYPE::VERTEX_INDEX_TYPE VERTEX_INDEX;
+
+    for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) {
+      if (scalar_grid.Scalar(iv) < isovalue) 
+        { bool_grid.Set(iv, true); }
+      else
+        { bool_grid.Set(iv, false); }
+    }
+  }
 
   // **************************************************
   // TEMPLATE OUTPUT FUNCTIONS

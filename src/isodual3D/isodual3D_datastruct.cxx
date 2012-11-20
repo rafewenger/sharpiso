@@ -265,8 +265,9 @@ void ISODUAL3D::ISODUAL_TIME::Clear()
 {
   preprocessing = 0.0;
   extract = 0.0;
-  merge = 0.0;
+  merge_identical = 0.0;
   position = 0.0;
+  merge_sharp = 0.0;
   total = 0.0;
 }
 
@@ -274,8 +275,9 @@ void ISODUAL3D::ISODUAL_TIME::Add(const ISODUAL_TIME & isodual_time)
 {
   preprocessing += isodual_time.preprocessing;
   extract += isodual_time.extract;
-  merge += isodual_time.merge;
+  merge_identical += isodual_time.merge_identical;
   position += isodual_time.position;
+  merge_sharp += isodual_time.merge_sharp;
   total += isodual_time.total;
 }
 
@@ -360,6 +362,7 @@ void ISODUAL3D::SHARPISO_INFO::Clear()
 {
   num_conflicts = 0;
   num_edge_collapses = 0;
+  num_merged_iso_vertices = 0;
   num_sharp_corners = 0;
   num_sharp_edges = 0;
   num_smooth_vertices = 0;

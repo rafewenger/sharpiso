@@ -49,7 +49,6 @@ void ISODUAL3D::dual_contouring
 {
   const int dimension = isodual_data.ScalarGrid().Dimension();
   const AXIS_SIZE_TYPE * axis_size = isodual_data.ScalarGrid().AxisSize();
-  float merge_time = 0.0;
   PROCEDURE_ERROR error("dual_contouring");
 
   clock_t t_start = clock();
@@ -172,7 +171,7 @@ void ISODUAL3D::dual_contouring_cube_center
 
   // store times
   clock2seconds(t1-t0, isodual_info.time.extract);
-  clock2seconds(t2-t1, isodual_info.time.merge);
+  clock2seconds(t2-t1, isodual_info.time.merge_identical);
   clock2seconds(t3-t2, isodual_info.time.position);
   clock2seconds(t3-t0, isodual_info.time.total);
 }
@@ -212,7 +211,7 @@ void ISODUAL3D::dual_contouring_centroid
 
   // store times
   clock2seconds(t1-t0, isodual_info.time.extract);
-  clock2seconds(t2-t1, isodual_info.time.merge);
+  clock2seconds(t2-t1, isodual_info.time.merge_identical);
   clock2seconds(t3-t2, isodual_info.time.position);
   clock2seconds(t3-t0, isodual_info.time.total);
 }
@@ -275,7 +274,7 @@ void ISODUAL3D::dual_contouring_centroid_multiv
 
   // store times
   clock2seconds(t1-t0, isodual_info.time.extract);
-  clock2seconds(t2-t1, isodual_info.time.merge);
+  clock2seconds(t2-t1, isodual_info.time.merge_identical);
   clock2seconds(t3-t2, isodual_info.time.position);
   clock2seconds(t3-t0, isodual_info.time.total);
 }
@@ -502,7 +501,7 @@ void ISODUAL3D::dual_contouring_sharp
 
   // store times
   clock2seconds(t1-t0, isodual_info.time.extract);
-  clock2seconds(t2-t1, isodual_info.time.merge);
+  clock2seconds(t2-t1, isodual_info.time.merge_identical);
   clock2seconds(t3-t2, isodual_info.time.position);
   clock2seconds(t3-t0, isodual_info.time.total);
 }
@@ -546,7 +545,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
   if (allow_multiple_iso_vertices) {
 
-    error.AddMessage("Algorithm B: Multiple isosurface vertices not yet implemented.");
+    error.AddMessage
+      ("Algorithm B: Multiple isosurface vertices not yet implemented.");
     throw error;
   }
   else {
@@ -563,7 +563,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
       (scalar_grid, isovalue, isovert, dual_isosurface, isodual_info);
     t2 = clock();
 
-    decimate_dual_isopoly(isovert, dual_isosurface);
+    merge_sharp_iso_vertices
+      (scalar_grid, isovert, dual_isosurface, isodual_info.sharpiso);
 
     // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
 

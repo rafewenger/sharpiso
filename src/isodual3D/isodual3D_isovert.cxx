@@ -205,8 +205,7 @@ void select_3x3_regions
 							if(isovertData.sharp_ind_grid.Scalar(n)!=ISOVERT::NO_INDEX)
 							{
 
-								VERTEX_INDEX neighbor_index_2_gclist
-								= isovertData.sharp_ind_grid.Scalar(n);
+								VERTEX_INDEX neighbor_index_2_gclist = isovertData.sharp_ind_grid.Scalar(n);
 								/// DEBUG *****
 
 								//if covered and not boundary
