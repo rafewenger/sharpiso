@@ -139,19 +139,19 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 
 	/// use the sharp version with the garlnd heckbert way of storing normals
 	if (sharpiso_param.use_lindstrom_fast){
-		//cout <<"Using the faster version of lindstrom "<<endl;
-		svd_calculate_sharpiso_vertex_using_lindstorm_fast
-		( num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]), &(point_coord[0]),
-				&(gradient_coord[0]),num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
 
+		svd_calculate_sharpiso_vertex_using_lindstorm_fast
+      (num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]), 
+       &(point_coord[0]),	&(gradient_coord[0]), 
+       num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
 	}
 	else{
 
-	svd_calculate_sharpiso_vertex_using_lindstrom
-	(sharpiso_param.use_lindstrom2, &(point_coord[0]),
-			&(gradient_coord[0]), &(scalar[0]),
-			num_gradients, isovalue, max_small_eigenvalue,
-			num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
+    svd_calculate_sharpiso_vertex_using_lindstrom
+      (sharpiso_param.use_lindstrom2, &(point_coord[0]),
+       &(gradient_coord[0]), &(scalar[0]),
+       num_gradients, isovalue, max_small_eigenvalue,
+       num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
 	}
 
 	if (!sharpiso_param.flag_allow_conflict &&
@@ -1302,6 +1302,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 {
 	use_lindstrom = false;
 	use_lindstrom2= false;
+	use_lindstrom_fast = false;
 	flag_allow_conflict = false;
 	flag_clamp_conflict = true;
 	flag_clamp_far = false;

@@ -8,6 +8,7 @@ my $testdir = "data";
 
 my @proglist = @ARGV;
 my @input_options;
+my @input_options0;
 my $fastflag = 0;
 my $veryfastflag = 0;
 my $veryveryfastflag = 0;
@@ -16,12 +17,15 @@ my $found_difference = 0;
 my $isoval_offset = 0;
 my $outfile = "temp.off";
 my $outfile0 = "temp0.off";
+my $min_diff_flag = 0;
+my $min_diff = 0.0;
 
 my %data_flag;
 my $use_all_data = 0;
 
 # isodual3D arguments which take an input value/string.
-my @isodual3D_options = ( "-subsample",  "-position", "-round", "-max_dist" );
+my @isodual3D_options = ( "-subsample",  "-position", "-round", 
+                          "-max_dist", "-max_eigen" );
 
 while (scalar(@proglist) > 0 &&
        $proglist[0] =~ /-.*/) {
@@ -54,6 +58,11 @@ while (scalar(@proglist) > 0 &&
     next;
   }
 
+  if ($new_option eq "-cubes") {
+    $data_flag{cubes} = 1;
+    next;
+  }
+
   if ($new_option eq "-twocubes") {
     $data_flag{twocubes} = 1;
     next;
@@ -69,12 +78,32 @@ while (scalar(@proglist) > 0 &&
     next;
   }
 
+  if ($new_option eq "-min_diff") {
+    $min_diff_flag = 1;
+    $min_diff = shift(@proglist);
+    next;
+  }
+
+  if ($new_option eq "-max_eigen0") {
+    push(@input_options0, "-max_eigen");
+    $new_option = shift(@proglist);
+    push(@input_options0, $new_option);
+    next;
+  }
+
+  if ($new_option eq "-lindstrom_fast0") {
+    push(@input_options0, "-lindstrom_fast");
+    next;
+  }
+
   push(@input_options, $new_option);
+  push(@input_options0, $new_option);
 
   if (scalar(@proglist) > 0) {
     if (is_isodual3D_option("$new_option")) {
       $new_option = shift(@proglist);
       push(@input_options, $new_option);
+      push(@input_options0, $new_option);
     }
   }
 }
@@ -97,8 +126,31 @@ if ($use_all_data) {
 
     $testdata{cube_B20}{fname} = "cube3D.B20x.nrrd";
     $testdata{cube_B20}{isovalue} = [ 5, 5.5];
+
+
   }
 }
+
+
+
+if ($use_all_data || defined($data_flag{cubes})) {
+
+  if (!$veryfastflag) {
+
+    if (!$veryveryfastflag) {
+
+      $testdata{tcube110A}{fname} = "tcube110A.31x.nrrd";
+      $testdata{tcube110A}{isovalue} = [ 4.9, 5, 5.5 ];
+
+      $testdata{tcube111A}{fname} = "tcube111A.31x.nrrd";
+      $testdata{tcube111A}{isovalue} = [ 4.9, 5, 5.5 ];
+
+      $testdata{tcube211A}{fname} = "tcube211A.31x.nrrd";
+      $testdata{tcube211A}{isovalue} = [ 4.9, 5, 5.5 ];
+    }
+  }
+}
+
 
 if ($use_all_data || defined($data_flag{twocubes})) {
 
@@ -173,7 +225,7 @@ else {
     compare_executables_all_options();
   } 
   else {
-    compare_executables(@input_options);
+    compare_executables("@input_options0", "@input_options");
   }
 
   report_on_differences();
@@ -257,7 +309,13 @@ sub compare_executables_all_options {
 
 sub compare_executables {
 
-  my @option_list = @_;
+  my @option_list0 = @_[0];
+  my @option_list;
+
+  if (defined @_[1]) 
+    { @option_list = @_[1]; }
+  else
+    { @option_list = @option_list0; }
 
   foreach my $tdata (keys %testdata) {
 
@@ -266,7 +324,7 @@ sub compare_executables {
     foreach my $isoval (@isovalue_list) {
 
       $isoval = $isoval + $isoval_offset;
-      run_isodual3D($prog0, $tfile, "$outfile0", \@option_list, $isoval);
+      run_isodual3D($prog0, $tfile, "$outfile0", \@option_list0, $isoval);
       foreach my $isodual (@proglist) {
         run_isodual3D($isodual, $tfile, "$outfile", \@option_list, $isoval);
         diff_files("$outfile0", "$outfile");
@@ -329,8 +387,12 @@ sub diff_files {
 
   my $flag = system("diff --brief $_[0] $_[1] > /dev/null");
   if ($flag != 0) { 
-    print "*** Output .off files differ. ***\n\n";
+    print "*** Output .off files differ. ***\n";
     $found_difference = 1; 
+
+    if ($min_diff_flag) 
+      { system("ijkmeshdiff -terse -min_diff $min_diff $_[0] $_[1]"); }
+    print "\n";
   };
 
 }

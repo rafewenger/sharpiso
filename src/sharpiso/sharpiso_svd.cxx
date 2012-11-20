@@ -95,6 +95,7 @@ void compute_cube_vertex_lindstrom_3x3
 	Matrix3f pseudo_inv_sigma = Matrix3f::Zero();
 	Matrix3f sigma = Matrix3f::Zero();
 	EIGENVALUE_TYPE scaled_error_tolerance = err_tolerance * singVals[0];
+
 	for (int i=0; i< svd.nonzeroSingularValues(); i++)
 	{
 
@@ -111,20 +112,7 @@ void compute_cube_vertex_lindstrom_3x3
 				svd.matrixV()*pseudo_inv_sigma*(svd.matrixU().transpose())*
 				(b.transpose() -
 						reconstruct_A*massPoint.transpose());
-	/*
-	/// DEBUG ****
-	cout <<"b "<<b<<endl;
-	cout <<"reconstruct A : "<<reconstruct_A<<endl;
-	cout <<"new sigma \n"<<pseudo_inv_sigma<<endl;
-	cout <<"\n U "<<svd.matrixU()<<endl;
-	cout <<"\n V "<<svd.matrixV()<<endl;
-	Matrix3f A3 = svd.matrixV()*pseudo_inv_sigma*(svd.matrixU().transpose());
-	cout << "A3: " << endl << A3 << endl;
-	cout <<"1/singvals\n "<<1.0/singVals[0]<<" "<<1.0/singVals[1]<<" "<<1.0/singVals[2]<<endl;
-	cout <<"\n A "<<eigenA<<endl;;
-	cout <<"sharp coord fast :"<<sharpCoord[0]<<" "<<sharpCoord[1]<<" "<<sharpCoord[2]<<endl;
-	cout <<"massPoint fast   :\n"<<massPoint.transpose()<<endl;
-	*/
+
 	//set isoVertCoords
 	for(int d=0;d<DIM3;d++)
 		isoVertCoords[d]=sharpCoord[d];
@@ -679,18 +667,6 @@ void compute_cube_vertex_lind2
 			svd.matrixV() * sigma_plus * svd.matrixU().transpose() *
 			(b.transpose() - A2 * centroid.transpose());
 	for (int i = 0; i < 3; i++) { sharp_point[i] = point(i); }
-	/*
-	/// DEBUG ****
-	cout <<"a'b "<<A.transpose()*b.transpose()<<endl;
-	cout <<"reconstruct a'b "<<A2.transpose()*b.transpose()<<endl;
-	cout <<"\nsigma+ : "<<sigma_plus<<endl;
-	cout <<"\n U "<<svd.matrixU()<<endl;
-	cout <<"\n V "<<svd.matrixV()<<endl;
-	//cout <<"\n v*sigma+u' "<<svd.matrixV() * sigma_plus * svd.matrixU().transpose()<<endl;
-	cout <<"\nA2'*A2\n"<<A2.transpose()*A2<<endl;
-	cout <<"sharp coord OLD :"<<sharp_point[0]<<" "<<sharp_point[1]<<" "<<sharp_point[2]<<endl;
-	cout <<"centroid    OLD :\n"<<centroid.transpose()<<endl;
-*/
 }
 
 ///

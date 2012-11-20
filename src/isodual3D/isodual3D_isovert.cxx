@@ -207,6 +207,7 @@ void select_3x3_regions
 
 								VERTEX_INDEX neighbor_index_2_gclist = isovertData.sharp_ind_grid.Scalar(n);
 								isovertData.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
+
 							}
 						}
 					}

@@ -1422,7 +1422,7 @@ void parse_command_line(int argc, char **argv)
     }
     else if (s == "-lindstrom_fast"){
     	flag_use_lindstrom = true;
-    	      flag_use_lindstrom_fast = true;
+      flag_use_lindstrom_fast = true;
     }
     else if (s == "-rayI") {
       flag_use_lindstrom = false;
