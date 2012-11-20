@@ -166,7 +166,6 @@ void computePseudoSigmaInv
 
   float max =-1.0;
   using namespace std;
-  cout << singular_vals.maxCoeff();
 
   for (int i=0; i<singular_vals.rows(); i++) {
 
@@ -177,8 +176,6 @@ void computePseudoSigmaInv
       PseudoInvSigma(i,i) = 1.0/singular_vals(i);
     }
   }
-  cout <<" max "<<max <<endl;
-
 };
 
 

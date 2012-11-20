@@ -50,7 +50,6 @@ void compute_A_inverse_top_2(const MatrixXf &A,
 // Normalize a vector
 void normalize(const GRADIENT_COORD_TYPE *initial,
 		GRADIENT_COORD_TYPE *normalized) {
-	//cout << "initial "<<initial[0]<<" "<<initial[1]<<" "<<initial[2]<<" -- ";
 	double sum(0.0), mag(0.0);
 	for (int i = 0; i < DIM3; i++) {
 		sum = sum + initial[i] * initial[i];
@@ -62,7 +61,6 @@ void normalize(const GRADIENT_COORD_TYPE *initial,
 		}
 	}
 
-	//cout <<"normalized "<<normalized[0]<<" "<<normalized[1]<<" "<<normalized[2]<<endl;
 }
 
 // FUNCTION compute x which computes the position x
@@ -149,15 +147,12 @@ void svd_calculate_sharpiso_vertex_using_lindstorm_fast(
 		SCALAR_TYPE temp;
 		temp = tempN[0]*tempN[1];
 		A[0][1] += temp;
-		A[1][0] += temp;
 
 		temp = tempN[0]*tempN[2];
 		A[0][2] += temp;
-		A[2][0] += temp;
 
 		temp = tempN[1]*tempN[2];
 		A[1][2] += temp;
-		A[2][1] += temp;
 
 		// compute isovalue - s_i + g_i*p_i;
 		SCALAR_TYPE iprod,d;
@@ -169,6 +164,9 @@ void svd_calculate_sharpiso_vertex_using_lindstorm_fast(
 		for(int l=0;l<DIM3;l++)
 			B[l]+=  (tempN[l]*(-1.0)*d);
 	}
+	A[1][0]=A[0][1];
+	A[2][0]=A[0][2];
+	A[2][1]=A[1][2];
 
 	SCALAR_TYPE linear_A[9]={0.0};
 	int k=0;
