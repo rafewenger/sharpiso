@@ -134,6 +134,8 @@ void get_connected(
 		}
 	}
 }
+
+
 /// Check if selecting this vertex creates a triangle
 /// *selected_list* is a list of already selected vertices.
 bool creates_triangle (
@@ -167,61 +169,55 @@ bool creates_triangle (
 
 void select_3x3x3_regions
 (
-		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID_BASE & gradient_grid,
-		const SCALAR_TYPE isovalue,
-		const SHARP_ISOVERT_PARAM & isovert_param,
-		vector<NUM_TYPE> sortd_ind2gcube_list,
-		ISOVERT &isovertData)
-
+ const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ vector<NUM_TYPE> sortd_ind2gcube_list,
+ ISOVERT &isovertData)
 {
 	const int dimension = scalar_grid.Dimension();
-	int num3=0;
+
 	// list of selected vertices
 	vector<VERTEX_INDEX> selected_list;
 	SHARPISO_GRID_NEIGHBORS gridn;
 	gridn.SetSize(scalar_grid);
-		for (int ind=0;ind<sortd_ind2gcube_list.size();ind++)
-		{
-			GRID_CUBE c;
-			c = isovertData.gcube_list[sortd_ind2gcube_list[ind]];
-			// check boundary
-			if(c.boundary_bits == 0)
-				if (isovertData.isFlag
-						(cube_ind_frm_gc_ind(isovertData, sortd_ind2gcube_list[ind]),AVAILABLE_GCUBE)
-						&& c.linf_dist < isovertData.linf_dist_threshold)
-          /* OBSOLETE
-						&& (int)c.num_eigen == neigen)
-          */
-				{
+  for (int ind=0;ind<sortd_ind2gcube_list.size();ind++) {
 
-					if (creates_triangle(scalar_grid, c.cube_index, isovalue, selected_list) == false)
-					{
-						isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag= SELECTED_GCUBE;
-						// add to selected list
-						selected_list.push_back(isovertData.gcube_list[sortd_ind2gcube_list[ind]].cube_index);
+    GRID_CUBE c;
+    c = isovertData.gcube_list[sortd_ind2gcube_list[ind]];
+    // check boundary
+    if(c.boundary_bits == 0)
+      if (isovertData.isFlag
+          (cube_ind_frm_gc_ind(isovertData, sortd_ind2gcube_list[ind]),AVAILABLE_GCUBE)
+          && c.linf_dist < isovertData.linf_dist_threshold) {
 
-						for (int i=0;i<gridn.NumVertexNeighborsC();i++)
-						{
-							VERTEX_INDEX n = gridn.VertexNeighborC
-									(isovertData.gcube_list[sortd_ind2gcube_list[ind]].cube_index,i);
+        if (creates_triangle(scalar_grid, c.cube_index, isovalue, selected_list) == false) {
 
-							if(isovertData.sharp_ind_grid.Scalar(n)!=ISOVERT::NO_INDEX)
-							{
+          isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag= SELECTED_GCUBE;
+          // add to selected list
+          selected_list.push_back(isovertData.gcube_list[sortd_ind2gcube_list[ind]].cube_index);
 
-								VERTEX_INDEX neighbor_index_2_gclist = isovertData.sharp_ind_grid.Scalar(n);
-								isovertData.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
+          for (int i=0;i<gridn.NumVertexNeighborsC();i++) {
 
-							}
-						}
-					}
-					else
-					{
-						// what to do if creates triangle
-						isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag= UNAVAILABLE_GCUBE;
-					}
-				}
-		}
+            VERTEX_INDEX n = gridn.VertexNeighborC
+              (isovertData.gcube_list[sortd_ind2gcube_list[ind]].cube_index,i);
+
+            if(isovertData.sharp_ind_grid.Scalar(n)!=ISOVERT::NO_INDEX) {
+
+              VERTEX_INDEX neighbor_index_2_gclist = isovertData.sharp_ind_grid.Scalar(n);
+              isovertData.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
+
+            }
+          }
+        }
+        else
+          {
+            // what to do if creates triangle
+            isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag= UNAVAILABLE_GCUBE;
+          }
+      }
+  }
 }
 
 
