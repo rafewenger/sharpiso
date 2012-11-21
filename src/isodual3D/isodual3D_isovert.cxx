@@ -135,7 +135,76 @@ void get_connected(
 	}
 }
 
+inline void divide_coord_3D
+(const AXIS_SIZE_TYPE bin_width, GRID_COORD_TYPE coord[DIM3])
+{
+  for (int d = 0; d < DIM3; d++)
+    coord[d] = IJK::integer_divide(coord[d], bin_width);
+}
 
+/// Get the selected vertices around iv.
+void get_selected
+(const SHARPISO_GRID & grid,
+ const VERTEX_INDEX iv,
+ const BIN_GRID<VERTEX_INDEX> & bin_grid,
+ const AXIS_SIZE_TYPE bin_width,
+ std::vector<VERTEX_INDEX> & selected_list)
+{
+  const int dimension = grid.Dimension();
+  static GRID_COORD_TYPE coord[DIM3];
+  static GRID_COORD_TYPE min_coord[DIM3];
+  static GRID_COORD_TYPE max_coord[DIM3];
+
+  long boundary_bits;
+
+  grid.ComputeCoord(iv, coord);
+  divide_coord_3D(bin_width, coord);
+  VERTEX_INDEX ibin = bin_grid.ComputeVertexIndex(coord);
+  bin_grid.ComputeBoundaryBits(ibin, boundary_bits);
+
+  selected_list.resize(bin_grid.ListLength(ibin));
+  std::copy(bin_grid(ibin).list.begin(), bin_grid(ibin).list.end(),
+            selected_list.begin());
+
+  if (boundary_bits == 0) {
+
+    for (NUM_TYPE k = 0; k < bin_grid.NumVertexNeighborsC(); k++) {
+      VERTEX_INDEX jbin = bin_grid.VertexNeighborC(ibin, k);
+      for (int i = 0; i < bin_grid.ListLength(jbin); i++) 
+        { selected_list.push_back(bin_grid.List(jbin, i)); }
+    }
+  }
+  else {
+
+    for (int d = 0; d < dimension; d++) {
+      if (coord[d] > 0) 
+        { min_coord[d] = coord[d] - 1; }
+      else
+        { min_coord[d] = 0; }
+
+      if (coord[d]+1 < bin_grid.AxisSize(d)) 
+        { max_coord[d] = coord[d] + 1; }
+      else
+        { max_coord[d] = coord[d]; }
+    }
+
+    for (coord[0] = min_coord[0]; coord[0] <= max_coord[0]; 
+         coord[0]++)
+      for (coord[1] = min_coord[1]; coord[1] <= max_coord[1]; 
+           coord[1]++)
+        for (coord[2] = min_coord[2]; coord[2] <= max_coord[2]; 
+             coord[2]++) {
+
+          VERTEX_INDEX jbin = bin_grid.ComputeVertexIndex(coord);
+          if (ibin != jbin) {
+            for (int i = 0; i < bin_grid.ListLength(jbin); i++) 
+              { selected_list.push_back(bin_grid.List(jbin, i)); }
+          }
+        }
+  }
+}
+
+// *** OBSOLETE ***
 /// Check if selecting this vertex creates a triangle
 /// *selected_list* is a list of already selected vertices.
 bool creates_triangle (
@@ -162,6 +231,65 @@ bool creates_triangle (
 	return false;
 }
 
+/// Check if selecting this vertex creates a triangle.
+/// @param bin_grid Contains the already selected vertices.
+bool creates_triangle (
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const VERTEX_INDEX iv,
+		const SCALAR_TYPE isovalue,
+    const BIN_GRID<VERTEX_INDEX> & bin_grid,
+    const AXIS_SIZE_TYPE bin_width
+)
+{
+  vector <VERTEX_INDEX> selected_list;
+	vector <VERTEX_INDEX> connected_list;
+
+  // get the selected vertices around iv
+  get_selected(scalar_grid, iv, bin_grid, bin_width, selected_list);
+
+	// get the list of vertices connected to the vertex iv
+	get_connected(scalar_grid, isovalue, iv, selected_list, connected_list);
+	int limit = connected_list.size();
+	// for each pair jv1 jv2 in the connected list
+	for (int i=0; i< limit-1;++i){
+		for(int j=i+1;j<= (limit-1);++j)
+		{
+			if (are_connected(scalar_grid, connected_list[i],
+					connected_list[j], isovalue)){
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/// Initialize bin_grid.
+/// @param bin_width = number of cubes along each axis.
+void init_bin_grid
+(const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
+ BIN_GRID<VERTEX_INDEX> & bin_grid)
+{
+  const int dimension = grid.Dimension();
+  AXIS_SIZE_TYPE axis_size[dimension];
+
+  for (int d = 0; d < dimension; d++) {
+    axis_size[d] = IJK::compute_subsample_size(grid.AxisSize(d), bin_width);
+  }
+
+  bin_grid.SetSize(dimension, axis_size);
+}
+
+void bin_grid_insert
+(const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
+ const VERTEX_INDEX iv, BIN_GRID<int> & bin_grid)
+{
+  static GRID_COORD_TYPE coord[DIM3];
+
+  grid.ComputeCoord(iv, coord);
+  divide_coord_3D(bin_width, coord);
+  VERTEX_INDEX ibin = bin_grid.ComputeVertexIndex(coord);
+  bin_grid.Insert(ibin, iv);
+}
 
 /*
  * select the 3x3x3 regions
@@ -177,6 +305,10 @@ void select_3x3x3_regions
  ISOVERT &isovertData)
 {
 	const int dimension = scalar_grid.Dimension();
+  const int bin_width = 5;
+  BIN_GRID<VERTEX_INDEX> bin_grid;
+
+  init_bin_grid(scalar_grid, bin_width, bin_grid);
 
 	// list of selected vertices
 	vector<VERTEX_INDEX> selected_list;
@@ -192,11 +324,32 @@ void select_3x3x3_regions
           (cube_ind_frm_gc_ind(isovertData, sortd_ind2gcube_list[ind]),AVAILABLE_GCUBE)
           && c.linf_dist < isovertData.linf_dist_threshold) {
 
-        if (creates_triangle(scalar_grid, c.cube_index, isovalue, selected_list) == false) {
+        /* OBSOLETE
+        bool triangle_flag2 = 
+          creates_triangle(scalar_grid, c.cube_index, isovalue, selected_list);
+        */
 
-          isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag= SELECTED_GCUBE;
+        bool triangle_flag = 
+          creates_triangle(scalar_grid, c.cube_index, 
+                           isovalue, bin_grid, bin_width);
+
+        /* OBSOLETE
+        /// *** DEBUG ***
+        if (triangle_flag != triangle_flag2) {
+          cerr << "Mismatch on vertex " << c.cube_index << endl;
+        }
+        */
+
+        if (!triangle_flag) {
+
+          isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag = 
+            SELECTED_GCUBE;
+
           // add to selected list
-          selected_list.push_back(isovertData.gcube_list[sortd_ind2gcube_list[ind]].cube_index);
+          VERTEX_INDEX cube_index = 
+            isovertData.gcube_list[sortd_ind2gcube_list[ind]].cube_index;
+          selected_list.push_back(cube_index);
+          bin_grid_insert(scalar_grid, bin_width, cube_index, bin_grid);
 
           for (int i=0;i<gridn.NumVertexNeighborsC();i++) {
 

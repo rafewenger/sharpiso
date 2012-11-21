@@ -514,7 +514,7 @@ namespace ISODUAL3D {
   };
 
   template <typename ETYPE>
-  class BIN_GRID:public IJK::OBJECT_GRID<SHARPISO_GRID, BIN<ETYPE> > {
+  class BIN_GRID:public IJK::OBJECT_GRID<SHARPISO_GRID_NEIGHBORS, BIN<ETYPE> > {
 
   protected:
     typedef typename SHARPISO_GRID::DIMENSION_TYPE DTYPE;
