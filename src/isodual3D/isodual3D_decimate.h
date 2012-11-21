@@ -40,17 +40,16 @@ namespace ISODUAL3D {
   /// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
   void merge_sharp_iso_vertices
     (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const ISOVERT & isovert, 
-     DUAL_ISOSURFACE & dual_isosurface, SHARPISO_INFO & sharpiso_info);
+     std::vector<VERTEX_INDEX> & quad_vert,
+     std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info);
 
   /// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
-  /// Returns remapping of gcube vertices.
-  /// @param[out] gcube_map Array of iso vertex mappings. 
-  ///             Iso vertex i is mapped to iso vertex gcube_map[i]
-  /// @pre gcube_map is preallocated to size at least isovert.gcube_list.size().
   void merge_sharp_iso_vertices
-    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const ISOVERT & isovert, 
-     DUAL_ISOSURFACE & dual_isosurface, 
-     std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info);
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const ISOVERT & isovert, 
+   std::vector<VERTEX_INDEX> & quad_vert,
+   SHARPISO_INFO & sharpiso_info);
+
 };
+
 
 #endif

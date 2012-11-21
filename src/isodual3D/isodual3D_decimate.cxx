@@ -35,7 +35,6 @@ namespace {
 
   void determine_gcube_map
   (const ISODUAL3D::ISOVERT & isovert, 
-   ISODUAL3D::DUAL_ISOSURFACE & dual_isosurface,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
 }
@@ -47,12 +46,12 @@ namespace {
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 void ISODUAL3D::merge_sharp_iso_vertices
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const ISOVERT & isovert, 
- DUAL_ISOSURFACE & dual_isosurface, 
+ std::vector<VERTEX_INDEX> & quad_vert,
  std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info)
 {
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
 
-  determine_gcube_map(isovert, dual_isosurface, gcube_map);
+  determine_gcube_map(isovert, gcube_map);
 
   // Count number merged isosurface vertices.
   NUM_TYPE num_merged = 0;
@@ -61,40 +60,25 @@ void ISODUAL3D::merge_sharp_iso_vertices
   }
   sharpiso_info.num_merged_iso_vertices = num_merged;
 
-  const NUM_TYPE quad_vert_size = dual_isosurface.quad_vert.size();
-  std::vector<VERTEX_INDEX> quad_vert2(quad_vert_size);
-
-  for (VERTEX_INDEX i = 0; i < quad_vert_size; i++) {
-    VERTEX_INDEX cube_index = dual_isosurface.quad_vert[i];
-    quad_vert2[i] = gcube_map[cube_index];
+  for (VERTEX_INDEX i = 0; i < quad_vert.size(); i++) {
+    VERTEX_INDEX cube_index = quad_vert[i];
+    quad_vert[i] = gcube_map[cube_index];
   }
-
-  dual_isosurface.tri_vert.clear();
-  dual_isosurface.quad_vert.clear();
-
-  // Change lower-left, lower-right, upper-left, upper-right order
-  //   to counter-clockwise order.
-  IJK::reorder_quad_vertices(quad_vert2);
-
-  IJK::get_non_degenerate_quad
-    (quad_vert2, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
-
-  // Change counter-clockwise order to lower-left, lower-right,
-  //   upper-left, upper-right order.
-  IJK::reorder_quad_vertices(dual_isosurface.quad_vert);
 }
 
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 void ISODUAL3D::merge_sharp_iso_vertices
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const ISOVERT & isovert, 
- DUAL_ISOSURFACE & dual_isosurface, SHARPISO_INFO & sharpiso_info)
+ std::vector<VERTEX_INDEX> & quad_vert,
+ SHARPISO_INFO & sharpiso_info)
 {
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
   std::vector<VERTEX_INDEX> gcube_map(num_gcube);
 
   merge_sharp_iso_vertices
-    (scalar_grid, isovert, dual_isosurface, gcube_map, sharpiso_info);
+    (scalar_grid, isovert, quad_vert, gcube_map, sharpiso_info);
 }
+
 
 // **************************************************
 // Map isosurface vertices
@@ -123,7 +107,6 @@ namespace {
     
   void determine_gcube_map
   (const ISODUAL3D::ISOVERT & isovert, 
-   ISODUAL3D::DUAL_ISOSURFACE & dual_isosurface,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
     using namespace ISODUAL3D;

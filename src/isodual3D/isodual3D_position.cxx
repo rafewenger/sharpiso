@@ -797,8 +797,7 @@ void ISODUAL3D::compute_isosurface_grid_edge_centroid
 // **************************************************
 
 // Split dual isosurface vertices.
-// @param isodual_table Dual isosurface lookup table splitting
-//        negative vertices.
+// @param isodual_table Dual isosurface lookup table.
 void ISODUAL3D::split_dual_isovert
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
@@ -877,6 +876,31 @@ void ISODUAL3D::split_dual_isovert
   }
 
 }
+
+// Split dual isosurface vertices.
+// @param isodual_table Dual isosurface lookup table.
+void ISODUAL3D::split_dual_isovert
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+ const SCALAR_TYPE isovalue,
+ const ISOVERT & isovert,
+ const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
+ const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+ std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+ std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+ std::vector<VERTEX_INDEX> & isoquad_vert,
+ VERTEX_INDEX & num_split)
+{
+  std::vector<ISO_VERTEX_INDEX> smooth_cube_list;
+
+  for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
+    if (isovert.gcube_list[i].flag == SMOOTH_GCUBE) 
+      { smooth_cube_list.push_back(isovert.gcube_list[i].cube_index); }
+  }
+
+  // *** TO BE CONTINUED ***
+}
+
 
 // **************************************************
 // Reposition close isosurface vertices

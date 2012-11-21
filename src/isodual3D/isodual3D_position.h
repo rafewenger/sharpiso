@@ -279,8 +279,7 @@ namespace ISODUAL3D {
   // **************************************************
 
   /// Split dual isosurface vertices.
-  /// @param isodual_table Dual isosurface lookup table splitting
-  ///        negative vertices.
+  /// @param isodual_table Dual isosurface lookup table.
   /// @param cube_list[] List of cubes containing isosurface vertices.
   /// @param isopoly_cube[] isopoly_cube[j*num_polyv+k] is the cube containing
   ///    the k'th vertex of isosurface polytope j
@@ -301,6 +300,19 @@ namespace ISODUAL3D {
    std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
+   std::vector<VERTEX_INDEX> & isoquad_vert,
+   VERTEX_INDEX & num_split);
+
+  /// Split dual isosurface vertices.
+  void split_dual_isovert
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
+   const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+   std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    std::vector<VERTEX_INDEX> & isoquad_vert,
    VERTEX_INDEX & num_split);
 

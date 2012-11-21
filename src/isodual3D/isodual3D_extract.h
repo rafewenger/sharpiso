@@ -56,15 +56,15 @@ namespace ISODUAL3D {
    std::vector<FACET_VERTEX_INDEX> & facet_vertex,
    ISODUAL_INFO & isodual_info);
 
-  /// Extract dual isosurface polytopes using isovert data structure.
-  /// @param scalar_grid = scalar grid data
-  /// @param isovalue = isosurface scalar value
-  void extract_dual_isopoly
-    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-     const SCALAR_TYPE isovalue, 
-     const ISOVERT & isovert,
-     DUAL_ISOSURFACE & dual_isosurface,
-     ISODUAL_INFO & isodual_info);
+  // **************************************************
+  // MAP TO ISOPOLY VERTICES
+  // **************************************************
+
+  /// Map cube indices in iso_poly_vert to isosurface vertices
+  ///   in isovert.gcube_list.
+  void map_isopoly_vert
+  (const ISOVERT & isovert, std::vector<ISO_VERTEX_INDEX> & iso_poly_vert);
+
 }
 
 #endif

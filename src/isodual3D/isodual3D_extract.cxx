@@ -30,6 +30,10 @@ using namespace IJK;
 using namespace ISODUAL3D;
 
 
+// **************************************************
+// EXTRACT ISOPOLY
+// **************************************************
+
 /// Extract dual isosurface polytopes.
 /// Returns list of isosurface polytope vertices.
 /// @param scalar_grid = scalar grid data
@@ -96,47 +100,19 @@ void ISODUAL3D::extract_dual_isopoly
 }
 
 
-/// Extract dual isosurface polytopes using isovert data structure.
-/// @param scalar_grid = scalar grid data
-/// @param isovalue = isosurface scalar value
-void ISODUAL3D::extract_dual_isopoly
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
- const SCALAR_TYPE isovalue, 
- const ISOVERT & isovert,
- DUAL_ISOSURFACE & dual_isosurface,
- ISODUAL_INFO & isodual_info)
+
+// **************************************************
+// MAP TO ISOPOLY VERTICES
+// **************************************************
+
+// Map cube indices in iso_poly_vert to isosurface vertices
+//   in isovert.gcube_list.
+void ISODUAL3D::map_isopoly_vert
+(const ISOVERT & isovert, std::vector<ISO_VERTEX_INDEX> & iso_poly_vert)
 {
-  IJK::PROCEDURE_ERROR error("extract_dual_isopoly");
-
-
-  isodual_info.time.extract = 0;
-
-  clock_t t0 = clock();
-
-  // initialize output
-  dual_isosurface.tri_vert.clear();
-  dual_isosurface.quad_vert.clear();
-
-  extract_dual_isopoly(scalar_grid, isovalue, dual_isosurface.quad_vert, 
-                       isodual_info);
-
-  // Map cube indices in quad_vert to cube locations in isovert.gcube_list()
-  for (VERTEX_INDEX i = 0; i < dual_isosurface.quad_vert.size(); i++) {
-    VERTEX_INDEX icube = dual_isosurface.quad_vert[i];
+  for (VERTEX_INDEX i = 0; i < iso_poly_vert.size(); i++) {
+    VERTEX_INDEX icube = iso_poly_vert[i];
     VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(icube);
-
-    if (gcube_index < 0 || gcube_index >= isovert.gcube_list.size()) {
-      error.AddMessage("Programming error.  Inconsistency between quad_vert and isovert.");
-      error.AddMessage("  quad_vert[", i, "] = ", icube, " but");
-      error.AddMessage("  isovert.sharp_ind_grid[", icube, "] = ",
-                       gcube_index, ".");
-      throw error;
-    }
-
-    // Replace quad_vert[i].
-    dual_isosurface.quad_vert[i] = gcube_index;
+    iso_poly_vert[i] = gcube_index;
   }
-
-  clock_t t1 = clock();
-  clock2seconds(t1-t0, isodual_info.time.extract);
 }
