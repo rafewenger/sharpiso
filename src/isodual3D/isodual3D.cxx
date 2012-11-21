@@ -572,7 +572,10 @@ void ISODUAL3D::dual_contouring_merge_sharp
     isodual_info.sharpiso.num_cube_multi_isov = num_split;
     isodual_info.sharpiso.num_cube_single_isov = 
       isovert.gcube_list.size() - num_split;
-    t2 = clock();
+
+    position_dual_isovertices
+      (scalar_grid, isodual_table, isovalue, isovert,
+       iso_vlist_cube, iso_vlist_patch, dual_isosurface.vertex_coord);
   }
   else {
 
@@ -592,14 +595,15 @@ void ISODUAL3D::dual_contouring_merge_sharp
     copy_isovert_positions
       (isovert.gcube_list, dual_isosurface.vertex_coord);
 
-    // Set isodual_info
-    isodual_info.sharpiso.num_sharp_corners = isovert_info.num_sharp_corners;
-    isodual_info.sharpiso.num_sharp_edges = isovert_info.num_sharp_edges;
-    isodual_info.sharpiso.num_smooth_vertices = 
-      isovert_info.num_smooth_vertices;
   }
 
   t3 = clock();
+
+  // Set isodual_info
+  isodual_info.sharpiso.num_sharp_corners = isovert_info.num_sharp_corners;
+  isodual_info.sharpiso.num_sharp_edges = isovert_info.num_sharp_edges;
+  isodual_info.sharpiso.num_smooth_vertices = 
+    isovert_info.num_smooth_vertices;
 
   // store times
   clock2seconds(t1-t0, isodual_info.time.position);
