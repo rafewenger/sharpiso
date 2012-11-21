@@ -28,7 +28,7 @@ my @isodual3D_options = ( "-subsample",  "-position", "-round",
                           "-max_dist", "-max_eigen" );
 
 while (scalar(@proglist) > 0 &&
-       $proglist[0] =~ /-.*/) {
+       $proglist[0] =~ /\-.*/) {
 
   my $new_option = shift(@proglist);
 
