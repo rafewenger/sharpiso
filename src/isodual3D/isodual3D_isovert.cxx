@@ -9,15 +9,16 @@
 #include <algorithm>
 #include <stdio.h>
 #include <stdio.h>
-#include "isodual3D_isovert.h"
-#include "isodual3D_position.h"
-#include "isodual3D_datastruct.h"
-#include "ijkgrid_macros.h"
+
 #include "ijkcoord.txx"
 #include "ijkgrid.txx"
+#include "ijkgrid_macros.h"
 #include "ijkscalar_grid.txx"
-#include "sharpiso_grids.h"
 
+
+#include "isodual3D_datastruct.h"
+#include "isodual3D_isovert.h"
+#include "isodual3D_position.h"
 
 
 using namespace std;
@@ -87,10 +88,13 @@ void compute_isovert_positions (
 }
 
 
-class gcube_compare{
+class GCUBE_COMPARE {
+
 public:
 	std::vector<GRID_CUBE> gcube_list;
-	gcube_compare(vector<GRID_CUBE> & gcube_list_ ){gcube_list= gcube_list_;};
+
+	GCUBE_COMPARE(vector<GRID_CUBE> & gcube_list_ ){gcube_list= gcube_list_;};
+
 	bool operator () (int i,int j)
 	{
     if (gcube_list[i].num_eigen == gcube_list[j].num_eigen)
@@ -100,17 +104,21 @@ public:
 	}
 
 };
-void sort_gcube_list(vector<NUM_TYPE> &sortd_ind2gcube_list, vector<GRID_CUBE> &gcube_list)
+
+
+void sort_gcube_list
+(vector<NUM_TYPE> &sortd_ind2gcube_list, vector<GRID_CUBE> &gcube_list)
 {
-	//set up the *sortd_ind2gcube_list*
+  GCUBE_COMPARE gcube_compare(gcube_list);
+
+	// set up the *sortd_ind2gcube_list*
 	sortd_ind2gcube_list.resize(gcube_list.size(), 0);
 
 	for (int i=0;i<sortd_ind2gcube_list.size();i++)
-	{
-		sortd_ind2gcube_list[i]=i;
-	}
+	{ sortd_ind2gcube_list[i] = i;}
 
-	sort (sortd_ind2gcube_list.begin(),sortd_ind2gcube_list.end(), gcube_compare(gcube_list));
+	sort (sortd_ind2gcube_list.begin(),sortd_ind2gcube_list.end(), 
+        gcube_compare);
 }
 
 /// Compute the cube index from the gc index
@@ -371,6 +379,7 @@ void select_3x3x3_regions
           }
       }
   }
+
 }
 
 
@@ -513,11 +522,12 @@ void ISODUAL3D::compute_dual_isovert(
 {
 	create_active_cubes(scalar_grid, gradient_grid, isovalue, isovertData);
 
-	compute_isovert_positions (scalar_grid, gradient_grid, isovalue, isovert_param,
-			isovertData);
+	compute_isovert_positions 
+    (scalar_grid, gradient_grid, isovalue, isovert_param, isovertData);
+
 	// keep track of the sorted indices
 	std::vector<NUM_TYPE> sortd_ind2gcube_list;
-	sort_gcube_list(sortd_ind2gcube_list,isovertData.gcube_list);
+	sort_gcube_list(sortd_ind2gcube_list, isovertData.gcube_list);
 	select_3x3x3_regions (scalar_grid, gradient_grid, isovalue,
 			isovert_param, sortd_ind2gcube_list, isovertData);
 }
