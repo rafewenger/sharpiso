@@ -528,6 +528,7 @@ namespace IJK {
   // COMPUTE BOUNDARY GRID
   // **************************************************
 
+  /// Set vertices on grid boundary to true.
   template <typename GTYPE>
   void compute_boundary_grid(SCALAR_GRID_BASE<GTYPE,bool> & boundary_grid)
   {
@@ -552,6 +553,38 @@ namespace IJK {
 
         for (VTYPE j = 0; j < numv; j++) {
           VTYPE jv = vlist[j];
+          boundary_grid.Set(jv, true);
+        }
+        side = !side;
+      }
+    }
+  }
+
+  /// Set primary vertices of cubes on cube boundary to true.
+  template <typename GTYPE>
+  void flag_boundary_cubes(SCALAR_GRID_BASE<GTYPE,bool> & boundary_grid)
+  {
+    typedef typename GTYPE::DIMENSION_TYPE DTYPE;
+    typedef typename GTYPE::AXIS_SIZE_TYPE ATYPE;
+    typedef typename GTYPE::VERTEX_INDEX_TYPE VTYPE;
+    typedef typename GTYPE::NUMBER_TYPE NTYPE;
+
+    const DTYPE dimension = boundary_grid.Dimension();
+    const ATYPE * axis_size = boundary_grid.AxisSize();
+
+    boundary_grid.SetAll(false);
+
+    for (DTYPE d = 0; d < boundary_grid.Dimension(); d++) {
+      NTYPE numc = boundary_grid.ComputeNumCubesInFacet(d);
+
+      IJK::ARRAY<VTYPE> cube_list(numc);
+      bool side = false;
+      for (DTYPE i = 0; i < 2; i++) {
+        get_cubes_in_grid_facet
+          (dimension, axis_size, d, side, cube_list.Ptr());
+
+        for (VTYPE j = 0; j < numc; j++) {
+          VTYPE jv = cube_list[j];
           boundary_grid.Set(jv, true);
         }
         side = !side;
