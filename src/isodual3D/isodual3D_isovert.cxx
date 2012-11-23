@@ -88,21 +88,22 @@ void compute_isovert_positions (
 }
 
 
+
 class GCUBE_COMPARE {
 
 public:
-	std::vector<GRID_CUBE> gcube_list;
+	std::vector<GRID_CUBE> *gcube_list;
 
-	GCUBE_COMPARE(vector<GRID_CUBE> & gcube_list_ ){gcube_list= gcube_list_;};
+	GCUBE_COMPARE(vector<GRID_CUBE> & gcube_list_ )
+	{gcube_list = &gcube_list_;};
 
 	bool operator () (int i,int j)
 	{
-    if (gcube_list[i].num_eigen == gcube_list[j].num_eigen)
-      { return (gcube_list[i].linf_dist < gcube_list[j].linf_dist); }
+    if ((*gcube_list)[i].num_eigen == (*gcube_list)[j].num_eigen)
+      { return ((*gcube_list)[i].linf_dist < (*gcube_list)[j].linf_dist); }
     else
-      { return (gcube_list[i].num_eigen > gcube_list[j].num_eigen); }
+      { return ((*gcube_list)[i].num_eigen > (*gcube_list)[j].num_eigen); }
 	}
-
 };
 
 
