@@ -984,10 +984,6 @@ namespace {
   INDEX_GRID_BASE;
   typedef IJK::SCALAR_GRID<SHARPISO_GRID, VERTEX_INDEX>
   INDEX_GRID;
-  typedef IJK::BOOL_GRID_BASE<SHARPISO_GRID>
-  SHARPISO_BOOL_GRID_BASE;
-  typedef IJK::BOOL_GRID<SHARPISO_GRID>
-  SHARPISO_BOOL_GRID;
 
   void set_vertex_locations
   (const std::vector<ISO_VERTEX_INDEX> & vlist,

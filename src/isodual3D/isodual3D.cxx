@@ -563,15 +563,20 @@ void ISODUAL3D::dual_contouring_merge_sharp
     merge_sharp_iso_vertices
       (scalar_grid, isovert, isoquad_cube, isodual_info.sharpiso);
 
+    // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
+
     VERTEX_INDEX num_split;
     split_dual_isovert
       (scalar_grid, isodual_table, isovalue,
        isovert, isoquad_cube, facet_vertex,
-       iso_vlist_cube, iso_vlist_patch, dual_isosurface.quad_vert,
+       iso_vlist_cube, iso_vlist_patch, quad_vert,
        num_split);
     isodual_info.sharpiso.num_cube_multi_isov = num_split;
     isodual_info.sharpiso.num_cube_single_isov = 
       isovert.gcube_list.size() - num_split;
+
+    IJK::get_non_degenerate_quad_btlr
+      (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
 
     position_dual_isovertices
       (scalar_grid, isodual_table, isovalue, isovert,
