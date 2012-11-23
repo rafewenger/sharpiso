@@ -99,10 +99,10 @@ public:
 
 	bool operator () (int i,int j)
 	{
-    if ((*gcube_list)[i].num_eigen == (*gcube_list)[j].num_eigen)
-      { return ((*gcube_list)[i].linf_dist < (*gcube_list)[j].linf_dist); }
+    if ( gcube_list->at(i).num_eigen == gcube_list->at(j).num_eigen)
+      { return ((gcube_list->at(i).linf_dist) < (gcube_list->at(j).linf_dist)); }
     else
-      { return ((*gcube_list)[i].num_eigen > (*gcube_list)[j].num_eigen); }
+      { return ((gcube_list->at(i).num_eigen) > (gcube_list->at(j).num_eigen)); }
 	}
 };
 
