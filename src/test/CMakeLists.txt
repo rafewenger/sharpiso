@@ -47,3 +47,5 @@ ADD_EXECUTABLE(testambig testambig.cxx ijktable_poly.cxx ijktable_ambig.cxx
                          sh_point_datastruct.cxx sh_point_svdcal.cxx)
 
 ADD_EXECUTABLE(testbin testbin.cxx)
+
+ADD_EXECUTABLE(testsort testsort.cxx)

@@ -65,6 +65,11 @@ namespace SHARPISO {
 
   /// Index grid.  Signed to allow for -1.
   typedef IJK::SCALAR_GRID<SHARPISO_GRID, INDEX_DIFF_TYPE> SHARPISO_INDEX_GRID;
+
+  typedef IJK::BOOL_GRID_BASE<SHARPISO_GRID> 
+    SHARPISO_BOOL_GRID_BASE;        ///< Boolean grid base.
+  typedef IJK::BOOL_GRID<SHARPISO_GRID> 
+    SHARPISO_BOOL_GRID;             ///< Boolean grid.
 };
 
 #endif

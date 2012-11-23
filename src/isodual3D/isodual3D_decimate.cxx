@@ -194,3 +194,21 @@ namespace {
   }
 
 }
+
+
+// **************************************************
+// Determine is isopatch is a disk
+// **************************************************
+
+namespace {
+
+  /// Return true if isopatch for vertex iv is a disk.
+  bool is_isopatch_disk  
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert, VERTEX_INDEX iv,
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+  {
+  }
+
+}
+
