@@ -99,6 +99,8 @@ namespace IJK {
     template <typename DTYPE2, typename WTYPE>
     NTYPE ComputeNumVerticesInFacet
     (const DTYPE2 orth_dir, const WTYPE boundary_width) const;
+    template <typename DTYPE2>
+    NTYPE ComputeNumCubesInFacet(const DTYPE2 orth_dir) const;
     template <class GTYPE>
     VTYPE ComputeVertexIndex(const GTYPE * coord) const;
     template <class GTYPE>
@@ -2450,7 +2452,7 @@ namespace IJK {
   {
     IJK::ARRAY<ATYPE> subgrid_axis_size(dimension);
 
-    if (axis_size[orth_dir] == 0) { return; };
+    if (axis_size[orth_dir] < 2) { return; };
     std::copy(axis_size, axis_size+dimension, subgrid_axis_size.Ptr());
     subgrid_axis_size[orth_dir] = 2;
 
@@ -2460,7 +2462,7 @@ namespace IJK {
       IJK::ARRAY<VTYPE> axis_increment(dimension);
       compute_increment(dimension, axis_size, axis_increment.Ptr());
 
-      subgrid_origin = axis_increment[orth_dir]*(axis_size[orth_dir]-1);
+      subgrid_origin = axis_increment[orth_dir]*(axis_size[orth_dir]-2);
     }
 
     get_primary_cube_vertices
@@ -2888,6 +2890,53 @@ namespace IJK {
       }
     }
   
+  }
+
+  /// Get boundary grid cubes
+  template <class DTYPE, class ATYPE, class VTYPE>
+  void get_boundary_grid_cubes
+  (const DTYPE dimension, const ATYPE * axis_size, VTYPE * cube_list)
+  {
+    if (dimension < 1) { return; }
+    if (dimension == 1) {
+      if (axis_size[0] > 0) { cube_list[0] = 0; }
+      if (axis_size[0] > 2) { cube_list[1] = axis_size[0]-2; };
+      return;
+    }
+
+    DTYPE d_last = dimension - 1;
+    if (axis_size[d_last] < 2) { return; };
+
+    // get vertices in lower facet
+    VTYPE num_cubes_in_grid_facet;
+    compute_num_cubes_in_grid_facet(dimension, axis_size, d_last,
+                                    num_cubes_in_grid_facet);
+    get_cubes_in_grid_facet(dimension, axis_size, d_last, false, cube_list);
+
+    VTYPE * cube_list2 = cube_list+num_cubes_in_grid_facet;
+    VTYPE * cube_list3 = cube_list2;
+    if (axis_size[d_last] > 3) {
+      ATYPE axis_increment[dimension];
+
+      compute_increment(dimension, axis_size, axis_increment);
+      get_boundary_grid_cubes(dimension-1, axis_size, cube_list2);
+
+      VTYPE n;
+      compute_num_boundary_grid_cubes(dimension-1, axis_size, n);
+      for (VTYPE * vcur_ptr = cube_list2; vcur_ptr != cube_list2+n; vcur_ptr++)
+        { *vcur_ptr += axis_increment[d_last]; }
+
+      cube_list3 = cube_list2 + n;
+      for (ATYPE j = 2; j+2 < axis_size[d_last]; j++) {
+        VTYPE inc = axis_increment[d_last]*(j-1);
+
+        for (VTYPE i = 0; i < n; i++)  { cube_list3[i] = cube_list2[i] + inc; }
+
+        cube_list3 += n;
+      }
+    }
+
+    get_cubes_in_grid_facet(dimension, axis_size, d_last, true, cube_list3);
   }
 
   // ********************************************************
@@ -3378,6 +3427,18 @@ namespace IJK {
       (Dimension(), AxisSize(), orth_dir, boundary_width,
        num_vertices_in_facet);
     return(num_vertices_in_facet);
+  }
+
+  /// Compute and return number of cubes in facet.
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
+  template <typename DTYPE2>
+  NTYPE GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  ComputeNumCubesInFacet(const DTYPE2 orth_dir) const
+  {
+    NTYPE num_cubes_in_facet;
+    compute_num_cubes_in_grid_facet
+      (Dimension(), AxisSize(), orth_dir, num_cubes_in_facet);
+    return(num_cubes_in_facet);
   }
 
   /// Compute index of vertex with given coordinates.
