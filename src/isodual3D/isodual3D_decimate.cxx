@@ -23,7 +23,9 @@
 
 #include <vector>
 
+#include "ijkgraph.txx"
 #include "ijkmesh.txx"
+#include "ijkgrid_macros.h"
 
 #include "isodual3D_types.h"
 #include "isodual3D_datastruct.h"
@@ -197,17 +199,282 @@ namespace {
 
 
 // **************************************************
-// Determine is isopatch is a disk
+// Function class IS_ISOPATCH_DISK
 // **************************************************
 
 namespace {
 
-  /// Return true if isopatch for vertex iv is a disk.
-  bool is_isopatch_disk  
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
-   const ISOVERT & isovert, VERTEX_INDEX iv,
-   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+  /// Function class for determining if isopatch is a disk.
+  class IS_ISOPATCH_DISK {
+
+  protected:
+    static const AXIS_SIZE_TYPE num_vert_along_region_axis = 4;
+    static AXIS_SIZE_TYPE region_axis_size[DIM3];
+
+    SHARPISO_SCALAR_GRID regionScalar;
+    SHARPISO_BOOL_GRID cubeFlag;
+    SHARPISO_BOOL_GRID gridBoundary;
+    SHARPISO_BOOL_GRID selectedCubeBoundary;
+    SHARPISO_GRID_NEIGHBORS neighbor_grid;
+    std::vector<VERTEX_INDEX> selected_cube_boundary_cube_list;
+    bool * visited;
+
+    void SetCubeFlag
+    (const VERTEX_INDEX cube_index,
+     const ISOVERT & isovert,
+     const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
+    void SetScalar
+    (const SHARPISO_SCALAR_GRID & scalar_grid, const VERTEX_INDEX cube_index);
+
+    void SetRegionBoundary();
+    void GetBoundaryVertices
+    (const SCALAR_TYPE isovalue, const bool flag_pos,
+     std::vector<int> & vlist) const;
+    void GetBoundaryPosVertices
+    (const SCALAR_TYPE isovalue, std::vector<int> & vlist) const;
+    void GetBoundaryNegVertices
+    (const SCALAR_TYPE isovalue, std::vector<int> & vlist) const;
+    void GetBoundaryEdges
+    (const SCALAR_TYPE isovalue, const bool flag_pos,
+     std::vector<int> & elist) const;
+    void GetBoundaryPosEdges
+    (const SCALAR_TYPE isovalue, std::vector<int> & elist) const;
+    void GetBoundaryNegEdges
+    (const SCALAR_TYPE isovalue, std::vector<int> & elist) const;
+
+  public:
+    IS_ISOPATCH_DISK();
+    ~IS_ISOPATCH_DISK();
+
+    bool IsIsopatchDisk
+    (const SHARPISO_SCALAR_GRID & scalar_grid,
+     SCALAR_TYPE isovalue,
+     const VERTEX_INDEX cube_index,
+     const ISOVERT & isovert,
+     const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
+  };
+
+
+  /// Constructor for IS_ISOPATCH_DISK
+  IS_ISOPATCH_DISK::IS_ISOPATCH_DISK()
   {
+    for (int d = 0; d < DIM3; d++) 
+      { region_axis_size[d] = num_vert_along_region_axis; }
+
+    cubeFlag.SetSize(DIM3, region_axis_size);
+    selectedCubeBoundary.SetSize(DIM3, region_axis_size);
+    regionScalar.SetSize(DIM3, region_axis_size);
+
+    gridBoundary.SetSize(DIM3, region_axis_size);
+    compute_boundary_grid(gridBoundary);
+
+    selected_cube_boundary_cube_list.resize
+      (selectedCubeBoundary.ComputeNumBoundaryCubes());
+    IJK::get_boundary_grid_cubes
+      (DIM3, region_axis_size, &(selected_cube_boundary_cube_list[0]));
+
+    visited = new bool[regionScalar.NumVertices()];
+  }
+
+  /// Destructor for IS_ISOPATCH_DISK
+  IS_ISOPATCH_DISK::~IS_ISOPATCH_DISK()
+  {
+    delete [] visited;
+    visited = NULL;
+  }
+
+  bool IS_ISOPATCH_DISK::IsIsopatchDisk
+    (const SHARPISO_SCALAR_GRID & scalar_grid,
+     const SCALAR_TYPE isovalue,
+     const VERTEX_INDEX cube_index,
+     const ISOVERT & isovert,
+     const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+  {
+    std::vector<VERTEX_INDEX> vlist;
+    std::vector<VERTEX_INDEX> elist;
+
+    neighbor_grid.SetSize(scalar_grid);
+
+    SetCubeFlag(cube_index, isovert, gcube_map);
+    SetRegionBoundary();
+
+    // Compute number of positive components.
+    GetBoundaryPosVertices(isovalue, vlist);
+    GetBoundaryPosEdges(isovalue, elist);
+
+    int num_pos;
+    IJK::compute_num_connected_components_using_elist
+      (IJK::vector2pointer(vlist), vlist.size(), regionScalar.NumVertices(),
+       IJK::vector2pointer(elist), elist.size()/2,
+       num_pos, visited);
+
+    // Compute number of negative components.
+    GetBoundaryNegVertices(isovalue, vlist);
+    GetBoundaryNegEdges(isovalue, elist);
+
+    int num_neg;
+    IJK::compute_num_connected_components_using_elist
+      (IJK::vector2pointer(vlist), vlist.size(), regionScalar.NumVertices(),
+       IJK::vector2pointer(elist), elist.size()/2,
+       num_neg, visited);
+
+    if (num_pos <= 1 && num_neg <= 1)
+      { return(true); }
+    else
+      { return(false); }
+  }
+
+  void IS_ISOPATCH_DISK::SetScalar
+  (const SHARPISO_SCALAR_GRID & scalar_grid, const VERTEX_INDEX cube_index)
+  {
+    VERTEX_INDEX iv0 = 
+      cube_index -  neighbor_grid.CubeVertexIncrement(NUM_CUBE_VERTICES3D-1);
+    regionScalar.CopyRegion(scalar_grid, iv0, region_axis_size, 0);
+
+  }
+
+  void IS_ISOPATCH_DISK::SetCubeFlag
+  (const VERTEX_INDEX cube_index,
+   const ISOVERT & isovert,
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+  {
+    cubeFlag.SetAll(false);
+
+    VERTEX_INDEX iv0 = 
+      cube_index -  neighbor_grid.CubeVertexIncrement(NUM_CUBE_VERTICES3D-1);
+
+    VERTEX_INDEX iv_z = iv0;
+    VERTEX_INDEX icube_z = 0;
+    for (int z = 0; z < cubeFlag.AxisSize(2); z++) {
+      VERTEX_INDEX iv_y = iv_z;
+      VERTEX_INDEX icube_y = icube_z;
+      for (int y = 0; y < cubeFlag.AxisSize(1); y++) {
+        VERTEX_INDEX iv_x = iv_y;
+        VERTEX_INDEX icube_x = icube_y;
+        for (int x = 0; x < cubeFlag.AxisSize(1); x++) {
+
+          INDEX_DIFF_TYPE gcube_index = isovert.sharp_ind_grid.Scalar(iv_x);
+          if (gcube_index != ISOVERT::NO_INDEX) {
+            if (gcube_map[gcube_index] == cube_index) {
+              cubeFlag.Set(icube_x, true);
+            }
+          }
+
+          iv_x = neighbor_grid.NextVertex(0, iv_x);
+          icube_x = cubeFlag.NextVertex(0, icube_x);
+        }
+        iv_y = neighbor_grid.NextVertex(1, iv_y);
+        icube_y = cubeFlag.NextVertex(1, icube_y);
+      }
+      iv_z = neighbor_grid.NextVertex(2, iv_z);
+      icube_z = cubeFlag.NextVertex(2, icube_z);
+    }
+
+  }
+
+
+  /// Set region boundary.
+  /// @pre Region is a 4x4x4 patch and center cube is in region.
+  void IS_ISOPATCH_DISK::SetRegionBoundary()
+  {
+    selectedCubeBoundary.SetAll(false);
+
+    for (NUM_TYPE i = 0; i < selected_cube_boundary_cube_list.size(); i++) {
+      VERTEX_INDEX icube = selected_cube_boundary_cube_list[i];
+
+      if (cubeFlag.Scalar(icube)) {
+
+        for (NUM_TYPE j = 0; j < NUM_CUBE_VERTICES3D; j++) {
+          VERTEX_INDEX iv = selectedCubeBoundary.CubeVertex(icube, j);
+          if (gridBoundary.Scalar(iv)) 
+            { selectedCubeBoundary.Set(iv, true); }
+        }
+      }
+      else {
+        for (NUM_TYPE j = 0; j < NUM_CUBE_VERTICES3D; j++) {
+          VERTEX_INDEX iv = selectedCubeBoundary.CubeVertex(icube, j);
+          if (!gridBoundary.Scalar(iv)) 
+            { selectedCubeBoundary.Set(iv, true); }
+        }
+      }
+    }
+  }
+
+  void IS_ISOPATCH_DISK::GetBoundaryVertices
+  (const SCALAR_TYPE isovalue, const bool flag_pos,
+   std::vector<int> & vlist) const 
+  {
+    if (flag_pos) 
+      { GetBoundaryPosVertices(isovalue, vlist); }
+    else 
+      { GetBoundaryNegVertices(isovalue, vlist); }
+  }
+
+  void IS_ISOPATCH_DISK::GetBoundaryPosVertices
+  (const SCALAR_TYPE isovalue, std::vector<int> & vlist) const 
+  {
+    vlist.clear();
+    for (NUM_TYPE iv = 0; iv < selectedCubeBoundary.NumVertices(); iv++) {
+      if (selectedCubeBoundary.Scalar(iv) && 
+          regionScalar.Scalar(iv) >= isovalue)
+        { vlist.push_back(iv); }
+    }
+  }
+
+  void IS_ISOPATCH_DISK::GetBoundaryNegVertices
+  (const SCALAR_TYPE isovalue, std::vector<int> & vlist) const 
+  {
+    vlist.clear();
+    for (NUM_TYPE iv = 0; iv < selectedCubeBoundary.NumVertices(); iv++) {
+      if (selectedCubeBoundary.Scalar(iv) && 
+          regionScalar.Scalar(iv) < isovalue)
+        { vlist.push_back(iv); }
+    }
+  } 
+
+  void IS_ISOPATCH_DISK::GetBoundaryEdges
+  (const SCALAR_TYPE isovalue, const bool flag_pos,
+   std::vector<int> & elist) const 
+  {
+    if (flag_pos) 
+      { GetBoundaryPosEdges(isovalue, elist); }
+    else 
+      { GetBoundaryNegEdges(isovalue, elist); }
+  }
+
+
+  void IS_ISOPATCH_DISK::GetBoundaryPosEdges
+  (const SCALAR_TYPE isovalue, std::vector<int> & elist) const 
+  {
+    elist.clear();
+    IJK_FOR_EACH_GRID_EDGE(iv0, dir, selectedCubeBoundary, VERTEX_INDEX) 
+      {
+      VERTEX_INDEX iv1 = selectedCubeBoundary.NextVertex(iv0, dir);
+      if (selectedCubeBoundary.Scalar(iv0) && 
+          regionScalar.Scalar(iv0) >= isovalue &&
+          selectedCubeBoundary.Scalar(iv1) &&
+          regionScalar.Scalar(iv1) >= isovalue ) {
+        elist.push_back(iv0);
+        elist.push_back(iv1);
+      }
+    }
+  }
+
+  void IS_ISOPATCH_DISK::GetBoundaryNegEdges
+  (const SCALAR_TYPE isovalue, std::vector<int> & elist) const 
+  {
+    elist.clear();
+    IJK_FOR_EACH_GRID_EDGE(iv0, dir, selectedCubeBoundary, VERTEX_INDEX) 
+      {
+      VERTEX_INDEX iv1 = selectedCubeBoundary.NextVertex(iv0, dir);
+      if (selectedCubeBoundary.Scalar(iv0) && 
+          regionScalar.Scalar(iv0) < isovalue &&
+          selectedCubeBoundary.Scalar(iv1) &&
+          regionScalar.Scalar(iv1) < isovalue ) {
+        elist.push_back(iv0);
+        elist.push_back(iv1);
+      }
+    }
   }
 
 }
