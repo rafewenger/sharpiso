@@ -83,10 +83,19 @@ public:
 // ROUTINES
 // **************************************************
 
-// Compute the ISOVERT object.
+/// Compute dual isosurface vertices.
 void compute_dual_isovert
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const GRADIENT_GRID_BASE & gradient_grid,
+		const SCALAR_TYPE isovalue,
+		const SHARP_ISOVERT_PARAM & isovert_param,
+		ISOVERT &isovertData);
+
+/// Compute dual isosurface vertices.
+void compute_dual_isovert(
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+    const std::vector<COORD_TYPE> & edgeI_coord,
+    const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
 		const SCALAR_TYPE isovalue,
 		const SHARP_ISOVERT_PARAM & isovert_param,
 		ISOVERT &isovertData);

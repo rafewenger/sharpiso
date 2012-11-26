@@ -62,6 +62,31 @@ namespace {
     num_gradients++;
   }
 
+  inline void add_gradient
+  (const std::vector<COORD_TYPE> & edgeI_coord,
+   const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
+   const NUM_TYPE j,
+   const SCALAR_TYPE s,
+   std::vector<COORD_TYPE> & point_coord,
+   std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+   std::vector<SCALAR_TYPE> & scalar,
+   NUM_TYPE & num_gradients)
+  {
+    NUM_TYPE ic = point_coord.size();
+    point_coord.resize(ic+DIM3);
+    std::copy(edgeI_coord.begin()+j*DIM3, edgeI_coord.begin()+j*DIM3+DIM3,
+              point_coord.begin()+ic);
+
+    gradient_coord.resize(ic+DIM3);
+    std::copy(edgeI_normal_coord.begin()+j*DIM3, 
+              edgeI_normal_coord.begin()+j*DIM3+DIM3,
+              gradient_coord.begin()+ic);
+
+    scalar.push_back(s);
+
+    num_gradients++;
+  }
+
   inline void add_large_gradient
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -1136,6 +1161,49 @@ void SHARPISO::get_edgeI_sharp_gradients
         gradient_coord.push_back(cube.edges[i].pt_intersect.grads[d]);
       }
       num_gradients++;
+    }
+  }
+}
+
+
+/// Get gradients from list of edge-isosurface intersections.
+/// @param sharpiso_param Determines which gradients are selected.
+/// @param flag_sort_gradients If true, sort gradients.  
+///        Overrides flag_sort_gradients in sharpiso_param.
+void SHARPISO::get_gradients_from_list
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const std::vector<COORD_TYPE> & edgeI_coord,
+ const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
+ const SHARPISO_EDGE_INDEX_GRID & edge_index,
+ const VERTEX_INDEX cube_index,
+ const SCALAR_TYPE isovalue,
+ const GET_GRADIENTS_PARAM & sharpiso_param,
+ std::vector<COORD_TYPE> & point_coord,
+ std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+ std::vector<SCALAR_TYPE> & scalar,
+ NUM_TYPE & num_gradients)
+{
+  IJK::PROCEDURE_ERROR error("get_gradients_from_list");
+
+  for (NUM_TYPE edge_dir = 0; edge_dir < DIM3; edge_dir++) {
+
+    for (NUM_TYPE k = 0; k < NUM_CUBE_FACET_VERTICES3D; k++) {
+      VERTEX_INDEX iv0 = scalar_grid.FacetVertex(cube_index, edge_dir, k);
+      VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, edge_dir);
+
+      if (IJK::is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
+        INDEX_DIFF_TYPE j = edge_index.Vector(iv0, edge_dir);
+
+        if (j < 0) {
+          error.AddMessage
+            ("Error.  Missing edge-isosurface intersection for edge (",
+             iv0, ",", iv1, ").");
+          throw error;
+        }
+
+        add_gradient(edgeI_coord, edgeI_normal_coord, j, isovalue,
+                     point_coord, gradient_coord, scalar, num_gradients);
+      }
     }
   }
 }

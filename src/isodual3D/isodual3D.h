@@ -117,6 +117,8 @@ namespace ISODUAL3D {
    MERGE_DATA & merge_data,
    ISODUAL_INFO & isodual_info);
 
+  /// Extract dual contouring isosurface by merging grid cubes
+  ///   around sharp vertices.
   /// Dual Contouring algorithm for sharp isosurface features.
   /// Merges grid cubes around sharp vertices.
   /// Return list of isosurface triangle and quad vertices
@@ -129,6 +131,22 @@ namespace ISODUAL3D {
      DUAL_ISOSURFACE & dual_isosurface,
      ISOVERT & isovert,
      ISODUAL_INFO & isodual_info);
+
+  /// Extract dual contouring isosurface by merging grid cubes
+  ///   around sharp vertices.
+  /// Returns list of isosurface triangle and quad vertices
+  ///   and list of isosurface vertex coordinates.
+  /// Use input edge-isosurface intersections and normals
+  ///   to position isosurface vertices on sharp features.
+  void dual_contouring_merge_sharp
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const std::vector<COORD_TYPE> & edgeI_coord,
+   const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   DUAL_ISOSURFACE & dual_isosurface,
+   ISOVERT & isovert,
+   ISODUAL_INFO & isodual_info);
 
 }
 

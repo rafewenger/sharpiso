@@ -27,7 +27,6 @@ using namespace ISODUAL3D;
 using namespace IJK;
 
 
-
 void compute_linf_dist
 ( const SHARPISO_SCALAR_GRID_BASE & scalar_grid, const VERTEX_INDEX iv,
 		COORD_TYPE isovert_coord[DIM3],SCALAR_TYPE &linf_dist);
@@ -65,6 +64,91 @@ void compute_isovert_positions (
 
 			svd_compute_sharp_vertex_for_cube
 			(scalar_grid, gradient_grid, iv, isovalue, isovert_param, cube_111,
+					isovertData.gcube_list[index].isovert_coord,
+					eigenvalues, num_large_eigenvalues, svd_info);
+
+			//set num eigen
+			isovertData.gcube_list[index].num_eigen =  (unsigned char)num_large_eigenvalues;
+			//set the sharp vertex type to be *AVAILABLE*
+			if(num_large_eigenvalues > 1)
+				isovertData.gcube_list[index].flag=AVAILABLE_GCUBE;
+			else
+				isovertData.gcube_list[index].flag=SMOOTH_GCUBE;
+
+			// store distance
+			compute_linf_dist( scalar_grid, iv,
+					isovertData.gcube_list[index].isovert_coord,
+					isovertData.gcube_list[index].linf_dist);
+			// store boundary bits
+			scalar_grid.ComputeBoundaryCubeBits
+			(iv,isovertData.gcube_list[index].boundary_bits);
+		}
+	}
+}
+
+
+void round_down(const COORD_TYPE * coord, GRID_COORD_TYPE min_coord[DIM3])
+{
+  for (NUM_TYPE d = 0; d < DIM3; d++)
+    { min_coord[d] = int(std::floor(coord[d])); }
+}
+
+void set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
+                    SHARPISO_EDGE_INDEX_GRID & edge_index)
+{
+  GRID_COORD_TYPE min_coord[DIM3];
+
+  for (NUM_TYPE i = 0; i < edgeI_coord.size()/DIM3; i++) {
+    round_down(&(edgeI_coord[i*DIM3]), min_coord);
+
+    int edge_dir = 0;
+    for (int d = 1; d < DIM3; d++) {
+      if (edgeI_coord[i*DIM3+d] != min_coord[d]) { edge_dir = d; }
+    }
+
+    VERTEX_INDEX iv0 = edge_index.ComputeVertexIndex(min_coord);
+
+    edge_index.Set(iv0, edge_dir, i);
+  }
+}
+
+
+/*
+ * Traverse the *isovertData.sharp_ind_grid*
+ * if index is not ISOVERT::NO_INDEX then compute the sharp vertex for the cube
+ * set grid_cube_flag to be avaliable
+ */
+void compute_isovert_positions (
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+    const std::vector<COORD_TYPE> & edgeI_coord,
+    const std::vector<COORD_TYPE> & edgeI_normal_coord,
+		const SCALAR_TYPE isovalue,
+		const SHARP_ISOVERT_PARAM & isovert_param,
+		ISOVERT &isovertData)
+{
+	const SIGNED_COORD_TYPE grad_selection_cube_offset =
+			isovert_param.grad_selection_cube_offset;
+	OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+  SHARPISO_EDGE_INDEX_GRID edge_index
+    (DIM3, scalar_grid.AxisSize(), DIM3);
+	SVD_INFO svd_info;
+
+  edge_index.SetAllCoord(ISOVERT::NO_INDEX);
+  set_edge_index(edgeI_coord, edge_index);
+
+	IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX)
+	{
+		NUM_TYPE index = isovertData.sharp_ind_grid.Scalar(iv);
+		if (index!=ISOVERT::NO_INDEX)
+		{
+			// this is an active cube
+			// compute the sharp vertex for this cube
+			EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
+			VERTEX_INDEX num_large_eigenvalues;
+
+			svd_compute_sharp_vertex_for_cube
+        (scalar_grid, edgeI_coord, edgeI_normal_coord, edge_index,
+         iv, isovalue, isovert_param, cube_111,
 					isovertData.gcube_list[index].isovert_coord,
 					eigenvalues, num_large_eigenvalues, svd_info);
 
@@ -307,7 +391,6 @@ void bin_grid_insert
 void select_3x3x3_regions
 (
  const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
  const SHARP_ISOVERT_PARAM & isovert_param,
  vector<NUM_TYPE> sortd_ind2gcube_list,
@@ -333,21 +416,9 @@ void select_3x3x3_regions
           (cube_ind_frm_gc_ind(isovertData, sortd_ind2gcube_list[ind]),AVAILABLE_GCUBE)
           && c.linf_dist < isovertData.linf_dist_threshold) {
 
-        /* OBSOLETE
-        bool triangle_flag2 = 
-          creates_triangle(scalar_grid, c.cube_index, isovalue, selected_list);
-        */
-
         bool triangle_flag = 
           creates_triangle(scalar_grid, c.cube_index, 
                            isovalue, bin_grid, bin_width);
-
-        /* OBSOLETE
-        /// *** DEBUG ***
-        if (triangle_flag != triangle_flag2) {
-          cerr << "Mismatch on vertex " << c.cube_index << endl;
-        }
-        */
 
         if (!triangle_flag) {
 
@@ -393,7 +464,6 @@ void select_3x3x3_regions
  */
 void create_active_cubes (
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID_BASE & gradient_grid,
 		const SCALAR_TYPE isovalue,
 		ISOVERT &isovertData)
 {
@@ -521,7 +591,7 @@ void ISODUAL3D::compute_dual_isovert(
 		const SHARP_ISOVERT_PARAM & isovert_param,
 		ISOVERT &isovertData)
 {
-	create_active_cubes(scalar_grid, gradient_grid, isovalue, isovertData);
+	create_active_cubes(scalar_grid, isovalue, isovertData);
 
 	compute_isovert_positions 
     (scalar_grid, gradient_grid, isovalue, isovert_param, isovertData);
@@ -529,8 +599,30 @@ void ISODUAL3D::compute_dual_isovert(
 	// keep track of the sorted indices
 	std::vector<NUM_TYPE> sortd_ind2gcube_list;
 	sort_gcube_list(sortd_ind2gcube_list, isovertData.gcube_list);
-	select_3x3x3_regions (scalar_grid, gradient_grid, isovalue,
-			isovert_param, sortd_ind2gcube_list, isovertData);
+	select_3x3x3_regions (scalar_grid, isovalue, isovert_param, 
+                        sortd_ind2gcube_list, isovertData);
+}
+
+
+void ISODUAL3D::compute_dual_isovert(
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+    const std::vector<COORD_TYPE> & edgeI_coord,
+    const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
+		const SCALAR_TYPE isovalue,
+		const SHARP_ISOVERT_PARAM & isovert_param,
+		ISOVERT &isovertData)
+{
+	create_active_cubes(scalar_grid, isovalue, isovertData);
+
+	compute_isovert_positions 
+    (scalar_grid, edgeI_coord, edgeI_normal_coord, 
+     isovalue, isovert_param, isovertData);
+
+	// keep track of the sorted indices
+	std::vector<NUM_TYPE> sortd_ind2gcube_list;
+	sort_gcube_list(sortd_ind2gcube_list, isovertData.gcube_list);
+	select_3x3x3_regions (scalar_grid, isovalue, isovert_param, 
+                        sortd_ind2gcube_list, isovertData);
 }
 
 

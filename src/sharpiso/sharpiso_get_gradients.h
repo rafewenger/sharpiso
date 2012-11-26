@@ -255,6 +255,23 @@ namespace SHARPISO {
      std::vector<SCALAR_TYPE> & scalar,
      NUM_TYPE & num_gradients);
 
+  /// Get gradients from list of edge-isosurface intersections.
+  /// @param sharpiso_param Determines which gradients are selected.
+  /// @param flag_sort_gradients If true, sort gradients.  
+  ///        Overrides flag_sort_gradients in sharpiso_param.
+  void get_gradients_from_list
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const std::vector<COORD_TYPE> & edgeI_coord,
+   const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
+   const SHARPISO_EDGE_INDEX_GRID & edge_index,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const GET_GRADIENTS_PARAM & sharpiso_param,
+   std::vector<COORD_TYPE> & point_coord,
+   std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+   std::vector<SCALAR_TYPE> & scalar,
+   NUM_TYPE & num_gradients);
+
   // **************************************************
   // GET VERTICES
   // **************************************************

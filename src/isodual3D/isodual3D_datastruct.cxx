@@ -270,7 +270,7 @@ void ISODUAL_DATA::SetEdgeI
   this->edgeI_normal_coord.resize(edgeI_normal_coord.size());
   std::copy(edgeI_coord.begin(), edgeI_coord.end(), this->edgeI_coord.begin());
   std::copy(edgeI_normal_coord.begin(), edgeI_normal_coord.end(), 
-            this->edgeI_coord.begin());
+            this->edgeI_normal_coord.begin());
 
   are_edgeI_set = true;
 }
