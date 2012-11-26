@@ -6,7 +6,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011,2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -49,6 +49,12 @@ namespace IJK {
     (std::ostream & out, const int numv_per_polygon,
      const VTYPE * poly_vert, const int nump);
 
+    /// Output polytope vertices
+    template <typename NTYPE, typename VTYPE, typename ITYPE>
+    void ijkoutPolytopeVertices
+    (std::ostream & out, 
+     const NTYPE * num_poly_vert, const VTYPE * poly_vert,
+     const ITYPE * first_poly_vert, const int num_poly);
 
     /// Output vector endpoint coordinates.
     template <typename CTYPE0, typename CTYPE1, typename CTYPE2> 
@@ -333,6 +339,37 @@ namespace IJK {
               vector2pointer(poly2_vlist), numv_per_poly2, num_poly2);
   }
 
+  /// Output Geomview .off file.
+  /// Multiple polytope types.
+  /// @param out = Output stream.
+  /// @param dim = Dimension of vertices.
+  /// @param coord = Array of coordinates. 
+  ///        coord[dim*i+k] = k'th coordinate of vertex i (k < dim).
+
+  template <typename CTYPE, typename NTYPE, typename VTYPE, typename ITYPE> 
+  void ijkoutPolytopeOFF
+  (std::ostream & out, const int dim, const CTYPE * coord, const int numv,
+   const NTYPE * num_poly_vert, const VTYPE * poly_vert,
+   const ITYPE * first_poly_vert, const int num_poly)
+  {
+    IJK::PROCEDURE_ERROR error("ijkoutPolytopeOFF");
+
+    if (dim == 3) { out << "OFF" << std::endl; }
+    else if (dim == 4) { out << "4OFF" << std::endl;}
+    else {
+      out << "nOFF" << std::endl;
+      out << dim << std::endl;
+    };
+
+    out << numv << " " << num_poly << " " << 0 << std::endl;
+
+    ijkoutVertexCoord(out, dim, coord, numv);
+    out << std::endl;
+
+    ijkoutPolytopeVertices
+      (out, num_poly_vert, poly_vert, first_poly_vert, num_poly);
+  }
+
   /// Output Geomview .off file. Color vertices.
   template <typename T, typename colorT> void ijkoutColorVertOFF
   (std::ostream & out, const int dim, const int numv_per_simplex,   
@@ -486,6 +523,40 @@ namespace IJK {
 
   }
 
+  /// Output Geomview .off file. Color mesh faces.
+  /// Two types of polytopes.
+  template <typename CTYPE, typename VTYPE1, typename VTYPE2,
+            typename colorT> 
+  void ijkoutColorFacesOFF
+  (std::ostream & out, const int dim, const CTYPE * coord, const int numv,
+   const VTYPE1 * poly1_vlist, const int numv_per_poly1, const int num_poly1,
+   const colorT * poly1_front_color, const colorT * poly1_back_color,
+   const VTYPE2 * poly2_vlist, const int numv_per_poly2, const int num_poly2,
+   const colorT * poly2_front_color, const colorT * poly2_back_color)
+  {
+    const int num_poly = num_poly1 + num_poly2;
+    IJK::PROCEDURE_ERROR error("ijkoutOFF");
+
+    out << "D";
+    if ((poly1_back_color != NULL) && (poly2_back_color != NULL))
+      { out << "D"; }
+    if (dim == 3) { out << "OFF" << std::endl; }
+    else if (dim == 4) { out << "4OFF" << std::endl;}
+    else {
+      out << "nOFF" << std::endl;
+      out << dim << std::endl;
+    };
+
+    out << numv << " " << num_poly << " " << 0 << std::endl;
+
+    ijkoutVertexCoord(out, dim, coord, numv);
+    out << std::endl;
+    ijkoutPolygonVerticesColor(out, numv_per_poly1, poly1_vlist, num_poly1, 
+                               poly1_front_color, poly1_back_color);
+    ijkoutPolygonVerticesColor(out, numv_per_poly2, poly2_vlist, num_poly2,
+                               poly2_front_color, poly2_back_color);
+  }
+
   /// Output Geomview .off file to standard output. Color simplices.
   template <typename T, typename colorT> void ijkoutColorFacesOFF
   (const int dim, const int numv_per_simplex, 
@@ -511,6 +582,28 @@ namespace IJK {
       (out, dim, numv_per_simplex, vector2pointer(coord), coord.size()/dim,
        vector2pointer(simplex_vert), simplex_vert.size()/numv_per_simplex,
        front_color, back_color);
+  }
+
+  /// Output Geomview .off file. Color faces.
+  /// Two types of polytopes.
+  template <typename CTYPE, typename VTYPE1, typename VTYPE2, typename colorT> 
+  void ijkoutColorFacesOFF
+  (std::ostream & out, const int dim, const std::vector<CTYPE> & coord,
+   const std::vector<VTYPE1> & poly1_vlist, const int numv_per_poly1,
+   const colorT * poly1_front_color, const colorT * poly1_back_color,
+   const std::vector<VTYPE2> & poly2_vlist, const int numv_per_poly2,
+   const colorT * poly2_front_color, const colorT * poly2_back_color)
+  {
+    const int numv = coord.size()/dim;
+    const int num_poly1 = poly1_vlist.size()/numv_per_poly1;
+    const int num_poly2 = poly2_vlist.size()/numv_per_poly2;
+
+    ijkoutColorFacesOFF
+      (out, dim, vector2pointer(coord), numv,
+       vector2pointer(poly1_vlist), numv_per_poly1, num_poly1,
+       poly1_front_color, poly1_back_color,
+       vector2pointer(poly2_vlist), numv_per_poly2, num_poly2,
+       poly2_front_color, poly2_back_color);
   }
 
   /// Output Geomview .off file. Output vertex normals.
@@ -861,16 +954,25 @@ namespace IJK {
   }
 
   /// \brief Read header of Geomview .off file.
-  /// @param in = Input stream.
-  /// @param dim = Vertex dimension.
-  /// @param numv = Number of vertices.
-  /// @param nums = Number of simplices.
-  /// @param nume = Number of edges.
+  /// @param in Input stream.
+  /// @param dim Vertex dimension.
+  /// @param numv Number of vertices.
+  /// @param nums Number of simplices.
+  /// @param nume Number of edges.
+  /// @param flag_normals Normals flag.  True if file contains vertex normals.
   inline void ijkinOFFheader
-  (std::istream & in, int & dim, int & numv, int & nums, int & nume)
+  (std::istream & in, int & dim, int & numv, int & nums, int & nume,
+   bool & flag_normals)
   {
     std::string header_keyword;
     IJK::PROCEDURE_ERROR error("ijkinOFF");
+
+    // Initialize
+    dim = 0;
+    numv = 0;
+    nums = 0;
+    nume = 0;
+    flag_normals = false;
 
     if (!in.good()) {
       error.AddMessage("Error reading from input stream in.");
@@ -889,7 +991,7 @@ namespace IJK {
     bool flag_valid_header = true;
     int hksize = header_keyword.size() ;
     if (hksize < 3) { flag_valid_header = false; }
-    else if (header_keyword.substr(hksize-3, 3) != "OFF") 
+    else if (header_keyword.substr(hksize-3, 3) != "OFF")
       { flag_valid_header = false; }
     else {
       dim = 3;  // default dimension
@@ -899,6 +1001,25 @@ namespace IJK {
           { dim = 4; }
         else if (header_keyword.substr(hksize-4, 4) == "nOFF") 
           { in >> dim; }
+      }
+
+      std::string prefix = header_keyword.substr(0, hksize-3);
+
+      int prefix_size = prefix.size();
+      if ( prefix_size >= 1) {
+
+        if (prefix[prefix_size-1] == '3' ||
+            prefix[prefix_size-1] == '4' ||
+            prefix[prefix_size-1] == 'n') {
+          prefix = prefix.substr(0, prefix_size-1); 
+          prefix_size = prefix_size-1;
+        }
+      }
+
+      if (prefix_size >= 1) {
+
+        if (prefix[prefix_size-1] == 'N') 
+          { flag_normals = true; }
       }
     }
 
@@ -919,6 +1040,20 @@ namespace IJK {
       error.AddMessage("Error reading number of vertices and polyhedra from input stream in.");
       throw error;
     }
+  }
+
+  /// \brief Read header of Geomview .off file.
+  /// @param in = Input stream.
+  /// @param dim = Vertex dimension.
+  /// @param numv = Number of vertices.
+  /// @param nums = Number of simplices.
+  /// @param nume = Number of edges.
+  inline void ijkinOFFheader
+  (std::istream & in, int & dim, int & numv, int & nums, int & nume)
+  {
+    bool flag_normals;
+
+    ijkinOFFheader(in, dim, numv, nums, nume, flag_normals);
   }
 
   /// \brief Read coordinates from Geomview .off file.
@@ -958,12 +1093,60 @@ namespace IJK {
     }
   }
 
+  /// \brief Read coordinates and normals from Geomview .off file.
+  ///
+  /// Ignores any color information.
+  /// @param in Input stream.
+  /// @param dim Dimension of vertices.
+  /// @param numv Number of vertices.
+  /// @param coord Array of coordinates. 
+  ///        coord[dim*i+k] k'th coordinate of vertex i (k < dim).
+  /// @pre Array coord[] is preallocated with size at least \a numv * \a dim.
+  /// @param normal Array of normals.
+  ///        normal[dim*i+k] k'th coordinate of normal of vertex i (k < dim).
+  /// @pre Array normal[] is preallocated with size at least \a numv * \a dim.
+  template <typename CTYPE, typename NTYPE> void ijkinNOFFcoord
+  (std::istream & in, const int dim, const int numv, 
+   CTYPE * coord, NTYPE * normal)
+  {
+    IJK::PROCEDURE_ERROR error("ijkinNOFFcoord");
+
+    if (!in.good()) {
+      error.AddMessage("Error reading coordinates from input stream in.");
+      throw error;
+    }
+
+    if (coord == NULL) 
+      if (numv > 0 && dim > 0) {
+        error.AddMessage("Programming error. Array coord[] not allocated.");
+        throw error;
+      }
+
+    for (int iv = 0; iv < numv; iv++) {
+      for (int d = 0; d < dim; d++) 
+        { in >> coord[iv*dim + d]; };
+
+      if (!in.good()) {
+        error.AddMessage("Error reading coordinates of vertex ", iv,
+                         " from input stream in.");
+        throw error;
+      }
+
+      for (int d = 0; d < dim; d++) 
+        { in >> normal[iv*dim + d]; };
+
+      if (!in.good()) {
+        error.AddMessage("Error reading normals of vertex ", iv,
+                         " from input stream in.");
+        throw error;
+      }
+    }
+  }
+
   /// \brief Read coordinates from Geomview .off file.
   template <typename T> void ijkinOFFcoord
   (std::istream & in, const int dim, const int numv, std::vector<T> & coord)
   {
-    IJK::PROCEDURE_ERROR error("ijkinOFFcoord");
-
     if (dim < 1) {
       coord.clear();
       return;
@@ -972,6 +1155,23 @@ namespace IJK {
     coord.resize(dim*numv);
 
     ijkinOFFcoord(in, dim, numv, &(coord[0]));
+  }
+
+  /// \brief Read coordinates from Geomview .off file.
+  template <typename CTYPE, typename NTYPE> void ijkinNOFFcoord
+  (std::istream & in, const int dim, const int numv, 
+   std::vector<CTYPE> & coord, std::vector<NTYPE> & normal)
+  {
+    if (dim < 1) {
+      coord.clear();
+      normal.clear();
+      return;
+    }
+
+    coord.resize(dim*numv);
+    normal.resize(dim*numv);
+
+    ijkinNOFFcoord(in, dim, numv, &(coord[0]), &(normal[0]));
   }
 
   /// \brief Read vertex indices from Geomview .off file.
@@ -1226,6 +1426,53 @@ namespace IJK {
     ijkinOFF(std::cin, dim, coord, numv, simplex_vert, nums);
   }
 
+  /// \brief Read Geomview .off file.
+  /// Read normal information from files with NOFF header.
+  /// C++ STL vector format for coord[], normal[], and simplex_vert[].
+  template <typename CTYPE, typename NTYPE> void ijkinOFF
+  (std::istream & in, int & dim, int & mesh_dim,
+   std::vector<CTYPE> & coord, std::vector<NTYPE> & normal, 
+   std::vector<int> & simplex_vert)
+  {
+    bool flag_normals;
+    int numv, nums, nume;
+
+    IJK::PROCEDURE_ERROR error("ijkinOFF");
+
+    coord.clear();
+    normal.clear();
+    simplex_vert.clear();
+
+    mesh_dim = 0;            // default mesh dimension
+
+    ijkinOFFheader(in, dim, numv, nums, nume, flag_normals);
+
+    if (flag_normals) {
+      ijkinNOFFcoord(in, dim, numv, coord, normal);
+    }
+    else {
+      ijkinOFFcoord(in, dim, numv, coord);
+    }
+
+    if (nums > 0) {
+      // use first simplex to set mesh dimension
+      int num_simplex_vert = 0;
+      in >> num_simplex_vert;
+      if (num_simplex_vert > 0) { 
+        mesh_dim = num_simplex_vert-1; 
+      }
+      else { mesh_dim = 0; };
+
+      simplex_vert.resize(nums*num_simplex_vert);
+
+      // read vertices of first simplex
+      ijkinOFFpolyVert(in, 0, num_simplex_vert, simplex_vert);
+
+      // read remaining simplex vertices
+      ijkinOFFsimplex(in, 1, nums-1, num_simplex_vert, simplex_vert);
+    };
+  }
+
   /// \brief Read triangles and quadrilaterals from Geomview .off file.
   ///
   /// Ignores any color, normal information.
@@ -1290,19 +1537,17 @@ namespace IJK {
   }
 
   /// \brief Read polygons from Geomview .off file.
+  /// \brief Read triangles and quadrilaterals into separate arrays.
   ///
   /// Ignores any color, normal information.
   /// @param in = Input stream.
   /// @param dim = Dimension of vertices.
   /// @param coord = Array of coordinates. 
   ///                coord[dim*i+k] = k'th coordinate of vertex i (k < dim).
-  /// @param numv = Number of vertices.
   /// @param tri_vert = Array of triangle vertices. 
   ///        tri_vert[3*j+k] = k'th vertex index of triangle j.
-  /// @param nums = Number of simplices.
   /// @param quad_vert = Array of quadrilateral vertices.
-  ///        simplex_vert[4*j+k] = k'th vertex index of quad j.
-  /// @param numq = Number of quadrilaterals.
+  ///        quad_vert[4*j+k] = k'th vertex index of quad j.
   /// @param num_poly_vert = Array of number of polygon vertices.
   ///        num_poly_vert[i] = Number of vertices of polygon i.
   /// @param poly_vert = Array of polygon vertices.
@@ -1362,6 +1607,107 @@ namespace IJK {
         num_not_qt++;
       }
     }
+  }
+
+  /// \brief Read list of polytopes from Geomview .off file.
+  /// @param in = Input stream.
+  /// @param num_poly_vert = Array of number of polytope vertices.
+  ///        num_poly_vert[i] = Number of vertices of polytope i.
+  /// @param poly_vert = Array of polytope vertices.
+  /// @param first_poly_vert = Array indexing first vertex of each polytope.
+  ///        Polytope i has vertices poly_vert[first_poly_vert[i]] to
+  ///        poly_vert[first_poly_vert[i]+num_poly_vert[i]-1].
+  template <typename NTYPE, typename VTYPE, typename ITYPE>
+  void ijkinOFFpolyList
+  (std::istream & in, const int nump, std::vector<NTYPE> & num_poly_vert,
+   std::vector<VTYPE> & poly_vert, std::vector<ITYPE> & first_poly_vert)
+  {
+    for (int i = 0; i < nump; i++) {
+      NTYPE nvert;
+
+      in >> nvert;
+      num_poly_vert.push_back(nvert);
+      int k = poly_vert.size();
+      first_poly_vert.push_back(k);
+      poly_vert.resize(k+nvert);
+      ijkinOFFvert(in, nvert, &(poly_vert[k]));
+    }
+  }
+
+  /// \brief Read polytopes from Geomview .off file.
+  ///
+  /// Ignores any color, normal information.
+  /// @param in = Input stream.
+  /// @param dim = Dimension of vertices.
+  /// @param coord = Array of coordinates. 
+  ///                coord[dim*i+k] = k'th coordinate of vertex i (k < dim).
+  /// @param num_poly_vert = Array of number of polytope vertices.
+  ///        num_poly_vert[i] = Number of vertices of polytope i.
+  /// @param poly_vert = Array of polytope vertices.
+  /// @param first_poly_vert = Array indexing first vertex of each polytope.
+  ///        Polytope i has vertices poly_vert[first_poly_vert[i]] to
+  ///        poly_vert[first_poly_vert[i]+num_poly_vert[i]-1].
+  template <typename T> 
+  void ijkinPolytopeOFF
+  (std::istream & in, int & dim, T * & coord, int & numv, 
+   std::vector<int> & num_poly_vert,
+   std::vector<int> & poly_vert, std::vector<int> & first_poly_vert)
+  {
+    IJK::PROCEDURE_ERROR error("ijkinPolytopeOFF");
+
+    int nume, nump;
+
+    coord = NULL;
+    num_poly_vert.clear();
+    poly_vert.clear();
+    first_poly_vert.clear();
+
+    ijkinOFFheader(in, dim, numv, nump, nume);
+
+    coord = new T[numv*dim];
+    ijkinOFFcoord(in, dim, numv, coord);
+
+    ijkinOFFpolyList
+      (in, nump, num_poly_vert, poly_vert, first_poly_vert);
+  }
+
+  /// \brief Read polytopes from Geomview .off file.
+  /// C++ STL vector format for coord[].
+  ///
+  /// Ignores any color, normal information.
+  /// @param in = Input stream.
+  /// @param dim = Dimension of vertices.
+  /// @param coord = Array of coordinates. 
+  ///                coord[dim*i+k] = k'th coordinate of vertex i (k < dim).
+  /// @param num_poly_vert = Array of number of polytope vertices.
+  ///        num_poly_vert[i] = Number of vertices of polytope i.
+  /// @param poly_vert = Array of polytope vertices.
+  /// @param first_poly_vert = Array indexing first vertex of each polytope.
+  ///        Polytope i has vertices poly_vert[first_poly_vert[i]] to
+  ///        poly_vert[first_poly_vert[i]+num_poly_vert[i]-1].
+  template <typename T> 
+  void ijkinPolytopeOFF
+  (std::istream & in, int & dim, std::vector<T> & coord, 
+   std::vector<int> & num_poly_vert,
+   std::vector<int> & poly_vert, std::vector<int> & first_poly_vert)
+  {
+    IJK::PROCEDURE_ERROR error("ijkinPolytopeOFF");
+
+    int nume;
+
+    coord.clear();
+    num_poly_vert.clear();
+    poly_vert.clear();
+    first_poly_vert.clear();
+
+    // nump: Total number of polytopes.
+    int numv, nump;
+    ijkinOFFheader(in, dim, numv, nump, nume);
+
+    ijkinOFFcoord(in, dim, numv, coord);
+
+    ijkinOFFpolyList
+      (in, nump, num_poly_vert, poly_vert, first_poly_vert);
   }
 
   // ******************************************
@@ -1673,7 +2019,66 @@ namespace IJK {
           else { out << std::endl; };
         }
       }
+    }
 
+    /// Output polytope vertices
+    template <typename NTYPE, typename VTYPE, typename ITYPE>
+    void ijkoutPolytopeVertices
+    (std::ostream & out, 
+     const NTYPE * num_poly_vert, const VTYPE * poly_vert,
+     const ITYPE * first_poly_vert, const int num_poly)
+    {
+      for (int ipoly = 0; ipoly < num_poly; ipoly++) {
+        const ITYPE * pvert = poly_vert + first_poly_vert[ipoly];
+        NTYPE num_pvert = num_poly_vert[ipoly];
+
+        out << num_pvert << " ";
+        for (int i = 0; i < num_pvert; i++) {
+          out << pvert[i];
+          if (i+1 < num_pvert) { out << " "; }
+          else { out << std::endl; };
+        }
+      }
+
+    }
+
+    /// Output rgba front and back color.
+    template <typename ITYPE, typename colorT>
+    void ijkoutColor(std::ostream & out, const ITYPE i, 
+                     const colorT * front_color, const colorT * back_color)
+    {
+      for (int ic = 0; ic < 3; ic++) 
+        { out << front_color[4*i+ic] << " "; }
+      out << front_color[4*i+3] << "  ";
+      for (int ic = 0; ic < 3; ic++)
+        { out << back_color[4*i+ic] << " "; }
+      out << back_color[4*i+3];
+    }
+
+
+
+    /// Output polygon vertices and polygon color.
+    /// @param out Output stream.
+    /// @param numv_per_polygon Number of vertices per polygon.
+    /// @pre     All polygons have the same number of vertices.
+    /// @param poly_vert[] Array of simplex vertices.
+    ///        poly_vert[dim*j+k] = k'th vertex index of polygon j.
+    /// @param nump Number of polygons.
+    template <typename VTYPE, typename colorT> 
+    void ijkoutPolygonVerticesColor
+    (std::ostream & out, const int numv_per_polygon,
+     const VTYPE * poly_vert, const int nump,
+     const colorT * front_color, const colorT * back_color)
+    {
+      for (int is = 0; is < nump; is++) {
+        out << numv_per_polygon << " ";
+        for (int iv = 0; iv < numv_per_polygon; iv++) {
+          out << poly_vert[is*numv_per_polygon + iv] << " ";
+        }
+        out << " ";  // Add another space
+        ijkoutColor(out, is, front_color, back_color);
+        out << std::endl;
+      }
     }
 
     /// Output quad vertices.
