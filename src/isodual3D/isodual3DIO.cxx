@@ -1352,6 +1352,7 @@ void options_msg()
 			<< endl
 			<< "              gradES|gradEC}]" << endl;
 	cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
+  cerr << "  [-normal {normal_off_filename}]" << endl;
 	cerr << "  [-single_isov | -multi_isov | -sep_pos | -sep_neg | -resolve_ambig]"
 			<< endl;
 	cerr << "  [-max_eigen {max}]" << endl;
@@ -1450,6 +1451,9 @@ void ISODUAL3D::help()
 			<< endl;
 	cout << "       Use endpoint gradients to compute isosurface-edge intersections." << endl;
 	cout << "  -gradient {gradient_nrrd_filename}: Read gradients from gradient nrrd file." << endl;
+	cout << "  -normal {normal_off_filename}: Read edge-isosurface intersections"
+       << endl
+       << "      and normals from OFF file normal_off_filename." << endl;
 	cout << "  -single_isov: Each intersected cube generates a single isosurface vertex." << endl;
 	cout << "  -multi_isov:  An intersected cube may generate multiple isosurface vertices."  << endl;
 	cout << "  -sep_pos:     Use dual isosurface table separating positive "
