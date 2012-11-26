@@ -48,7 +48,7 @@ namespace {
 
 typedef enum {
   SUBSAMPLE_PARAM,
-  GRADIENT_PARAM, POSITION_PARAM, POS_PARAM, 
+  GRADIENT_PARAM, NORMAL_PARAM, POSITION_PARAM, POS_PARAM, 
   TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
   MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, 
   MAX_MAG_PARAM, SNAP_DIST_PARAM, 
@@ -77,7 +77,7 @@ typedef enum {
 	TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
 	const char * parameter_string[] =
 	{ "-subsample",
-    "-gradient", "-position", "-pos", "-trimesh", "-uniform_trimesh",
+    "-gradient", "-normal", "-position", "-pos", "-trimesh", "-uniform_trimesh",
     "-max_eigen", "-max_dist", "-gradS_offset", "-max_mag", "-snap_dist",
     "-sharp_edgeI", "-interpolate_edgeI",
     "-reposition", "-no_reposition", "-sepdist",
@@ -245,6 +245,15 @@ void ISODUAL3D::parse_command_line
 			iarg++;
 			if (iarg >= argc) usage_error();
 			input_info.gradient_filename = argv[iarg];
+			break;
+
+		case NORMAL_PARAM:
+			iarg++;
+			if (iarg >= argc) usage_error();
+			input_info.normal_filename = argv[iarg];
+      input_info.vertex_position_method = EDGEI_INPUT_DATA;
+
+			is_vertex_position_method_set = true;
 			break;
 
 		case POSITION_PARAM:
@@ -741,6 +750,47 @@ void ISODUAL3D::read_nrrd_file
 	read_nrrd_file(input_filename, scalar_grid, nrrd_info);
 	io_time.read_nrrd_time = wall_time.getElapsed();
 }
+
+// **************************************************
+// READ OFF FILE
+// **************************************************
+
+void ISODUAL3D::read_off_file
+(const char * input_filename,
+ std::vector<COORD_TYPE> & coord, std::vector<GRADIENT_COORD_TYPE> & normal, 
+ std::vector<int> & simplex_vert)
+{
+  int dimension, mesh_dimension;
+  IJK::PROCEDURE_ERROR error("read_off_file");
+
+  ifstream in(input_filename, ios::in);
+  if (!in.good()) {
+    error.AddMessage("Error.  Unable to open file ", input_filename, ".");
+    throw error;
+  };
+
+  ijkinOFF(in, dimension, mesh_dimension, coord, normal, simplex_vert);
+
+  if (dimension != DIM3) {
+    error.AddMessage("Error.  Vertices in OFF file have dimension ",
+                     dimension, ".");
+    error.AddMessage("  Dimension should be ", DIM3, ".");
+    throw error;
+  }
+
+  in.close();
+}
+
+// Read off file.  Ignore simplex vert.
+void ISODUAL3D::read_off_file
+(const char * input_filename,
+ std::vector<COORD_TYPE> & coord, std::vector<GRADIENT_COORD_TYPE> & normal)
+{
+  std::vector<int> simplex_vert;
+
+  read_off_file(input_filename, coord, normal, simplex_vert);
+}
+
 
 // **************************************************
 // PATH_DELIMITER

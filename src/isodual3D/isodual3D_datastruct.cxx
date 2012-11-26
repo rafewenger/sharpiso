@@ -122,6 +122,15 @@ bool ISODUAL_PARAM::GradientsRequired() const
     { return(false); }
 }
 
+/// Return true if edge-isosurface normal data required.
+bool ISODUAL_PARAM::NormalsRequired() const
+{
+  if (VertexPositionMethod() == EDGEI_INPUT_DATA) 
+    { return(true); }
+  else
+    { return(false); }
+}
+
 // **************************************************
 // CLASS ISODUAL_DATA
 // **************************************************
@@ -131,6 +140,7 @@ void ISODUAL_DATA::Init()
 {
   is_scalar_grid_set = false;
   is_gradient_grid_set = false;
+  are_edgeI_set = false;
 }
 
 void ISODUAL_DATA::FreeAll()
@@ -235,6 +245,34 @@ void ISODUAL_DATA::SetGrids
     CopyGradientGrid(full_gradient_grid);
   };
 
+}
+
+/// Set edge-isosurface intersections and normals.
+void ISODUAL_DATA::SetEdgeI
+(const std::vector<COORD_TYPE> & edgeI_coord,
+ const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord)
+{
+  IJK::PROCEDURE_ERROR error("ISODUAL_DATA::SetEdgeI");
+
+  if (edgeI_coord.size() != edgeI_normal_coord.size()) {
+    error.AddMessage
+      ("Programming error.  Number of normal coordinates does not");
+    error.AddMessage
+      ("  match number of edge-isosurface intersection coordinates.");
+    error.AddMessage("  Number of edge-isosurface intersection coordinates = ",
+                     edgeI_coord.size(), ".");
+    error.AddMessage("  Number of normal coordinates = ",
+                     edgeI_normal_coord.size(), ".");
+    throw error;
+  }
+
+  this->edgeI_coord.resize(edgeI_coord.size());
+  this->edgeI_normal_coord.resize(edgeI_normal_coord.size());
+  std::copy(edgeI_coord.begin(), edgeI_coord.end(), this->edgeI_coord.begin());
+  std::copy(edgeI_normal_coord.begin(), edgeI_normal_coord.end(), 
+            this->edgeI_coord.begin());
+
+  are_edgeI_set = true;
 }
 
 /// Check data structure

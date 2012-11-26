@@ -79,8 +79,11 @@ namespace ISODUAL3D {
   /// GRADIENT_POSITIONING: Position using gradients.
   /// EDGEI_INTERPOLATE: Interpolate isosurface-edge intersection.
   /// EDGEI_GRADIENT:  Compute isosurface-edge intersection using gradients.
+  /// EDGEI_INPUT_DATA: Isosurface-edge intersections and normals are
+  ///                   provided as input data.
   typedef enum { CUBECENTER, CENTROID_EDGE_ISO,
-                 GRADIENT_POSITIONING, EDGEI_INTERPOLATE, EDGEI_GRADIENT } 
+                 GRADIENT_POSITIONING, EDGEI_INTERPOLATE, EDGEI_GRADIENT,
+                 EDGEI_INPUT_DATA } 
   VERTEX_POSITION_METHOD;
 
   /// Quadrilateral triangulation method.

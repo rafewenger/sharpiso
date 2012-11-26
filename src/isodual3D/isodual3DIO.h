@@ -78,6 +78,10 @@ namespace ISODUAL3D {
     COORD_ARRAY grid_spacing;
     char * scalar_filename;       ///< Input scalar file name.
     char * gradient_filename;     ///< Input gradient file name.
+
+    /// Input edge-isosurface intersection normal file name.
+    char * normal_filename;       
+
     char * output_filename;
     OUTPUT_FORMAT output_format;
     bool report_time_flag;
@@ -227,6 +231,23 @@ namespace ISODUAL3D {
   void read_nrrd_file
     (const char * input_filename, GRADIENT_GRID & gradient_grid, 
      NRRD_INFO & nrrd_info);
+
+// **************************************************
+// READ OFF FILE
+// **************************************************
+
+  /// Read OFF file.
+  void read_off_file
+    (const char * input_filename,
+     std::vector<COORD_TYPE> & coord, 
+     std::vector<GRADIENT_COORD_TYPE> & normal, 
+     std::vector<int> & simplex_vert);
+
+
+  /// Read OFF file.  Ignore simplex vert.
+  void read_off_file
+  (const char * input_filename,
+   std::vector<COORD_TYPE> & coord, std::vector<GRADIENT_COORD_TYPE> & normal);
 
 // **************************************************
 // OUTPUT ISOSURFACE

@@ -166,18 +166,29 @@ namespace ISODUAL3D {
 
     /// Return true if gradient data required.
     bool GradientsRequired() const;
+
+    /// Return true if edgeI normal data required.
+    bool NormalsRequired() const;
   };
 
   /// Input data to Dual Contouring and related algorithms
   class ISODUAL_DATA:public ISODUAL_PARAM {
 
   protected:
-    ISODUAL_SCALAR_GRID scalar_grid;
-    GRADIENT_GRID gradient_grid;
+    ISODUAL_SCALAR_GRID scalar_grid;   ///< Regular grid of scalar values.
+    GRADIENT_GRID gradient_grid;       ///< Regular grid of vertex gradients.
+
+    /// Coordinate of edge-isosurface intersections
+    std::vector<COORD_TYPE> edgeI_coord;  
+
+    /// Coordinates of normal vectors at edge-isosurface intersections.
+    std::vector<GRADIENT_COORD_TYPE> edgeI_normal_coord;
+    
 
     // flags
     bool is_scalar_grid_set;
     bool is_gradient_grid_set;
+    bool are_edgeI_set;
 
     void Init();
     void FreeAll();
@@ -217,15 +228,30 @@ namespace ISODUAL3D {
        const bool flag_subsample, const int subsample_resolution,
        const bool flag_supersample, const int supersample_resolution);
 
+    /// Set edge-isosurface intersections and normals.
+    void SetEdgeI(const std::vector<COORD_TYPE> & edgeI_coord,
+                  const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord);
+
     // Get functions
     bool IsScalarGridSet() const     /// Return true if scalar grid is set.
       { return(is_scalar_grid_set); };
     bool IsGradientGridSet() const   /// Return true if gradient grid is set.
       { return(is_gradient_grid_set); };
-    const ISODUAL_SCALAR_GRID_BASE & ScalarGrid() const /// Return scalar_grid
+
+    /// Return true if edge-intersections (and normals) are set.
+    bool AreEdgeISet() const         
+      { return(are_edgeI_set); };
+
+    const ISODUAL_SCALAR_GRID_BASE & ScalarGrid() const ///< Return scalar_grid.
       { return(scalar_grid); };
-    const GRADIENT_GRID_BASE & GradientGrid() const     /// Return gradient_grid
+    const GRADIENT_GRID_BASE & GradientGrid() const     ///< Return gradient_grid.
       { return(gradient_grid); };
+    const std::vector<COORD_TYPE> & EdgeICoord() const  ///< Return edgeI coordinates.
+      { return(edgeI_coord); }
+
+    /// Return edgeI normal coordinates.
+    const std::vector<GRADIENT_COORD_TYPE> & EdgeINormalCoord() const  
+      { return(edgeI_normal_coord); }
 
     /// Check data structure
     bool Check(IJK::ERROR & error) const;

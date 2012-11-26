@@ -69,6 +69,8 @@ int main(int argc, char **argv)
 
     GRADIENT_GRID full_gradient_grid;
     NRRD_INFO nrrd_gradient_info;
+    std::vector<COORD_TYPE> edgeI_coord;
+    std::vector<GRADIENT_COORD_TYPE> edgeI_normal_coord;
 
     if (input_info.GradientsRequired()) {
 
@@ -92,6 +94,16 @@ int main(int argc, char **argv)
         throw error;
       }
     }
+    else if (input_info.NormalsRequired()) {
+
+      if (input_info.normal_filename == NULL) {
+        error.AddMessage("Programming error.  Missing normal filename.");
+        throw error;
+      }
+
+      read_off_file
+        (input_info.normal_filename, edgeI_coord, edgeI_normal_coord);
+    }
 
     if (!check_input(input_info, full_scalar_grid, error))
       { throw(error); };
@@ -112,8 +124,14 @@ int main(int argc, char **argv)
     else
     {
       isodual_data.SetScalarGrid
-        (full_scalar_grid, input_info.flag_subsample, input_info.subsample_resolution,
+        (full_scalar_grid, 
+         input_info.flag_subsample, input_info.subsample_resolution,
          input_info.flag_supersample, input_info.supersample_resolution);
+
+      if (input_info.NormalsRequired()) {
+        isodual_data.SetEdgeI(edgeI_coord, edgeI_normal_coord);
+      }
+
     }
     // Note: isodual_data.SetScalarGrid or isodual_data.SetGrids
     //       must be called before set_isodual_data.
