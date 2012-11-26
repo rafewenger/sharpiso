@@ -262,6 +262,15 @@ namespace SHARPISO {
    const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
    COORD_TYPE * coord);
 
+  /// Compute centroid of intersections of isosurface and grid edges.
+  ///   Edge-isosurface intersections are given in an input list.
+  void compute_edgeI_centroid
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const std::vector<COORD_TYPE> & edgeI_coord,
+   const SHARPISO_EDGE_INDEX_GRID & edge_index,
+   const SCALAR_TYPE isovalue, const VERTEX_INDEX cube_index,
+   COORD_TYPE * coord);
+
   // **************************************************
   // ROUTINES TO MOVE POINTS
   // **************************************************
