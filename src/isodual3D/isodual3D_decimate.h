@@ -39,13 +39,15 @@ namespace ISODUAL3D {
 
   /// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
   void merge_sharp_iso_vertices
-    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const ISOVERT & isovert, 
+    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
+     const ISOVERT & isovert, 
      std::vector<VERTEX_INDEX> & quad_vert,
      std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info);
 
   /// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
   void merge_sharp_iso_vertices
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const ISOVERT & isovert, 
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert, 
    std::vector<VERTEX_INDEX> & quad_vert,
    SHARPISO_INFO & sharpiso_info);
 
