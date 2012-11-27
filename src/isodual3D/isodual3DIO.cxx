@@ -69,6 +69,7 @@ typedef enum {
 	USE_LINDSTROM_FAST,
 	SINGLE_ISOV_PARAM, MULTI_ISOV_PARAM,
 	SEP_NEG_PARAM, SEP_POS_PARAM, RESOLVE_AMBIG_PARAM,
+  CHECK_DISK_PARAM, NO_CHECK_DISK_PARAM,
 	ROUND_PARAM, NO_ROUND_PARAM,
   MINC_PARAM, MAXC_PARAM,
 	HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
@@ -93,6 +94,7 @@ typedef enum {
     "-lindstrom",	"-lindstrom2","-lindstrom_fast",
     "-single_isov", "-multi_isov",
     "-sep_neg", "-sep_pos", "-resolve_ambig",
+    "-check_disk", "-no_check_disk",
     "-round", "-no_round",
     "-minc", "-maxc",
     "-help", "-off", "-iv", "-out_param",
@@ -467,6 +469,14 @@ void ISODUAL3D::parse_command_line
     case MAXC_PARAM:
       get_multiple_arguments(iarg, argc, argv, input_info.maxc);
       iarg++;
+      break;
+
+    case CHECK_DISK_PARAM:
+      input_info.flag_check_disk = true;
+      break;
+
+    case NO_CHECK_DISK_PARAM:
+      input_info.flag_check_disk = false;
       break;
 
 		case OFF_PARAM:
@@ -1229,21 +1239,29 @@ void ISODUAL3D::report_iso_info3D
 
       if (output_info.allow_multiple_iso_vertices) {
 
-        if (output_info.flag_resolve_ambiguous_facets) {
-          cout << "  Number of non-ambiguous cubes: "
-               << isodual_info.sharpiso.num_cube_not_ambiguous << endl;
-          cout << "  Number of separate positive cubes: "
-               << isodual_info.sharpiso.num_cube_separate_pos << endl;
-          cout << "  Number of separate negative cubes: "
-               << isodual_info.sharpiso.num_cube_separate_neg << endl;
-          cout << "  Number of unresolved ambiguous cubes: "
-               << isodual_info.sharpiso.num_cube_unresolved_ambiguity << endl;
+        if (!output_info.flag_merge_sharp) {
+          if (output_info.flag_resolve_ambiguous_facets) {
+            cout << "  Number of non-ambiguous cubes: "
+                 << isodual_info.sharpiso.num_cube_not_ambiguous << endl;
+            cout << "  Number of separate positive cubes: "
+                 << isodual_info.sharpiso.num_cube_separate_pos << endl;
+            cout << "  Number of separate negative cubes: "
+                 << isodual_info.sharpiso.num_cube_separate_neg << endl;
+            cout << "  Number of unresolved ambiguous cubes: "
+                 << isodual_info.sharpiso.num_cube_unresolved_ambiguity << endl;
+          }
         }
 
         cout << "  Number of cubes with single isov: "
              << isodual_info.sharpiso.num_cube_single_isov << endl;
         cout << "  Number of cubes with multi isov: "
              << isodual_info.sharpiso.num_cube_multi_isov << endl;
+
+        if (output_info.flag_merge_sharp &&
+            output_info.flag_check_disk) {
+          cout << "  Number of merges blocked by non-disk isosurface patches: "
+               << isodual_info.sharpiso.num_non_disk_isopatches << endl;
+        }
       }
 
       cout << endl;
@@ -1368,6 +1386,7 @@ void options_msg()
 	cerr << "  [-removeg | -no_removeg] [-reselectg | -no_reselectg]" << endl;
   cerr << "  [-dist2center | -dist2centroid]" << endl;
 	cerr << "  [-centroid_eigen1 | -no_centroid_eigen1]" << endl;
+  cerr << "  [-check_disk | -no_check_disk]" << endl;
 	cerr << "  [-no_round | -round <n>]" << endl;
 	cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
 			<< endl;
@@ -1510,6 +1529,8 @@ void ISODUAL3D::help()
 	cout << "  -round <n>: Round coordinates to nearest 1/n." << endl;
 	cout << "              Suggest using n=16,32,64,... or 2^k for some k."
 			<< endl;
+  cout << "  -check_disk: Check that merged vertices form a disk." << endl;
+  cout << "  -no_check_disk: Skip disk check for merged vertices." << endl;
 	cout << "  -trimesh:   Output triangle mesh." << endl;
 	cout << "  -off: Output in geomview OFF format. (Default.)" << endl;
 	cout << "  -iv: Output in OpenInventor .iv format." << endl;

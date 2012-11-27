@@ -350,6 +350,9 @@ namespace SHARPISO {
     /// Otherwise, use distance to cube center.
     bool flag_dist2centroid;       
 
+    /// If true, check that merged vertices form a disk.
+    bool flag_check_disk;
+
     /// Maximum (Linf) distance from cube to isosurface vertex
     SIGNED_COORD_TYPE max_dist;
 

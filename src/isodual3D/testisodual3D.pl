@@ -28,7 +28,7 @@ my @isodual3D_options = ( "-subsample",  "-position", "-round",
                           "-max_dist", "-max_eigen" );
 
 while (scalar(@proglist) > 0 &&
-       $proglist[0] =~ /\-.*/) {
+       $proglist[0] =~ /^\-.*/) {
 
   my $new_option = shift(@proglist);
 
@@ -93,6 +93,11 @@ while (scalar(@proglist) > 0 &&
 
   if ($new_option eq "-lindstrom_fast0") {
     push(@input_options0, "-lindstrom_fast");
+    next;
+  }
+
+  if ($new_option eq "-single_isov0") {
+    push(@input_options0, "-single_isov");
     next;
   }
 

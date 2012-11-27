@@ -1447,6 +1447,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 	flag_reselect_gradients = false;
 	flag_dist2centroid = false;
 	flag_centroid_eigen1 = false;
+  flag_check_disk = true;
 	use_sharp_edgeI = false;
 	use_Linf_dist = true;
 	max_dist = 1.0;

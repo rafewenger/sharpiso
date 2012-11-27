@@ -576,7 +576,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
     t2 = clock();
 
     merge_sharp_iso_vertices
-      (scalar_grid, isovalue, isovert, isoquad_cube, isodual_info.sharpiso);
+      (scalar_grid, isovalue, isovert, isodual_param,
+       isoquad_cube, isodual_info.sharpiso);
 
     // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
 
@@ -605,7 +606,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
     t2 = clock();
 
     merge_sharp_iso_vertices
-      (scalar_grid, isovalue, isovert, quad_vert, isodual_info.sharpiso);
+      (scalar_grid, isovalue, isovert, isodual_param,
+       quad_vert, isodual_info.sharpiso);
 
     IJK::get_non_degenerate_quad_btlr
       (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
@@ -688,7 +690,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
     t2 = clock();
 
     merge_sharp_iso_vertices
-      (scalar_grid, isovalue, isovert, isoquad_cube, isodual_info.sharpiso);
+      (scalar_grid, isovalue, isovert, isodual_param,
+       isoquad_cube, isodual_info.sharpiso);
 
     // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
 
@@ -717,7 +720,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
     t2 = clock();
 
     merge_sharp_iso_vertices
-      (scalar_grid, isovalue, isovert, quad_vert, isodual_info.sharpiso);
+      (scalar_grid, isovalue, isovert, isodual_param,
+       quad_vert, isodual_info.sharpiso);
 
     IJK::get_non_degenerate_quad_btlr
       (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);

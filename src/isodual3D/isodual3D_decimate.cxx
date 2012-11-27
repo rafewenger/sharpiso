@@ -39,6 +39,7 @@ namespace {
   (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    const ISODUAL3D::ISOVERT & isovert, 
+   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map, 
    ISODUAL3D::SHARPISO_INFO & sharpiso_info);
 
@@ -52,13 +53,14 @@ namespace {
 void ISODUAL3D::merge_sharp_iso_vertices
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
  const ISOVERT & isovert,
+ const SHARP_ISOVERT_PARAM & sharp_isovert_param,
  std::vector<VERTEX_INDEX> & quad_vert,
  std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info)
 {
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
 
-  determine_gcube_map(scalar_grid, isovalue,
-                      isovert, gcube_map, sharpiso_info);
+  determine_gcube_map
+    (scalar_grid, isovalue, isovert, sharp_isovert_param, gcube_map, sharpiso_info);
 
   // Count number merged isosurface vertices.
   NUM_TYPE num_merged = 0;
@@ -77,6 +79,7 @@ void ISODUAL3D::merge_sharp_iso_vertices
 void ISODUAL3D::merge_sharp_iso_vertices
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
  const ISOVERT & isovert, 
+ const SHARP_ISOVERT_PARAM & sharp_isovert_param,
  std::vector<VERTEX_INDEX> & quad_vert,
  SHARPISO_INFO & sharpiso_info)
 {
@@ -84,7 +87,8 @@ void ISODUAL3D::merge_sharp_iso_vertices
   std::vector<VERTEX_INDEX> gcube_map(num_gcube);
 
   merge_sharp_iso_vertices
-    (scalar_grid, isovalue, isovert, quad_vert, gcube_map, sharpiso_info);
+    (scalar_grid, isovalue, isovert, sharp_isovert_param,
+     quad_vert, gcube_map, sharpiso_info);
 }
 
 
@@ -215,14 +219,17 @@ namespace {
   (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    const ISODUAL3D::ISOVERT & isovert, 
+   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map, 
    ISODUAL3D::SHARPISO_INFO & sharpiso_info)
   {
     map_adjacent_cubes(isovert, gcube_map);
 
-    /* DEBUG
-    unmap_non_disk_isopatches
-      (scalar_grid, isovalue, isovert, gcube_map, sharpiso_info);
+    /* *** NOT YET TESTED/DEBUGGED ***
+    if (sharp_isovert_param.flag_check_disk) {
+      unmap_non_disk_isopatches
+        (scalar_grid, isovalue, isovert, gcube_map, sharpiso_info);
+    }
     */
   }
 
@@ -237,16 +244,33 @@ namespace {
   /// Function class for determining if isopatch is a disk.
   class IS_ISOPATCH_DISK {
 
-  protected:
+  public:
     static const AXIS_SIZE_TYPE num_vert_along_region_axis = 4;
+    static const AXIS_SIZE_TYPE region_edge_length = 
+      num_vert_along_region_axis-1;
+
+  protected:
     AXIS_SIZE_TYPE region_axis_size[DIM3];
 
     SHARPISO_SCALAR_GRID regionScalar;
     SHARPISO_BOOL_GRID cubeFlag;
-    SHARPISO_BOOL_GRID gridBoundary;
+
+    /// Indicates vertices on region boundary.
+    SHARPISO_BOOL_GRID regionBoundary;
+
+    /// Indicates vertices on boundary of region formed by selected cubes.
     SHARPISO_BOOL_GRID selectedCubeBoundary;
+
     SHARPISO_GRID_NEIGHBORS neighbor_grid;
-    std::vector<VERTEX_INDEX> selected_cube_boundary_cube_list;
+
+    /// List of boundary cubes in region.
+    std::vector<VERTEX_INDEX> region_boundary_cube;
+
+    /// Increments for region vertices.
+    /// Vertex k in region corresponds to vertex iv+region_vertex_increment[k]
+    ///   around vertex iv.
+    INDEX_DIFF_TYPE * region_vertex_increment;
+
     bool * visited;
 
     void SetCubeFlag
@@ -254,9 +278,13 @@ namespace {
      const ISOVERT & isovert,
      const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
     void SetScalar
-    (const SHARPISO_SCALAR_GRID & scalar_grid, const VERTEX_INDEX cube_index);
+    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+     const VERTEX_INDEX cube_index);
+    void SetSelectedCubeBoundary();
 
-    void SetRegionBoundary();
+    /// Set region_vertex_increment.
+    void SetRegionVertexIncrement(const SHARPISO_GRID & grid);
+
     void GetBoundaryVertices
     (const SCALAR_TYPE isovalue, const bool flag_pos,
      std::vector<int> & vlist) const;
@@ -273,15 +301,21 @@ namespace {
     (const SCALAR_TYPE isovalue, std::vector<int> & elist) const;
 
   public:
-    IS_ISOPATCH_DISK();
+    IS_ISOPATCH_DISK(const SHARPISO_GRID & grid);
     ~IS_ISOPATCH_DISK();
 
+    /// Return true is isopatch is a disk.
     bool IsIsopatchDisk
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
      SCALAR_TYPE isovalue,
      const VERTEX_INDEX cube_index,
      const ISOVERT & isovert,
      const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
+
+    /// Reverse merges to isosurface vertex at cube_index.
+    void UnmapAdjacent
+    (const NUM_TYPE cube_index, const ISODUAL3D::ISOVERT & isovert, 
+     std::vector<SHARPISO::VERTEX_INDEX> & gcube_map) const;
   };
 
 }
@@ -297,21 +331,35 @@ namespace {
    ISODUAL3D::SHARPISO_INFO & sharpiso_info)
   {
     const NUM_TYPE num_gcube = isovert.gcube_list.size();
-    IS_ISOPATCH_DISK is_isopatch_disk;
+
+    sharpiso_info.num_non_disk_isopatches = 0;
+
+    for (int d = 0; d < DIM3; d++) {
+      if (scalar_grid.AxisSize(d) < 
+          IS_ISOPATCH_DISK::num_vert_along_region_axis) 
+        { return; }
+    }
+
+    IS_ISOPATCH_DISK is_isopatch_disk(scalar_grid);
 
     // Set cubes which share facets with selected cubes.
     for (NUM_TYPE i = 0; i < num_gcube; i++) {
       if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
 
-        VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
-        if (!is_isopatch_disk.IsIsopatchDisk
-            (scalar_grid, isovalue, cube_index, isovert, gcube_map))
-          {
-            // *** UNMAP ADJACENT VERTICES ***
+        // *** Ignore boundary cubes for now. ***
+        if (isovert.gcube_list[i].boundary_bits == 0) {
+
+          VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
+
+          if (!is_isopatch_disk.IsIsopatchDisk
+              (scalar_grid, isovalue, cube_index, isovert, gcube_map)) {
+            is_isopatch_disk.UnmapAdjacent(cube_index, isovert, gcube_map); 
+
+            sharpiso_info.num_non_disk_isopatches++;
           }
+        }
       }
     }
-
   }
 
 }
@@ -323,7 +371,7 @@ namespace {
 namespace {
 
   /// Constructor for IS_ISOPATCH_DISK
-  IS_ISOPATCH_DISK::IS_ISOPATCH_DISK()
+  IS_ISOPATCH_DISK::IS_ISOPATCH_DISK(const SHARPISO_GRID & grid)
   {
     for (int d = 0; d < DIM3; d++) 
       { region_axis_size[d] = num_vert_along_region_axis; }
@@ -331,16 +379,19 @@ namespace {
     cubeFlag.SetSize(DIM3, region_axis_size);
     selectedCubeBoundary.SetSize(DIM3, region_axis_size);
     regionScalar.SetSize(DIM3, region_axis_size);
+    regionBoundary.SetSize(DIM3, region_axis_size);
+    compute_boundary_grid(regionBoundary);
 
-    gridBoundary.SetSize(DIM3, region_axis_size);
-    compute_boundary_grid(gridBoundary);
-
-    selected_cube_boundary_cube_list.resize
+    region_boundary_cube.resize
       (selectedCubeBoundary.ComputeNumBoundaryCubes());
     IJK::get_boundary_grid_cubes
-      (DIM3, region_axis_size, &(selected_cube_boundary_cube_list[0]));
+      (DIM3, region_axis_size, &(region_boundary_cube[0]));
 
     visited = new bool[regionScalar.NumVertices()];
+    region_vertex_increment = new INDEX_DIFF_TYPE[regionScalar.NumVertices()];
+
+    neighbor_grid.SetSize(grid);
+    SetRegionVertexIncrement(grid);
   }
 
   /// Destructor for IS_ISOPATCH_DISK
@@ -348,6 +399,8 @@ namespace {
   {
     delete [] visited;
     visited = NULL;
+    delete [] region_vertex_increment;
+    region_vertex_increment = NULL;
   }
 
   bool IS_ISOPATCH_DISK::IsIsopatchDisk
@@ -359,11 +412,10 @@ namespace {
   {
     std::vector<VERTEX_INDEX> vlist;
     std::vector<VERTEX_INDEX> elist;
-
-    neighbor_grid.SetSize(scalar_grid);
-
+    
     SetCubeFlag(cube_index, isovert, gcube_map);
-    SetRegionBoundary();
+    SetSelectedCubeBoundary();
+    SetScalar(scalar_grid, cube_index);
 
     // Compute number of positive components.
     GetBoundaryPosVertices(isovalue, vlist);
@@ -391,13 +443,68 @@ namespace {
       { return(false); }
   }
 
+  // Reverse merges to isosurface vertex at cube_index.
+  void IS_ISOPATCH_DISK::UnmapAdjacent
+  (const NUM_TYPE cube_index, const ISODUAL3D::ISOVERT & isovert, 
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map) const
+  {
+    for (NUM_TYPE i = 0; i < region_boundary_cube.size(); i++) {
+      VERTEX_INDEX region_cube_index = region_boundary_cube[i];
+
+      if (cubeFlag.Scalar(region_cube_index)) {
+        INDEX_DIFF_TYPE iv = 
+          cube_index + region_vertex_increment[region_cube_index];
+
+        if (0 <= iv && iv < neighbor_grid.NumVertices()) {
+
+          INDEX_DIFF_TYPE gcube_index = isovert.sharp_ind_grid.Scalar(iv);
+
+          // Reset gcube_map[gcube_index] to gcube_index.
+          gcube_map[gcube_index] = gcube_index;
+        }
+      }
+    }
+  }
+
   void IS_ISOPATCH_DISK::SetScalar
-  (const SHARPISO_SCALAR_GRID & scalar_grid, const VERTEX_INDEX cube_index)
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const VERTEX_INDEX cube_index)
   {
     VERTEX_INDEX iv0 = 
       cube_index -  neighbor_grid.CubeVertexIncrement(NUM_CUBE_VERTICES3D-1);
     regionScalar.CopyRegion(scalar_grid, iv0, region_axis_size, 0);
+  }
 
+  void IS_ISOPATCH_DISK::SetRegionVertexIncrement
+  (const SHARPISO_GRID & grid)
+  {
+    const int dimension = grid.Dimension();
+    const AXIS_SIZE_TYPE * axis_size = grid.AxisSize();
+    IJK::PROCEDURE_ERROR error("SetRegionVertexIncrement");
+
+    NUM_TYPE num_region_vertices;
+    IJK::compute_num_grid_vertices_in_region
+      (dimension, axis_size, 0, region_edge_length, num_region_vertices);
+
+    if (num_region_vertices != cubeFlag.NumVertices()) {
+      error.AddMessage
+        ("Programming error. Scalar grid is smaller than region.");
+      error.AddMessage
+        ("  Grid size: ", grid.AxisSize(0), "x", grid.AxisSize(1),
+         "x", grid.AxisSize(2), ".");
+      error.AddMessage
+        ("  Region size: ", cubeFlag.AxisSize(0), "x", cubeFlag.AxisSize(1),
+         "x", cubeFlag.AxisSize(2), ".");
+      throw error;
+    }
+
+    IJK::get_grid_vertices_in_region
+      (dimension, axis_size, 0, region_edge_length, region_vertex_increment);
+
+    VERTEX_INDEX offset 
+      = neighbor_grid.CubeVertexIncrement(NUM_CUBE_VERTICES3D-1);
+    for (NUM_TYPE k = 0; k < num_region_vertices; k++)
+      { region_vertex_increment[k] = region_vertex_increment[k] - offset; }
   }
 
   void IS_ISOPATCH_DISK::SetCubeFlag
@@ -405,62 +512,52 @@ namespace {
    const ISOVERT & isovert,
    const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
+    const INDEX_DIFF_TYPE gcube_index = 
+      isovert.sharp_ind_grid.Scalar(cube_index);
+
     cubeFlag.SetAll(false);
 
-    VERTEX_INDEX iv0 = 
-      cube_index -  neighbor_grid.CubeVertexIncrement(NUM_CUBE_VERTICES3D-1);
+    for (NUM_TYPE i = 0; i < region_boundary_cube.size(); i++) {
+      VERTEX_INDEX region_cube_index = region_boundary_cube[i];
+      INDEX_DIFF_TYPE iv = 
+        cube_index + region_vertex_increment[region_cube_index];
 
-    VERTEX_INDEX iv_z = iv0;
-    VERTEX_INDEX icube_z = 0;
-    for (int z = 0; z < cubeFlag.AxisSize(2); z++) {
-      VERTEX_INDEX iv_y = iv_z;
-      VERTEX_INDEX icube_y = icube_z;
-      for (int y = 0; y < cubeFlag.AxisSize(1); y++) {
-        VERTEX_INDEX iv_x = iv_y;
-        VERTEX_INDEX icube_x = icube_y;
-        for (int x = 0; x < cubeFlag.AxisSize(1); x++) {
+      if (0 <= iv && iv < neighbor_grid.NumVertices()) {
 
-          INDEX_DIFF_TYPE gcube_index = isovert.sharp_ind_grid.Scalar(iv_x);
-          if (gcube_index != ISOVERT::NO_INDEX) {
-            if (gcube_map[gcube_index] == cube_index) {
-              cubeFlag.Set(icube_x, true);
-            }
+        INDEX_DIFF_TYPE neighbor_gcube_index = 
+          isovert.sharp_ind_grid.Scalar(iv);
+
+        if (gcube_index != ISOVERT::NO_INDEX) {
+          if (gcube_map[neighbor_gcube_index] == gcube_index) {
+            cubeFlag.Set(region_cube_index, true);
           }
-
-          iv_x = neighbor_grid.NextVertex(0, iv_x);
-          icube_x = cubeFlag.NextVertex(0, icube_x);
         }
-        iv_y = neighbor_grid.NextVertex(1, iv_y);
-        icube_y = cubeFlag.NextVertex(1, icube_y);
       }
-      iv_z = neighbor_grid.NextVertex(2, iv_z);
-      icube_z = cubeFlag.NextVertex(2, icube_z);
     }
 
   }
 
-
   /// Set region boundary.
   /// @pre Region is a 4x4x4 patch and center cube is in region.
-  void IS_ISOPATCH_DISK::SetRegionBoundary()
+  void IS_ISOPATCH_DISK::SetSelectedCubeBoundary()
   {
     selectedCubeBoundary.SetAll(false);
 
-    for (NUM_TYPE i = 0; i < selected_cube_boundary_cube_list.size(); i++) {
-      VERTEX_INDEX icube = selected_cube_boundary_cube_list[i];
+    for (NUM_TYPE i = 0; i < region_boundary_cube.size(); i++) {
+      VERTEX_INDEX icube = region_boundary_cube[i];
 
       if (cubeFlag.Scalar(icube)) {
 
         for (NUM_TYPE j = 0; j < NUM_CUBE_VERTICES3D; j++) {
           VERTEX_INDEX iv = selectedCubeBoundary.CubeVertex(icube, j);
-          if (gridBoundary.Scalar(iv)) 
+          if (regionBoundary.Scalar(iv)) 
             { selectedCubeBoundary.Set(iv, true); }
         }
       }
       else {
         for (NUM_TYPE j = 0; j < NUM_CUBE_VERTICES3D; j++) {
           VERTEX_INDEX iv = selectedCubeBoundary.CubeVertex(icube, j);
-          if (!gridBoundary.Scalar(iv)) 
+          if (!regionBoundary.Scalar(iv)) 
             { selectedCubeBoundary.Set(iv, true); }
         }
       }

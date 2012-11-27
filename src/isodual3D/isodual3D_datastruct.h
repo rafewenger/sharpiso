@@ -361,8 +361,11 @@ namespace ISODUAL3D {
     int num_cube_unresolved_ambiguity;
 
     // Multiple isosurface vertices information.
-    int num_cube_single_isov;
-    int num_cube_multi_isov;
+    int num_cube_single_isov;  ///< Number of cubes with single iso vertices.
+    int num_cube_multi_isov;   ///< Number of cubes with multiple iso vertices.
+
+    /// Number of merges blocked by non-disk isosurface patches.
+    int num_non_disk_isopatches;
 
     SHARPISO_INFO();  ///< Constructor.
     void Clear();     ///< Clear all data.
