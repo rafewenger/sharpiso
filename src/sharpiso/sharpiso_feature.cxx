@@ -140,7 +140,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 	/// use the sharp version with the garlnd heckbert way of storing normals
 	if (sharpiso_param.use_lindstrom_fast){
 
-		svd_calculate_sharpiso_vertex_using_lindstorm_fast
+		svd_calculate_sharpiso_vertex_using_lindstrom_fast
       (num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]), 
        &(point_coord[0]),	&(gradient_coord[0]), 
        num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
@@ -732,6 +732,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
 {
  	const EIGENVALUE_TYPE max_small_eigenvalue =
 			sharpiso_param.max_small_eigenvalue;
+	const COORD_TYPE max_dist = sharpiso_param.max_dist;
   IJK::PROCEDURE_ERROR error("svd_compute_sharp_vertex_for_cube");
 
 	NUM_TYPE num_gradients = 0;
@@ -772,7 +773,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
 	/// use the sharp version with the garlnd heckbert way of storing normals
 	if (sharpiso_param.use_lindstrom_fast){
 
-		svd_calculate_sharpiso_vertex_using_lindstorm_fast
+		svd_calculate_sharpiso_vertex_using_lindstrom_fast
       (num_gradients, max_small_eigenvalue, isovalue, &(scalar[0]), 
        &(point_coord[0]),	&(gradient_coord[0]), 
        num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
@@ -795,6 +796,13 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
 			svd_info.location = CENTROID;
 		}
 	}
+
+	svd_info.cube_containing_coord = cube_index;
+
+	if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
+		process_far_point(scalar_grid, cube_index, cube_coord, isovalue,
+                      sharpiso_param, sharp_coord, svd_info);
+  }
 
 }
 
@@ -1447,7 +1455,10 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 	flag_reselect_gradients = false;
 	flag_dist2centroid = false;
 	flag_centroid_eigen1 = false;
+  /* DEBUG:  disk check not yet tested.
   flag_check_disk = true;
+  */
+  flag_check_disk = false;
 	use_sharp_edgeI = false;
 	use_Linf_dist = true;
 	max_dist = 1.0;

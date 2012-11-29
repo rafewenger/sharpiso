@@ -100,6 +100,10 @@ void compute_dual_isovert(
 		const SHARP_ISOVERT_PARAM & isovert_param,
 		ISOVERT &isovertData);
 
+/// Set grid containing locations of edges in edgeI_coord[].
+void set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
+                    SHARPISO_EDGE_INDEX_GRID & edge_index);
+
 /// Count number of vertices on sharp corners or sharp edges.
 /// Count number of smooth vertices.
 void count_vertices

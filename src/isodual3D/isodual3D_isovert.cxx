@@ -93,8 +93,8 @@ void round_down(const COORD_TYPE * coord, GRID_COORD_TYPE min_coord[DIM3])
     { min_coord[d] = int(std::floor(coord[d])); }
 }
 
-void set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
-                    SHARPISO_EDGE_INDEX_GRID & edge_index)
+void ISODUAL3D::set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
+                               SHARPISO_EDGE_INDEX_GRID & edge_index)
 {
   GRID_COORD_TYPE min_coord[DIM3];
 
@@ -591,6 +591,12 @@ void ISODUAL3D::compute_dual_isovert(
 		const SHARP_ISOVERT_PARAM & isovert_param,
 		ISOVERT &isovertData)
 {
+  IJK::PROCEDURE_ERROR error("compute_dual_isovert");
+
+  if (!gradient_grid.CheckDimension
+      (scalar_grid, "gradient grid", "scalar grid", error)) 
+    { throw error; }
+
 	create_active_cubes(scalar_grid, isovalue, isovertData);
 
 	compute_isovert_positions 

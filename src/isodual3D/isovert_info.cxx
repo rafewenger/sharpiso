@@ -48,11 +48,13 @@ void print_isovert_info
 void compute_eigenvalues
 (const SCALAR_TYPE isovalue, 
  const ISODUAL_DATA & isodual_data, const GRID_CUBE & gcube,
+ const SHARPISO_EDGE_INDEX_GRID & edge_index,
  EIGENVALUE_TYPE eigenvalues[DIM3], 
  EIGENVALUE_TYPE normalized_eigenvalues[DIM3],
  NUM_TYPE num_large_eigenvalues);
 void out_gcube(std::ostream & out, const SCALAR_TYPE isovalue,
-               const ISODUAL_DATA & isodual_data, const GRID_CUBE & gcube);
+               const ISODUAL_DATA & isodual_data, const GRID_CUBE & gcube,
+               const SHARPISO_EDGE_INDEX_GRID & edge_index);
 void out_gcube_type(std::ostream & out, const GRID_CUBE_FLAG flag);
 
 // **************************************************
@@ -82,6 +84,8 @@ int main(int argc, char **argv)
 
     GRADIENT_GRID full_gradient_grid;
     NRRD_INFO nrrd_gradient_info;
+    std::vector<COORD_TYPE> edgeI_coord;
+    std::vector<GRADIENT_COORD_TYPE> edgeI_normal_coord;
 
     if (input_info.GradientsRequired()) {
 
@@ -106,6 +110,16 @@ int main(int argc, char **argv)
         throw error;
       }
     }
+    else if (input_info.NormalsRequired()) {
+
+      if (input_info.normal_filename == NULL) {
+        error.AddMessage("Programming error.  Missing normal filename.");
+        throw error;
+      }
+
+      read_off_file
+        (input_info.normal_filename, edgeI_coord, edgeI_normal_coord);
+    }
 
     if (!check_input(input_info, full_scalar_grid, error))
       { throw(error); };
@@ -126,8 +140,14 @@ int main(int argc, char **argv)
     else
     {
       isodual_data.SetScalarGrid
-        (full_scalar_grid, input_info.flag_subsample, input_info.subsample_resolution,
+        (full_scalar_grid, input_info.flag_subsample, 
+         input_info.subsample_resolution,
          input_info.flag_supersample, input_info.supersample_resolution);
+
+      if (input_info.NormalsRequired()) {
+        isodual_data.SetEdgeI(edgeI_coord, edgeI_normal_coord);
+      }
+
     }
     // Note: isodual_data.SetScalarGrid or isodual_data.SetGrids
     //       must be called before set_mesh_data.
@@ -158,10 +178,17 @@ void print_isovert_info
 (const INPUT_INFO & input_info, const ISODUAL_DATA & isodual_data)
 {
   const int dimension = isodual_data.ScalarGrid().Dimension();
+  const AXIS_SIZE_TYPE * axis_size = isodual_data.ScalarGrid().AxisSize();
   const int num_cube_vertices = compute_num_cube_vertices(dimension);
   const int num_cubes = isodual_data.ScalarGrid().ComputeNumCubes();
   GRID_COORD_TYPE cube_coord[DIM3];
   IJK::BOX<COORD_TYPE> box(DIM3);
+  std::vector<VERTEX_INDEX> quad_vert;
+  SHARPISO_EDGE_INDEX_GRID edge_index(DIM3, axis_size, DIM3);
+
+  edge_index.SetAllCoord(ISOVERT::NO_INDEX);
+  if (isodual_data.AreEdgeISet()) 
+    { set_edge_index(isodual_data.EdgeICoord(), edge_index); }
 
   box.SetAllMinCoord(0);
   box.SetMaxCoord(isodual_data.ScalarGrid().AxisSize());
@@ -179,26 +206,47 @@ void print_isovert_info
     ISODUAL_INFO isodual_info;
 
     isovert.linf_dist_threshold = isodual_data.linf_dist_thresh_merge_sharp;
-    compute_dual_isovert
-      (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
-       isovalue, isodual_data, isovert);
+
+  if (isodual_data.IsGradientGridSet() &&
+      isodual_data.VertexPositionMethod() == GRADIENT_POSITIONING
+      || isodual_data.VertexPositionMethod() == EDGEI_INTERPOLATE
+      || isodual_data.VertexPositionMethod() == EDGEI_GRADIENT) {
+
+      compute_dual_isovert
+        (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
+         isovalue, isodual_data, isovert);
+    }
+    else if (isodual_data.AreEdgeISet() &&
+             isodual_data.VertexPositionMethod() == EDGEI_INPUT_DATA) {
+      compute_dual_isovert
+        (isodual_data.ScalarGrid(), 
+         isodual_data.EdgeICoord(), isodual_data.EdgeINormalCoord(),
+         isovalue, isodual_data, isovert);
+    }
+    else {
+      cerr << "Input error. Missing gradient or normal information." << endl;
+      exit(30);
+    }
+
 
     extract_dual_isopoly
-      (isodual_data.ScalarGrid(), isovalue, isovert, 
-       dual_isosurface, isodual_info);
+      (isodual_data.ScalarGrid(), isovalue, quad_vert, isodual_info);
+
+    map_isopoly_vert(isovert, quad_vert);
 
     const NUM_TYPE num_gcube = isovert.gcube_list.size();
     std::vector<VERTEX_INDEX> gcube_map(num_gcube);
     merge_sharp_iso_vertices
-      (isodual_data.ScalarGrid(), isovert, 
-       dual_isosurface, gcube_map, isodual_info.sharpiso);
+      (isodual_data.ScalarGrid(), isovalue, isovert, isodual_data,
+       quad_vert, gcube_map, isodual_info.sharpiso);
 
     for (int i = 0; i < isovert.gcube_list.size(); i++) {
       VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
       isodual_data.ScalarGrid().ComputeCoord(cube_index, cube_coord);
 
       if (box.Contains(cube_coord)) {
-        out_gcube(cout, isovalue, isodual_data, isovert.gcube_list[i]); 
+        out_gcube(cout, isovalue, isodual_data, isovert.gcube_list[i],
+                  edge_index); 
 
         VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
         ISO_VERTEX_INDEX isov = isovert.sharp_ind_grid.Scalar(cube_index);
@@ -214,7 +262,8 @@ void print_isovert_info
 
 void out_gcube
 (std::ostream & out, const SCALAR_TYPE isovalue, 
- const ISODUAL_DATA & isodual_data, const GRID_CUBE & gcube)
+ const ISODUAL_DATA & isodual_data, const GRID_CUBE & gcube,
+ const SHARPISO_EDGE_INDEX_GRID & edge_index)
 {
   const VERTEX_INDEX cube_index = gcube.cube_index;
   GRID_COORD_TYPE cube_coord[DIM3];
@@ -230,8 +279,8 @@ void out_gcube
   IJK::set_coord_3D(0, normalized_eigenvalues);
 
   compute_eigenvalues
-    (isovalue, isodual_data, gcube, eigenvalues, normalized_eigenvalues,
-     num_large_eigenvalues);
+    (isovalue, isodual_data, gcube, edge_index,
+     eigenvalues, normalized_eigenvalues, num_large_eigenvalues);
 
   out << "Cube: " << setw(6) << cube_index << " ";
   print_coord3D(out, cube_coord);
@@ -283,6 +332,7 @@ void out_gcube_type(std::ostream & out, const GRID_CUBE_FLAG flag)
 void compute_eigenvalues
 (const SCALAR_TYPE isovalue, 
  const ISODUAL_DATA & isodual_data, const GRID_CUBE & gcube,
+ const SHARPISO_EDGE_INDEX_GRID & edge_index,
  EIGENVALUE_TYPE eigenvalues[DIM3], 
  EIGENVALUE_TYPE normalized_eigenvalues[DIM3],
  NUM_TYPE num_large_eigenvalues)
@@ -294,10 +344,25 @@ void compute_eigenvalues
 	OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
 	SVD_INFO svd_info;
 
-  svd_compute_sharp_vertex_for_cube
-    (isodual_data.ScalarGrid(), isodual_data.GradientGrid(), cube_index, 
-     isovalue, isodual_data, cube_111, isovert_coord,
-     eigenvalues, num_large_eigenvalues, svd_info);
+  if (isodual_data.IsGradientGridSet()) {
+
+    svd_compute_sharp_vertex_for_cube
+      (isodual_data.ScalarGrid(), isodual_data.GradientGrid(), cube_index, 
+       isovalue, isodual_data, cube_111, isovert_coord,
+       eigenvalues, num_large_eigenvalues, svd_info);
+  }
+  else if (isodual_data.AreEdgeISet()) {
+    svd_compute_sharp_vertex_for_cube
+      (isodual_data.ScalarGrid(), 
+       isodual_data.EdgeICoord(), isodual_data.EdgeINormalCoord(),
+       edge_index, cube_index, 
+       isovalue, isodual_data, cube_111, isovert_coord,
+       eigenvalues, num_large_eigenvalues, svd_info);
+  }
+  else {
+    cerr << "Input error. Missing gradient or normal information." << endl;
+    exit(30);
+  }
 
   if (num_large_eigenvalues != gcube.num_eigen) {
     cerr << "Warning: Number of large eigenvalues mismatch for cube "

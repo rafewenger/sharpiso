@@ -60,7 +60,8 @@ void ISODUAL3D::merge_sharp_iso_vertices
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
 
   determine_gcube_map
-    (scalar_grid, isovalue, isovert, sharp_isovert_param, gcube_map, sharpiso_info);
+    (scalar_grid, isovalue, isovert, sharp_isovert_param, 
+     gcube_map, sharpiso_info);
 
   // Count number merged isosurface vertices.
   NUM_TYPE num_merged = 0;
@@ -106,7 +107,6 @@ namespace {
                       std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
     if (from_cube != ISOVERT::NO_INDEX) {
-
       if (gcube_list[from_cube].flag != SELECTED_GCUBE && 
           gcube_map[from_cube] == from_cube) {
         if (gcube_list[from_cube].boundary_bits == 0) {
@@ -225,12 +225,10 @@ namespace {
   {
     map_adjacent_cubes(isovert, gcube_map);
 
-    /* *** NOT YET TESTED/DEBUGGED ***
     if (sharp_isovert_param.flag_check_disk) {
       unmap_non_disk_isopatches
         (scalar_grid, isovalue, isovert, gcube_map, sharpiso_info);
     }
-    */
   }
 
 }
@@ -238,87 +236,6 @@ namespace {
 // **************************************************
 // Unmap non-disk isopatches
 // **************************************************
-
-namespace {
-
-  /// Function class for determining if isopatch is a disk.
-  class IS_ISOPATCH_DISK {
-
-  public:
-    static const AXIS_SIZE_TYPE num_vert_along_region_axis = 4;
-    static const AXIS_SIZE_TYPE region_edge_length = 
-      num_vert_along_region_axis-1;
-
-  protected:
-    AXIS_SIZE_TYPE region_axis_size[DIM3];
-
-    SHARPISO_SCALAR_GRID regionScalar;
-    SHARPISO_BOOL_GRID cubeFlag;
-
-    /// Indicates vertices on region boundary.
-    SHARPISO_BOOL_GRID regionBoundary;
-
-    /// Indicates vertices on boundary of region formed by selected cubes.
-    SHARPISO_BOOL_GRID selectedCubeBoundary;
-
-    SHARPISO_GRID_NEIGHBORS neighbor_grid;
-
-    /// List of boundary cubes in region.
-    std::vector<VERTEX_INDEX> region_boundary_cube;
-
-    /// Increments for region vertices.
-    /// Vertex k in region corresponds to vertex iv+region_vertex_increment[k]
-    ///   around vertex iv.
-    INDEX_DIFF_TYPE * region_vertex_increment;
-
-    bool * visited;
-
-    void SetCubeFlag
-    (const VERTEX_INDEX cube_index,
-     const ISOVERT & isovert,
-     const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
-    void SetScalar
-    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-     const VERTEX_INDEX cube_index);
-    void SetSelectedCubeBoundary();
-
-    /// Set region_vertex_increment.
-    void SetRegionVertexIncrement(const SHARPISO_GRID & grid);
-
-    void GetBoundaryVertices
-    (const SCALAR_TYPE isovalue, const bool flag_pos,
-     std::vector<int> & vlist) const;
-    void GetBoundaryPosVertices
-    (const SCALAR_TYPE isovalue, std::vector<int> & vlist) const;
-    void GetBoundaryNegVertices
-    (const SCALAR_TYPE isovalue, std::vector<int> & vlist) const;
-    void GetBoundaryEdges
-    (const SCALAR_TYPE isovalue, const bool flag_pos,
-     std::vector<int> & elist) const;
-    void GetBoundaryPosEdges
-    (const SCALAR_TYPE isovalue, std::vector<int> & elist) const;
-    void GetBoundaryNegEdges
-    (const SCALAR_TYPE isovalue, std::vector<int> & elist) const;
-
-  public:
-    IS_ISOPATCH_DISK(const SHARPISO_GRID & grid);
-    ~IS_ISOPATCH_DISK();
-
-    /// Return true is isopatch is a disk.
-    bool IsIsopatchDisk
-    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-     SCALAR_TYPE isovalue,
-     const VERTEX_INDEX cube_index,
-     const ISOVERT & isovert,
-     const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
-
-    /// Reverse merges to isosurface vertex at cube_index.
-    void UnmapAdjacent
-    (const NUM_TYPE cube_index, const ISODUAL3D::ISOVERT & isovert, 
-     std::vector<SHARPISO::VERTEX_INDEX> & gcube_map) const;
-  };
-
-}
 
 namespace {
 
@@ -368,7 +285,7 @@ namespace {
 // Function class IS_ISOPATCH_DISK
 // **************************************************
 
-namespace {
+namespace ISODUAL3D {
 
   /// Constructor for IS_ISOPATCH_DISK
   IS_ISOPATCH_DISK::IS_ISOPATCH_DISK(const SHARPISO_GRID & grid)

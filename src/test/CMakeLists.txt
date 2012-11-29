@@ -49,3 +49,10 @@ ADD_EXECUTABLE(testambig testambig.cxx ijktable_poly.cxx ijktable_ambig.cxx
 ADD_EXECUTABLE(testbin testbin.cxx)
 
 ADD_EXECUTABLE(testsort testsort.cxx)
+
+ADD_EXECUTABLE(testmerge testmerge.cxx
+                         isodual3D_decimate.cxx
+                         sharpiso_feature.cxx sharpiso_get_gradients.cxx
+                         sharpiso_svd.cxx sharpiso_intersect.cxx
+                         sharpiso_findIntersect.cxx sh_point_find.cxx
+                         sh_point_datastruct.cxx sh_point_svdcal.cxx)

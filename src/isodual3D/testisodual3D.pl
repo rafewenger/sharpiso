@@ -101,6 +101,11 @@ while (scalar(@proglist) > 0 &&
     next;
   }
 
+  if ($new_option eq "-no_check_disk0") {
+    push(@input_options0, "-no_check_disk");
+    next;
+  }
+
   push(@input_options, $new_option);
   push(@input_options0, $new_option);
 

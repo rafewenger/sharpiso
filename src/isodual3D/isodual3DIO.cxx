@@ -1204,7 +1204,8 @@ void ISODUAL3D::report_iso_info3D
 
     if (vpos_method == GRADIENT_POSITIONING ||
         vpos_method == EDGEI_INTERPOLATE ||
-        vpos_method == EDGEI_GRADIENT) {
+        vpos_method == EDGEI_GRADIENT ||
+        vpos_method == EDGEI_INPUT_DATA) {
 
       cout << endl;
       if (!output_info.flag_merge_sharp) {

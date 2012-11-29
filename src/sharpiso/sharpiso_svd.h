@@ -88,7 +88,7 @@ void svd_calculate_sharpiso_vertex_using_lindstrom
 		COORD_TYPE * cubecenter,
 		COORD_TYPE * isoVertcoords);
 
-void svd_calculate_sharpiso_vertex_using_lindstorm_fast(
+void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		const NUM_TYPE num_vert,
 		const EIGENVALUE_TYPE err_tolerance,
 		const SCALAR_TYPE isovalue,
