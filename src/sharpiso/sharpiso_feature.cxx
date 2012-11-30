@@ -787,19 +787,9 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube
        num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
 	}
 
-	if (sharpiso_param.flag_centroid_eigen1) {
-		if (num_large_eigenvalues <= 1) {
-      compute_edgeI_centroid
-        (scalar_grid, edgeI_coord, edge_index, isovalue, cube_index, 
-         sharp_coord);
-
-			svd_info.location = CENTROID;
-		}
-	}
-
 	svd_info.cube_containing_coord = cube_index;
 
-	if (is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
+	if (!is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
 		process_far_point(scalar_grid, cube_index, cube_coord, isovalue,
                       sharpiso_param, sharp_coord, svd_info);
   }

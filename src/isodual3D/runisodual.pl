@@ -21,7 +21,8 @@ my $flag_old = 0;
 
 # isodual3D arguments which take an input value/string.
 my @isodual3D_options = ( "-subsample",  "-position", "-pos", "-gradient",
-                          "-round", "-max_dist", "-snap_dist", "-max_eigen" );
+                          "-round", "-max_dist", "-snap_dist", "-max_eigen",
+                          "-normal");
 
 my @input_options=();
 while (scalar(@input_list) > 0 &&

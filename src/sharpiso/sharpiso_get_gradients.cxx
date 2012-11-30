@@ -106,6 +106,30 @@ namespace {
     }
   }
 
+  inline void add_large_gradient
+  (const std::vector<COORD_TYPE> & edgeI_coord,
+   const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
+   const NUM_TYPE j,
+   const SCALAR_TYPE s,
+   const GRADIENT_COORD_TYPE max_small_mag_squared,
+   std::vector<COORD_TYPE> & point_coord,
+   std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+   std::vector<SCALAR_TYPE> & scalar,
+   NUM_TYPE & num_gradients)
+  {
+    GRADIENT_COORD_TYPE magnitude_squared;
+
+    IJK::compute_inner_product
+      (DIM3, &(edgeI_normal_coord[j*DIM3]), &(edgeI_normal_coord[j*DIM3]),
+       magnitude_squared);
+
+    if (magnitude_squared > max_small_mag_squared) {
+      add_gradient
+        (edgeI_coord, edgeI_normal_coord, j, s,
+         point_coord, gradient_coord, scalar, num_gradients);
+    }
+  }
+
   inline void add_selected_gradient
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -1183,6 +1207,10 @@ void SHARPISO::get_gradients_from_list
  std::vector<SCALAR_TYPE> & scalar,
  NUM_TYPE & num_gradients)
 {
+  const GRADIENT_COORD_TYPE max_small_mag =
+    sharpiso_param.max_small_magnitude;
+  const GRADIENT_COORD_TYPE max_small_mag_squared =
+    max_small_mag*max_small_mag;
   IJK::PROCEDURE_ERROR error("get_gradients_from_list");
 
   for (NUM_TYPE edge_dir = 0; edge_dir < DIM3; edge_dir++) {
@@ -1201,8 +1229,9 @@ void SHARPISO::get_gradients_from_list
           throw error;
         }
 
-        add_gradient(edgeI_coord, edgeI_normal_coord, j, isovalue,
-                     point_coord, gradient_coord, scalar, num_gradients);
+        add_large_gradient
+          (edgeI_coord, edgeI_normal_coord, j, isovalue, max_small_mag_squared,
+           point_coord, gradient_coord, scalar, num_gradients);
       }
     }
   }
