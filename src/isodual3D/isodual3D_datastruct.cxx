@@ -57,7 +57,7 @@ void ISODUAL_PARAM::Init()
   vertex_position_method = CENTROID_EDGE_ISO;
   flag_reposition = false;
   flag_merge_conflict = false;
-  flag_merge_sharp = false;
+  flag_merge_sharp = true;
   quad_tri_method = UNDEFINED_TRI;
   flag_convert_quad_to_tri = false;
   use_only_cube_gradients = false;

@@ -231,6 +231,7 @@ void ISODUAL3D::parse_command_line
 	bool is_vertex_position_method_set = false;
   bool is_use_sharp_edgeI_set = false;
   bool is_conflict_set = false;
+  input_info.linf_dist_thresh_merge_sharp = 0.8;
 	while (iarg < argc && argv[iarg][0] == '-') {
 		PARAMETER param = get_parameter_token(argv[iarg]);
 		if (param == UNKNOWN_PARAM) break;
@@ -392,7 +393,6 @@ void ISODUAL3D::parse_command_line
       break;
 
 		case MERGE_SHARP_PARAM:
-			input_info.linf_dist_thresh_merge_sharp = 0.8;
 			input_info.flag_merge_sharp = true;
       break;
       //

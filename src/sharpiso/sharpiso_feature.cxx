@@ -1433,9 +1433,9 @@ bool check_conflict
 /// Initialize SHARP_ISOVERT_PARAM
 void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 {
-	use_lindstrom = false;
-	use_lindstrom2= false;
-	use_lindstrom_fast = false;
+	use_lindstrom = true;
+	use_lindstrom2 = false;
+	use_lindstrom_fast = true;
 	flag_allow_conflict = false;
 	flag_clamp_conflict = true;
 	flag_clamp_far = false;
@@ -1443,7 +1443,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 	flag_round = false;
 	flag_remove_gradients = false;
 	flag_reselect_gradients = false;
-	flag_dist2centroid = false;
+	flag_dist2centroid = true;
 	flag_centroid_eigen1 = false;
   /* DEBUG:  disk check not yet tested.
   flag_check_disk = true;
