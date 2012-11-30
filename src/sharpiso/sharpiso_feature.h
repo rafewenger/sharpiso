@@ -337,10 +337,12 @@ namespace SHARPISO {
     bool flag_centroid_eigen1;     ///< Use centroid for 1 or fewer eigenvalues
     bool use_lindstrom;            ///< If true, use Lindstrom formula
     bool use_lindstrom2;
-    bool use_lindstrom_fast;        /// use the garland heckbert approach
+    bool use_lindstrom_fast;       /// use the garland heckbert approach
     bool use_Linf_dist;            ///< If true, use Linf dist.
-    float linf_dist_thresh_merge_sharp;
 
+
+    /// Merge sharp vertices which are within this threshold distance.
+    COORD_TYPE linf_dist_thresh_merge_sharp;
 
     /// If true, use sharp formula to calculate intersections
     ///   of isosurface and grid edges.

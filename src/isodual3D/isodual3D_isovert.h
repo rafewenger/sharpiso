@@ -20,11 +20,11 @@ namespace ISODUAL3D {
 // **************************************************
 
 typedef enum{
-	AVAILABLE_GCUBE,   // available
-	SELECTED_GCUBE,    // cube contains a sharp vertex
-	COVERED_GCUBE,     // cube is within 3x3 of a cube containing a sharp vertex
-	UNAVAILABLE_GCUBE,  // cube is within 3x3 of a 2 covering
-	SMOOTH_GCUBE		// smooth
+	AVAILABLE_GCUBE,    ///< Cube is available.
+	SELECTED_GCUBE,     ///< Cube contains a sharp vertex.
+	COVERED_GCUBE,      ///< Cube is near a cube containing a sharp vertex.
+	UNAVAILABLE_GCUBE,  ///< Cube is within 3x3 of a 2 covering.
+	SMOOTH_GCUBE		    ///< Cube contains smooth isosurface patch.
 } GRID_CUBE_FLAG;
 
 

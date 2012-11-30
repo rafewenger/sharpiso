@@ -207,10 +207,10 @@ void print_isovert_info
 
     isovert.linf_dist_threshold = isodual_data.linf_dist_thresh_merge_sharp;
 
-  if (isodual_data.IsGradientGridSet() &&
-      isodual_data.VertexPositionMethod() == GRADIENT_POSITIONING
-      || isodual_data.VertexPositionMethod() == EDGEI_INTERPOLATE
-      || isodual_data.VertexPositionMethod() == EDGEI_GRADIENT) {
+    if (isodual_data.IsGradientGridSet() &&
+        isodual_data.VertexPositionMethod() == GRADIENT_POSITIONING
+        || isodual_data.VertexPositionMethod() == EDGEI_INTERPOLATE
+        || isodual_data.VertexPositionMethod() == EDGEI_GRADIENT) {
 
       compute_dual_isovert
         (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
@@ -236,9 +236,21 @@ void print_isovert_info
 
     const NUM_TYPE num_gcube = isovert.gcube_list.size();
     std::vector<VERTEX_INDEX> gcube_map(num_gcube);
+    std::vector<VERTEX_INDEX> gcube_map_no_check_disk(num_gcube);
     merge_sharp_iso_vertices
       (isodual_data.ScalarGrid(), isovalue, isovert, isodual_data,
        quad_vert, gcube_map, isodual_info.sharpiso);
+
+    bool flag_check_disk = isodual_data.flag_check_disk;
+    if (flag_check_disk) {
+      SHARP_ISOVERT_PARAM sharp_param = isodual_data;
+      sharp_param.flag_check_disk = false;
+      merge_sharp_iso_vertices
+        (isodual_data.ScalarGrid(), isovalue, isovert, sharp_param,
+         quad_vert, gcube_map_no_check_disk, isodual_info.sharpiso);
+    }
+
+    IS_ISOPATCH_DISK is_isopatch_disk(isodual_data.ScalarGrid());
 
     for (int i = 0; i < isovert.gcube_list.size(); i++) {
       VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
@@ -256,7 +268,14 @@ void print_isovert_info
         }
       }
 
-     }
+      if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
+        if (!is_isopatch_disk.IsIsopatchDisk
+            (isodual_data.ScalarGrid(), isovalue, cube_index, isovert, 
+             gcube_map_no_check_disk)) {
+          cout << "      Isopatch is not a disk." << endl;
+        }
+      }
+    }
   }
 }
 
