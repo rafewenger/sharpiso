@@ -83,7 +83,7 @@ typedef enum {
     "-sharp_edgeI", "-interpolate_edgeI",
     "-reposition", "-no_reposition", "-sepdist",
     "-allow_conflict", "-clamp_conflict", "-centroid_conflict", 
-    "-merge_conflict", "-merge_sharp","-merge_linf_th",
+    "-merge_conflict", "-merge_sharp", "-merge_linf_th",
     "-clamp_far", "-centroid_far",
     "-recompute_eigen2", "-no_recompute_eigen2",
     "-removeg", "-no_removeg",
@@ -1426,7 +1426,7 @@ namespace {
     cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
     cerr << "  [-lindstrom]" << endl;
     cerr << "  [-allow_conflict |-clamp_conflict | -centroid_conflict] [-merge_conflict]" << endl;
-    cerr << "  [-merge_sharp]"<<"[-merge_linf_th]" << endl;
+    cerr << "  [-merge_sharp] [-merge_linf_th <D>]" << endl;
     cerr << "  [-clamp_far] [-centroid_far]" << endl;
     cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
     cerr << "  [-Linf | -no_Linf]" << endl;
@@ -1520,6 +1520,7 @@ void ISODUAL3D::help(const char * command_path)
 	cout << "  -normal {normal_off_filename}: Read edge-isosurface intersections"
        << endl
        << "      and normals from OFF file normal_off_filename." << endl;
+  cout << "  -merge_sharp: Merge vertices near sharp edges/corners." << endl;
 	cout << "  -single_isov: Each intersected cube generates a single isosurface vertex." << endl;
 	cout << "  -multi_isov:  An intersected cube may generate multiple isosurface vertices."  << endl;
 	cout << "  -sep_pos:     Use dual isosurface table separating positive "
@@ -1530,6 +1531,9 @@ void ISODUAL3D::help(const char * command_path)
 			<< "       Note: Not all ambiguities may be resolved." << endl
 			<< "             Unresolved ambiguities may create non-manifold regions."
 			<< endl;
+  cout << "  -merge_linf_th {D} : Do not select sharp vertices further"
+       << endl
+       << "            than Linf dist D from cube center." << endl;
 	cerr << "  -max_eigen {max}: Set maximum small eigenvalue to max."
 			<< endl;
 	cerr << "  -max_dist {D}:    Set max Linf distance from cube to isosurface vertex."
