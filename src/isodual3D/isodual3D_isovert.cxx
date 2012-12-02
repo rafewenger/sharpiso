@@ -593,7 +593,7 @@ void ISODUAL3D::compute_dual_isovert(
 {
   IJK::PROCEDURE_ERROR error("compute_dual_isovert");
   
-  if (!gradient_grid.CheckDimension
+  if (!gradient_grid.Check
       (scalar_grid, "gradient grid", "scalar grid", error)) 
     { throw error; }
 

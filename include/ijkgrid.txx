@@ -224,10 +224,13 @@ namespace IJK {
     void Create();            ///< Allocate and set data in GRID_PLUS.
 
   public:
-    // Constructors and destructors.
+    /// Constructors.
     GRID_PLUS(const DTYPE dimension, const ATYPE * axis_size);
     GRID_PLUS();
-    ~GRID_PLUS();
+    template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
+    GRID_PLUS(const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2);
+
+    ~GRID_PLUS();                       ///< Destructor
 
     // set functions
     template <class DTYPE2, class ATYPE2>
@@ -362,10 +365,13 @@ namespace IJK {
     void CreateLocal();       ///< Allocate and set data in GRID_NEIGHBORS.
 
   public:
-    // Constructors and destructors.
+    /// Constructors.
     GRID_NEIGHBORS(const DTYPE dimension, const ATYPE * axis_size);
     GRID_NEIGHBORS();
-    ~GRID_NEIGHBORS();
+    template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
+    GRID_NEIGHBORS(const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2);
+
+    ~GRID_NEIGHBORS();        ///< Desctructor.
 
     // set functions
     template <class DTYPE2, class ATYPE2>
@@ -3935,6 +3941,16 @@ namespace IJK {
     InitLocal();
   }
 
+  /// Constructor from another grid.
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
+  template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
+  GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE>::
+  GRID_PLUS(const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2):
+    GRID<DTYPE, ATYPE, VTYPE, NTYPE>(grid2)
+  {
+    InitLocal();
+  }
+
   /// \brief Set all local (not inherited) arrays to NULL.
   /// Set all local variables to 0.
   template <class DTYPE, class ATYPE, class VTYPE, class NTYPE> 
@@ -4065,6 +4081,17 @@ namespace IJK {
   template <class DTYPE, class ATYPE, class VTYPE, 
             class DIFFTYPE, class NTYPE> 
   GRID_NEIGHBORS<DTYPE,ATYPE,VTYPE,DIFFTYPE,NTYPE>::GRID_NEIGHBORS()
+  {
+    InitLocal();
+  }
+
+  /// Constructor from another grid.
+  template <class DTYPE, class ATYPE, class VTYPE, 
+            class DIFFTYPE, class NTYPE> 
+  template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
+  GRID_NEIGHBORS<DTYPE,ATYPE,VTYPE,DIFFTYPE,NTYPE>::
+  GRID_NEIGHBORS(const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2):
+    GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE> (grid2)
   {
     InitLocal();
   }

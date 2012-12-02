@@ -540,7 +540,7 @@ void ISODUAL3D::dual_contouring_merge_sharp
   std::vector<VERTEX_INDEX> quad_vert;
   PROCEDURE_ERROR error("dual_contouring");
 
-  if (!gradient_grid.CheckDimension
+  if (!gradient_grid.Check
       (scalar_grid, "gradient grid", "scalar grid", error))
     { throw error; }
 
