@@ -86,6 +86,35 @@ void compute_isovert_positions (
 	}
 }
 
+/*
+ * Recompute isosurface vertex positions for cubes 
+ *   which are not selected or coverted.
+ */
+void recompute_isovert_positions 
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ ISOVERT & isovertData)
+{
+  for (NUM_TYPE i = 0; i < isovertData.gcube_list.size(); i++) {
+    GRID_CUBE_FLAG cube_flag = isovertData.gcube_list[i].flag;
+
+    if (cube_flag == AVAILABLE_GCUBE) {
+
+      VERTEX_INDEX cube_index = isovertData.gcube_list[i].cube_index;
+
+      compute_edgeI_centroid
+        (scalar_grid, gradient_grid, isovalue, cube_index,
+         isovert_param.use_sharp_edgeI, isovertData.gcube_list[i].isovert_coord);
+    }
+  }
+
+}
+
+
+
+
 
 void round_down(const COORD_TYPE * coord, GRID_COORD_TYPE min_coord[DIM3])
 {
@@ -170,7 +199,6 @@ void compute_isovert_positions (
 		}
 	}
 }
-
 
 
 class GCUBE_COMPARE {
@@ -297,32 +325,6 @@ void get_selected
   }
 }
 
-// *** OBSOLETE ***
-/// Check if selecting this vertex creates a triangle
-/// *selected_list* is a list of already selected vertices.
-bool creates_triangle (
-		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const VERTEX_INDEX iv,
-		const SCALAR_TYPE isovalue,
-		vector<VERTEX_INDEX> &selected_list
-){
-	vector <VERTEX_INDEX> connected_list;
-	// get the list of vertices connected to the vertex iv
-	get_connected(scalar_grid, isovalue,
-			iv, selected_list, connected_list);
-	int limit = connected_list.size();
-	// for each pair jv1 jv2 in the connected list
-	for (int i=0; i< limit-1;++i){
-		for(int j=i+1;j<= (limit-1);++j)
-		{
-			if (are_connected(scalar_grid, connected_list[i],
-					connected_list[j], isovalue)){
-				return true;
-			}
-		}
-	}
-	return false;
-}
 
 /// Check if selecting this vertex creates a triangle.
 /// @param bin_grid Contains the already selected vertices.
@@ -593,7 +595,7 @@ void ISODUAL3D::compute_dual_isovert(
 {
   IJK::PROCEDURE_ERROR error("compute_dual_isovert");
   
-  if (!gradient_grid.CheckDimension
+  if (!gradient_grid.Check
       (scalar_grid, "gradient grid", "scalar grid", error)) 
     { throw error; }
 
@@ -607,6 +609,9 @@ void ISODUAL3D::compute_dual_isovert(
 	sort_gcube_list(sortd_ind2gcube_list, isovertData.gcube_list);
 	select_3x3x3_regions (scalar_grid, isovalue, isovert_param, 
                         sortd_ind2gcube_list, isovertData);
+
+  recompute_isovert_positions
+    (scalar_grid, gradient_grid, isovalue, isovert_param, isovertData);
 }
 
 

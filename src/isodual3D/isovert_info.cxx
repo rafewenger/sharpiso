@@ -266,13 +266,13 @@ void print_isovert_info
           cout << "      Mapped to isovert for cube: "
                << isovert.gcube_list[gcube_map[isov]].cube_index << endl;
         }
-      }
 
-      if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
-        if (!is_isopatch_disk.IsIsopatchDisk
-            (isodual_data.ScalarGrid(), isovalue, cube_index, isovert, 
-             gcube_map_no_check_disk)) {
-          cout << "      Isopatch is not a disk." << endl;
+        if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
+          if (!is_isopatch_disk.IsIsopatchDisk
+              (isodual_data.ScalarGrid(), isovalue, cube_index, isovert, 
+               gcube_map_no_check_disk)) {
+            cout << "      Isopatch is not a disk." << endl;
+          }
         }
       }
     }

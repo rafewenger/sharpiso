@@ -83,7 +83,7 @@ typedef enum {
     "-sharp_edgeI", "-interpolate_edgeI",
     "-reposition", "-no_reposition", "-sepdist",
     "-allow_conflict", "-clamp_conflict", "-centroid_conflict", 
-    "-merge_conflict", "-merge_sharp","-merge_linf_th",
+    "-merge_conflict", "-merge_sharp", "-merge_linf_th",
     "-clamp_far", "-centroid_far",
     "-recompute_eigen2", "-no_recompute_eigen2",
     "-removeg", "-no_removeg",
@@ -101,12 +101,14 @@ typedef enum {
     "-o", "-stdout",
     "-nowrite", "-info", "-s", "-time", "-unknown"};
 
-	PARAMETER get_parameter_token(char * s)
+	PARAMETER get_parameter_token(const char * s)
 	// convert string s into parameter token
 	{
+    string str(s);
+
 		for (int i = 0; i < int(UNKNOWN_PARAM); i++)
-			if (strcmp(parameter_string[i], s) == 0)
-				return(PARAMETER(i));
+			if (str == parameter_string[i])
+				{ return(PARAMETER(i)); }
 		return(UNKNOWN_PARAM);
 	}
 
@@ -162,276 +164,180 @@ typedef enum {
 
 	}
 
-	int get_int(const int iarg, const int argc, char **argv)
-	{
-		if (iarg+1 >= argc) {
-			cerr << "Usage error. Missing argument for option "
-					<< argv[iarg] << " and missing file name." << endl;
-			usage_error();
-		}
-
+	int get_option_int
+  (const char * option, const char * value_string)
+  {
 		int x;
-		if (!IJK::string2val(argv[iarg+1], x)) {
-			cerr << "Error in argument for option: " << argv[iarg] << endl;
-			cerr << "Non-integer character in string: " << argv[iarg+1] << endl;
+		if (!IJK::string2val(value_string, x)) {
+			cerr << "Error in argument for option: " << option << endl;
+			cerr << "Non-integer character in string: " << value_string << endl;
 			exit(50);
 		}
 
 		return(x);
-	}
+  }
 
-	float get_float(const int iarg, const int argc, char **argv)
-	{
-		if (iarg+1 >= argc) {
-			cerr << "Usage error. Missing argument for option "
-					<< argv[iarg] << " and missing file name." << endl;
-			usage_error();
-		}
-
+	float get_option_float
+  (const char * option, const char * value_string)
+  {
 		float x;
-		if (!IJK::string2val(argv[iarg+1], x)) {
-			cerr << "Error in argument for option: " << argv[iarg] << endl;
-			cerr << "Non-numeric character in string: " << argv[iarg+1] << endl;
+		if (!IJK::string2val(value_string, x)) {
+			cerr << "Error in argument for option: " << option << endl;
+			cerr << "Non-numertic character in string: " << value_string << endl;
 			exit(50);
 		}
 
 		return(x);
-	}
+  }
 
   /// Get string and convert to list of arguments.
-  /// Does not modify iarg.
   template <typename ETYPE>
-  void get_multiple_arguments
-  (const int iarg, const int argc, char **argv, vector<ETYPE> & v)
+  void get_option_multiple_arguments
+  (const char * option, const char * value_string, std::vector<ETYPE> & v)
   {
-    if (iarg+1 >= argc) { 
-      cerr << "Usage error. Missing argument for option " 
-           << argv[iarg] << " and missing file name." << endl;
-      usage_error();
-    }
-
-    if (!IJK::string2vector(argv[iarg+1], v)) {
-      cerr << "Error in argument for option: " << argv[iarg] << endl;
-      cerr << "Non-numeric character in string: " << argv[iarg+1] << endl;
+    if (!IJK::string2vector(value_string, v)) {
+      cerr << "Error in argument for option: " << option << endl;
+      cerr << "Non-numeric character in string: " << value_string << endl;
       exit(50);
     }
   }
 
-}
+  // Set flag in input_info based on param.
+  // Return false if param is not valid or not a flag.
+  bool set_input_info_flag
+  (const PARAMETER param, INPUT_INFO & input_info)
+  {
+    switch(param) {
 
-void ISODUAL3D::parse_command_line
-(int argc, char **argv, INPUT_INFO & input_info)
-// parse command line
-// control parameters, followed by one or more isovalues,
-// followed by input file name
-{
-	if (argc == 1) { usage_error(); };
+    case TRIMESH_PARAM:
+      input_info.flag_convert_quad_to_tri = true;
+      input_info.quad_tri_method = SPLIT_MAX_ANGLE;
+      break;
 
-	int iarg = 1;
-	bool is_vertex_position_method_set = false;
-  bool is_use_sharp_edgeI_set = false;
-  bool is_conflict_set = false;
-	while (iarg < argc && argv[iarg][0] == '-') {
-		PARAMETER param = get_parameter_token(argv[iarg]);
-		if (param == UNKNOWN_PARAM) break;
-
-		switch(param) {
-
-		case SUBSAMPLE_PARAM:
-			input_info.subsample_resolution = get_int(iarg, argc, argv);
-			iarg++;
-			input_info.flag_subsample = true;
-			break;
-
-		case GRADIENT_PARAM:
-			iarg++;
-			if (iarg >= argc) usage_error();
-			input_info.gradient_filename = argv[iarg];
-			break;
-
-		case NORMAL_PARAM:
-			iarg++;
-			if (iarg >= argc) usage_error();
-			input_info.normal_filename = argv[iarg];
-      input_info.vertex_position_method = EDGEI_INPUT_DATA;
-
-			is_vertex_position_method_set = true;
-			break;
-
-		case POSITION_PARAM:
-		case POS_PARAM:
-			iarg++;
-			if (iarg >= argc) usage_error();
-			set_vertex_position_method(argv[iarg], input_info);
-
-			is_vertex_position_method_set = true;
-			break;
-
-		case TRIMESH_PARAM:
-			input_info.flag_convert_quad_to_tri = true;
-			input_info.quad_tri_method = SPLIT_MAX_ANGLE;
-			break;
-
-		case UNIFORM_TRIMESH_PARAM:
-			input_info.flag_convert_quad_to_tri = true;
-			input_info.quad_tri_method = UNIFORM_TRI;
-			break;
-
-		case MAX_EIGEN_PARAM:
-			input_info.max_small_eigenvalue = get_float(iarg, argc, argv);
-			iarg++;
-			break;
-
-		case MAX_DIST_PARAM:
-			input_info.max_dist = get_float(iarg, argc, argv);
-			iarg++;
-			break;
-
-		case MAX_MAG_PARAM:
-			input_info.max_small_magnitude = get_float(iarg, argc, argv);
-			iarg++;
-			break;
-
-		case SNAP_DIST_PARAM:
-			input_info.snap_dist = get_float(iarg, argc, argv);
-			iarg++;
-			break;
+    case UNIFORM_TRIMESH_PARAM:
+      input_info.flag_convert_quad_to_tri = true;
+      input_info.quad_tri_method = UNIFORM_TRI;
+      break;
 
     case SHARP_EDGEI_PARAM:
       input_info.use_sharp_edgeI = true;
-      is_use_sharp_edgeI_set = true;
+      input_info.is_use_sharp_edgeI_set = true;
       break;
 
     case INTERPOLATE_EDGEI_PARAM:
       input_info.use_sharp_edgeI = false;
-      is_use_sharp_edgeI_set = true;
+      input_info.is_use_sharp_edgeI_set = true;
       break;
 
-		case GRAD_S_OFFSET_PARAM:
-			input_info.grad_selection_cube_offset = get_float(iarg, argc, argv);
-			iarg++;
-			break;
+    case REPOSITION_PARAM:
+      input_info.flag_reposition = true;
+      break;
 
-		case SEPDIST_PARAM:
-			input_info.separation_distance = get_float(iarg, argc, argv);
-			iarg++;
-			break;
+    case NO_REPOSITION_PARAM:
+      input_info.flag_reposition = false;
+      break;
 
-		case REPOSITION_PARAM:
-			input_info.flag_reposition = true;
-			break;
+    case LINF_PARAM:
+      input_info.use_Linf_dist = true;
+      break;
 
-		case NO_REPOSITION_PARAM:
-			input_info.flag_reposition = false;
-			break;
+    case NO_LINF_PARAM:
+      input_info.use_Linf_dist = false;
+      break;
 
-		case LINF_PARAM:
-			input_info.use_Linf_dist = true;
-			break;
+    case USE_LINDSTROM_PARAM:
+      input_info.use_lindstrom =true;
+      break;
 
-		case NO_LINF_PARAM:
-			input_info.use_Linf_dist = false;
-			break;
+    case USE_LINDSTROM2_PARAM:
+      input_info.use_lindstrom = true;
+      input_info.use_lindstrom2 = true;
+      break;
 
-		case USE_LINDSTROM_PARAM:
-			input_info.use_lindstrom =true;
-			break;
+    case USE_LINDSTROM_FAST:
+      input_info.use_lindstrom = true;
+      input_info.use_lindstrom_fast = true;
+      break;
 
-		case USE_LINDSTROM2_PARAM:
-			input_info.use_lindstrom = true;
-			input_info.use_lindstrom2 = true;
-			break;
+    case SINGLE_ISOV_PARAM:
+      input_info.allow_multiple_iso_vertices = false;
+      break;
 
-		case USE_LINDSTROM_FAST:
-					input_info.use_lindstrom = true;
-					input_info.use_lindstrom_fast = true;
-					break;
+    case MULTI_ISOV_PARAM:
+      input_info.allow_multiple_iso_vertices = true;
+      break;
 
-		case SINGLE_ISOV_PARAM:
-			input_info.allow_multiple_iso_vertices = false;
-			break;
-
-		case MULTI_ISOV_PARAM:
-			input_info.allow_multiple_iso_vertices = true;
-			break;
-
-		case SEP_NEG_PARAM:
-			input_info.flag_separate_neg = true;
+    case SEP_NEG_PARAM:
+      input_info.flag_separate_neg = true;
       input_info.flag_resolve_ambiguous_facets = false;
-			input_info.allow_multiple_iso_vertices = true;
-			break;
+      input_info.allow_multiple_iso_vertices = true;
+      break;
 
-		case SEP_POS_PARAM:
-			input_info.flag_separate_neg = false;
+    case SEP_POS_PARAM:
+      input_info.flag_separate_neg = false;
       input_info.flag_resolve_ambiguous_facets = false;
-			input_info.allow_multiple_iso_vertices = true;
-			break;
-
-		case RESOLVE_AMBIG_PARAM:
-			input_info.flag_resolve_ambiguous_facets = true;
-			input_info.allow_multiple_iso_vertices = true;
-			break;
-
-		case ALLOW_CONFLICT_PARAM:
-			input_info.flag_allow_conflict = true;
-      is_conflict_set = true;
-			break;
-
-		case CLAMP_CONFLICT_PARAM:
-			input_info.flag_clamp_conflict = true;
-      is_conflict_set = true;
-			break;
-
-		case CENTROID_CONFLICT_PARAM:
-			input_info.flag_clamp_conflict = false;
-      is_conflict_set = true;
-			break;
-
-		case MERGE_CONFLICT_PARAM:
-			input_info.flag_merge_conflict = true;
+      input_info.allow_multiple_iso_vertices = true;
       break;
 
-		case MERGE_SHARP_PARAM:
-			input_info.flag_merge_sharp = true;
+    case RESOLVE_AMBIG_PARAM:
+      input_info.flag_resolve_ambiguous_facets = true;
+      input_info.allow_multiple_iso_vertices = true;
       break;
 
-		case MERGE_SHARP_LINF_THRES_PARAM:
-      input_info.linf_dist_thresh_merge_sharp = get_float(iarg, argc, argv);
-      iarg++;
+    case ALLOW_CONFLICT_PARAM:
+      input_info.flag_allow_conflict = true;
+      input_info.is_conflict_set = true;
+      break;
+
+    case CLAMP_CONFLICT_PARAM:
+      input_info.flag_clamp_conflict = true;
+      input_info.is_conflict_set = true;
+      break;
+
+    case CENTROID_CONFLICT_PARAM:
+      input_info.flag_clamp_conflict = false;
+      input_info.is_conflict_set = true;
+      break;
+
+    case MERGE_CONFLICT_PARAM:
+      input_info.flag_merge_conflict = true;
+      break;
+
+    case MERGE_SHARP_PARAM:
       input_info.flag_merge_sharp = true;
       break;
 
-		case CLAMP_FAR_PARAM:
-			input_info.flag_clamp_far = true;
-			break;
+    case CLAMP_FAR_PARAM:
+      input_info.flag_clamp_far = true;
+      break;
 
-		case CENTROID_FAR_PARAM:
-			input_info.flag_clamp_far = false;
-			break;
+    case CENTROID_FAR_PARAM:
+      input_info.flag_clamp_far = false;
+      break;
 
-		case RECOMPUTE_EIGEN2_PARAM:
-			input_info.flag_recompute_eigen2 = true;
-			break;
+    case RECOMPUTE_EIGEN2_PARAM:
+      input_info.flag_recompute_eigen2 = true;
+      break;
 
-		case NO_RECOMPUTE_EIGEN2_PARAM:
-			input_info.flag_recompute_eigen2 = false;
-			break;
+    case NO_RECOMPUTE_EIGEN2_PARAM:
+      input_info.flag_recompute_eigen2 = false;
+      break;
 
-		case REMOVEG_PARAM:
-			input_info.flag_remove_gradients = true;
-			break;
+    case REMOVEG_PARAM:
+      input_info.flag_remove_gradients = true;
+      break;
 
-		case NO_REMOVEG_PARAM:
-			input_info.flag_remove_gradients = false;
-			break;
+    case NO_REMOVEG_PARAM:
+      input_info.flag_remove_gradients = false;
+      break;
 
-		case RESELECT_GRAD_PARAM:
-			input_info.flag_reselect_gradients = true;
-			break;
+    case RESELECT_GRAD_PARAM:
+      input_info.flag_reselect_gradients = true;
+      break;
 
-		case NO_RESELECT_GRAD_PARAM:
-			input_info.flag_reselect_gradients = false;
-			break;
+    case NO_RESELECT_GRAD_PARAM:
+      input_info.flag_reselect_gradients = false;
+      break;
 
     case DIST2CENTER_PARAM:
       input_info.flag_dist2centroid = false;
@@ -441,32 +347,17 @@ void ISODUAL3D::parse_command_line
       input_info.flag_dist2centroid = true;
       break;
 
-		case CENTROID_EIGEN1_PARAM:
-			input_info.flag_centroid_eigen1 = true;
-			break;
-
-		case NO_CENTROID_EIGEN1_PARAM:
-			input_info.flag_centroid_eigen1 = false;
-			break;
-
-		case ROUND_PARAM:
-			input_info.flag_round = true;
-			input_info.round_denominator = get_int(iarg, argc, argv);
-			iarg++;
-			break;
-
-		case NO_ROUND_PARAM:
-			input_info.flag_round = false;
-			break;
-
-    case MINC_PARAM:
-      get_multiple_arguments(iarg, argc, argv, input_info.minc);
-      iarg++;
+    case CENTROID_EIGEN1_PARAM:
+      input_info.flag_centroid_eigen1 = true;
       break;
 
-    case MAXC_PARAM:
-      get_multiple_arguments(iarg, argc, argv, input_info.maxc);
-      iarg++;
+    case NO_CENTROID_EIGEN1_PARAM:
+      input_info.flag_centroid_eigen1 = false;
+      break;
+
+
+    case NO_ROUND_PARAM:
+      input_info.flag_round = false;
       break;
 
     case CHECK_DISK_PARAM:
@@ -477,51 +368,196 @@ void ISODUAL3D::parse_command_line
       input_info.flag_check_disk = false;
       break;
 
-		case OFF_PARAM:
-			input_info.output_format = OFF;
-			break;
+    case OFF_PARAM:
+      input_info.output_format = OFF;
+      break;
 
-		case IV_PARAM:
-			input_info.output_format = IV;
-			break;
+    case IV_PARAM:
+      input_info.output_format = IV;
+      break;
 
-		case OUTPUT_PARAM_PARAM:
-			input_info.flag_output_param = true;
-			break;
+    case OUTPUT_PARAM_PARAM:
+      input_info.flag_output_param = true;
+      break;
 
-		case OUTPUT_FILENAME_PARAM:
-			iarg++;
-			if (iarg >= argc) usage_error();
-			input_info.output_filename = argv[iarg];
-			break;
+    case STDOUT_PARAM:
+      input_info.use_stdout = true;
+      break;
 
-		case STDOUT_PARAM:
-			input_info.use_stdout = true;
-			break;
+    case NOWRITE_PARAM:
+      input_info.nowrite_flag = true;
+      break;
 
-		case NOWRITE_PARAM:
-			input_info.nowrite_flag = true;
-			break;
+    case OUTPUT_INFO_PARAM:
+      input_info.flag_output_alg_info = true;
+      break;
 
-		case OUTPUT_INFO_PARAM:
-			input_info.flag_output_alg_info = true;
-			break;
+    case SILENT_PARAM:
+      input_info.flag_silent = true;
+      break;
 
-		case SILENT_PARAM:
-			input_info.flag_silent = true;
-			break;
+    case TIME_PARAM:
+      input_info.report_time_flag = true;
+      break;
 
-		case TIME_PARAM:
-			input_info.report_time_flag = true;
-			break;
+    default:
+      return(false);
+    }
 
-		case HELP_PARAM:
-			help();
-			break;
-		};
+    return(true);
+  }
 
-		iarg++;
-	};
+  // Set value in input_info based on param.
+  // Return false if param is not valid or does not take a value.
+  bool set_input_info_value
+  (const PARAMETER param, const char * option_string, 
+   const char * value_string, INPUT_INFO & input_info)
+  {
+    switch(param) {
+
+    case SUBSAMPLE_PARAM:
+      input_info.subsample_resolution =  
+        get_option_int(option_string, value_string);
+      input_info.flag_subsample = true;
+      break;
+
+    case GRADIENT_PARAM:
+      input_info.gradient_filename = value_string;
+      break;
+
+    case NORMAL_PARAM:
+      input_info.normal_filename = value_string;
+      input_info.vertex_position_method = EDGEI_INPUT_DATA;
+
+      input_info.is_vertex_position_method_set = true;
+      break;
+
+    case POSITION_PARAM:
+    case POS_PARAM:
+      set_vertex_position_method(value_string, input_info);
+
+      input_info.is_vertex_position_method_set = true;
+      break;
+
+    case MAX_EIGEN_PARAM:
+      input_info.max_small_eigenvalue = 
+        get_option_float(option_string, value_string);
+      break;
+
+    case MAX_DIST_PARAM:
+      input_info.max_dist = 
+        get_option_float(option_string, value_string);
+      break;
+
+    case MAX_MAG_PARAM:
+      input_info.max_small_magnitude = 
+        get_option_float(option_string, value_string);
+      break;
+
+    case SNAP_DIST_PARAM:
+      input_info.snap_dist = 
+        get_option_float(option_string, value_string);
+      break;
+
+    case GRAD_S_OFFSET_PARAM:
+      input_info.grad_selection_cube_offset = 
+        get_option_float(option_string, value_string);
+      break;
+
+    case SEPDIST_PARAM:
+      input_info.separation_distance = 
+        get_option_float(option_string, value_string);
+      break;
+
+    case MERGE_SHARP_LINF_THRES_PARAM:
+      input_info.linf_dist_thresh_merge_sharp = 
+        get_option_float(option_string, value_string);
+      input_info.flag_merge_sharp = true;
+      break;
+
+    case ROUND_PARAM:
+      input_info.flag_round = true;
+      input_info.round_denominator =
+        get_option_int(option_string, value_string);
+      break;
+
+    case MINC_PARAM:
+      get_option_multiple_arguments
+        (option_string, value_string, input_info.minc);
+      break;
+
+    case MAXC_PARAM:
+      get_option_multiple_arguments
+        (option_string, value_string, input_info.maxc);
+      break;
+
+    case OUTPUT_FILENAME_PARAM:
+      input_info.output_filename = value_string;
+      break;
+
+    default:
+      return(false);
+    }
+
+    return(true);
+  }
+
+
+}
+
+// Parse the next option in the command line.
+// Return false if no next option or parse fails.
+bool ISODUAL3D::parse_command_option
+(const int argc, char **argv, const int iarg, int & next_arg,
+ INPUT_INFO & input_info)
+{
+  next_arg = iarg;
+
+  if (iarg >= argc) { return(false); }
+
+  if (argv[iarg][0] != '-') { return(false); }
+
+  PARAMETER param = get_parameter_token(argv[iarg]);
+
+  if (param == UNKNOWN_PARAM) { return(false); }
+
+  if (set_input_info_flag(param, input_info)) {
+    next_arg = iarg+1;
+    return(true);
+  }
+
+  if (iarg+1 >= argc) { return(false); }
+
+  if (set_input_info_value(param, argv[iarg], argv[iarg+1], input_info)) {
+    next_arg = iarg+2;
+    return(true);
+  }
+
+  return(false);
+}
+
+// Parse the command line.
+void ISODUAL3D::parse_command_line
+(int argc, char **argv, INPUT_INFO & input_info)
+{
+	if (argc == 1) { usage_error(argv[0]); };
+
+	int iarg = 1;
+	while (iarg < argc) {
+
+    int next_arg;
+    if (!parse_command_option(argc, argv, iarg, next_arg, input_info) ||
+        iarg == next_arg) { 
+
+      if (argv[iarg][0] == '-') {
+        PARAMETER param = get_parameter_token(argv[iarg]);
+        if (param == HELP_PARAM) { help(argv[0]); }
+      }
+      break; 
+    }
+
+    iarg = next_arg;
+  }
 
 	// remaining parameters should be list of isovalues followed
 	// by input file name
@@ -531,13 +567,13 @@ void ISODUAL3D::parse_command_line
 		if (get_parameter_token(argv[j]) != UNKNOWN_PARAM) {
 			// argv[iarg] is not an isovalue
 			cerr << "Error. Illegal parameter: " << argv[iarg] << endl;
-			usage_error();
+			usage_error(argv[0]);
 		}
 	}
 
 	if (iarg+2 > argc) {
 		cerr << "Error.  Missing input isovalue or input file name." << endl;
-		usage_error();
+		usage_error(argv[0]);
 	};
 
 	// store isovalues
@@ -551,7 +587,7 @@ void ISODUAL3D::parse_command_line
 		if (input_string.fail()) {
 			cerr << "Error. \"" << argv[j] << "\" is not a valid input isovalue."
 					<< endl;
-			usage_error();
+			usage_error(argv[0]);
 		};
 
 		input_info.isovalue.push_back(value);
@@ -559,18 +595,19 @@ void ISODUAL3D::parse_command_line
 
 	input_info.scalar_filename = argv[argc-1];
 
-	if (!is_vertex_position_method_set && input_info.gradient_filename == NULL) {
+	if (!input_info.is_vertex_position_method_set && 
+      input_info.gradient_filename == NULL) {
 		input_info.vertex_position_method = GRADIENT_POSITIONING;
     input_info.SetGradSelectionMethod(GRAD_NS);
 	}
 
-  if (!is_conflict_set && input_info.flag_merge_sharp) {
+  if (!input_info.is_conflict_set && input_info.flag_merge_sharp) {
     // Set merge_sharp defaults.
     input_info.flag_allow_conflict = true;
     input_info.flag_clamp_conflict = false;
   }
 
-  if (is_use_sharp_edgeI_set) {
+  if (input_info.is_use_sharp_edgeI_set) {
     if (input_info.use_sharp_edgeI) {
       if (input_info.vertex_position_method == EDGEI_INTERPOLATE) {
         cerr << "Error.  Cannot use -interpolate_edgeI with -position gradES."
@@ -1353,57 +1390,68 @@ void ISODUAL3D::report_time
 // local namespace
 namespace {
 
-void usage_msg(std::ostream & out)
-{
-	out << "Usage: isodual3D [OPTIONS] {isovalue1 isovalue2 ...} {input filename}" << endl;
+
+  void usage_msg(std::ostream & out, const char * command_path)
+  {
+    string command_name;
+    string prefix, suffix;
+
+    command_name = command_path;
+
+    // remove path from file name
+    split_string(command_path, PATH_DELIMITER, prefix, suffix);
+    if (suffix != "") { command_name = suffix; }
+
+    out << "Usage: " << command_name 
+        << " [OPTIONS] {isovalue1 isovalue2 ...} {input filename}" << endl;
+  }
+
+
+  void options_msg()
+  {
+    cerr << "OPTIONS:" << endl;
+    cerr << "  [-subsample S]" << endl;
+    cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|"
+         << endl
+         << "              gradIE|gradIES|gradIEDir|gradCD|gradNIE|gradNIES|"
+         << endl
+         << "              gradES|gradEC}]" << endl;
+    cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
+    cerr << "  [-normal {normal_off_filename}]" << endl;
+    cerr << "  [-single_isov | -multi_isov | -sep_pos | -sep_neg | -resolve_ambig]"
+         << endl;
+    cerr << "  [-max_eigen {max}]" << endl;
+    cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}] [-snap_dist {D}]" << endl;
+    cerr << "  [-sharp_edgeI | -interpolate_edgeI]" << endl;
+    cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
+    cerr << "  [-lindstrom]" << endl;
+    cerr << "  [-allow_conflict |-clamp_conflict | -centroid_conflict] [-merge_conflict]" << endl;
+    cerr << "  [-merge_sharp] [-merge_linf_th <D>]" << endl;
+    cerr << "  [-clamp_far] [-centroid_far]" << endl;
+    cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
+    cerr << "  [-Linf | -no_Linf]" << endl;
+    cerr << "  [-removeg | -no_removeg] [-reselectg | -no_reselectg]" << endl;
+    cerr << "  [-dist2center | -dist2centroid]" << endl;
+    cerr << "  [-centroid_eigen1 | -no_centroid_eigen1]" << endl;
+    cerr << "  [-check_disk | -no_check_disk]" << endl;
+    cerr << "  [-no_round | -round <n>]" << endl;
+    cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
+         << endl;
+    cerr << "  [-help] [-s] [-out_param] [-info] [-nowrite] [-time]" << endl;
+  }
+
 }
 
-
-void options_msg()
+void ISODUAL3D::usage_error(const char * command_path)
 {
-	cerr << "OPTIONS:" << endl;
-	cerr << "  [-subsample S]" << endl;
-	cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|"
-			<< endl
-			<< "              gradIE|gradIES|gradIEDir|gradCD|gradNIE|gradNIES|"
-			<< endl
-			<< "              gradES|gradEC}]" << endl;
-	cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
-  cerr << "  [-normal {normal_off_filename}]" << endl;
-	cerr << "  [-single_isov | -multi_isov | -sep_pos | -sep_neg | -resolve_ambig]"
-			<< endl;
-	cerr << "  [-max_eigen {max}]" << endl;
-	cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}] [-snap_dist {D}]" << endl;
-  cerr << "  [-sharp_edgeI | -interpolate_edgeI]" << endl;
-	cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
-	cerr << "  [-lindstrom]" << endl;
-	cerr << "  [-allow_conflict |-clamp_conflict | -centroid_conflict] [-merge_conflict]" << endl;
-  cerr << "  [-merge_sharp]"<<"[-merge_linf_th]" << endl;
-	cerr << "  [-clamp_far] [-centroid_far]" << endl;
-	cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
-	cerr << "  [-Linf | -no_Linf]" << endl;
-	cerr << "  [-removeg | -no_removeg] [-reselectg | -no_reselectg]" << endl;
-  cerr << "  [-dist2center | -dist2centroid]" << endl;
-	cerr << "  [-centroid_eigen1 | -no_centroid_eigen1]" << endl;
-  cerr << "  [-check_disk | -no_check_disk]" << endl;
-	cerr << "  [-no_round | -round <n>]" << endl;
-	cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
-			<< endl;
-	cerr << "  [-help] [-s] [-out_param] [-info] [-nowrite] [-time]" << endl;
-}
-
-}
-
-void ISODUAL3D::usage_error()
-{
-	usage_msg(cerr);
+	usage_msg(cerr, command_path);
 	options_msg();
 	exit(10);
 }
 
-void ISODUAL3D::help()
+void ISODUAL3D::help(const char * command_path)
 {
-	usage_msg(cout);
+	usage_msg(cout, command_path);
 	cout << endl;
 	cout << "isodual3D - Marching cubes isosurface generation algorithm." << endl;
 	cout << endl;
@@ -1472,6 +1520,7 @@ void ISODUAL3D::help()
 	cout << "  -normal {normal_off_filename}: Read edge-isosurface intersections"
        << endl
        << "      and normals from OFF file normal_off_filename." << endl;
+  cout << "  -merge_sharp: Merge vertices near sharp edges/corners." << endl;
 	cout << "  -single_isov: Each intersected cube generates a single isosurface vertex." << endl;
 	cout << "  -multi_isov:  An intersected cube may generate multiple isosurface vertices."  << endl;
 	cout << "  -sep_pos:     Use dual isosurface table separating positive "
@@ -1482,6 +1531,9 @@ void ISODUAL3D::help()
 			<< "       Note: Not all ambiguities may be resolved." << endl
 			<< "             Unresolved ambiguities may create non-manifold regions."
 			<< endl;
+  cout << "  -merge_linf_th {D} : Do not select sharp vertices further"
+       << endl
+       << "            than Linf dist D from cube center." << endl;
 	cerr << "  -max_eigen {max}: Set maximum small eigenvalue to max."
 			<< endl;
 	cerr << "  -max_dist {D}:    Set max Linf distance from cube to isosurface vertex."
@@ -1592,6 +1644,9 @@ void ISODUAL3D::INPUT_INFO::Init()
 /// Clear input information
 void ISODUAL3D::INPUT_INFO::Clear()
 {
+  is_vertex_position_method_set = false;
+  is_use_sharp_edgeI_set = false;
+  is_conflict_set = false;
 	isovalue.clear();
 	isovalue_string.clear();
 	isotable_directory = "";
