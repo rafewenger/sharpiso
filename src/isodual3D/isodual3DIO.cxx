@@ -219,6 +219,11 @@ typedef enum {
       input_info.quad_tri_method = UNIFORM_TRI;
       break;
 
+    case SHARP_EDGEI_PARAM:
+      input_info.use_sharp_edgeI = true;
+      input_info.is_use_sharp_edgeI_set = true;
+      break;
+
     case INTERPOLATE_EDGEI_PARAM:
       input_info.use_sharp_edgeI = false;
       input_info.is_use_sharp_edgeI_set = true;

@@ -86,6 +86,33 @@ void compute_isovert_positions (
 	}
 }
 
+/*
+ * Recompute the isosurface vertex positions for cubes AVAILABLE_CUBE.
+ */
+void recompute_available_isovert_positions 
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ ISOVERT & isovertData)
+{
+  for (NUM_TYPE i = 0; i < isovertData.gcube_list.size(); i++) {
+
+    if (isovertData.gcube_list[i].flag == AVAILABLE_GCUBE) {
+
+      VERTEX_INDEX cube_index = isovertData.gcube_list[i].cube_index;
+
+      compute_edgeI_centroid
+        (scalar_grid, gradient_grid, isovalue, cube_index,
+         isovert_param.use_sharp_edgeI, isovertData.gcube_list[i].isovert_coord);
+    }
+  }
+
+}
+
+
+
+
 
 void round_down(const COORD_TYPE * coord, GRID_COORD_TYPE min_coord[DIM3])
 {
@@ -170,7 +197,6 @@ void compute_isovert_positions (
 		}
 	}
 }
-
 
 
 class GCUBE_COMPARE {
@@ -607,6 +633,9 @@ void ISODUAL3D::compute_dual_isovert(
 	sort_gcube_list(sortd_ind2gcube_list, isovertData.gcube_list);
 	select_3x3x3_regions (scalar_grid, isovalue, isovert_param, 
                         sortd_ind2gcube_list, isovertData);
+
+  recompute_available_isovert_positions
+    (scalar_grid, gradient_grid, isovalue, isovert_param, isovertData);
 }
 
 
