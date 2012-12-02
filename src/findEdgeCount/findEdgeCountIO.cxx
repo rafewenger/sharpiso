@@ -164,7 +164,7 @@ void output_vert_degree_2_file
 			cntMoreThan3++;
 		}
 	}
-	cout <<fname<<" "<< cnt1 + cnt3 + cntMoreThan3;
+	cout <<fname<<" "<< cnt1 + cnt3 + cntMoreThan3<<endl;
 }
 /// HELPER FUNCTIONS
 void  print_point (const COORD_TYPE * coordList, vector <int> vert_degree, const int vertId, const int deg){
