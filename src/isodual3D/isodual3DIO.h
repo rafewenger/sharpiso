@@ -76,13 +76,13 @@ namespace ISODUAL3D {
   public:
     int dimension;
     COORD_ARRAY grid_spacing;
-    char * scalar_filename;       ///< Input scalar file name.
-    char * gradient_filename;     ///< Input gradient file name.
+    const char * scalar_filename;       ///< Input scalar file name.
+    const char * gradient_filename;     ///< Input gradient file name.
 
     /// Input edge-isosurface intersection normal file name.
-    char * normal_filename;       
+    const char * normal_filename;       
 
-    char * output_filename;
+    const char * output_filename;
     OUTPUT_FORMAT output_format;
     bool report_time_flag;
     bool use_stdout;
@@ -106,7 +106,12 @@ namespace ISODUAL3D {
     void Set(const IO_INFO & io_info);
   };
 
-  /// IO information
+
+// **************************************************
+// INPUT INFORMATION
+// **************************************************
+
+  /// Input information
   class INPUT_INFO:public IO_INFO {
 
   protected:
@@ -114,6 +119,9 @@ namespace ISODUAL3D {
     void Clear();
 
   public:
+    bool is_vertex_position_method_set;
+    bool is_use_sharp_edgeI_set;
+    bool is_conflict_set;
     SCALAR_ARRAY isovalue;        ///< List of isovalues.
     std::vector<std::string> isovalue_string;
     std::string isotable_directory;
@@ -204,7 +212,15 @@ namespace ISODUAL3D {
 // PARSE COMMAND LINE
 // **************************************************
 
+  /// Parse the next option in the command line.
+  /// Return false if no next option or parse fails.
+  bool parse_command_option
+  (const int argc, char **argv, const int iarg, int & next_arg,
+   INPUT_INFO & input_info);
+
   /// Parse the command line.
+  /// Command line is control parameters, followed by one or more isovalues,
+  ///   followed by input file name.
   void parse_command_line(int argc, char **argv, INPUT_INFO & input_info);
 
   /// Check input information in input_info
@@ -376,8 +392,8 @@ namespace ISODUAL3D {
 // USAGE/HELP MESSAGES
 // **************************************************
 
-  void usage_error();
-  void help();
+  void usage_error(const char * command_name);
+  void help(const char * command_name);
 }
 
 #endif

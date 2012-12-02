@@ -1,4 +1,4 @@
-/// \file ijkparse.txx
+/// \file ijkstring.txx
 /// ijk templates for converting strings to values/arrays
 /// Version 0.1.0
 
