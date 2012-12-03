@@ -35,11 +35,17 @@
 #include "ijkmesh.txx"
 #include "ijkmesh_geom.txx"
 #include "ijkprint.txx"
+#include "ijkstring.txx"
 
 using namespace IJK;
 using namespace ISODUAL3D;
 
 using namespace std;
+
+// global variables
+std::vector<VERTEX_INDEX> input_cube_coord;
+VERTEX_INDEX input_cube_index;
+bool flag_input_cube(false);
 
 // local subroutines
 void memory_exhaustion();
@@ -55,7 +61,27 @@ void compute_eigenvalues
 void out_gcube(std::ostream & out, const SCALAR_TYPE isovalue,
                const ISODUAL_DATA & isodual_data, const GRID_CUBE & gcube,
                const SHARPISO_EDGE_INDEX_GRID & edge_index);
+void out_gcube
+(std::ostream & out, const SCALAR_TYPE isovalue, 
+ const ISODUAL_DATA & isodual_data,
+ const ISOVERT & isovert,
+ const VERTEX_INDEX gcube_index,
+ const SHARPISO_EDGE_INDEX_GRID & edge_index,
+ const std::vector<VERTEX_INDEX> & gcube_map,
+ const std::vector<VERTEX_INDEX> & gcube_map_no_check_disk,
+ IS_ISOPATCH_DISK & is_isopatch_disk);
 void out_gcube_type(std::ostream & out, const GRID_CUBE_FLAG flag);
+void out_neighborhood
+(std::ostream & out, const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX cube_index,
+ const ISOVERT & isovert, const std::vector<VERTEX_INDEX> & gcube_map);
+void out_IS_ISOPATCH_DISK_info
+(std::ostream & out, const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX cube_index,
+ const ISOVERT & isovert, const std::vector<VERTEX_INDEX> & gcube_map,
+ IS_ISOPATCH_DISK & is_isopatch_disk);
+void parse_isovert_command_line
+(int argc, char **argv, INPUT_INFO & input_info);
 
 // **************************************************
 // MAIN
@@ -75,7 +101,7 @@ int main(int argc, char **argv)
 
     std::set_new_handler(memory_exhaustion);
 
-    parse_command_line(argc, argv, input_info);
+    parse_isovert_command_line(argc, argv, input_info);
 
     ISODUAL_SCALAR_GRID full_scalar_grid;
     NRRD_INFO nrrd_info;
@@ -155,7 +181,16 @@ int main(int argc, char **argv)
     if (input_info.flag_output_param) 
       { report_isodual_param(isodual_data); }
 
-    report_num_cubes(full_scalar_grid, input_info, isodual_data);
+    if (input_cube_coord.size() == DIM3) {
+      input_cube_index = 
+        isodual_data.ScalarGrid().ComputeVertexIndex(&(input_cube_coord[0]));
+      flag_input_cube = true;
+    }
+    else {
+      flag_input_cube = false;
+
+      report_num_cubes(full_scalar_grid, input_info, isodual_data);
+    }
 
     print_isovert_info(input_info, isodual_data);
   }
@@ -254,27 +289,79 @@ void print_isovert_info
 
     for (int i = 0; i < isovert.gcube_list.size(); i++) {
       VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
-      isodual_data.ScalarGrid().ComputeCoord(cube_index, cube_coord);
 
-      if (box.Contains(cube_coord)) {
-        out_gcube(cout, isovalue, isodual_data, isovert.gcube_list[i],
-                  edge_index); 
+      if (flag_input_cube) {
 
-        VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
-        ISO_VERTEX_INDEX isov = isovert.sharp_ind_grid.Scalar(cube_index);
-        if (gcube_map[isov] != isov) {
-          cout << "      Mapped to isovert for cube: "
-               << isovert.gcube_list[gcube_map[isov]].cube_index << endl;
-        }
+        if (cube_index == input_cube_index) {
 
-        if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
-          if (!is_isopatch_disk.IsIsopatchDisk
-              (isodual_data.ScalarGrid(), isovalue, cube_index, isovert, 
-               gcube_map_no_check_disk)) {
-            cout << "      Isopatch is not a disk." << endl;
+          if (flag_check_disk) {
+
+            out_gcube(cout, isovalue, isodual_data, isovert, i,
+                      edge_index, gcube_map, gcube_map_no_check_disk,
+                      is_isopatch_disk);
+            cout << endl;
+
+            out_neighborhood(cout, isodual_data.ScalarGrid(), cube_index,
+                             isovert, gcube_map_no_check_disk);
+            out_IS_ISOPATCH_DISK_info
+              (cout, isodual_data.ScalarGrid(), cube_index, isovert,
+               gcube_map_no_check_disk, is_isopatch_disk);
+          }
+          else {
+            out_gcube(cout, isovalue, isodual_data, isovert, i,
+                      edge_index, gcube_map, gcube_map,
+                      is_isopatch_disk);
+            cout << endl;
+
+            out_neighborhood(cout, isodual_data.ScalarGrid(), cube_index,
+                             isovert, gcube_map);
+            out_IS_ISOPATCH_DISK_info
+              (cout, isodual_data.ScalarGrid(), cube_index, isovert,
+               gcube_map, is_isopatch_disk);
           }
         }
       }
+      else {
+        isodual_data.ScalarGrid().ComputeCoord(cube_index, cube_coord);
+        if (box.Contains(cube_coord)) {
+          out_gcube(cout, isovalue, isodual_data, isovert, i,
+                    edge_index, gcube_map, gcube_map_no_check_disk,
+                    is_isopatch_disk);
+        }
+      }
+    }
+  }
+}
+
+void out_gcube
+(std::ostream & out, const SCALAR_TYPE isovalue, 
+ const ISODUAL_DATA & isodual_data,
+ const ISOVERT & isovert,
+ const NUM_TYPE gcube_index,
+ const SHARPISO_EDGE_INDEX_GRID & edge_index,
+ const std::vector<VERTEX_INDEX> & gcube_map,
+ const std::vector<VERTEX_INDEX> & gcube_map_no_check_disk,
+ IS_ISOPATCH_DISK & is_isopatch_disk)
+{
+  VERTEX_INDEX cube_index = isovert.gcube_list[gcube_index].cube_index;
+
+  out_gcube(out, isovalue, isodual_data, isovert.gcube_list[gcube_index],
+            edge_index); 
+
+  if (gcube_map[gcube_index] != gcube_index) {
+    out << "      Mapped to isovert for cube: "
+        << isovert.gcube_list[gcube_map[gcube_index]].cube_index << endl;
+  }
+
+  if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
+    NUM_TYPE num_neg, num_pos;
+    if (!is_isopatch_disk.IsIsopatchDisk
+        (isodual_data.ScalarGrid(), isovalue, cube_index, isovert, 
+         gcube_map_no_check_disk, num_neg, num_pos)) {
+      out << "      Isopatch is not a disk.";
+      out << "  Num neg components: " << num_neg << ".";
+      out << "  Num pos components: " << num_pos << ".";
+      out << endl;
     }
   }
 }
@@ -409,6 +496,135 @@ void compute_eigenvalues
   }
 }
 
+void out_neighborhood
+(std::ostream & out, const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX cube_index,
+ const ISOVERT & isovert, const std::vector<VERTEX_INDEX> & gcube_map)
+{
+  const AXIS_SIZE_TYPE axis_size_4x4x4[DIM3] = { 4, 4, 4 };
+  const AXIS_SIZE_TYPE axis_size_3x3x3[DIM3] = { 3, 3, 3 };
+  SHARPISO_SCALAR_GRID scalar_subgrid(DIM3, axis_size_4x4x4);
+  SHARPISO_INDEX_GRID gcube_map_grid(DIM3, axis_size_3x3x3);
+
+  VERTEX_INDEX iv0 = 
+    cube_index - scalar_grid.CubeVertexIncrement(NUM_CUBE_VERTICES3D-1);
+
+  scalar_subgrid.CopyRegion(scalar_grid, iv0, axis_size_4x4x4, 0);
+
+  out << "Scalar values around cube " << cube_index << ":" << endl;
+  IJK::output_scalar_grid(cout, scalar_subgrid);
+  out << endl;
+
+  gcube_map_grid.CopyRegion(isovert.sharp_ind_grid, iv0, axis_size_3x3x3, 0);
+
+  for (VERTEX_INDEX iv = 0; iv < gcube_map_grid.NumVertices(); iv++) {
+    INDEX_DIFF_TYPE gcube_index = gcube_map_grid.Scalar(iv);
+    if (0 <= gcube_index && gcube_index < gcube_map.size())
+      { gcube_map_grid.Set(iv, gcube_map[gcube_index]); }
+  }
+
+  out << "gcube map around cube " << cube_index << ": " << endl;
+  output_scalar_grid(cout, gcube_map_grid);
+  out << endl;
+}
+
+void out_IS_ISOPATCH_DISK_info
+(std::ostream & out, const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const VERTEX_INDEX cube_index,
+ const ISOVERT & isovert, const std::vector<VERTEX_INDEX> & gcube_map,
+ IS_ISOPATCH_DISK & is_isopatch_disk)
+{
+  is_isopatch_disk.SetSelectedCubeBoundary(cube_index, isovert, gcube_map);
+  out << "Selected cube boundary vertices: " << endl;
+  output_scalar_grid(cout, is_isopatch_disk.selectedCubeBoundary());
+  out << endl;
+}
+
+
+// **************************************************
+// PARSE COMMAND LINE
+// **************************************************
+
+int get_option_int
+(const char * option, const char * value_string)
+{
+  int x;
+  if (!IJK::string2val(value_string, x)) {
+    cerr << "Error in argument for option: " << option << endl;
+    cerr << "Non-integer character in string: " << value_string << endl;
+    exit(50);
+  }
+  
+  return(x);
+}
+
+float get_option_float
+(const char * option, const char * value_string)
+{
+  float x;
+  if (!IJK::string2val(value_string, x)) {
+    cerr << "Error in argument for option: " << option << endl;
+    cerr << "Non-numeric character in string: " << value_string << endl;
+    exit(50);
+  }
+
+  return(x);
+}
+
+/// Get string and convert to list of arguments.
+template <typename ETYPE>
+void get_option_multiple_arguments
+(const char * option, const char * value_string, std::vector<ETYPE> & v)
+{
+  if (!IJK::string2vector(value_string, v)) {
+    cerr << "Error in argument for option: " << option << endl;
+    cerr << "Non-numeric character in string: " << value_string << endl;
+    exit(50);
+  }
+}
+
+// Parse the command line.
+void parse_isovert_command_line
+(int argc, char **argv, INPUT_INFO & input_info)
+{
+	if (argc == 1) { usage_error(argv[0]); };
+
+	int iarg = 1;
+	while (iarg < argc) {
+
+    int next_arg;
+    if (!parse_command_option(argc, argv, iarg, next_arg, input_info) ||
+        iarg == next_arg) {
+
+      if (argv[iarg][0] == '-') {
+        string s = argv[iarg];
+        if (s == "-help") { 
+          help(argv[0]);
+          next_arg = iarg+1;
+        }
+        else if (s == "-cc") {
+          if (iarg+1 < argc) {
+            get_option_multiple_arguments
+              (argv[iarg], argv[iarg+1], input_cube_coord);
+            next_arg = iarg+2;
+          }
+          else
+            { usage_error(argv[0]); }
+        }
+        else
+          { break; }
+      }
+      else
+        { break; }
+    }
+
+    iarg = next_arg;
+  }
+
+  parse_isovalue_and_filename(argc, argv, iarg, input_info);
+  set_input_info_defaults(input_info);
+  check_input_info(input_info);
+}
 
 void memory_exhaustion()
 {

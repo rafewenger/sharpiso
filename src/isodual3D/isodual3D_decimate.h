@@ -69,14 +69,14 @@ namespace ISODUAL3D {
   protected:
     AXIS_SIZE_TYPE region_axis_size[DIM3];
 
-    SHARPISO_SCALAR_GRID regionScalar;
-    SHARPISO_BOOL_GRID cubeFlag;
+    SHARPISO_SCALAR_GRID region_scalar;
+    SHARPISO_BOOL_GRID cube_flag;
 
     /// Indicates vertices on region boundary.
-    SHARPISO_BOOL_GRID regionBoundary;
+    SHARPISO_BOOL_GRID region_boundary;
 
     /// Indicates vertices on boundary of region formed by selected cubes.
-    SHARPISO_BOOL_GRID selectedCubeBoundary;
+    SHARPISO_BOOL_GRID selected_cube_boundary;
 
     SHARPISO_GRID_NEIGHBORS neighbor_grid;
 
@@ -97,7 +97,6 @@ namespace ISODUAL3D {
     void SetScalar
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
      const VERTEX_INDEX cube_index);
-    void SetSelectedCubeBoundary();
 
     /// Set region_vertex_increment.
     void SetRegionVertexIncrement(const SHARPISO_GRID & grid);
@@ -127,12 +126,37 @@ namespace ISODUAL3D {
      SCALAR_TYPE isovalue,
      const VERTEX_INDEX cube_index,
      const ISOVERT & isovert,
+     const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+     NUM_TYPE & num_neg, NUM_TYPE & num_pos);
+
+    /// Return true is isopatch is a disk.
+    bool IsIsopatchDisk
+    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+     SCALAR_TYPE isovalue,
+     const VERTEX_INDEX cube_index,
+     const ISOVERT & isovert,
      const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
     /// Reverse merges to isosurface vertex at cube_index.
     void UnmapAdjacent
     (const NUM_TYPE cube_index, const ISODUAL3D::ISOVERT & isovert, 
      std::vector<SHARPISO::VERTEX_INDEX> & gcube_map) const;
+
+    /// Set vertices on boundary of selected cubes.
+    void SetSelectedCubeBoundary
+      (const VERTEX_INDEX cube_index,
+       const ISOVERT & isovert,
+       const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
+
+    // Get routines.
+    const SHARPISO_SCALAR_GRID & regionScalar() const
+      { return(region_scalar); };
+    const SHARPISO_BOOL_GRID & cubeFlag() const
+      { return(cube_flag); };
+    const SHARPISO_BOOL_GRID & regionBoundary() const
+      { return(region_boundary); };
+    const SHARPISO_BOOL_GRID & selectedCubeBoundary() const
+      { return(selected_cube_boundary); };
   };
 
 };
