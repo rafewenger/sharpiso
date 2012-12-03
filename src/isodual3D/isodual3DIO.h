@@ -218,6 +218,10 @@ namespace ISODUAL3D {
   (const int argc, char **argv, const int iarg, int & next_arg,
    INPUT_INFO & input_info);
 
+  /// Parse the isovalue(s) and filename.
+  void parse_isovalue_and_filename
+  (const int argc, char **argv, const int iarg, INPUT_INFO & input_info);
+
   /// Parse the command line.
   /// Command line is control parameters, followed by one or more isovalues,
   ///   followed by input file name.
@@ -228,6 +232,13 @@ namespace ISODUAL3D {
     (const INPUT_INFO & input_info, 
      const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
      IJK::ERROR & error);
+
+  /// Set input_info defaults.
+  void set_input_info_defaults(INPUT_INFO & input_info);
+
+  /// Check input_info.
+  void check_input_info(const INPUT_INFO & input_info);
+
 
 // **************************************************
 // READ NEARLY RAW RASTER DATA (nrrd) FILE

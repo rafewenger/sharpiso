@@ -536,29 +536,10 @@ bool ISODUAL3D::parse_command_option
   return(false);
 }
 
-// Parse the command line.
-void ISODUAL3D::parse_command_line
-(int argc, char **argv, INPUT_INFO & input_info)
+// Parse the isovalue(s) and filename.
+void ISODUAL3D::parse_isovalue_and_filename
+(const int argc, char **argv, const int iarg, INPUT_INFO & input_info)
 {
-	if (argc == 1) { usage_error(argv[0]); };
-
-	int iarg = 1;
-	while (iarg < argc) {
-
-    int next_arg;
-    if (!parse_command_option(argc, argv, iarg, next_arg, input_info) ||
-        iarg == next_arg) { 
-
-      if (argv[iarg][0] == '-') {
-        PARAMETER param = get_parameter_token(argv[iarg]);
-        if (param == HELP_PARAM) { help(argv[0]); }
-      }
-      break; 
-    }
-
-    iarg = next_arg;
-  }
-
 	// remaining parameters should be list of isovalues followed
 	// by input file name
 
@@ -594,7 +575,11 @@ void ISODUAL3D::parse_command_line
 	}
 
 	input_info.scalar_filename = argv[argc-1];
+}
 
+// Set input_info defaults.
+void ISODUAL3D::set_input_info_defaults(INPUT_INFO & input_info)
+{
 	if (!input_info.is_vertex_position_method_set && 
       input_info.gradient_filename == NULL) {
 		input_info.vertex_position_method = GRADIENT_POSITIONING;
@@ -607,6 +592,18 @@ void ISODUAL3D::parse_command_line
     input_info.flag_clamp_conflict = false;
   }
 
+  if (input_info.vertex_position_method == EDGEI_GRADIENT) {
+    input_info.use_sharp_edgeI = true;
+  }
+
+  if (input_info.vertex_position_method == EDGEI_INTERPOLATE) {
+    input_info.use_sharp_edgeI = false;
+  }
+}
+
+// Check input_info.
+void ISODUAL3D::check_input_info(const INPUT_INFO & input_info)
+{
   if (input_info.is_use_sharp_edgeI_set) {
     if (input_info.use_sharp_edgeI) {
       if (input_info.vertex_position_method == EDGEI_INTERPOLATE) {
@@ -622,14 +619,6 @@ void ISODUAL3D::parse_command_line
         exit(230);
       }
     }
-  }
-
-  if (input_info.vertex_position_method == EDGEI_GRADIENT) {
-    input_info.use_sharp_edgeI = true;
-  }
-
-  if (input_info.vertex_position_method == EDGEI_INTERPOLATE) {
-    input_info.use_sharp_edgeI = false;
   }
 
 	if (input_info.flag_subsample && input_info.subsample_resolution <= 1) {
@@ -656,6 +645,34 @@ void ISODUAL3D::parse_command_line
 			exit(560);
 		}
 	}
+}
+
+// Parse the command line.
+void ISODUAL3D::parse_command_line
+(int argc, char **argv, INPUT_INFO & input_info)
+{
+	if (argc == 1) { usage_error(argv[0]); };
+
+	int iarg = 1;
+	while (iarg < argc) {
+
+    int next_arg;
+    if (!parse_command_option(argc, argv, iarg, next_arg, input_info) ||
+        iarg == next_arg) { 
+
+      if (argv[iarg][0] == '-') {
+        PARAMETER param = get_parameter_token(argv[iarg]);
+        if (param == HELP_PARAM) { help(argv[0]); }
+      }
+      break; 
+    }
+
+    iarg = next_arg;
+  }
+
+  parse_isovalue_and_filename(argc, argv, iarg, input_info);
+  set_input_info_defaults(input_info);
+  check_input_info(input_info);
 }
 
 // Check input information/flags.
