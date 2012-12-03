@@ -100,7 +100,7 @@ void recompute_isovert_positions
 	for (NUM_TYPE i = 0; i < isovertData.gcube_list.size(); i++) {
 		GRID_CUBE_FLAG cube_flag = isovertData.gcube_list[i].flag;
 
-		if (cube_flag == AVAILABLE_GCUBE) {
+		if ((cube_flag == AVAILABLE_GCUBE) || (cube_flag == UNAVAILABLE_GCUBE)) {
 
 			VERTEX_INDEX cube_index = isovertData.gcube_list[i].cube_index;
 
@@ -223,15 +223,7 @@ void sort_gcube_list
 (vector<NUM_TYPE> &sortd_ind2gcube_list, vector<GRID_CUBE> &gcube_list)
 {
 	GCUBE_COMPARE gcube_compare(gcube_list);
-	//DEBUG only  put the sharp vertices in the list
-	/*
-	// set up the *sortd_ind2gcube_list*
-	sortd_ind2gcube_list.resize(gcube_list.size(), 0);
 
-	for (int i=0;i<sortd_ind2gcube_list.size();i++)
-	{ sortd_ind2gcube_list[i] = i;}
-
-	*/
 	for (int i=0;i<gcube_list.size();i++)
 	{
 		if (gcube_list[i].num_eigen > 1)

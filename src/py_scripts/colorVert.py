@@ -5,7 +5,7 @@ import random
 def main():
   outname=sys.argv[1]
   open_file=open(outname,'r')
-  fi=open ('c'+outname,'w')
+  fi=open ('colorVert_'+outname,'w')
   file_lines=open_file.readlines()
   line1= file_lines[0].strip()  # First Line
   line2 = file_lines[1].strip('')  # Second Line
@@ -23,7 +23,6 @@ def main():
       r = 1.0
       g = 0.0
       b = 0.0
-      print r,g,b
       print >> fi,f.strip(),r,g,b,'1.0'
     elif count == 1:
       print >>fi, 'COFF'
