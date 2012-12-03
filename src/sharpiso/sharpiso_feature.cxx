@@ -1445,9 +1445,6 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 	flag_reselect_gradients = false;
 	flag_dist2centroid = true;
 	flag_centroid_eigen1 = false;
-  /* DEBUG:  disk check not yet tested.
-  flag_check_disk = true;
-  */
   flag_check_disk = false;
 	use_sharp_edgeI = false;
 	use_Linf_dist = true;

@@ -293,19 +293,19 @@ namespace ISODUAL3D {
     for (int d = 0; d < DIM3; d++) 
       { region_axis_size[d] = num_vert_along_region_axis; }
 
-    cubeFlag.SetSize(DIM3, region_axis_size);
-    selectedCubeBoundary.SetSize(DIM3, region_axis_size);
-    regionScalar.SetSize(DIM3, region_axis_size);
-    regionBoundary.SetSize(DIM3, region_axis_size);
-    compute_boundary_grid(regionBoundary);
+    cube_flag.SetSize(DIM3, region_axis_size);
+    selected_cube_boundary.SetSize(DIM3, region_axis_size);
+    region_scalar.SetSize(DIM3, region_axis_size);
+    region_boundary.SetSize(DIM3, region_axis_size);
+    compute_boundary_grid(region_boundary);
 
     region_boundary_cube.resize
-      (selectedCubeBoundary.ComputeNumBoundaryCubes());
+      (selected_cube_boundary.ComputeNumBoundaryCubes());
     IJK::get_boundary_grid_cubes
       (DIM3, region_axis_size, &(region_boundary_cube[0]));
 
-    visited = new bool[regionScalar.NumVertices()];
-    region_vertex_increment = new INDEX_DIFF_TYPE[regionScalar.NumVertices()];
+    visited = new bool[region_scalar.NumVertices()];
+    region_vertex_increment = new INDEX_DIFF_TYPE[region_scalar.NumVertices()];
 
     neighbor_grid.SetSize(grid);
     SetRegionVertexIncrement(grid);
@@ -322,42 +322,53 @@ namespace ISODUAL3D {
 
   bool IS_ISOPATCH_DISK::IsIsopatchDisk
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-     const SCALAR_TYPE isovalue,
-     const VERTEX_INDEX cube_index,
-     const ISOVERT & isovert,
-     const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX cube_index,
+   const ISOVERT & isovert,
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   NUM_TYPE & num_neg, NUM_TYPE & num_pos)
   {
     std::vector<VERTEX_INDEX> vlist;
     std::vector<VERTEX_INDEX> elist;
     
-    SetCubeFlag(cube_index, isovert, gcube_map);
-    SetSelectedCubeBoundary();
+    SetSelectedCubeBoundary(cube_index, isovert, gcube_map);
     SetScalar(scalar_grid, cube_index);
-
-    // Compute number of positive components.
-    GetBoundaryPosVertices(isovalue, vlist);
-    GetBoundaryPosEdges(isovalue, elist);
-
-    int num_pos;
-    IJK::compute_num_connected_components_using_elist
-      (IJK::vector2pointer(vlist), vlist.size(), regionScalar.NumVertices(),
-       IJK::vector2pointer(elist), elist.size()/2,
-       num_pos, visited);
 
     // Compute number of negative components.
     GetBoundaryNegVertices(isovalue, vlist);
     GetBoundaryNegEdges(isovalue, elist);
 
-    int num_neg;
     IJK::compute_num_connected_components_using_elist
-      (IJK::vector2pointer(vlist), vlist.size(), regionScalar.NumVertices(),
+      (IJK::vector2pointer(vlist), vlist.size(), region_scalar.NumVertices(),
        IJK::vector2pointer(elist), elist.size()/2,
        num_neg, visited);
 
-    if (num_pos <= 1 && num_neg <= 1)
+    // Compute number of positive components.
+    GetBoundaryPosVertices(isovalue, vlist);
+    GetBoundaryPosEdges(isovalue, elist);
+
+    IJK::compute_num_connected_components_using_elist
+      (IJK::vector2pointer(vlist), vlist.size(), region_scalar.NumVertices(),
+       IJK::vector2pointer(elist), elist.size()/2,
+       num_pos, visited);
+
+    if (num_neg <= 1 && num_pos <= 1)
       { return(true); }
     else
       { return(false); }
+  }
+
+  bool IS_ISOPATCH_DISK::IsIsopatchDisk
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX cube_index,
+   const ISOVERT & isovert,
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+  {
+    NUM_TYPE num_neg, num_pos;
+
+    return(IsIsopatchDisk(scalar_grid, isovalue, cube_index, isovert, 
+                          gcube_map, num_neg, num_pos));
   }
 
   // Reverse merges to isosurface vertex at cube_index.
@@ -368,7 +379,7 @@ namespace ISODUAL3D {
     for (NUM_TYPE i = 0; i < region_boundary_cube.size(); i++) {
       VERTEX_INDEX region_cube_index = region_boundary_cube[i];
 
-      if (cubeFlag.Scalar(region_cube_index)) {
+      if (cube_flag.Scalar(region_cube_index)) {
         INDEX_DIFF_TYPE iv = 
           cube_index + region_vertex_increment[region_cube_index];
 
@@ -389,7 +400,7 @@ namespace ISODUAL3D {
   {
     VERTEX_INDEX iv0 = 
       cube_index -  neighbor_grid.CubeVertexIncrement(NUM_CUBE_VERTICES3D-1);
-    regionScalar.CopyRegion(scalar_grid, iv0, region_axis_size, 0);
+    region_scalar.CopyRegion(scalar_grid, iv0, region_axis_size, 0);
   }
 
   void IS_ISOPATCH_DISK::SetRegionVertexIncrement
@@ -403,15 +414,15 @@ namespace ISODUAL3D {
     IJK::compute_num_grid_vertices_in_region
       (dimension, axis_size, 0, region_edge_length, num_region_vertices);
 
-    if (num_region_vertices != cubeFlag.NumVertices()) {
+    if (num_region_vertices != cube_flag.NumVertices()) {
       error.AddMessage
         ("Programming error. Scalar grid is smaller than region.");
       error.AddMessage
         ("  Grid size: ", grid.AxisSize(0), "x", grid.AxisSize(1),
          "x", grid.AxisSize(2), ".");
       error.AddMessage
-        ("  Region size: ", cubeFlag.AxisSize(0), "x", cubeFlag.AxisSize(1),
-         "x", cubeFlag.AxisSize(2), ".");
+        ("  Region size: ", cube_flag.AxisSize(0), "x", cube_flag.AxisSize(1),
+         "x", cube_flag.AxisSize(2), ".");
       throw error;
     }
 
@@ -432,7 +443,7 @@ namespace ISODUAL3D {
     const INDEX_DIFF_TYPE gcube_index = 
       isovert.sharp_ind_grid.Scalar(cube_index);
 
-    cubeFlag.SetAll(false);
+    cube_flag.SetAll(false);
 
     for (NUM_TYPE i = 0; i < region_boundary_cube.size(); i++) {
       VERTEX_INDEX region_cube_index = region_boundary_cube[i];
@@ -444,38 +455,42 @@ namespace ISODUAL3D {
         INDEX_DIFF_TYPE neighbor_gcube_index = 
           isovert.sharp_ind_grid.Scalar(iv);
 
-        if (gcube_index != ISOVERT::NO_INDEX) {
+        if (neighbor_gcube_index != ISOVERT::NO_INDEX) {
           if (gcube_map[neighbor_gcube_index] == gcube_index) {
-            cubeFlag.Set(region_cube_index, true);
+            cube_flag.Set(region_cube_index, true);
           }
         }
       }
     }
-
   }
 
   /// Set region boundary.
   /// @pre Region is a 4x4x4 patch and center cube is in region.
-  void IS_ISOPATCH_DISK::SetSelectedCubeBoundary()
+  void IS_ISOPATCH_DISK::SetSelectedCubeBoundary
+  (const VERTEX_INDEX cube_index,
+   const ISOVERT & isovert,
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
-    selectedCubeBoundary.SetAll(false);
+    SetCubeFlag(cube_index, isovert, gcube_map);
+
+    selected_cube_boundary.SetAll(false);
 
     for (NUM_TYPE i = 0; i < region_boundary_cube.size(); i++) {
       VERTEX_INDEX icube = region_boundary_cube[i];
 
-      if (cubeFlag.Scalar(icube)) {
+      if (cube_flag.Scalar(icube)) {
 
         for (NUM_TYPE j = 0; j < NUM_CUBE_VERTICES3D; j++) {
-          VERTEX_INDEX iv = selectedCubeBoundary.CubeVertex(icube, j);
-          if (regionBoundary.Scalar(iv)) 
-            { selectedCubeBoundary.Set(iv, true); }
+          VERTEX_INDEX iv = selected_cube_boundary.CubeVertex(icube, j);
+          if (region_boundary.Scalar(iv)) 
+            { selected_cube_boundary.Set(iv, true); }
         }
       }
       else {
         for (NUM_TYPE j = 0; j < NUM_CUBE_VERTICES3D; j++) {
-          VERTEX_INDEX iv = selectedCubeBoundary.CubeVertex(icube, j);
-          if (!regionBoundary.Scalar(iv)) 
-            { selectedCubeBoundary.Set(iv, true); }
+          VERTEX_INDEX iv = selected_cube_boundary.CubeVertex(icube, j);
+          if (!region_boundary.Scalar(iv)) 
+            { selected_cube_boundary.Set(iv, true); }
         }
       }
     }
@@ -495,9 +510,9 @@ namespace ISODUAL3D {
   (const SCALAR_TYPE isovalue, std::vector<int> & vlist) const 
   {
     vlist.clear();
-    for (NUM_TYPE iv = 0; iv < selectedCubeBoundary.NumVertices(); iv++) {
-      if (selectedCubeBoundary.Scalar(iv) && 
-          regionScalar.Scalar(iv) >= isovalue)
+    for (NUM_TYPE iv = 0; iv < selected_cube_boundary.NumVertices(); iv++) {
+      if (selected_cube_boundary.Scalar(iv) && 
+          region_scalar.Scalar(iv) >= isovalue)
         { vlist.push_back(iv); }
     }
   }
@@ -506,9 +521,9 @@ namespace ISODUAL3D {
   (const SCALAR_TYPE isovalue, std::vector<int> & vlist) const 
   {
     vlist.clear();
-    for (NUM_TYPE iv = 0; iv < selectedCubeBoundary.NumVertices(); iv++) {
-      if (selectedCubeBoundary.Scalar(iv) && 
-          regionScalar.Scalar(iv) < isovalue)
+    for (NUM_TYPE iv = 0; iv < selected_cube_boundary.NumVertices(); iv++) {
+      if (selected_cube_boundary.Scalar(iv) && 
+          region_scalar.Scalar(iv) < isovalue)
         { vlist.push_back(iv); }
     }
   } 
@@ -528,13 +543,13 @@ namespace ISODUAL3D {
   (const SCALAR_TYPE isovalue, std::vector<int> & elist) const 
   {
     elist.clear();
-    IJK_FOR_EACH_GRID_EDGE(iv0, dir, selectedCubeBoundary, VERTEX_INDEX) 
+    IJK_FOR_EACH_GRID_EDGE(iv0, dir, selected_cube_boundary, VERTEX_INDEX) 
       {
-      VERTEX_INDEX iv1 = selectedCubeBoundary.NextVertex(iv0, dir);
-      if (selectedCubeBoundary.Scalar(iv0) && 
-          regionScalar.Scalar(iv0) >= isovalue &&
-          selectedCubeBoundary.Scalar(iv1) &&
-          regionScalar.Scalar(iv1) >= isovalue ) {
+      VERTEX_INDEX iv1 = selected_cube_boundary.NextVertex(iv0, dir);
+      if (selected_cube_boundary.Scalar(iv0) && 
+          region_scalar.Scalar(iv0) >= isovalue &&
+          selected_cube_boundary.Scalar(iv1) &&
+          region_scalar.Scalar(iv1) >= isovalue ) {
         elist.push_back(iv0);
         elist.push_back(iv1);
       }
@@ -545,13 +560,13 @@ namespace ISODUAL3D {
   (const SCALAR_TYPE isovalue, std::vector<int> & elist) const 
   {
     elist.clear();
-    IJK_FOR_EACH_GRID_EDGE(iv0, dir, selectedCubeBoundary, VERTEX_INDEX) 
+    IJK_FOR_EACH_GRID_EDGE(iv0, dir, selected_cube_boundary, VERTEX_INDEX) 
       {
-      VERTEX_INDEX iv1 = selectedCubeBoundary.NextVertex(iv0, dir);
-      if (selectedCubeBoundary.Scalar(iv0) && 
-          regionScalar.Scalar(iv0) < isovalue &&
-          selectedCubeBoundary.Scalar(iv1) &&
-          regionScalar.Scalar(iv1) < isovalue ) {
+      VERTEX_INDEX iv1 = selected_cube_boundary.NextVertex(iv0, dir);
+      if (selected_cube_boundary.Scalar(iv0) && 
+          region_scalar.Scalar(iv0) < isovalue &&
+          selected_cube_boundary.Scalar(iv1) &&
+          region_scalar.Scalar(iv1) < isovalue ) {
         elist.push_back(iv0);
         elist.push_back(iv1);
       }
