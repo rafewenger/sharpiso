@@ -95,7 +95,7 @@ namespace IJK {
   /// @param dimension = Coordinate dimension (= number of coordinates.)
   /// @param coord0 = Input coordinates.
   /// @param coord1 = Input coordinates.
-  /// @param[out] coord2 = Output coordinate equal to (\a coord1[] - \a coord1[]).
+  /// @param[out] coord2 = Output coordinate equal to (\a coord0[] - \a coord1[]).
   template <class DTYPE, class CTYPE0, class CTYPE1, class CTYPE2>
   inline void subtract_coord
   (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
