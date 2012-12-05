@@ -435,12 +435,8 @@ void ISODUAL3D::position_dual_isovertices
 
     VERTEX_INDEX cube_index = iso_vlist_cube[i];
     VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(cube_index);
-    if (isovert.gcube_list[gcube_index].flag != SMOOTH_GCUBE) {
-      IJK::copy_coord_3D(isovert.gcube_list[gcube_index].isovert_coord,
-                         isov_coord+i*DIM3);
-    }
-    else {
-
+    if (isovert.gcube_list[gcube_index].flag == SMOOTH_GCUBE ||
+        isovert.gcube_list[gcube_index].flag == UNAVAILABLE_GCUBE) {
       IJK::compute_isotable_index
         (scalar_grid.ScalarPtrConst(), isovalue, cube_index,
          scalar_grid.CubeVertexIncrement(), num_cube_vertices, it);
@@ -457,7 +453,10 @@ void ISODUAL3D::position_dual_isovertices
            it, cube, isov_coord+i*DIM3);
       }
     }
-
+    else {
+      IJK::copy_coord_3D(isovert.gcube_list[gcube_index].isovert_coord,
+                         isov_coord+i*DIM3);
+    }
   }
 
 }
@@ -959,12 +958,13 @@ void ISODUAL3D::split_dual_isovert
 {
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
   std::vector<ISO_VERTEX_INDEX> cube_list(num_gcube);
-  std::vector<bool> no_split(num_gcube,false);
+  std::vector<bool> no_split(num_gcube,true);
 
   for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
     cube_list[i] = isovert.gcube_list[i].cube_index;
-    if (isovert.gcube_list[i].flag != SMOOTH_GCUBE) 
-      { no_split[i] = true; }
+    if (isovert.gcube_list[i].flag == SMOOTH_GCUBE ||
+        isovert.gcube_list[i].flag == UNAVAILABLE_GCUBE)
+      { no_split[i] = false; }
   }
 
   IJK::split_dual_isovert

@@ -474,18 +474,22 @@ void compute_eigenvalues
     cerr << "Warning: Number of large eigenvalues mismatch for cube "
          << cube_index << endl;
     cerr << "  gcube.num_eigen: " << gcube.num_eigen << ".";
-    cerr << "  svd_compute...() num_large_eigen: "
+    cerr << "  num_large_eigen: "
          << num_large_eigenvalues << endl;
   }
 
-  if (!is_coord_equal(DIM3, isovert_coord, gcube.isovert_coord)) {
-    cerr << "Warning: Number of large eigenvalues mismatch for cube "
-         << cube_index << endl;
-    cerr << "  gcube.isovert_coord[] = ";
-    print_coord3D(cerr, gcube.isovert_coord);
-    cerr << ".  svd_compute...() isovert_coord[] = ";
-    print_coord3D(cerr, isovert_coord);
-    cerr << "." << endl;
+  if (!isodual_data.flag_recompute_isovert ||
+      gcube.flag != UNAVAILABLE_GCUBE) {
+
+    if (!is_coord_equal(DIM3, isovert_coord, gcube.isovert_coord)) {
+      cerr << "Warning: Isovertex coordinate mismatch for cube "
+           << cube_index << "." << endl;
+      cerr << "  gcube.isovert_coord[] = ";
+      print_coord3D(cerr, gcube.isovert_coord);
+      cerr << ".  isovert_coord[] = ";
+      print_coord3D(cerr, isovert_coord);
+      cerr << "." << endl;
+    }
   }
 
   if (eigenvalues[0] > isodual_data.max_small_eigenvalue) {
