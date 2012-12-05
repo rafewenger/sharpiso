@@ -34,6 +34,11 @@ void compute_linf_dist
 bool are_connected (
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,const VERTEX_INDEX &cube_index1,
 		const VERTEX_INDEX &cube_index2, const SCALAR_TYPE isovalue );
+bool is_angle_large(
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const ISOVERT &isovertData, const VERTEX_INDEX iv,
+		const SCALAR_TYPE threshold, const VERTEX_INDEX v1,
+		const VERTEX_INDEX v2);
 
 /*
  * Traverse the *isovertData.sharp_ind_grid*
@@ -326,16 +331,22 @@ void get_selected
 }
 
 
-/// Check if selecting this vertex creates a triangle.
+/// Check if selecting this vertex creates a triangle with a large angle.
 /// @param bin_grid Contains the already selected vertices.
+/// @param v1,v2 vertex indices which form a triangle with iv
 bool creates_triangle (
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const bool check_triangle_angle, // if true then check if the triangle has large angles
+		ISOVERT &isovertData,
 		const VERTEX_INDEX iv,
 		const SCALAR_TYPE isovalue,
 		const BIN_GRID<VERTEX_INDEX> & bin_grid,
-		const AXIS_SIZE_TYPE bin_width
+		const AXIS_SIZE_TYPE bin_width,
+		VERTEX_INDEX & v1,
+		VERTEX_INDEX & v2
 )
 {
+	const SCALAR_TYPE threshold = cos(120*M_PI/180);
 	vector <VERTEX_INDEX> selected_list;
 	vector <VERTEX_INDEX> connected_list;
 
@@ -351,7 +362,21 @@ bool creates_triangle (
 		{
 			if (are_connected(scalar_grid, connected_list[i],
 					connected_list[j], isovalue)){
-				return true;
+				v1 = connected_list[i];
+				v2 = connected_list[j];
+				if (check_triangle_angle){
+					// checking angle
+					bool flag_large_angle = is_angle_large(scalar_grid, isovertData, iv, threshold, v1 , v2);
+
+					if (flag_large_angle)
+					{
+						return true;
+					}
+				}
+				else{
+					// returning true without checking angles angles
+					return true;
+				}
 			}
 		}
 	}
@@ -387,6 +412,76 @@ void bin_grid_insert
 }
 
 /*
+ * Compute the cosine of the angle formed by the
+ * vector v1v2 and v3v2
+ */
+void compute_cos_angle(
+		const ISOVERT &isovertData,
+		const VERTEX_INDEX gcube_list_index_v1,
+		const VERTEX_INDEX gcube_list_index_v2,
+		const VERTEX_INDEX gcube_list_index_v3,
+		SCALAR_TYPE & cos_angle
+)
+{
+	COORD_TYPE coord0[DIM3], coord1[DIM3],
+	coord2[DIM3],vec12[DIM3], vec32[DIM3];
+
+	subtract_coord(DIM3, isovertData.gcube_list[gcube_list_index_v2].isovert_coord,
+			isovertData.gcube_list[gcube_list_index_v1].isovert_coord, vec12);
+	normalize_vector(DIM3, vec12, 0.001, vec12);
+
+	subtract_coord(DIM3, isovertData.gcube_list[gcube_list_index_v2].isovert_coord,
+			isovertData.gcube_list[gcube_list_index_v3].isovert_coord, vec32);
+	normalize_vector(DIM3, vec32, 0.001, vec32);
+
+	compute_inner_product(DIM3, vec12, vec32, cos_angle);
+}
+
+/*
+ * is angle large
+ * is the angle between the triangle formed by iv,v1,v2 too large(or cosine angle less)
+ */
+bool is_angle_large(
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const ISOVERT &isovertData,
+		const VERTEX_INDEX iv,
+		const SCALAR_TYPE threshold,
+		const VERTEX_INDEX v1,
+		const VERTEX_INDEX v2)
+{
+
+	SCALAR_TYPE cos_angle_iv, cos_angle_v1, cos_angle_v2;
+	VERTEX_INDEX gcube_list_index_v1;
+	VERTEX_INDEX gcube_list_index_v2;
+	VERTEX_INDEX gcube_list_index_v3;
+
+	for (int i=0; i<isovertData.gcube_list.size();i++){
+		if (isovertData.gcube_list[i].cube_index == v1)
+			gcube_list_index_v1 = i;
+		if (isovertData.gcube_list[i].cube_index == v2)
+			gcube_list_index_v2 = i;
+		if (isovertData.gcube_list[i].cube_index == iv)
+			gcube_list_index_v3 = i;
+	}
+
+	compute_cos_angle(isovertData, gcube_list_index_v1,
+			gcube_list_index_v3,  gcube_list_index_v2, cos_angle_iv);
+
+	compute_cos_angle(isovertData, gcube_list_index_v3,
+			gcube_list_index_v1,  gcube_list_index_v2, cos_angle_v1);
+
+	compute_cos_angle(isovertData, gcube_list_index_v3,
+			gcube_list_index_v2,  gcube_list_index_v1, cos_angle_v2);
+
+	if ((cos_angle_iv < threshold) || (cos_angle_v1 < threshold)
+			|| (cos_angle_v2 < threshold))
+	{
+		return true;
+	}
+	else
+		return false;
+}
+/*
  * select the 3x3x3 regions
  */
 
@@ -419,9 +514,12 @@ void select_3x3x3_regions
 					(cube_ind_frm_gc_ind(isovertData, sortd_ind2gcube_list[ind]),AVAILABLE_GCUBE)
 					&& c.linf_dist < isovertData.linf_dist_threshold) {
 
+				VERTEX_INDEX v1, v2;
+
+				bool flag_check_angle = isovert_param.flag_check_triangle_angle;
 				bool triangle_flag =
-						creates_triangle(scalar_grid, c.cube_index,
-								isovalue, bin_grid, bin_width);
+						creates_triangle(scalar_grid, flag_check_angle, isovertData, c.cube_index,
+								isovalue, bin_grid, bin_width, v1, v2);
 
 				if (!triangle_flag) {
 
@@ -452,8 +550,8 @@ void select_3x3x3_regions
 				}
 				else
 				{
-					// what to do if creates triangle
-					isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag= UNAVAILABLE_GCUBE;
+
+					isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag = UNAVAILABLE_GCUBE;
 				}
 			}
 	}
@@ -614,8 +712,11 @@ void ISODUAL3D::compute_dual_isovert(
 	select_3x3x3_regions (scalar_grid, isovalue, isovert_param, 
 			sortd_ind2gcube_list, isovertData);
 
-	recompute_isovert_positions
-	(scalar_grid, gradient_grid, isovalue, isovert_param, isovertData);
+	if (isovert_param.flag_recompute_isovert)
+	{
+		recompute_isovert_positions
+		(scalar_grid, gradient_grid, isovalue, isovert_param, isovertData);
+	}
 }
 
 

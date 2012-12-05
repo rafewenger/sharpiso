@@ -331,6 +331,8 @@ namespace SHARPISO {
     bool flag_clamp_conflict;      ///< If true, clamp conflicts to cube.
     bool flag_clamp_far;           ///< If true, clamp far points.
     bool flag_recompute_eigen2;    ///< If true, recompute with 2 eigenvalues.
+    bool flag_recompute_isovert;   ///< If true then recompute isovert
+    bool flag_check_triangle_angle;///< If true then check for large angles when forms triangle
     bool flag_round;               ///< Round output coordinates.
     bool flag_remove_gradients;    ///< Remove gradients to resolve conflicts
     bool flag_reselect_gradients;  ///< Select fewer grads to resolve conflicts
@@ -341,6 +343,7 @@ namespace SHARPISO {
     bool use_Linf_dist;            ///< If true, use Linf dist.
 
 
+    ///
     /// Merge sharp vertices which are within this threshold distance.
     COORD_TYPE linf_dist_thresh_merge_sharp;
 

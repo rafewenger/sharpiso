@@ -58,7 +58,8 @@ typedef enum {
 	CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
   MERGE_CONFLICT_PARAM, MERGE_SHARP_PARAM, MERGE_SHARP_LINF_THRES_PARAM,
 	CLAMP_FAR_PARAM, CENTROID_FAR_PARAM,
-	RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,
+	RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,RECOMPUTE_ISOVERT,NO_RECOMPUTE_ISOVERT,
+	CHECK_TRIANGLE_ANGLE, NO_CHECK_TRIANGLE_ANGLE,
 	REMOVEG_PARAM, NO_REMOVEG_PARAM,
 	RESELECT_GRAD_PARAM, NO_RESELECT_GRAD_PARAM,
   DIST2CENTER_PARAM, DIST2CENTROID_PARAM,
@@ -85,7 +86,8 @@ typedef enum {
     "-allow_conflict", "-clamp_conflict", "-centroid_conflict", 
     "-merge_conflict", "-merge_sharp", "-merge_linf_th",
     "-clamp_far", "-centroid_far",
-    "-recompute_eigen2", "-no_recompute_eigen2",
+    "-recompute_eigen2", "-no_recompute_eigen2","-recompute_isovert","-no_recompute_isovert",
+    "-check_triangle_angle","-no_check_triangle_angle",
     "-removeg", "-no_removeg",
     "-reselectg", "-no_reselectg",
     "-dist2center", "-dist2centroid",
@@ -323,9 +325,25 @@ typedef enum {
       input_info.flag_recompute_eigen2 = false;
       break;
 
+    case RECOMPUTE_ISOVERT:
+    	input_info.flag_recompute_isovert = true;
+    	break;
+
+    case NO_RECOMPUTE_ISOVERT:
+    	input_info.flag_recompute_isovert = false;
+    	break;
+
+    case CHECK_TRIANGLE_ANGLE:
+    	input_info.flag_check_triangle_angle = true;
+    	break;
+
+    case NO_CHECK_TRIANGLE_ANGLE:
+    	input_info.flag_check_triangle_angle = false;
+    	break;
+
     case REMOVEG_PARAM:
-      input_info.flag_remove_gradients = true;
-      break;
+    	input_info.flag_remove_gradients = true;
+    	break;
 
     case NO_REMOVEG_PARAM:
       input_info.flag_remove_gradients = false;
@@ -1446,6 +1464,8 @@ namespace {
     cerr << "  [-merge_sharp] [-merge_linf_th <D>]" << endl;
     cerr << "  [-clamp_far] [-centroid_far]" << endl;
     cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
+    cerr << "  [-recompute_isovert | -no_recompute_isovert]"<<endl;
+    cerr << "  [-check_triangle_angle | -no_check_triangle_angle"<<endl;
     cerr << "  [-Linf | -no_Linf]" << endl;
     cerr << "  [-removeg | -no_removeg] [-reselectg | -no_reselectg]" << endl;
     cerr << "  [-dist2center | -dist2centroid]" << endl;
@@ -1584,6 +1604,8 @@ void ISODUAL3D::help(const char * command_path)
 	cout << "  -recompute_eigen2:  Recompute with only 2 eigenvalues to settle conflicts." << endl;
 	cout << "  -no_recompute_eigen2:  Don't recompute with only 2 eigenvalues."
 			<< endl;
+	cout << " -recompute_isovert: recompute the isovert locations for cubes which are unavailable "<<endl;
+	cout << " -no_recompute_isovert: donot recompute the isovert locations for cubes which are unavailable "<<endl;
   cout << "  -dist2center:  Use distance to center in lindstrom." << endl;
   cout << "  -dist2centroid:  Use distance to centroid of isourface-edge"
        << "                   intersections in lindstrom." << endl;
@@ -1639,7 +1661,8 @@ void ISODUAL3D::IO_INFO::Init()
 	region_length = 1;
 	max_small_eigenvalue = 0.1;
 	flag_output_param = false;
-
+	flag_recompute_isovert = true; // recompute the isovert for unavailable cubes
+	flag_check_triangle_angle = true;
 	grid_spacing.resize(3,1);
 }
 
