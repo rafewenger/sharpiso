@@ -27,6 +27,7 @@
 #include "sharpiso_types.h"
 
 #include "ijkgrid.txx"
+#include "ijkobject_grid.txx"
 #include "ijkscalar_grid.txx"
 #include "ijkvector_grid.txx"
 
@@ -75,6 +76,46 @@ namespace SHARPISO {
     SHARPISO_BOOL_GRID_BASE;        ///< Boolean grid base.
   typedef IJK::BOOL_GRID<SHARPISO_GRID> 
     SHARPISO_BOOL_GRID;             ///< Boolean grid.
+
+
+  // **************************************************
+  // BIN_GRID
+  // **************************************************
+
+  template <typename ETYPE>
+  class BIN {
+  public:
+    std::vector<ETYPE> list;
+  };
+
+  template <typename ETYPE>
+  class BIN_GRID:public IJK::OBJECT_GRID<SHARPISO_GRID_NEIGHBORS, BIN<ETYPE> > {
+
+  protected:
+    typedef typename SHARPISO_GRID::DIMENSION_TYPE DTYPE;
+    typedef typename SHARPISO_GRID::AXIS_SIZE_TYPE ATYPE;
+    typedef typename SHARPISO_GRID::VERTEX_INDEX_TYPE VTYPE;
+    typedef typename SHARPISO_GRID::NUMBER_TYPE NTYPE;
+
+  public:
+    BIN_GRID() {};
+    BIN_GRID(const DTYPE dimension, const ATYPE * axis_size):
+      IJK::OBJECT_GRID<SHARPISO_GRID, BIN<ETYPE> >
+    (dimension, axis_size) {};
+
+    /// Insert element.
+    void Insert(const VTYPE iv, const ETYPE & x)
+    { this->object[iv].list.push_back(x); }
+
+    /// Get element.
+    ETYPE List(const VTYPE iv, const NTYPE i) const
+    { return (this->object[iv].list[i]); }
+
+    /// Get list length.
+    NUM_TYPE ListLength(const VTYPE iv) const 
+    { return (this->object[iv].list.size()); }
+  };
+
 };
 
 #endif

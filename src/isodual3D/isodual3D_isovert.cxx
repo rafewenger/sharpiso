@@ -15,8 +15,6 @@
 #include "ijkgrid_macros.h"
 #include "ijkscalar_grid.txx"
 
-
-#include "isodual3D_datastruct.h"
 #include "isodual3D_isovert.h"
 #include "isodual3D_position.h"
 
@@ -331,10 +329,10 @@ void get_selected
 }
 
 
-/// Check if selecting this vertex creates a triangle with a large angle.
-/// @param bin_grid Contains the already selected vertices.
-/// @param v1,v2 vertex indices which form a triangle with iv
-bool creates_triangle (
+// Check if selecting this vertex creates a triangle with a large angle.
+// @param bin_grid Contains the already selected vertices.
+// @param v1,v2 vertex indices which form a triangle with iv
+bool ISODUAL3D::creates_triangle (
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const bool check_triangle_angle, // if true then check if the triangle has large angles
 		ISOVERT &isovertData,
