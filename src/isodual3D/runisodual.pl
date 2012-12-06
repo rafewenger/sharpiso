@@ -144,7 +144,7 @@ sub run_isodual3D {
 
   system("$command_line") == 0 ||
     die "Program isodual3D abnormally terminated.\n";
-  $command_line = "findedge 140 $output_filename >& /dev/null";
+  $command_line = "findedge 140 $output_filename &> /dev/null";
   # print "$command_line\n";
   system("$command_line") == 0 ||
     die "Program findedge abnormally terminated.\n";
@@ -152,7 +152,13 @@ sub run_isodual3D {
   $command_line = "findEdgeCount $line_filename > $count_filename";
   # print "$command_line\n";
   system("$command_line") == 0 ||
-    die "Program findedge abnormally terminated.\n";
+    die "Program findEdgeCount abnormally terminated.\n";
+
+  $command_line = "ijkmeshinfo -terse -manifold $output_filename";
+  my $return_val = system("$command_line");
+  $return_val = $return_val >> 8;
+  ($return_val == 0 || $return_val == 1) ||
+    die "Program ijkmeshinfo abnormally terminated.\n";
 
   push(@count_files, $count_filename);
 }
