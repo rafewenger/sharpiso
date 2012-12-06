@@ -58,6 +58,9 @@ void compute_eigenvalues
  EIGENVALUE_TYPE eigenvalues[DIM3], 
  EIGENVALUE_TYPE normalized_eigenvalues[DIM3],
  NUM_TYPE num_large_eigenvalues);
+void insert_selected_in_bin_grid
+(const ISOVERT & isovert, const AXIS_SIZE_TYPE bin_width,
+ BIN_GRID<VERTEX_INDEX> & bin_grid);
 void out_gcube(std::ostream & out, const SCALAR_TYPE isovalue,
                const ISODUAL_DATA & isodual_data, const GRID_CUBE & gcube,
                const SHARPISO_EDGE_INDEX_GRID & edge_index);
@@ -69,6 +72,7 @@ void out_gcube
  const SHARPISO_EDGE_INDEX_GRID & edge_index,
  const std::vector<VERTEX_INDEX> & gcube_map,
  const std::vector<VERTEX_INDEX> & gcube_map_no_check_disk,
+ const BIN_GRID<VERTEX_INDEX> & bin_grid,
  IS_ISOPATCH_DISK & is_isopatch_disk);
 void out_gcube_type(std::ostream & out, const GRID_CUBE_FLAG flag);
 void out_neighborhood
@@ -216,6 +220,7 @@ void print_isovert_info
   const AXIS_SIZE_TYPE * axis_size = isodual_data.ScalarGrid().AxisSize();
   const int num_cube_vertices = compute_num_cube_vertices(dimension);
   const int num_cubes = isodual_data.ScalarGrid().ComputeNumCubes();
+  const int bin_width = isodual_data.bin_width;
   GRID_COORD_TYPE cube_coord[DIM3];
   IJK::BOX<COORD_TYPE> box(DIM3);
   std::vector<VERTEX_INDEX> quad_vert;
@@ -232,6 +237,7 @@ void print_isovert_info
   if (input_info.maxc.size() == DIM3) 
     { box.SetMaxCoord(vector2pointer(input_info.maxc)); };
 
+
   for (unsigned int i = 0; i < input_info.isovalue.size(); i++) {
 
     const SCALAR_TYPE isovalue = input_info.isovalue[i];
@@ -239,6 +245,9 @@ void print_isovert_info
     ISOVERT isovert;
     DUAL_ISOSURFACE dual_isosurface;
     ISODUAL_INFO isodual_info;
+
+    BIN_GRID<VERTEX_INDEX> bin_grid;
+    init_bin_grid(isodual_data.ScalarGrid(), bin_width, bin_grid);
 
     isovert.linf_dist_threshold = isodual_data.linf_dist_thresh_merge_sharp;
 
@@ -263,6 +272,7 @@ void print_isovert_info
       exit(30);
     }
 
+    insert_selected_in_bin_grid(isovert, bin_width, bin_grid);
 
     extract_dual_isopoly
       (isodual_data.ScalarGrid(), isovalue, quad_vert, isodual_info);
@@ -298,7 +308,7 @@ void print_isovert_info
 
             out_gcube(cout, isovalue, isodual_data, isovert, i,
                       edge_index, gcube_map, gcube_map_no_check_disk,
-                      is_isopatch_disk);
+                      bin_grid, is_isopatch_disk);
             cout << endl;
 
             out_neighborhood(cout, isodual_data.ScalarGrid(), cube_index,
@@ -309,7 +319,7 @@ void print_isovert_info
           }
           else {
             out_gcube(cout, isovalue, isodual_data, isovert, i,
-                      edge_index, gcube_map, gcube_map,
+                      edge_index, gcube_map, gcube_map, bin_grid,
                       is_isopatch_disk);
             cout << endl;
 
@@ -326,9 +336,22 @@ void print_isovert_info
         if (box.Contains(cube_coord)) {
           out_gcube(cout, isovalue, isodual_data, isovert, i,
                     edge_index, gcube_map, gcube_map_no_check_disk,
-                    is_isopatch_disk);
+                    bin_grid, is_isopatch_disk);
         }
       }
+    }
+  }
+}
+
+void insert_selected_in_bin_grid
+(const ISOVERT & isovert, const AXIS_SIZE_TYPE bin_width,
+ BIN_GRID<VERTEX_INDEX> & bin_grid)
+{
+  for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
+    if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
+      VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
+      bin_grid_insert
+        (isovert.sharp_ind_grid, bin_width, cube_index, bin_grid);
     }
   }
 }
@@ -341,6 +364,7 @@ void out_gcube
  const SHARPISO_EDGE_INDEX_GRID & edge_index,
  const std::vector<VERTEX_INDEX> & gcube_map,
  const std::vector<VERTEX_INDEX> & gcube_map_no_check_disk,
+ const BIN_GRID<VERTEX_INDEX> & bin_grid,
  IS_ISOPATCH_DISK & is_isopatch_disk)
 {
   VERTEX_INDEX cube_index = isovert.gcube_list[gcube_index].cube_index;
@@ -364,6 +388,23 @@ void out_gcube
       out << endl;
     }
   }
+  else if (isovert.gcube_list[gcube_index].flag == UNAVAILABLE_GCUBE) {
+    const bool flag_check_angle = isodual_data.flag_check_triangle_angle;
+    const int bin_width = isodual_data.bin_width;
+    VERTEX_INDEX iv1, iv2;
+
+    if (creates_triangle
+        (isodual_data.ScalarGrid(), flag_check_angle, isovert,
+         cube_index, isovalue, bin_grid, bin_width, iv1, iv2)) {
+
+      out << "      Isosurface vertex creates triangle with vertices from cubes "
+          << iv1 << " and " << iv2 << "." << endl;
+    }
+    else {
+      out << "      Cube UNAVAILABLE but does not create triangle!?!" << endl;
+    }
+  }
+
 }
 
 void out_gcube

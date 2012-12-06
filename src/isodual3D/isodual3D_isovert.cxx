@@ -330,12 +330,13 @@ void get_selected
 
 
 // Check if selecting this vertex creates a triangle with a large angle.
+/// @param check_triangl_angle If true, check it triangle has large angles.
 // @param bin_grid Contains the already selected vertices.
-// @param v1,v2 vertex indices which form a triangle with iv
+// @param[out] v1,v2 vertex indices which form a triangle with iv
 bool ISODUAL3D::creates_triangle (
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const bool check_triangle_angle, // if true then check if the triangle has large angles
-		ISOVERT &isovertData,
+		const bool check_triangle_angle,
+		const ISOVERT & isovertData,
 		const VERTEX_INDEX iv,
 		const SCALAR_TYPE isovalue,
 		const BIN_GRID<VERTEX_INDEX> & bin_grid,
@@ -383,7 +384,7 @@ bool ISODUAL3D::creates_triangle (
 
 /// Initialize bin_grid.
 /// @param bin_width = number of cubes along each axis.
-void init_bin_grid
+void ISODUAL3D::init_bin_grid
 (const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
 		BIN_GRID<VERTEX_INDEX> & bin_grid)
 {
@@ -397,16 +398,16 @@ void init_bin_grid
 	bin_grid.SetSize(dimension, axis_size);
 }
 
-void bin_grid_insert
+void ISODUAL3D::bin_grid_insert
 (const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
-		const VERTEX_INDEX iv, BIN_GRID<int> & bin_grid)
+ const VERTEX_INDEX cube_index, BIN_GRID<int> & bin_grid)
 {
 	static GRID_COORD_TYPE coord[DIM3];
 
-	grid.ComputeCoord(iv, coord);
+	grid.ComputeCoord(cube_index, coord);
 	divide_coord_3D(bin_width, coord);
 	VERTEX_INDEX ibin = bin_grid.ComputeVertexIndex(coord);
-	bin_grid.Insert(ibin, iv);
+	bin_grid.Insert(ibin, cube_index);
 }
 
 /*
@@ -492,7 +493,7 @@ void select_3x3x3_regions
 		ISOVERT &isovertData)
 {
 	const int dimension = scalar_grid.Dimension();
-	const int bin_width = 5;
+	const int bin_width = isovert_param.bin_width;
 	BIN_GRID<VERTEX_INDEX> bin_grid;
 
 	init_bin_grid(scalar_grid, bin_width, bin_grid);
@@ -531,6 +532,7 @@ void select_3x3x3_regions
 					selected_list.push_back(cube_index);
 
 					bin_grid_insert(scalar_grid, bin_width, cube_index, bin_grid);
+
 					// mark all the neighbors as covered
 					for (int i=0;i<gridn.NumVertexNeighborsC();i++)
 					{

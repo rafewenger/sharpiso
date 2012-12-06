@@ -104,6 +104,15 @@ void compute_dual_isovert(
 void set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
                     SHARPISO_EDGE_INDEX_GRID & edge_index);
 
+/// Count number of vertices on sharp corners or sharp edges.
+/// Count number of smooth vertices.
+void count_vertices
+(const ISOVERT & isovert, ISOVERT_INFO & isovert_info);
+
+// **************************************************
+// SUBROUTINES
+// **************************************************
+
 /// Return true if this vertex creates a triangle with a large angle.
 /// @param check_triangl_angle If true, check it triangle has large angles.
 /// @param bin_grid Contains the already selected vertices.
@@ -111,7 +120,7 @@ void set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
 bool creates_triangle (
     const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const bool check_triangle_angle,
-		ISOVERT & isovertData,
+		const ISOVERT & isovertData,
 		const VERTEX_INDEX iv,
 		const SCALAR_TYPE isovalue,
 		const BIN_GRID<VERTEX_INDEX> & bin_grid,
@@ -119,10 +128,16 @@ bool creates_triangle (
 		VERTEX_INDEX & v1,
 		VERTEX_INDEX & v2);
 
-/// Count number of vertices on sharp corners or sharp edges.
-/// Count number of smooth vertices.
-void count_vertices
-(const ISOVERT & isovert, ISOVERT_INFO & isovert_info);
+/// Initialize bin_grid.
+/// @param bin_width = number of cubes along each axis.
+void init_bin_grid
+(const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
+ BIN_GRID<VERTEX_INDEX> & bin_grid);
+
+/// Insert cube cube_index into the bin_grid.
+void bin_grid_insert
+(const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
+ const VERTEX_INDEX cube_index, BIN_GRID<int> & bin_grid);
 
 }
 

@@ -343,7 +343,6 @@ namespace SHARPISO {
     bool use_Linf_dist;            ///< If true, use Linf dist.
 
 
-    ///
     /// Merge sharp vertices which are within this threshold distance.
     COORD_TYPE linf_dist_thresh_merge_sharp;
 
@@ -374,6 +373,9 @@ namespace SHARPISO {
     /// Maximum value of a small gradient coordinate.
     /// Used in determining whether to use Linf distance.
     COORD_TYPE max_small_grad_coord_Linf;
+
+    /// Width of bin in BIN_GRID.
+    int bin_width;
 
     /// Round to nearest 1/round_denominator
     int round_denominator;

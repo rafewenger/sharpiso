@@ -1455,6 +1455,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 	round_denominator = 16;
 	max_small_grad_coord_Linf = 0.2;
   linf_dist_thresh_merge_sharp = 0.8;
+  bin_width = 5;
 }
 
 // **************************************************
