@@ -345,7 +345,7 @@ bool ISODUAL3D::creates_triangle (
 		VERTEX_INDEX & v2
 )
 {
-	const SCALAR_TYPE threshold = cos(120*M_PI/180);
+	const SCALAR_TYPE threshold = cos(140*M_PI/180);
 	vector <VERTEX_INDEX> selected_list;
 	vector <VERTEX_INDEX> connected_list;
 

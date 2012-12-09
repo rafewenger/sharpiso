@@ -1445,7 +1445,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 	flag_reselect_gradients = false;
 	flag_dist2centroid = true;
 	flag_centroid_eigen1 = false;
-  flag_check_disk = false;
+	flag_check_disk = false;
 	use_sharp_edgeI = false;
 	use_Linf_dist = true;
 	max_dist = 1.0;
@@ -1454,8 +1454,8 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 	separation_distance = 0.1;
 	round_denominator = 16;
 	max_small_grad_coord_Linf = 0.2;
-  linf_dist_thresh_merge_sharp = 0.8;
-  bin_width = 5;
+	linf_dist_thresh_merge_sharp = 1.0;
+	bin_width = 5;
 }
 
 // **************************************************

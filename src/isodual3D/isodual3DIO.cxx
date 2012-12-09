@@ -56,7 +56,7 @@ typedef enum {
 	REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
 	ALLOW_CONFLICT_PARAM,
 	CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
-  MERGE_CONFLICT_PARAM, MERGE_SHARP_PARAM, MERGE_SHARP_LINF_THRES_PARAM,
+  MERGE_CONFLICT_PARAM, MERGE_SHARP_PARAM,NO_MERGE_SHARP_PARAM, MERGE_SHARP_LINF_THRES_PARAM,
 	CLAMP_FAR_PARAM, CENTROID_FAR_PARAM,
 	RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,RECOMPUTE_ISOVERT,NO_RECOMPUTE_ISOVERT,
 	CHECK_TRIANGLE_ANGLE, NO_CHECK_TRIANGLE_ANGLE,
@@ -84,7 +84,7 @@ typedef enum {
     "-sharp_edgeI", "-interpolate_edgeI",
     "-reposition", "-no_reposition", "-sepdist",
     "-allow_conflict", "-clamp_conflict", "-centroid_conflict", 
-    "-merge_conflict", "-merge_sharp", "-merge_linf_th",
+    "-merge_conflict", "-merge_sharp","-no_merge_sharp", "-merge_linf_th",
     "-clamp_far", "-centroid_far",
     "-recompute_eigen2", "-no_recompute_eigen2","-recompute_isovert","-no_recompute_isovert",
     "-check_triangle_angle","-no_check_triangle_angle",
@@ -306,8 +306,11 @@ typedef enum {
       break;
 
     case MERGE_SHARP_PARAM:
-      input_info.flag_merge_sharp = true;
-      break;
+    	input_info.flag_merge_sharp = true;
+    	break;
+    case NO_MERGE_SHARP_PARAM:
+    	input_info.flag_merge_sharp = false;
+    	break;
 
     case CLAMP_FAR_PARAM:
       input_info.flag_clamp_far = true;
