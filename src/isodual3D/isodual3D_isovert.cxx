@@ -207,10 +207,10 @@ void compute_isovert_positions (
 class GCUBE_COMPARE {
 
 public:
-	std::vector<GRID_CUBE> *gcube_list;
+	const std::vector<GRID_CUBE> * gcube_list;
 
-	GCUBE_COMPARE(vector<GRID_CUBE> & gcube_list_ )
-	{gcube_list = &gcube_list_;};
+	GCUBE_COMPARE(const std::vector<GRID_CUBE> & gcube_list)
+	{ this->gcube_list = &gcube_list; };
 
 	bool operator () (int i,int j)
 	{
@@ -222,8 +222,9 @@ public:
 };
 
 
-void sort_gcube_list
-(vector<NUM_TYPE> &sortd_ind2gcube_list, vector<GRID_CUBE> &gcube_list)
+void ISODUAL3D::sort_gcube_list
+(const std::vector<GRID_CUBE> & gcube_list,
+ std::vector<NUM_TYPE> & sortd_ind2gcube_list)
 {
 	GCUBE_COMPARE gcube_compare(gcube_list);
 
@@ -234,7 +235,7 @@ void sort_gcube_list
 	}
 
 	sort (sortd_ind2gcube_list.begin(),sortd_ind2gcube_list.end(), 
-			gcube_compare);
+        gcube_compare);
 }
 
 /// Compute the cube index from the gc index
@@ -704,13 +705,13 @@ void ISODUAL3D::compute_dual_isovert(
 	create_active_cubes(scalar_grid, isovalue, isovertData);
 
 	compute_isovert_positions 
-	(scalar_grid, gradient_grid, isovalue, isovert_param, isovertData);
+    (scalar_grid, gradient_grid, isovalue, isovert_param, isovertData);
 
 	// keep track of the sorted indices
 	std::vector<NUM_TYPE> sortd_ind2gcube_list;
-	sort_gcube_list(sortd_ind2gcube_list, isovertData.gcube_list);
+	sort_gcube_list(isovertData.gcube_list, sortd_ind2gcube_list);
 	select_3x3x3_regions (scalar_grid, isovalue, isovert_param, 
-			sortd_ind2gcube_list, isovertData);
+                        sortd_ind2gcube_list, isovertData);
 
 	if (isovert_param.flag_recompute_isovert)
 	{
@@ -736,7 +737,7 @@ void ISODUAL3D::compute_dual_isovert(
 
 	// keep track of the sorted indices
 	std::vector<NUM_TYPE> sortd_ind2gcube_list;
-	sort_gcube_list(sortd_ind2gcube_list, isovertData.gcube_list);
+	sort_gcube_list(isovertData.gcube_list, sortd_ind2gcube_list);
 	select_3x3x3_regions (scalar_grid, isovalue, isovert_param, 
 			sortd_ind2gcube_list, isovertData);
 }

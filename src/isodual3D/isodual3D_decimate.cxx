@@ -123,6 +123,7 @@ namespace {
   (const ISODUAL3D::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
+    std::vector<NUM_TYPE> sorted_gcube_list;
     using namespace ISODUAL3D;
 
     const NUM_TYPE num_gcube = isovert.gcube_list.size();
@@ -133,16 +134,20 @@ namespace {
     // Set size of grid neighbors grid.
     gridn.SetSize(isovert.sharp_ind_grid);
 
+    sort_gcube_list(isovert.gcube_list, sorted_gcube_list);
+
     for (NUM_TYPE i = 0; i < num_gcube; i++)
       { gcube_map[i] = i; }
 
     // Set cubes which share facets with selected cubes.
-    for (NUM_TYPE i = 0; i < num_gcube; i++) {
-      if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
+    for (NUM_TYPE i = 0; i < sorted_gcube_list.size(); i++) {
+      NUM_TYPE gcube_index = sorted_gcube_list[i];
 
-        cube_index = isovert.gcube_list[i].cube_index;
+      if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
 
-        if (isovert.gcube_list[i].boundary_bits == 0) {
+        cube_index = isovert.gcube_list[gcube_index].cube_index;
+
+        if (isovert.gcube_list[gcube_index].boundary_bits == 0) {
           // Cube cube_index is an interior cube.
 
           for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsF(); j++) {
@@ -150,7 +155,7 @@ namespace {
             neighbor_index = gridn.CubeNeighborF(cube_index, j);
 
             INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
-            map_iso_vertex(isovert.gcube_list, k, i, gcube_map);
+            map_iso_vertex(isovert.gcube_list, k, gcube_index, gcube_map);
           }
         }
         else {
@@ -160,12 +165,14 @@ namespace {
     }
 
     // Set cubes which share edges with selected cubes.
-    for (NUM_TYPE i = 0; i < num_gcube; i++) {
-      if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
+    for (NUM_TYPE i = 0; i < sorted_gcube_list.size(); i++) {
+      NUM_TYPE gcube_index = sorted_gcube_list[i];
 
-        cube_index = isovert.gcube_list[i].cube_index;
+      if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
 
-        if (isovert.gcube_list[i].boundary_bits == 0) {
+        cube_index = isovert.gcube_list[gcube_index].cube_index;
+
+        if (isovert.gcube_list[gcube_index].boundary_bits == 0) {
           // Cube cube_index is an interior cube.
 
           for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsE(); j++) {
@@ -173,7 +180,7 @@ namespace {
             neighbor_index = gridn.CubeNeighborE(cube_index, j);
 
             INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
-            map_iso_vertex(isovert.gcube_list, k, i, gcube_map);
+            map_iso_vertex(isovert.gcube_list, k, gcube_index, gcube_map);
           }
         }
         else {
@@ -182,12 +189,13 @@ namespace {
       }
     }
 
-    for (NUM_TYPE i = 0; i < num_gcube; i++) {
-      if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
+    for (NUM_TYPE i = 0; i < sorted_gcube_list.size(); i++) {
+      NUM_TYPE gcube_index = sorted_gcube_list[i];
+      if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
 
-        cube_index = isovert.gcube_list[i].cube_index;
+        cube_index = isovert.gcube_list[gcube_index].cube_index;
 
-        if (isovert.gcube_list[i].boundary_bits == 0) {
+        if (isovert.gcube_list[gcube_index].boundary_bits == 0) {
           // Cube cube_index is an interior cube.
 
           for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsV(); j++) {
@@ -195,7 +203,7 @@ namespace {
             neighbor_index = gridn.CubeNeighborV(cube_index, j);
 
             INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
-            map_iso_vertex(isovert.gcube_list, k, i, gcube_map);
+            map_iso_vertex(isovert.gcube_list, k, gcube_index, gcube_map);
           }
 
         }

@@ -139,6 +139,16 @@ void bin_grid_insert
 (const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
  const VERTEX_INDEX cube_index, BIN_GRID<int> & bin_grid);
 
+/// Sort elements of gcube list with more than one eigenvalue.
+/// @param gcube_list List of grid cubes intersected by the isosurface.
+/// @param[out] sortd_ind2gcube_list Sorted indices to grid cube list.
+///             Sorted by decreasing number of eigenvalues.
+///             Then, sorted by increasing linf_dist.
+///             Grid cubes with one eigenvalue are ignored.
+void sort_gcube_list
+(const std::vector<GRID_CUBE> & gcube_list,
+ std::vector<NUM_TYPE> & sortd_ind2gcube_list);
+
 }
 
 #endif /* _ISODUAL3D_ISOVERT_H_ */
