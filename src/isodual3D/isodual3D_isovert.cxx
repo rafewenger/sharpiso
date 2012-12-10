@@ -130,6 +130,8 @@ void ISODUAL3D::set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
 {
 	GRID_COORD_TYPE min_coord[DIM3];
 
+	edge_index.SetAllCoord(ISOVERT::NO_INDEX);
+
 	for (NUM_TYPE i = 0; i < edgeI_coord.size()/DIM3; i++) {
 		round_down(&(edgeI_coord[i*DIM3]), min_coord);
 
@@ -142,6 +144,29 @@ void ISODUAL3D::set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
 
 		edge_index.Set(iv0, edge_dir, i);
 	}
+
+  // Set edge index from edgeI_coord[] which are on grid vertices.
+	for (NUM_TYPE i = 0; i < edgeI_coord.size()/DIM3; i++) {
+		round_down(&(edgeI_coord[i*DIM3]), min_coord);
+
+    if (is_coord_equal(DIM3, &(edgeI_coord[i*DIM3]), min_coord)) {
+
+      VERTEX_INDEX iv0 = edge_index.ComputeVertexIndex(min_coord);
+      for (int edge_dir = 0; edge_dir < DIM3; edge_dir++) {
+        if (edge_index.Vector(iv0, edge_dir) == ISOVERT::NO_INDEX)
+          { edge_index.Set(iv0, edge_dir, i); }
+
+        if (min_coord[edge_dir] > 0) {
+          VERTEX_INDEX iv1 = edge_index.PrevVertex(iv0, edge_dir);
+          if (edge_index.Vector(iv1, edge_dir) == ISOVERT::NO_INDEX)
+            { edge_index.Set(iv1, edge_dir, i); }
+        }
+      }
+    }
+
+
+	}
+
 }
 
 
@@ -165,7 +190,6 @@ void compute_isovert_positions (
 	(DIM3, scalar_grid.AxisSize(), DIM3);
 	SVD_INFO svd_info;
 
-	edge_index.SetAllCoord(ISOVERT::NO_INDEX);
 	set_edge_index(edgeI_coord, edge_index);
 
 	IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX)
