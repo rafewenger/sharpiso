@@ -149,7 +149,7 @@ void ISODUAL3D::set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
 	for (NUM_TYPE i = 0; i < edgeI_coord.size()/DIM3; i++) {
 		round_down(&(edgeI_coord[i*DIM3]), min_coord);
 
-    if (is_coord_equal(DIM3, &(edgeI_coord[i*DIM3]), min_coord)) {
+    if (is_coord_equal_3D(&(edgeI_coord[i*DIM3]), min_coord)) {
 
       VERTEX_INDEX iv0 = edge_index.ComputeVertexIndex(min_coord);
       for (int edge_dir = 0; edge_dir < DIM3; edge_dir++) {
