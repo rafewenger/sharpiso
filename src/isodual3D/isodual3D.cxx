@@ -542,7 +542,7 @@ void ISODUAL3D::dual_contouring_merge_sharp
       (scalar_grid, "gradient grid", "scalar grid", error))
     { throw error; }
 
-  clock_t t0, t1, t2, t3;
+  clock_t t0, t1, t2, t3, t4, t5;
 
   dual_isosurface.Clear();
   isodual_info.time.Clear();
@@ -552,9 +552,21 @@ void ISODUAL3D::dual_contouring_merge_sharp
   compute_dual_isovert
     (scalar_grid, gradient_grid, isovalue, isodual_param, isovert);
 
+  t1 = clock();
+
+  select_sharp_isovert(scalar_grid, isovalue, isodual_param, isovert);
+
+  t2 = clock();
+
+	if (isodual_param.flag_recompute_isovert)
+	{
+		recompute_isovert_positions
+		(scalar_grid, gradient_grid, isovalue, isodual_param, isovert);
+	}
+
   count_vertices(isovert, isovert_info);
 
-  t1 = clock();
+  t3 = clock();
 
   if (allow_multiple_iso_vertices) {
 
@@ -571,7 +583,7 @@ void ISODUAL3D::dual_contouring_merge_sharp
       (scalar_grid, isovalue, isoquad_cube, facet_vertex, isodual_info);
 
     map_isopoly_vert(isovert, isoquad_cube);
-    t2 = clock();
+    t4 = clock();
 
     merge_sharp_iso_vertices
       (scalar_grid, isovalue, isovert, isodual_param,
@@ -601,7 +613,7 @@ void ISODUAL3D::dual_contouring_merge_sharp
     extract_dual_isopoly(scalar_grid, isovalue, quad_vert, isodual_info);
 
     map_isopoly_vert(isovert, quad_vert);
-    t2 = clock();
+    t4 = clock();
 
     merge_sharp_iso_vertices
       (scalar_grid, isovalue, isovert, isodual_param,
@@ -617,7 +629,7 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
   }
 
-  t3 = clock();
+  t5 = clock();
 
   // Set isodual_info
   isodual_info.sharpiso.num_sharp_corners = isovert_info.num_sharp_corners;
@@ -626,9 +638,10 @@ void ISODUAL3D::dual_contouring_merge_sharp
     isovert_info.num_smooth_vertices;
 
   // store times
-  clock2seconds(t1-t0, isodual_info.time.position);
-  clock2seconds(t2-t1, isodual_info.time.extract);
-  clock2seconds(t3-t0, isodual_info.time.total);
+  clock2seconds(t1-t0+t3-t2, isodual_info.time.position);
+  clock2seconds(t4-t3, isodual_info.time.extract);
+  clock2seconds(t5-t4+t2-t1, isodual_info.time.merge_sharp);
+  clock2seconds(t5-t0, isodual_info.time.total);
 }
 
 

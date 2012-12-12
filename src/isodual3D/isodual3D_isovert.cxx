@@ -89,12 +89,10 @@ void compute_isovert_positions (
 	}
 }
 
-/*
- * Recompute isosurface vertex positions for cubes 
- *   which are not selected or coverted.
- */
-void recompute_isovert_positions 
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+/// Recompute isosurface vertex positions for cubes 
+///   which are not selected or coverted.
+void ISODUAL3D::recompute_isovert_positions (
+    const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const GRADIENT_GRID_BASE & gradient_grid,
 		const SCALAR_TYPE isovalue,
 		const SHARP_ISOVERT_PARAM & isovert_param,
@@ -720,7 +718,7 @@ void ISODUAL3D::compute_dual_isovert(
 		const GRADIENT_GRID_BASE & gradient_grid,
 		const SCALAR_TYPE isovalue,
 		const SHARP_ISOVERT_PARAM & isovert_param,
-		ISOVERT &isovertData)
+		ISOVERT & isovertData)
 {
 	IJK::PROCEDURE_ERROR error("compute_dual_isovert");
 
@@ -732,20 +730,20 @@ void ISODUAL3D::compute_dual_isovert(
 
 	compute_isovert_positions 
     (scalar_grid, gradient_grid, isovalue, isovert_param, isovertData);
+}
 
+void ISODUAL3D::select_sharp_isovert(
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const SCALAR_TYPE isovalue,
+		const SHARP_ISOVERT_PARAM & isovert_param,
+		ISOVERT & isovertData)
+{
 	// keep track of the sorted indices
 	std::vector<NUM_TYPE> sortd_ind2gcube_list;
 	sort_gcube_list(isovertData.gcube_list, sortd_ind2gcube_list);
 	select_3x3x3_regions (scalar_grid, isovalue, isovert_param, 
                         sortd_ind2gcube_list, isovertData);
-
-	if (isovert_param.flag_recompute_isovert)
-	{
-		recompute_isovert_positions
-		(scalar_grid, gradient_grid, isovalue, isovert_param, isovertData);
-	}
 }
-
 
 void ISODUAL3D::compute_dual_isovert(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
