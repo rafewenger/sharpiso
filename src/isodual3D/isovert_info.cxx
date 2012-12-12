@@ -249,8 +249,6 @@ void print_isovert_info
     BIN_GRID<VERTEX_INDEX> bin_grid;
     init_bin_grid(isodual_data.ScalarGrid(), bin_width, bin_grid);
 
-    isovert.linf_dist_threshold = isodual_data.linf_dist_thresh_merge_sharp;
-
     if (isodual_data.IsGradientGridSet() &&
         isodual_data.VertexPositionMethod() == GRADIENT_POSITIONING
         || isodual_data.VertexPositionMethod() == EDGEI_INTERPOLATE

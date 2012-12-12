@@ -25,7 +25,7 @@ my $use_all_data = 0;
 
 # isodual3D arguments which take an input value/string.
 my @isodual3D_options = ( "-subsample",  "-position", "-round", 
-                          "-max_dist", "-max_eigen" );
+                          "-max_dist", "-max_eigen", "-merge_linf_th" );
 
 while (scalar(@proglist) > 0 &&
        $proglist[0] =~ /^\-.*/) {

@@ -601,8 +601,7 @@ void ISODUAL3D::parse_isovalue_and_filename
 // Set input_info defaults.
 void ISODUAL3D::set_input_info_defaults(INPUT_INFO & input_info)
 {
-	if (!input_info.is_vertex_position_method_set && 
-      input_info.gradient_filename == NULL) {
+	if (!input_info.is_vertex_position_method_set) {
 		input_info.vertex_position_method = GRADIENT_POSITIONING;
     input_info.SetGradSelectionMethod(GRAD_NS);
 	}
@@ -1144,15 +1143,6 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
   const VERTEX_POSITION_METHOD vpos_method = 
     isodual_param.vertex_position_method;
 
-	cout << "Gradient selection cube offset: "
-			<< isodual_param.grad_selection_cube_offset << endl;
-	cout << "Maximum small eigenvalue: "
-			<< isodual_param.max_small_eigenvalue << endl;
-	cout << "Max (Linf) distance from cube to isosurface vertex: "
-			<< isodual_param.max_dist << endl;
-	cout << "Max small gradient magnitude: "
-			<< isodual_param.max_small_magnitude << endl;
-
   cout << "Vertex positioning: ";
 
   switch (vpos_method) {
@@ -1190,38 +1180,65 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
     break;
   }
 
-  if (isodual_param.use_sharp_edgeI) {
-    cout << "Using sharp formula to calculate intersections of isosurface and grid edges." << endl;
-  }
-  else {
-    cout << "Using interpolation to calculate intersections of isosurface and grid edges." << endl;
+  if (vpos_method != CUBECENTER && vpos_method != CENTROID_EDGE_ISO) {
+
+    if (isodual_param.flag_merge_sharp) {
+      cout << "Merge isosurface vertices near sharp edges and corners." 
+           << endl;
+      cout << "Merge distance (Linf) threshold: "
+           << isodual_param.linf_dist_thresh_merge_sharp << endl;
+    }
+
+    cout << "Maximum small eigenvalue: "
+         << isodual_param.max_small_eigenvalue << endl;
+    cout << "Max (Linf) distance from cube to isosurface vertex: "
+         << isodual_param.max_dist << endl;
+    cout << "Max small gradient magnitude: "
+         << isodual_param.max_small_magnitude << endl;
+    cout << "Gradient selection cube offset: "
+         << isodual_param.grad_selection_cube_offset << endl;
+
+    if (isodual_param.use_lindstrom) {
+      cout << "Using Lindstrom formula." << endl;
+    }
+
+    if (isodual_param.flag_dist2centroid) {
+      cout << "Using distance to centroid." << endl;
+    }
+    else {
+      cout << "Using distance to center." << endl;
+    }
+
   }
 
-  if (isodual_param.use_lindstrom) {
-    cout << "Using Lindstrom formula." << endl;
+  if (!isodual_param.flag_merge_sharp) {
+
+    if (isodual_param.flag_allow_conflict) {
+      cout << "Allow isosurface vertex conflicts." << endl;
+    }
+    else {
+      if (isodual_param.flag_clamp_conflict) 
+        { cout << "Resolve conflict by clamping coordinates." << endl; }
+      else
+        { cout << "Resolve conflict by reverting to centroid." << endl; }
+    }
   }
 
-  if (isodual_param.flag_dist2centroid) {
-    cout << "Using distance to centroid." << endl;
-  }
-  else {
-    cout << "Using distance to center." << endl;
-  }
+  if (vpos_method != CUBECENTER) {
 
-  if (isodual_param.flag_allow_conflict) {
-    cout << "Allow isosurface vertex conflicts." << endl;
-  }
-  else {
-    if (isodual_param.flag_clamp_conflict) 
-      { cout << "Resolve conflict by clamping coordinates." << endl; }
-    else
-      { cout << "Resolve conflict by reverting to centroid." << endl; }
+    if (isodual_param.use_sharp_edgeI) {
+      cout << "Using sharp formula to calculate intersections of isosurface and grid edges." << endl;
+    }
+    else {
+      cout << "Using interpolation to calculate intersections of isosurface and grid edges." << endl;
+    }
   }
 
   if (isodual_param.allow_multiple_iso_vertices) {
     cout << "Allow multiple isosurface vertices per grid cube." << endl;
 
-    if (isodual_param.flag_resolve_ambiguous_facets) {
+    if (isodual_param.flag_resolve_ambiguous_facets &&
+        !isodual_param.flag_merge_sharp) {
       cout << "Resolve ambiguous facets." << endl;
     }
     else if (isodual_param.flag_separate_neg) {

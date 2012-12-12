@@ -332,7 +332,6 @@ namespace SHARPISO {
     bool flag_clamp_far;           ///< If true, clamp far points.
     bool flag_recompute_eigen2;    ///< If true, recompute with 2 eigenvalues.
     bool flag_recompute_isovert;   ///< If true then recompute isovert
-    bool flag_check_triangle_angle;///< If true then check for large angles when forms triangle
     bool flag_round;               ///< Round output coordinates.
     bool flag_remove_gradients;    ///< Remove gradients to resolve conflicts
     bool flag_reselect_gradients;  ///< Select fewer grads to resolve conflicts
@@ -356,6 +355,9 @@ namespace SHARPISO {
 
     /// If true, check that merged vertices form a disk.
     bool flag_check_disk;
+
+    /// If true, then check for large triangle angles.
+    bool flag_check_triangle_angle;
 
     /// Maximum (Linf) distance from cube to isosurface vertex
     SIGNED_COORD_TYPE max_dist;

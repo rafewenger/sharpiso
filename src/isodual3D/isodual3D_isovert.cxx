@@ -519,6 +519,8 @@ void select_3x3x3_regions
 {
 	const int dimension = scalar_grid.Dimension();
 	const int bin_width = isovert_param.bin_width;
+  const COORD_TYPE linf_dist_threshold = 
+    isovert_param.linf_dist_thresh_merge_sharp;
 	BIN_GRID<VERTEX_INDEX> bin_grid;
 
 	init_bin_grid(scalar_grid, bin_width, bin_grid);
@@ -536,7 +538,7 @@ void select_3x3x3_regions
 		if(c.boundary_bits == 0)
 			if (isovertData.isFlag
 					(cube_ind_frm_gc_ind(isovertData, sortd_ind2gcube_list[ind]),AVAILABLE_GCUBE)
-					&& c.linf_dist < isovertData.linf_dist_threshold) {
+					&& c.linf_dist < linf_dist_threshold) {
 
 				VERTEX_INDEX v1, v2;
 

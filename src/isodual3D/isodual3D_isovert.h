@@ -34,8 +34,8 @@ public:
 	unsigned char num_eigen;        ///< Number of eigenvalues.
 	GRID_CUBE_FLAG flag;            ///< Type for this cube.
 	SCALAR_TYPE linf_dist;          /// Linf-dist from sharp point to cube-center.
-	int boundary_bits;             /// boundary bits for the cube
-	VERTEX_INDEX cube_index;          /// Index of cube in scalar grid.
+	int boundary_bits;              /// boundary bits for the cube
+	VERTEX_INDEX cube_index;        /// Index of cube in scalar grid.
 };
 
 
@@ -54,9 +54,6 @@ public:
 	/// Grid containing the index to the gcube_list.
 	/// If cube is not active, then it is defined as NO_INDEX.
 	SHARPISO_INDEX_GRID sharp_ind_grid;
-
-	SCALAR_TYPE linf_dist_to_sharp_pt;    ///< L-inf distance variable.
-	SCALAR_TYPE linf_dist_threshold;
 
 	bool isActive(const int cube_index); /// check if the cube is active
 	bool isFlag(const int cube_indexm, GRID_CUBE_FLAG flag); /// compare flag of the cube
