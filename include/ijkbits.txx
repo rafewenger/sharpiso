@@ -94,6 +94,19 @@ namespace IJK {
     return((ival == reverse_val));
   }
 
+  /// Return index of first one bit.
+  /// Return num_bits if all bits are zero.
+  template <typename ITYPE, typename NTYPE>
+  NTYPE get_first_one_bit(const ITYPE val, const NTYPE num_bits)
+  {
+    ITYPE mask = ITYPE(1);
+    for (NTYPE i = 0; i < num_bits; i++) {
+      if ((val & mask) != 0) { return(i); }
+      mask = (mask << ITYPE(1));
+    }
+    return(num_bits);
+  }
+    
 }
 
 #endif

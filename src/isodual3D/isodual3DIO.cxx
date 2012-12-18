@@ -56,7 +56,7 @@ typedef enum {
 	REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
 	ALLOW_CONFLICT_PARAM,
 	CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
-  MERGE_CONFLICT_PARAM, MERGE_SHARP_PARAM,NO_MERGE_SHARP_PARAM, MERGE_SHARP_LINF_THRES_PARAM,
+  MERGE_CONFLICT_PARAM, MERGE_SHARP_PARAM, NO_MERGE_SHARP_PARAM, MERGE_SHARP_LINF_THRES_PARAM,
 	CLAMP_FAR_PARAM, CENTROID_FAR_PARAM,
 	RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,RECOMPUTE_ISOVERT,NO_RECOMPUTE_ISOVERT,
 	CHECK_TRIANGLE_ANGLE, NO_CHECK_TRIANGLE_ANGLE,
@@ -1473,6 +1473,7 @@ namespace {
          << "              gradES|gradEC}]" << endl;
     cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
     cerr << "  [-normal {normal_off_filename}]" << endl;
+    cerr << "  [-merge_sharp | -no_merge_sharp] [-merge_linf_th <D>]" << endl;
     cerr << "  [-single_isov | -multi_isov | -sep_pos | -sep_neg | -resolve_ambig]"
          << endl;
     cerr << "  [-max_eigen {max}]" << endl;
@@ -1481,7 +1482,6 @@ namespace {
     cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
     cerr << "  [-lindstrom]" << endl;
     cerr << "  [-allow_conflict |-clamp_conflict | -centroid_conflict] [-merge_conflict]" << endl;
-    cerr << "  [-merge_sharp] [-merge_linf_th <D>]" << endl;
     cerr << "  [-clamp_far] [-centroid_far]" << endl;
     cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
     cerr << "  [-recompute_isovert | -no_recompute_isovert]"<<endl;

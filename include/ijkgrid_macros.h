@@ -100,5 +100,17 @@
                                         _axis_size ## __LINE__,     \
                                         _endv ## __LINE__)
 
+#define IJK_FOR_EACH_BOUNDARY_GRID_VERTEX_LOCAL(_iv,_grid,_VTYPE,_vertex_list,_i) \
+  IJK_LOCAL(IJK::GRID_BOUNDARY_VERTEX_LIST<_VTYPE> _vertex_list(_grid), \
+            _k0 ## __LINE__, _k1 ## __LINE__)                           \
+    for (_VTYPE _i = 0, _iv = _vertex_list.VertexIndex(_i);         \
+         _i < _vertex_list.NumVertices();                           \
+         _i++, _iv = _vertex_list.VertexIndex(_i))
+
+#define IJK_FOR_EACH_BOUNDARY_GRID_VERTEX(_iv,_grid,_VTYPE)          \
+  IJK_FOR_EACH_BOUNDARY_GRID_VERTEX_LOCAL(_iv,_grid,_VTYPE,          \
+                                          _vertex_list ## __LINE__,  \
+                                          _i ## __LINE__)
+
 #endif
 

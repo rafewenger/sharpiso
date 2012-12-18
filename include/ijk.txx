@@ -288,7 +288,6 @@ namespace IJK {
     }
   }
 
-
   // **************************************************
   // CONVERT A C++ VECTOR TO A POINTER
   // **************************************************
@@ -301,6 +300,29 @@ namespace IJK {
   {
     if (v.empty()) { return(NULL); }
     else { return(&(v.front())); }
+  }
+
+  // **************************************************
+  // COUNT TEMPLATE FUNCTION
+  // **************************************************
+
+  /// Count number of elements ge X in array a[].
+  /// @tparam ATYPE Array type. Could be C array or stl vector.
+  template <int X, typename ATYPE, typename NTYPE>
+  NTYPE count_ge(const ATYPE a, const NTYPE length)
+  {
+    NTYPE num_ge = 0;
+    for (NTYPE i = 0; i < length; i++) {
+      if (a[i] >= X) { num_ge++; }
+    }
+    return(num_ge);
+  }
+
+  /// Count number of elements ge X in stl vector v.
+  template <int X, typename T>
+  typename std::vector<T>::size_type count_ge(const std::vector<T> & v)
+  {
+    return(count_ge<X>(v, v.size()));
   }
 
 
