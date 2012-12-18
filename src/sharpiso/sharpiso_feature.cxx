@@ -1208,6 +1208,7 @@ void SHARPISO::process_far_point
 		COORD_TYPE iso_coord[DIM3],
 		SVD_INFO & svd_info)
 {
+
 	if (sharpiso_param.flag_clamp_far) {
 		// Clamp point to cube + max_dist.
 		clamp_point(sharpiso_param.max_dist, cube_coord, iso_coord);

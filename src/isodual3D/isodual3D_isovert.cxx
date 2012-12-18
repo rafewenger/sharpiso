@@ -477,14 +477,10 @@ bool is_angle_large(
 	VERTEX_INDEX gcube_list_index_v2;
 	VERTEX_INDEX gcube_list_index_v3;
 
-	for (int i=0; i<isovertData.gcube_list.size();i++){
-		if (isovertData.gcube_list[i].cube_index == v1)
-			gcube_list_index_v1 = i;
-		if (isovertData.gcube_list[i].cube_index == v2)
-			gcube_list_index_v2 = i;
-		if (isovertData.gcube_list[i].cube_index == iv)
-			gcube_list_index_v3 = i;
-	}
+	gcube_list_index_v1=isovertData.sharp_ind_grid.Scalar(v1);
+	gcube_list_index_v2=isovertData.sharp_ind_grid.Scalar(v2);
+	gcube_list_index_v3=isovertData.sharp_ind_grid.Scalar(iv);
+
 
 	compute_cos_angle(isovertData, gcube_list_index_v1,
 			gcube_list_index_v3,  gcube_list_index_v2, cos_angle_iv);
@@ -770,7 +766,8 @@ void ISODUAL3D::compute_dual_isovert(
 /*
  * Find the linf distance between the sharp vertex for the cube and the center of the cube
  */
-void compute_linf_dist( const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+void compute_linf_dist(
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const VERTEX_INDEX iv,
 		COORD_TYPE isovert_coord[DIM3],
 		SCALAR_TYPE &linf_dist)
@@ -780,7 +777,7 @@ void compute_linf_dist( const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 	scalar_grid.ComputeCubeCenterCoord(iv,cc);
 	SCALAR_TYPE temp_d   = 0.0;
 	SCALAR_TYPE max_dist = -1.0;
-	for (int d=0;d<DIM3;d++){
+	for (int d=0; d<DIM3; d++){
 		temp_d = abs(isovert_coord[d]-cc[d]);
 		if (temp_d > max_dist)
 			max_dist=temp_d;
