@@ -1234,6 +1234,12 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
     }
   }
 
+  if (isodual_param.flag_merge_sharp) {
+    if (isodual_param.flag_recompute_isovert) {
+      cout << "Recompute isosurface vertex positions for unselected/uncovered cubes." << endl;
+    }
+  }
+
   if (isodual_param.allow_multiple_iso_vertices) {
     cout << "Allow multiple isosurface vertices per grid cube." << endl;
 
