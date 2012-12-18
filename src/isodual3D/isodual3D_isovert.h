@@ -24,11 +24,12 @@ typedef enum{
 	SELECTED_GCUBE,     ///< Cube contains a sharp vertex.
 	COVERED_GCUBE,      ///< Cube is near a cube containing a sharp vertex.
 	UNAVAILABLE_GCUBE,  ///< Cube is within 3x3 of a 2 covering.
+  NON_DISK_GCUBE,     ///< Merging cube with neighbors creates non-disk patch.
 	SMOOTH_GCUBE		    ///< Cube contains smooth isosurface patch.
 } GRID_CUBE_FLAG;
 
 
-class GRID_CUBE{
+class GRID_CUBE {
 public:
 	COORD_TYPE isovert_coord[DIM3]; ///< Location of the sharp isovertex.
 	unsigned char num_eigen;        ///< Number of eigenvalues.

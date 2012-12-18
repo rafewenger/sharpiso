@@ -1485,7 +1485,7 @@ namespace {
     cerr << "  [-clamp_far] [-centroid_far]" << endl;
     cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
     cerr << "  [-recompute_isovert | -no_recompute_isovert]"<<endl;
-    cerr << "  [-check_triangle_angle | -no_check_triangle_angle"<<endl;
+    cerr << "  [-check_triangle_angle | -no_check_triangle_angle]"<<endl;
     cerr << "  [-Linf | -no_Linf]" << endl;
     cerr << "  [-removeg | -no_removeg] [-reselectg | -no_reselectg]" << endl;
     cerr << "  [-dist2center | -dist2centroid]" << endl;

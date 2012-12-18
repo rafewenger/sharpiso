@@ -38,7 +38,7 @@ namespace {
   void determine_gcube_map
   (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
-   const ISODUAL3D::ISOVERT & isovert, 
+   ISODUAL3D::ISOVERT & isovert, 
    const SHARP_ISOVERT_PARAM & sharp_isovert_param,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map, 
    ISODUAL3D::SHARPISO_INFO & sharpiso_info);
@@ -52,7 +52,7 @@ namespace {
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 void ISODUAL3D::merge_sharp_iso_vertices
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
- const ISOVERT & isovert,
+ ISOVERT & isovert,
  const SHARP_ISOVERT_PARAM & sharp_isovert_param,
  std::vector<VERTEX_INDEX> & quad_vert,
  std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info)
@@ -79,7 +79,7 @@ void ISODUAL3D::merge_sharp_iso_vertices
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 void ISODUAL3D::merge_sharp_iso_vertices
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
- const ISOVERT & isovert, 
+ ISOVERT & isovert, 
  const SHARP_ISOVERT_PARAM & sharp_isovert_param,
  std::vector<VERTEX_INDEX> & quad_vert,
  SHARPISO_INFO & sharpiso_info)
@@ -219,14 +219,14 @@ namespace {
   void unmap_non_disk_isopatches
   (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
-   const ISODUAL3D::ISOVERT & isovert, 
+   ISODUAL3D::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map, 
    ISODUAL3D::SHARPISO_INFO & sharpiso_info);
 
   void determine_gcube_map
   (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
-   const ISODUAL3D::ISOVERT & isovert, 
+   ISODUAL3D::ISOVERT & isovert, 
    const SHARP_ISOVERT_PARAM & sharp_isovert_param,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map, 
    ISODUAL3D::SHARPISO_INFO & sharpiso_info)
@@ -251,7 +251,7 @@ namespace {
   void unmap_non_disk_isopatches
   (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
-   const ISODUAL3D::ISOVERT & isovert, 
+   ISODUAL3D::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map, 
    ISODUAL3D::SHARPISO_INFO & sharpiso_info)
   {
@@ -279,6 +279,7 @@ namespace {
           if (!is_isopatch_disk.IsIsopatchDisk
               (scalar_grid, isovalue, cube_index, isovert, gcube_map)) {
             is_isopatch_disk.UnmapAdjacent(cube_index, isovert, gcube_map); 
+            isovert.gcube_list[i].flag = NON_DISK_GCUBE;
 
             sharpiso_info.num_non_disk_isopatches++;
           }

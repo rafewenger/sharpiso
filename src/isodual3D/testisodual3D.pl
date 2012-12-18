@@ -397,7 +397,7 @@ sub count_sharp_edges {
 
   system("fgrep \"degree 1 or 3\" $count_filename");
 
-  $command_line = "ijkmeshinfo -terse -manifold $output_filename";
+  $command_line = "ijkmeshinfo -report_deep -terse -manifold $output_filename";
   my $return_val = system("$command_line");
   $return_val = $return_val >> 8;
   ($return_val == 0 || $return_val == 1) ||
