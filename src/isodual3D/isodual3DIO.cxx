@@ -56,7 +56,7 @@ typedef enum {
 	REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
 	ALLOW_CONFLICT_PARAM,
 	CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
-  MERGE_CONFLICT_PARAM, MERGE_SHARP_PARAM,NO_MERGE_SHARP_PARAM, MERGE_SHARP_LINF_THRES_PARAM,
+  MERGE_CONFLICT_PARAM, MERGE_SHARP_PARAM, NO_MERGE_SHARP_PARAM, MERGE_SHARP_LINF_THRES_PARAM,
 	CLAMP_FAR_PARAM, CENTROID_FAR_PARAM,
 	RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,RECOMPUTE_ISOVERT,NO_RECOMPUTE_ISOVERT,
 	CHECK_TRIANGLE_ANGLE, NO_CHECK_TRIANGLE_ANGLE,
@@ -1234,6 +1234,12 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
     }
   }
 
+  if (isodual_param.flag_merge_sharp) {
+    if (isodual_param.flag_recompute_isovert) {
+      cout << "Recompute isosurface vertex positions for unselected/uncovered cubes." << endl;
+    }
+  }
+
   if (isodual_param.allow_multiple_iso_vertices) {
     cout << "Allow multiple isosurface vertices per grid cube." << endl;
 
@@ -1473,6 +1479,7 @@ namespace {
          << "              gradES|gradEC}]" << endl;
     cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
     cerr << "  [-normal {normal_off_filename}]" << endl;
+    cerr << "  [-merge_sharp | -no_merge_sharp] [-merge_linf_th <D>]" << endl;
     cerr << "  [-single_isov | -multi_isov | -sep_pos | -sep_neg | -resolve_ambig]"
          << endl;
     cerr << "  [-max_eigen {max}]" << endl;
@@ -1481,11 +1488,10 @@ namespace {
     cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
     cerr << "  [-lindstrom]" << endl;
     cerr << "  [-allow_conflict |-clamp_conflict | -centroid_conflict] [-merge_conflict]" << endl;
-    cerr << "  [-merge_sharp] [-merge_linf_th <D>]" << endl;
     cerr << "  [-clamp_far] [-centroid_far]" << endl;
     cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
     cerr << "  [-recompute_isovert | -no_recompute_isovert]"<<endl;
-    cerr << "  [-check_triangle_angle | -no_check_triangle_angle"<<endl;
+    cerr << "  [-check_triangle_angle | -no_check_triangle_angle]"<<endl;
     cerr << "  [-Linf | -no_Linf]" << endl;
     cerr << "  [-removeg | -no_removeg] [-reselectg | -no_reselectg]" << endl;
     cerr << "  [-dist2center | -dist2centroid]" << endl;

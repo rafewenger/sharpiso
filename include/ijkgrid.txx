@@ -285,6 +285,15 @@ namespace IJK {
     VTYPE PrevVertex(const VTYPE iv, const DTYPE d) const  
     { return(iv-axis_increment[d]); }
 
+    /// \brief Return adjacent vertex in direction d.
+    /// @param side = 0 (or false) or 1 (or true).
+    template <typename STYPE>
+    VTYPE AdjacentVertex(const VTYPE iv, const DTYPE d, const STYPE side) const
+    {
+      if (DTYPE(side) == 0) { return(PrevVertex(iv, d)); }
+      else { return(NextVertex(iv, d)); };
+    }
+
     /// \brief Return k'th cube vertex.
     /// @param iv0 is a primary cube vertex.
     /// @param k k'th cube vertex.
@@ -585,6 +594,18 @@ namespace IJK {
     VTYPE ListLength() const
     { return(list_length); }
   };
+
+  /// Class containing list of grid boundary vertices.
+  template <typename VTYPE>
+  class GRID_BOUNDARY_VERTEX_LIST:public GRID_VERTEX_LIST<VTYPE> {
+
+  public:
+    /// GRID_BOUNDARY_VERTEX_LIST constructor.
+    /// @param grid Grid.
+    template<typename GCLASS>
+    GRID_BOUNDARY_VERTEX_LIST(const GCLASS & grid);
+  };
+
 
   /// Class containing list of grid cubes.
   template <typename VTYPE>
@@ -933,7 +954,7 @@ namespace IJK {
     compute_num_grid_vertices(dimension, interior_axis_size, num_vertices);
   }
 
-  /// Return number of vertices in grid interior for boundary with 1.
+  /// Return number of vertices in grid interior for boundary width 1.
   template <class DTYPE, class ATYPE, class NTYPE>
   void compute_num_interior_grid_vertices
   (const DTYPE dimension, const ATYPE * axis_size, NTYPE & num_vertices)
@@ -954,6 +975,16 @@ namespace IJK {
     compute_num_interior_grid_vertices
       (dimension, axis_size, boundary_width, num_interior_vertices);
     num_boundary_vertices = num_grid_vertices - num_interior_vertices;
+  }
+
+  /// Return number of vertices in grid boundary.
+  template <class DTYPE, class ATYPE, class NTYPE>
+  void compute_num_boundary_grid_vertices
+  (const DTYPE dimension, const ATYPE * axis_size, 
+   NTYPE & num_boundary_vertices)
+  {
+    compute_num_boundary_grid_vertices
+      (dimension, axis_size, 1, num_boundary_vertices);
   }
 
   /// Return number of cubes in grid or grid subspace
@@ -2766,54 +2797,9 @@ namespace IJK {
 
   }
 
-  /// Get boundary grid vertices
-  template <class DTYPE, class ATYPE, class VTYPE>
-  void get_boundary_grid_vertices
-  (const DTYPE dimension, const ATYPE * axis_size, VTYPE * vlist)
-  {
-    if (dimension < 1) { return; }
-    if (dimension == 1) {
-      if (axis_size[0] > 0) { vlist[0] = 0; }
-      if (axis_size[0] > 1) { vlist[1] = axis_size[0]-1; };
-      return;
-    }
-
-    DTYPE d_last = dimension - 1;
-    if (axis_size[d_last] < 1) { return; };
-
-    // get vertices in lower facet
-    VTYPE num_vertices_in_grid_facet =
-      compute_num_vertices_in_grid_facet(dimension, axis_size, d_last);
-    get_vertices_in_grid_facet(dimension, axis_size, d_last, false, vlist);
-
-    VTYPE * vlist2 = vlist+num_vertices_in_grid_facet;
-    VTYPE * vlist3 = vlist2;
-    if (axis_size[d_last] > 2) {
-      ATYPE axis_increment[dimension];
-
-      compute_increment(dimension, axis_size, axis_increment);
-      get_boundary_grid_vertices(dimension-1, axis_size, vlist2);
-
-      VTYPE n = compute_num_boundary_grid_vertices(dimension-1, axis_size);
-      for (VTYPE * vcur_ptr = vlist2; vcur_ptr != vlist2+n; vcur_ptr++)
-        { *vcur_ptr += axis_increment[d_last]; }
-
-      vlist3 = vlist2 + n;
-      for (ATYPE j = 2; j < axis_size[d_last]-1; j++) {
-        VTYPE inc = axis_increment[d_last]*(j-1);
-
-        for (VTYPE i = 0; i < n; i++)  { vlist3[i] = vlist2[i] + inc; }
-
-        vlist3 += n;
-      }
-    }
-
-
-    get_vertices_in_grid_facet(dimension, axis_size, d_last, true, vlist3);
-  }
-
-
-  /// Get boundary grid vertices
+  /// Get vertices on boundary of grid.
+  /// Allows boundary_width to be greater than 1.
+  /// @param boundary_width Width of boundary, in vertices.
   template <class DTYPE, class ATYPE, class VTYPE, class WTYPE>
   void get_boundary_grid_vertices
   (const DTYPE dimension, const ATYPE * axis_size, 
@@ -2896,6 +2882,14 @@ namespace IJK {
       }
     }
   
+  }
+
+  /// Get vertices on boundary of grid.
+  template <class DTYPE, class ATYPE, class VTYPE>
+  void get_boundary_grid_vertices
+  (const DTYPE dimension, const ATYPE * axis_size, VTYPE * vlist)
+  {
+    get_boundary_grid_vertices(dimension, axis_size, 1, vlist);
   }
 
   /// Get boundary grid cubes
@@ -4259,6 +4253,27 @@ namespace IJK {
     }
 
     this->num_vertices = num_cubes;
+  }
+
+  /// GRID_BOUNDARY_VERTEX_LIST constructor.
+  template <typename VTYPE>
+  template<typename GCLASS>
+  GRID_BOUNDARY_VERTEX_LIST<VTYPE>::GRID_BOUNDARY_VERTEX_LIST
+  (const GCLASS & grid)
+  {
+    VTYPE numv = 0;
+
+    compute_num_boundary_grid_vertices
+      (grid.Dimension(), grid.AxisSize(), numv);
+
+    AllocateList(numv);
+
+    if (numv > 0) {
+      get_boundary_grid_vertices
+        (grid.Dimension(), grid.AxisSize(), this->vertex_list);
+    }
+
+    this->num_vertices = numv;
   }
 
   /// FACET_VERTEX_LIST constructor.

@@ -436,7 +436,8 @@ void ISODUAL3D::position_dual_isovertices
     VERTEX_INDEX cube_index = iso_vlist_cube[i];
     VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(cube_index);
     if (isovert.gcube_list[gcube_index].flag == SMOOTH_GCUBE ||
-        isovert.gcube_list[gcube_index].flag == UNAVAILABLE_GCUBE) {
+        isovert.gcube_list[gcube_index].flag == UNAVAILABLE_GCUBE ||
+        isovert.gcube_list[gcube_index].flag == NON_DISK_GCUBE ) {
       IJK::compute_isotable_index
         (scalar_grid.ScalarPtrConst(), isovalue, cube_index,
          scalar_grid.CubeVertexIncrement(), num_cube_vertices, it);
@@ -963,7 +964,8 @@ void ISODUAL3D::split_dual_isovert
   for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
     cube_list[i] = isovert.gcube_list[i].cube_index;
     if (isovert.gcube_list[i].flag == SMOOTH_GCUBE ||
-        isovert.gcube_list[i].flag == UNAVAILABLE_GCUBE)
+        isovert.gcube_list[i].flag == UNAVAILABLE_GCUBE ||
+        isovert.gcube_list[i].flag == NON_DISK_GCUBE)
       { no_split[i] = false; }
   }
 

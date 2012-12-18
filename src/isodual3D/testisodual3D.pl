@@ -299,11 +299,19 @@ sub compare_executables_all_options {
   print "\n";
   compare_executables("-position gradCDdup @input_options");
   print "\n";
+  compare_executables("-position gradNS -interpolate_edgeI -dist2centroid @input_options");
+  print "\n";
+  compare_executables("-position gradNS -sharp_edgeI -dist2centroid @input_options");
+  print "\n";
+  compare_executables("-position gradNS -dist2center @input_options");
+  print "\n";
   compare_executables("-position gradCD -sep_pos @input_options");
   print "\n";
   compare_executables("-position gradCD -sep_neg @input_options");
   print "\n";
-  compare_executables("-position gradCD -resolve_ambig @input_options");
+  compare_executables("-position gradCD -no_merge_sharp @input_options");
+  print "\n";
+  compare_executables("-position gradCD -no_merge_sharp -resolve_ambig @input_options");
   print "\n";
   compare_executables("-position centroid -trimesh @input_options");
   print "\n";
@@ -389,7 +397,7 @@ sub count_sharp_edges {
 
   system("fgrep \"degree 1 or 3\" $count_filename");
 
-  $command_line = "ijkmeshinfo -terse -manifold $output_filename";
+  $command_line = "ijkmeshinfo -report_deep -terse -manifold $output_filename";
   my $return_val = system("$command_line");
   $return_val = $return_val >> 8;
   ($return_val == 0 || $return_val == 1) ||

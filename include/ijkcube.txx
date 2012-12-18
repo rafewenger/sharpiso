@@ -127,6 +127,9 @@ namespace IJK {
     void SetEdgeEndpoints();
 
   public:
+    typedef VTYPE VERTEX_INDEX;           ///< Vertex index type.
+
+  public:
     CUBE_FACE_INFO();
     CUBE_FACE_INFO(const DTYPE dimension);
     ~CUBE_FACE_INFO() { FreeAll(); };
@@ -136,11 +139,19 @@ namespace IJK {
     void SetDimension                     ///< Set cube dimension
     (const DTYPE2 dimension);
 
+    /// Return pointer to edge endpoints
+    const VTYPE * EdgeEndpoint() const
+    { return(edge_endpoint); }
+
     /// Return edge endpoint.
     /// @param ie Edge index.
     /// @param iend Endpoint (0 or 1).
     VTYPE EdgeEndpoint(const VTYPE ie, const NTYPE iend) const
     { return(edge_endpoint[2*ie+iend]); };
+
+    /// Return pointer to faacet vertices
+    const VTYPE * FacetVertex() const
+    { return(facet_vertex); }
 
     /// Return facet vertex.
     /// @param ifacet Facet index. 
@@ -151,7 +162,7 @@ namespace IJK {
     { return(facet_vertex[ifacet*this->NumFacetVertices()+k]); };
 
     /// Return facet index.
-    VTYPE FacetIndex(const VTYPE facet_vertex_index)
+    VTYPE FacetIndex(const VTYPE facet_vertex_index) const
     { return(int(facet_vertex_index)/int(this->NumFacetVertices())); }
   };
 
@@ -221,6 +232,10 @@ namespace IJK {
 
     LTYPE EdgeLength() const
     { return(edge_length); }        ///< Cube edge length.
+
+    /// Return pointer to vertex coordinates
+    const CTYPE * VertexCoord() const
+    { return(vertex_coord); }
 
     /// Return pointer to coordinates of k'th cube vertex
     const CTYPE * VertexCoord(const NTYPE k) const
@@ -528,6 +543,73 @@ namespace IJK {
     }
 
   }
+
+  // **************************************************
+  // TEMPLATE FUNCTION: VERTEX NEIGHBOR
+  // **************************************************
+
+  /// Compute the neighbor of cube vertex iv in given direction.
+  template <typename VTYPE1, typename DTYPE, typename VTYPE2>
+  void compute_cube_vertex_neighbor
+  (const VTYPE1 iv1, const DTYPE d, VTYPE2 & iv2)
+    {
+      VTYPE1 mask = (VTYPE1(1) << d);
+      iv2 = (iv1^mask);
+    }
+
+  template <typename NTYPE, typename FTYPE1, typename FTYPE2>
+  void compute_opposite_cube_facet
+  (const NTYPE num_facets, const FTYPE1 kf, FTYPE2 & kf2)
+  { 
+    kf2 = (kf+(num_facets/2))%num_facets;
+  }
+
+  // **************************************************
+  // TEMPLATE CUBE FACET FUNCTIONS
+  // **************************************************
+
+  /// Return orthogonal direction to facet.
+  template <typename DTYPE, typename FTYPE>
+  inline FTYPE cube_facet_orth_dir(const DTYPE dimension, const FTYPE kf)
+  {
+    return(kf%dimension);
+  }
+
+  /// Return side containing facet.
+  /// Return 0 if facet contains vertex 0.
+  /// Return 1 if facet does not contain vertex 0.
+  template <typename DTYPE, typename FTYPE>
+  inline FTYPE cube_facet_side(const DTYPE dimension, const FTYPE kf)
+  {
+    return(kf/dimension);
+  }
+  
+  /// Return true if facet jf contains vertex i.
+  template <typename DTYPE, typename FTYPE, typename VTYPE>
+  bool cube_facet_contains
+  (const DTYPE dimension, const FTYPE jf, const VTYPE iv)
+  {
+    FTYPE side = jf/dimension;
+    FTYPE orth_dir = jf%dimension;
+    FTYPE mask = (FTYPE(1) << orth_dir);
+
+    bool flag_contains = ((side << orth_dir) == (mask & iv));
+    return(flag_contains);
+  }
+
+  // **************************************************
+  // TEMPLATE BOUNDARY BIT FUNCTIONS
+  // **************************************************
+
+
+  /// Return index of boundary bit.
+  template <typename DTYPE, typename STYPE, typename ITYPE>
+  inline void compute_boundary_bit_index
+  (const DTYPE orth_dir, const STYPE side, ITYPE & bit_index)
+  {
+    bit_index = 2*orth_dir + DTYPE(side);
+  }
+
 
   // **************************************************
   // TEMPLATE FUNCTIONS: COMPUTE CORNER IN DIRECTION
