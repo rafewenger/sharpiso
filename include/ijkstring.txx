@@ -123,6 +123,20 @@ namespace IJK {
     split_string(STRING_TYPE(s), c, prefix, suffix);
   }
 
+  // **************************************************
+  // Return true if string represents object of given type.
+  // **************************************************
+
+  template <typename T>
+  bool is_type(const std::string s) 
+  {
+    std::istringstream s_stream(s);
+    T x;
+
+    s_stream >> x;
+    return (s_stream.eof() && !s_stream.fail());
+  }
+
 }
 
 #endif
