@@ -118,6 +118,27 @@ namespace ISODUAL3D {
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    std::vector<COORD_TYPE> & isov_coord);
 
+  /// Position dual isosurface vertices using isovert information.
+  /// Allows multiple vertices in a grid cube.
+  void position_dual_isovertices
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const std::vector<DUAL_ISOVERT> & iso_vlist,
+   COORD_TYPE * isov_coord);
+
+  /// Position dual isosurface vertices using isovert information.
+  /// Allows multiple vertices in a grid cube.
+  /// Version using std::vector for array coord[].
+  void position_dual_isovertices
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const std::vector<DUAL_ISOVERT> & iso_vlist,
+   std::vector<COORD_TYPE> & isov_coord);
+
   // **************************************************
   // Position using gradients and svd
   // **************************************************
@@ -335,6 +356,18 @@ namespace ISODUAL3D {
    const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
    std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
    std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   std::vector<VERTEX_INDEX> & isoquad_vert,
+   VERTEX_INDEX & num_split);
+
+  /// Split dual isosurface vertices.
+  void split_dual_isovert
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
+   const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+   std::vector<DUAL_ISOVERT> & iso_vlist,
    std::vector<VERTEX_INDEX> & isoquad_vert,
    VERTEX_INDEX & num_split);
 

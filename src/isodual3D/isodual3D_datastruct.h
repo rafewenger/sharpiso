@@ -32,6 +32,8 @@
 #include "ijkvector_grid.txx"
 #include "ijkmerge.txx"
 
+#include "ijkdualtable.h"
+
 #include "sharpiso_eigen.h"
 #include "sharpiso_grids.h"
 #include "sharpiso_feature.h"
@@ -59,6 +61,14 @@ namespace ISODUAL3D {
 
   /// Array of vertices.
   typedef IJK::ARRAY<VERTEX_INDEX> VERTEX_ARRAY;
+
+  // **************************************************
+  // DUAL ISOSURFACE VERTICES
+  // **************************************************
+
+  typedef IJK::DUAL_ISOVERT
+    <ISO_VERTEX_INDEX, FACET_VERTEX_INDEX, IJKDUALTABLE::TABLE_INDEX>
+    DUAL_ISOVERT;
 
   // **************************************************
   // DUAL CONTOURING ISOSURFACE CLASS

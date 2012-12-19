@@ -26,6 +26,7 @@
 #include <string>
 
 #include "ijk.txx"
+#include "ijkisopoly.txx"
 #include "ijkscalar_grid.txx"
 #include "ijkmerge.txx"
 #include "sharpiso_types.h"

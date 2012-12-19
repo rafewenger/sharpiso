@@ -225,7 +225,21 @@ namespace IJK {
   };
 
   // **************************************************
-  // SET C ARRAY
+  // CONVERT A C++ VECTOR TO A POINTER
+  // **************************************************
+
+  /// \brief Returns C++ pointer to C array storing in vector data.
+  /// If vector is empty, returns NULL pointser.
+  /// If vector is not empty, returns pointer to a C array.
+  template <typename T>
+  const T * vector2pointer(const std::vector<T> & v)
+  {
+    if (v.empty()) { return(NULL); }
+    else { return(&(v.front())); }
+  }
+
+  // **************************************************
+  // SET ARRAY
   // **************************************************
 
   /// Set all elements of array a to x.
@@ -234,6 +248,25 @@ namespace IJK {
   {
     for (NTYPE i = 0; i < alength; i++)
       { a[i] = x; }
+  }
+
+  /// Set a[i] to x if flag[i] is true.
+  template <typename NTYPE, typename ETYPE0, typename ETYPE1,
+            typename FTYPE>
+  void set_c_array(const NTYPE alength, const ETYPE0 x, 
+                   const FTYPE & flag, ETYPE1 a[])
+  {
+    for (NTYPE i = 0; i < alength; i++)
+      if (flag[i]) 
+        { a[i] = x; }
+  }
+
+  /// Set a[i] to x if flag[i] is true.
+  template <typename ETYPE0, typename ETYPE1, typename FTYPE>
+  void set_array(const ETYPE0 x, const FTYPE & flag, std::vector<ETYPE1> & a)
+  {
+    if (a.empty()) { return; };
+    set_c_array(a.size(), x, flag, &a.front());
   }
 
   // **************************************************
@@ -286,20 +319,6 @@ namespace IJK {
       }
       result *= base;
     }
-  }
-
-  // **************************************************
-  // CONVERT A C++ VECTOR TO A POINTER
-  // **************************************************
-
-  /// \brief Returns C++ pointer to C array storing in vector data.
-  /// If vector is empty, returns NULL pointser.
-  /// If vector is not empty, returns pointer to a C array.
-  template <typename T>
-  const T * vector2pointer(const std::vector<T> & v)
-  {
-    if (v.empty()) { return(NULL); }
-    else { return(&(v.front())); }
   }
 
   // **************************************************
