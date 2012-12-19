@@ -571,7 +571,6 @@ void select_3x3x3_regions
 				}
 				else
 				{
-
 					isovertData.gcube_list[sortd_ind2gcube_list[ind]].flag = UNAVAILABLE_GCUBE;
 				}
 			}
@@ -753,13 +752,13 @@ void ISODUAL3D::compute_dual_isovert(
 
 	compute_isovert_positions 
 	(scalar_grid, edgeI_coord, edgeI_normal_coord,
-			isovalue, isovert_param, isovertData);
+   isovalue, isovert_param, isovertData);
 
 	// keep track of the sorted indices
 	std::vector<NUM_TYPE> sortd_ind2gcube_list;
 	sort_gcube_list(isovertData.gcube_list, sortd_ind2gcube_list);
 	select_3x3x3_regions (scalar_grid, isovalue, isovert_param, 
-			sortd_ind2gcube_list, isovertData);
+                        sortd_ind2gcube_list, isovertData);
 }
 
 

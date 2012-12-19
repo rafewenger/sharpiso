@@ -33,6 +33,7 @@
 #include <vector>
 
 #include "ijkcube.txx"
+#include "ijkbits.txx"
 
 #include "ijkdualtable.h"
 
@@ -346,6 +347,7 @@ void ISODUAL_CUBE_TABLE::Create(const int dimension)
 void ISODUAL_CUBE_TABLE::CreateTableEntries
 (const bool flag_separate_neg, const bool flag_separate_opposite)
 {
+
   this->flag_separate_neg = flag_separate_neg;
   this->flag_always_separate_opposite = flag_separate_opposite;
 
@@ -354,7 +356,6 @@ void ISODUAL_CUBE_TABLE::CreateTableEntries
 
   bool flag_separate_pos = (!flag_separate_neg);
   for (TABLE_INDEX ientry = 0; ientry < NumTableEntries(); ientry++) {
-
 
     find_component.ClearAll();
     find_component.SetVertexFlags(ientry);
@@ -470,13 +471,97 @@ void FIND_COMPONENT::Search(const int i, const int icomp)
     int j = vlist.back();
     vlist.pop_back();
     for (int d = 0; d < dimension; d++) {
-      int j2 = VertexNeighbor(j, d);
+      int j2;
+      compute_cube_vertex_neighbor(j, d, j2);
       if (vertex_flag[j2] == flag && component[j2] == 0) {
         vlist.push_back(j2);
         component[j2] = icomp;
       }
     }
   }
+}
+
+
+void FIND_COMPONENT::SearchFacet(const int kf, const int i, const int icomp)
+{
+  std::vector<int> vlist;
+
+  vlist.reserve(num_cube_vertices);
+
+  if (icomp == 0) {
+    IJK::PROCEDURE_ERROR error("FIND_COMPONENT::Search");
+    error.AddMessage("Programming error. Component number cannot be zero.");
+    throw error;
+  }
+
+  if (!IJK::cube_facet_contains(dimension, kf, i)) {
+    IJK::PROCEDURE_ERROR error("FIND_COMPONENT::Search");
+    error.AddMessage("Programming error. Facet ", kf,
+                     " does not contain vertex ", i, ".");
+    throw error;
+  }
+
+  bool flag = vertex_flag[i];
+  vlist.push_back(i);
+  component[i] = icomp;
+  while(vlist.size() > 0) {
+    int j = vlist.back();
+    vlist.pop_back();
+    for (int d = 0; d < dimension; d++) {
+      int j2;
+      compute_cube_vertex_neighbor(j, d, j2);
+      if (vertex_flag[j2] == flag && component[j2] == 0 &&
+          IJK::cube_facet_contains(dimension, kf, i)) {
+        vlist.push_back(j2);
+        component[j2] = icomp;
+      }
+    }
+  }
+}
+
+// Compute number of components of vertices.
+int FIND_COMPONENT::ComputeNumComponents
+(const int ientry, const bool flag_positive)
+{
+  ClearAll();
+  SetVertexFlags(ientry);
+  if (!flag_positive) { NegateVertexFlags(); }
+
+  int num_components(0);
+  for (int i = 0; i < NumCubeVertices(); i++) {
+    if (Component(i) == 0) {
+
+      if (VertexFlag(i)) {
+        num_components++;
+        Search(i, num_components);
+      }
+    }
+  }
+
+  return(num_components);
+}
+
+// Compute number of components of vertices in facet.
+int FIND_COMPONENT::ComputeNumComponentsInFacet
+(const int ientry, const int kf, const bool flag_positive)
+{
+  ClearAll();
+  SetVertexFlags(ientry);
+  if (!flag_positive) { NegateVertexFlags(); }
+
+  int num_components(0);
+  for (int i = 0; i < NumCubeVertices(); i++) {
+    if (Component(i) == 0 &&
+        IJK::cube_facet_contains(dimension, kf, i)) {
+
+      if (VertexFlag(i)) {
+        num_components++;
+        SearchFacet(kf, i, num_components);
+      }
+    }
+  }
+
+  return(num_components);
 }
 
 // **************************************************
@@ -506,7 +591,6 @@ unsigned long IJKDUALTABLE::calculate_num_entries
 
   return(num_table_entries);
 }
-
 // convert integer bits to boolean flags
 void IJKDUALTABLE::convert2bool
 (const TABLE_INDEX ival, bool * flag, const unsigned int num_flags)
@@ -528,54 +612,14 @@ void IJKDUALTABLE::convert2bool
   };
 }
 
-// count number of ones and zeros
-void IJKDUALTABLE::count_bits
-(const TABLE_INDEX ival, const int num_bits, int & num_zeros, int & num_ones)
-{
-  const int base = 2;
-
-  num_zeros = 0;
-  num_ones = 0;
-
-  unsigned long jval = ival;
-  for (int i = 0; i < num_bits; i++) {
-    int bit = jval % base;
-    if (bit == 0) { num_zeros++; }
-    else { num_ones++; }
-    jval = jval/base;
-  };
-
-}
-
-/// Reverse order of bits in ival.
-TABLE_INDEX IJKDUALTABLE::reverse_bits
-(const TABLE_INDEX ival, const int num_bits)
-{
-  const int base = 2;
-
-  TABLE_INDEX reverse_val = 0;
-  unsigned long jval = ival;
-  for (int i = 0; i < num_bits; i++) {
-    int bit = jval % base;
-    reverse_val = base*reverse_val;
-    reverse_val = (reverse_val | bit);
-    jval = jval/base;
-  };
-
-  return(reverse_val);
-}
-
 /// Return true if ival represents two opposite ones.
 bool IJKDUALTABLE::is_two_opposite_ones
 (const TABLE_INDEX ival, const int num_bits)
 {
-  int max_val = (1L << num_bits) - 1;
-
   int num_zeros, num_ones;
-  count_bits(ival, num_bits, num_zeros, num_ones);
-  TABLE_INDEX reverse_val = reverse_bits(ival, num_bits);
-
-  if ((ival == reverse_val) && (num_ones == 2))
+  IJK::count_bits(ival, num_bits, num_zeros, num_ones);
+ 
+  if (equals_reverse_bits(ival, num_bits) && (num_ones == 2))
     { return(true); }
   else
     { return(false); }
@@ -585,13 +629,10 @@ bool IJKDUALTABLE::is_two_opposite_ones
 bool IJKDUALTABLE::is_two_opposite_zeros
 (const TABLE_INDEX ival, const int num_bits)
 {
-  int max_val = (1L << num_bits) - 1;
-
   int num_zeros, num_ones;
-  count_bits(ival, num_bits, num_zeros, num_ones);
-  TABLE_INDEX reverse_val = reverse_bits(ival, num_bits);
+  IJK::count_bits(ival, num_bits, num_zeros, num_ones);
 
-  if ((ival == reverse_val) && (num_zeros == 2))
+   if (equals_reverse_bits(ival, num_bits) && (num_zeros == 2))
     { return(true); }
   else
     { return(false); }

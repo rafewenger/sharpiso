@@ -67,6 +67,7 @@ void ISODUAL_PARAM::Init()
   allow_multiple_iso_vertices = true;
   flag_resolve_ambiguous_facets = true;
   flag_separate_neg = true;
+  flag_split_non_manifold = false;
 }
 
 /// Set type of interpolation

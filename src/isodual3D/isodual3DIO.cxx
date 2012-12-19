@@ -69,6 +69,7 @@ typedef enum {
 	USE_LINDSTROM2_PARAM,
 	USE_LINDSTROM_FAST,
 	SINGLE_ISOV_PARAM, MULTI_ISOV_PARAM,
+  SPLIT_NON_MANIFOLD_PARAM,
 	SEP_NEG_PARAM, SEP_POS_PARAM, RESOLVE_AMBIG_PARAM,
   CHECK_DISK_PARAM, NO_CHECK_DISK_PARAM,
 	ROUND_PARAM, NO_ROUND_PARAM,
@@ -94,8 +95,8 @@ typedef enum {
     "-centroid_eigen1", "-no_centroid_eigen1",
     "-Linf", "-no_Linf",
     "-lindstrom",	"-lindstrom2","-lindstrom_fast",
-    "-single_isov", "-multi_isov",
-    "-sep_neg", "-sep_pos", "-resolve_ambig",
+    "-single_isov", "-multi_isov", "-split_non_manifold",
+    "-sep_neg", "-sep_pos", "-resolve_ambig", 
     "-check_disk", "-no_check_disk",
     "-round", "-no_round",
     "-minc", "-maxc",
@@ -284,6 +285,11 @@ typedef enum {
     case RESOLVE_AMBIG_PARAM:
       input_info.flag_resolve_ambiguous_facets = true;
       input_info.allow_multiple_iso_vertices = true;
+      break;
+
+    case SPLIT_NON_MANIFOLD_PARAM:
+      input_info.allow_multiple_iso_vertices = true;
+      input_info.flag_split_non_manifold = true;
       break;
 
     case ALLOW_CONFLICT_PARAM:
@@ -1480,8 +1486,8 @@ namespace {
     cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
     cerr << "  [-normal {normal_off_filename}]" << endl;
     cerr << "  [-merge_sharp | -no_merge_sharp] [-merge_linf_th <D>]" << endl;
-    cerr << "  [-single_isov | -multi_isov | -sep_pos | -sep_neg | -resolve_ambig]"
-         << endl;
+    cerr << "  [-single_isov | -multi_isov | -split_non_manifold]" << endl;
+    cerr << "  [-sep_pos | -sep_neg | -resolve_ambig]" << endl;
     cerr << "  [-max_eigen {max}]" << endl;
     cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}] [-snap_dist {D}]" << endl;
     cerr << "  [-sharp_edgeI | -interpolate_edgeI]" << endl;
@@ -1586,13 +1592,17 @@ void ISODUAL3D::help(const char * command_path)
   cout << "  -merge_sharp: Merge vertices near sharp edges/corners." << endl;
 	cout << "  -single_isov: Each intersected cube generates a single isosurface vertex." << endl;
 	cout << "  -multi_isov:  An intersected cube may generate multiple isosurface vertices."  << endl;
+	cout << "  -split_non_manifold:  Split vertices to avoid non-manifold edges."
+       << endl;
 	cout << "  -sep_pos:     Use dual isosurface table separating positive "
-			<< "                grid vertices." << endl;
+       << endl
+       << "                grid vertices." << endl;
 	cout << "  -sep_neg:     Use dual isosurface table separating negative "
-			<< "                grid vertices." << endl;
+       << endl
+       << "                grid vertices." << endl;
 	cout << "  -resolve_ambig:  Selectively resolve ambiguities." << endl
-			<< "       Note: Not all ambiguities may be resolved." << endl
-			<< "             Unresolved ambiguities may create non-manifold regions."
+       << "       Note: Not all ambiguities may be resolved." << endl
+       << "             Unresolved ambiguities may create non-manifold regions."
 			<< endl;
   cout << "  -merge_linf_th {D} : Do not select sharp vertices further"
        << endl
@@ -1630,10 +1640,15 @@ void ISODUAL3D::help(const char * command_path)
 	cout << "  -recompute_eigen2:  Recompute with only 2 eigenvalues to settle conflicts." << endl;
 	cout << "  -no_recompute_eigen2:  Don't recompute with only 2 eigenvalues."
 			<< endl;
-	cout << " -recompute_isovert: recompute the isovert locations for cubes which are unavailable "<<endl;
-	cout << " -no_recompute_isovert: donot recompute the isovert locations for cubes which are unavailable "<<endl;
+	cout << "  -recompute_isovert:    Recompute isosurface vertex locations"
+       << endl
+       << "             for unavailable cubes." << endl;
+	cout << "  -no_recompute_isovert: Don't recompute isosurface vertex locations"
+       << endl
+       << "             for unavailable cubes "<<endl;
   cout << "  -dist2center:  Use distance to center in lindstrom." << endl;
   cout << "  -dist2centroid:  Use distance to centroid of isourface-edge"
+       << endl
        << "                   intersections in lindstrom." << endl;
 	cout << "  -Linf:     Use Linf metric to resolve conflicts." << endl;
 	cout << "  -no_Linf:  Don't use Linf metric to resolve conflicts." << endl;

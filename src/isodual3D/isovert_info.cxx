@@ -257,6 +257,15 @@ void print_isovert_info
       compute_dual_isovert
         (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
          isovalue, isodual_data, isovert);
+
+      select_sharp_isovert
+        (isodual_data.ScalarGrid(), isovalue, isodual_data, isovert);
+
+      if (isodual_data.flag_recompute_isovert) {
+        recompute_isovert_positions
+          (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
+           isovalue, isodual_data, isovert);
+      }
     }
     else if (isodual_data.AreEdgeISet() &&
              isodual_data.VertexPositionMethod() == EDGEI_INPUT_DATA) {

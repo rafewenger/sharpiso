@@ -367,6 +367,7 @@ namespace ISODUAL3D {
    const ISOVERT & isovert,
    const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
    const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+   const ISODUAL_PARAM & isodual_param,
    std::vector<DUAL_ISOVERT> & iso_vlist,
    std::vector<VERTEX_INDEX> & isoquad_vert,
    VERTEX_INDEX & num_split);

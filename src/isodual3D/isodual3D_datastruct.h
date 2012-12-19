@@ -145,6 +145,9 @@ namespace ISODUAL3D {
     /// If true, resolve ambiguous facets based on location of sharp features.
     bool flag_resolve_ambiguous_facets;
 
+    /// If true, split isosurface vertices to avoid non-manifold edges.
+    bool flag_split_non_manifold;
+
   public:
     ISODUAL_PARAM() { Init(); };
     ~ISODUAL_PARAM() { Init(); };

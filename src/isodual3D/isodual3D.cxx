@@ -561,7 +561,7 @@ void ISODUAL3D::dual_contouring_merge_sharp
 	if (isodual_param.flag_recompute_isovert)
 	{
 		recompute_isovert_positions
-		(scalar_grid, gradient_grid, isovalue, isodual_param, isovert);
+      (scalar_grid, gradient_grid, isovalue, isodual_param, isovert);
 	}
 
   count_vertices(isovert, isovert_info);
@@ -594,7 +594,7 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
     split_dual_isovert
       (scalar_grid, isodual_table, isovalue,
-       isovert, isoquad_cube, facet_vertex,
+       isovert, isoquad_cube, facet_vertex, isodual_param,
        iso_vlist, quad_vert, num_split);
     isodual_info.sharpiso.num_cube_multi_isov = num_split;
     isodual_info.sharpiso.num_cube_single_isov = 

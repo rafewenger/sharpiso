@@ -36,7 +36,20 @@ namespace IJKDUALTABLE {
 
   typedef int TABLE_INDEX;                    ///< Index of table entry.
   typedef unsigned char ISODUAL_VERTEX_INDEX; ///< Index of isosurface vertex.
+
+  // Forward definition.
+  class FIND_COMPONENT;
   
+  // **************************************************
+  // COMPUTE FUNCTIONS
+  // **************************************************
+
+  /// Compute complement index.
+  template <typename NTYPE>
+  inline TABLE_INDEX compute_complement
+  (const TABLE_INDEX ival, const NTYPE num_table_entries)
+  { return(num_table_entries-1-ival); }
+    
   // **************************************************
   // ISODUAL TABLE
   // **************************************************
@@ -110,6 +123,10 @@ namespace IJKDUALTABLE {
 
     /// Return number of lookup table entries.
     int NumTableEntries() const { return(num_table_entries); };
+
+    /// Return complement of table index it
+    int Complement(const int it) const
+    { return(compute_complement(it, num_table_entries)); }
 
     /// Return number of vertices in isosurface patch for table entry \a it.
     int NumIsoVertices(const TABLE_INDEX it) const
@@ -200,6 +217,7 @@ namespace IJKDUALTABLE {
     void SetNumTableEntries(const int num_table_entries);
   };
 
+
   // **************************************************
   // CLASS FIND_COMPONENT
   // **************************************************
@@ -231,15 +249,27 @@ namespace IJKDUALTABLE {
     { return(component[i]); }
     int NumCubeVertices() const
     { return(num_cube_vertices); }
-    int VertexNeighbor(const int i, const int d) const
-    {
-      int mask = (1L << d);
-      return((i^mask));
-    }
 
-    // Search starting at vertex i
-    // @pre icomp is not zero.
+    /// Search starting at vertex i.
+    /// @pre icomp is not zero.
     void Search(const int i, const int icomp);
+
+    /// Search facet starting at vertex i.
+    /// @pre Facet kf contains vertex i.
+    /// @pre icomp is not zero.
+    void SearchFacet(const int kf, const int i, const int icomp);
+
+    /// Compute number of components.
+    /// @param flag_positive If true, compute components of positive vertices.
+    ///                      If false, compute components of negative vertices.
+    int ComputeNumComponents
+    (const int ientry, const bool flag_positive);
+
+    /// Compute number of components in facet.
+    /// @param flag_positive If true, compute components of positive vertices.
+    ///                      If false, compute components of negative vertices.
+    int ComputeNumComponentsInFacet
+    (const int ientry, const int kf, const bool flag_positive);
   };
   
   // **************************************************
@@ -253,14 +283,6 @@ namespace IJKDUALTABLE {
   void convert2bool
     (const TABLE_INDEX ival, bool * flag, const unsigned int num_flags);
 
-  /// Count number of ones and zeros.
-  void count_bits
-    (const TABLE_INDEX ival, const int num_bits, 
-     int & num_zeros, int & num_ones);
-
-  /// Reverse order of bits in ival.
-  TABLE_INDEX reverse_bits(const TABLE_INDEX ival, const int num_bits);
-
   /// Return true if ival represents two diagonally opposite ones.
   bool is_two_opposite_ones
     (const TABLE_INDEX ival, const int num_bits);
@@ -268,6 +290,7 @@ namespace IJKDUALTABLE {
   /// Return true if ival represents two diagonally opposite zeros.
   bool is_two_opposite_zeros
     (const TABLE_INDEX ival, const int num_bits);
+
 }
 
 #endif

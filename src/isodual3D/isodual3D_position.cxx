@@ -26,6 +26,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ijkinterpolate.txx"
 #include "ijkisopoly.txx"
 
+#include "ijkdualtable.h"
+#include "ijkdualtable_ambig.h"
+
 #include "isodual3D_position.h"
 
 #include "sharpiso_types.h"
@@ -1047,10 +1050,12 @@ void ISODUAL3D::split_dual_isovert
  const ISOVERT & isovert,
  const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
  const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+ const ISODUAL_PARAM & isodual_param,
  std::vector<DUAL_ISOVERT> & iso_vlist,
  std::vector<VERTEX_INDEX> & isoquad_vert,
  VERTEX_INDEX & num_split)
 {
+  const int dimension = isodual_table.Dimension();
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
   std::vector<ISO_VERTEX_INDEX> cube_list(num_gcube);
   std::vector<bool> no_split(num_gcube,true);
@@ -1063,10 +1068,21 @@ void ISODUAL3D::split_dual_isovert
       { no_split[i] = false; }
   }
 
-  IJK::split_dual_isovert
-    (scalar_grid, isodual_table, isovalue, cube_list, no_split, 
-     isoquad_cube, facet_vertex,
-     iso_vlist, isoquad_vert, num_split);
+  if (isodual_param.flag_split_non_manifold) {
+    IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO ambig_info(dimension);
+    int num_non_manifold_split;
+
+    IJK::split_dual_isovert_manifold
+      (scalar_grid, isodual_table, ambig_info, isovalue, 
+       cube_list, no_split, isoquad_cube, facet_vertex,
+       iso_vlist, isoquad_vert, num_split, num_non_manifold_split);
+  }
+  else {
+    IJK::split_dual_isovert
+      (scalar_grid, isodual_table, isovalue, cube_list, no_split, 
+       isoquad_cube, facet_vertex,
+       iso_vlist, isoquad_vert, num_split);
+  }
 }
 
 
