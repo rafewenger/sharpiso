@@ -416,6 +416,7 @@ void ISODUAL3D::SHARPISO_INFO::Clear()
   num_cube_single_isov = 0;
   num_cube_multi_isov = 0;
   num_non_disk_isopatches = 0;
+  num_non_manifold_split = 0;
 }
 
 // Increment num_sharp_corners or num_sharp_edges or num_smooth_vertices

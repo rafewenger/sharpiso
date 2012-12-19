@@ -273,6 +273,7 @@ void ISODUAL3D::dual_contouring_centroid_multiv
   isodual_info.sharpiso.num_cube_multi_isov = num_split;
   isodual_info.sharpiso.num_cube_single_isov = cube_list.size() - num_split;
 
+
   clock_t t2 = clock();
 
   position_dual_isovertices_centroid
@@ -590,15 +591,11 @@ void ISODUAL3D::dual_contouring_merge_sharp
        isoquad_cube, isodual_info.sharpiso);
 
     std::vector<DUAL_ISOVERT> iso_vlist;
-    VERTEX_INDEX num_split;
 
     split_dual_isovert
       (scalar_grid, isodual_table, isovalue,
        isovert, isoquad_cube, facet_vertex, isodual_param,
-       iso_vlist, quad_vert, num_split);
-    isodual_info.sharpiso.num_cube_multi_isov = num_split;
-    isodual_info.sharpiso.num_cube_single_isov = 
-      isovert.gcube_list.size() - num_split;
+       iso_vlist, quad_vert, isodual_info.sharpiso);
 
     IJK::get_non_degenerate_quad_btlr
       (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);

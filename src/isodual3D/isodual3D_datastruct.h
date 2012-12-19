@@ -90,11 +90,6 @@ namespace ISODUAL3D {
     /// List of vertex coordinates.
     COORD_ARRAY vertex_coord;
 
-    /// cube_containing_isopoly[i] = cube containing i'th isopoly.
-    /// Not always set.
-    /// **** IS THIS USED ???? *****
-    VERTEX_INDEX_ARRAY cube_containing_isopoly;
-
   public:
     DUAL_ISOSURFACE() {};
 
@@ -379,6 +374,9 @@ namespace ISODUAL3D {
 
     /// Number of merges blocked by non-disk isosurface patches.
     int num_non_disk_isopatches;
+
+    /// Number of splits to avoid non-manifold edges.
+    int num_non_manifold_split;
 
     SHARPISO_INFO();  ///< Constructor.
     void Clear();     ///< Clear all data.

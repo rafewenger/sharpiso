@@ -370,7 +370,7 @@ namespace ISODUAL3D {
    const ISODUAL_PARAM & isodual_param,
    std::vector<DUAL_ISOVERT> & iso_vlist,
    std::vector<VERTEX_INDEX> & isoquad_vert,
-   VERTEX_INDEX & num_split);
+   SHARPISO_INFO & sharp_info);
 
   // **************************************************
   // Reposition routine

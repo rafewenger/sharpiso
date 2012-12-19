@@ -1311,32 +1311,32 @@ void ISODUAL3D::report_iso_info3D
 
       cout << endl;
       if (!output_info.flag_merge_sharp) {
-        cout << "  Number of conflicts: "
+        cout << "  # of conflicts: "
              << isodual_info.sharpiso.num_conflicts << endl;
       }
-      cout << "  Number of sharp corners: "
+      cout << "  # of sharp corners: "
            << isodual_info.sharpiso.num_sharp_corners << endl;
-      cout << "  Number of isosurface vertices on sharp edges: "
+      cout << "  # of isosurface vertices on sharp edges: "
            << isodual_info.sharpiso.num_sharp_edges << endl;
-      cout << "  Number of smooth isosurface vertices: "
+      cout << "  # of smooth isosurface vertices: "
            << isodual_info.sharpiso.num_smooth_vertices << endl;
       if (!output_info.flag_merge_sharp && output_info.use_Linf_dist) {
-        cout << "  Number of vertices at min Linf distance to cube center: "
+        cout << "  # of vertices at min Linf distance to cube center: "
              << isodual_info.sharpiso.num_Linf_iso_vertex_locations << endl;
       }
 
       if (output_info.flag_merge_conflict) {
-        cout << "  Number of edge collapses: " 
+        cout << "  # of edge collapses: " 
              << isodual_info.sharpiso.num_edge_collapses << endl;
       }
 
       if (output_info.flag_reposition) {
-        cout << "  Number of repositioned isosurface vertices: "
+        cout << "  # of repositioned isosurface vertices: "
              << isodual_info.sharpiso.num_repositioned_vertices << endl;
       }
 
       if (output_info.flag_merge_sharp) {
-        cout << "  Number of merged isosurface vertices: "
+        cout << "  # of merged isosurface vertices: "
              << isodual_info.sharpiso.num_merged_iso_vertices << endl;
       }
 
@@ -1344,26 +1344,34 @@ void ISODUAL3D::report_iso_info3D
 
         if (!output_info.flag_merge_sharp) {
           if (output_info.flag_resolve_ambiguous_facets) {
-            cout << "  Number of non-ambiguous cubes: "
+            cout << "  # of non-ambiguous cubes: "
                  << isodual_info.sharpiso.num_cube_not_ambiguous << endl;
-            cout << "  Number of separate positive cubes: "
+            cout << "  # of separate positive cubes: "
                  << isodual_info.sharpiso.num_cube_separate_pos << endl;
-            cout << "  Number of separate negative cubes: "
+            cout << "  # of separate negative cubes: "
                  << isodual_info.sharpiso.num_cube_separate_neg << endl;
-            cout << "  Number of unresolved ambiguous cubes: "
+            cout << "  # of unresolved ambiguous cubes: "
                  << isodual_info.sharpiso.num_cube_unresolved_ambiguity << endl;
           }
         }
 
-        cout << "  Number of cubes with single isov: "
+        cout << "  # of cubes with single isov: "
              << isodual_info.sharpiso.num_cube_single_isov << endl;
-        cout << "  Number of cubes with multi isov: "
+        cout << "  # of cubes with multi isov: "
              << isodual_info.sharpiso.num_cube_multi_isov << endl;
 
-        if (output_info.flag_merge_sharp &&
-            output_info.flag_check_disk) {
-          cout << "  Number of merges blocked by non-disk isosurface patches: "
-               << isodual_info.sharpiso.num_non_disk_isopatches << endl;
+        if (output_info.flag_merge_sharp) { 
+
+          if (output_info.flag_split_non_manifold) {
+            cout << "  # of cubes changed to 2 isov to avoid non-manifold edges: "
+                 << isodual_info.sharpiso.num_non_manifold_split
+                 << endl;
+          }
+
+          if (output_info.flag_check_disk) {
+            cout << "  # of merges blocked by non-disk isosurface patches: "
+                 << isodual_info.sharpiso.num_non_disk_isopatches << endl;
+          }
         }
       }
 
@@ -1373,9 +1381,9 @@ void ISODUAL3D::report_iso_info3D
     if (vpos_method == CENTROID_EDGE_ISO) {
       if (output_info.allow_multiple_iso_vertices) {
         cout << endl;
-        cout << "  Number of cubes with single isov: "
+        cout << "  # of cubes with single isov: "
              << isodual_info.sharpiso.num_cube_single_isov << endl;
-        cout << "  Number of cubes with multi isov: "
+        cout << "  # of cubes with multi isov: "
              << isodual_info.sharpiso.num_cube_multi_isov << endl;
         cout << endl;
       }

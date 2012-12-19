@@ -1053,7 +1053,7 @@ void ISODUAL3D::split_dual_isovert
  const ISODUAL_PARAM & isodual_param,
  std::vector<DUAL_ISOVERT> & iso_vlist,
  std::vector<VERTEX_INDEX> & isoquad_vert,
- VERTEX_INDEX & num_split)
+ SHARPISO_INFO & sharp_info)
 {
   const int dimension = isodual_table.Dimension();
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
@@ -1068,6 +1068,7 @@ void ISODUAL3D::split_dual_isovert
       { no_split[i] = false; }
   }
 
+  int num_split;
   if (isodual_param.flag_split_non_manifold) {
     IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO ambig_info(dimension);
     int num_non_manifold_split;
@@ -1076,6 +1077,7 @@ void ISODUAL3D::split_dual_isovert
       (scalar_grid, isodual_table, ambig_info, isovalue, 
        cube_list, no_split, isoquad_cube, facet_vertex,
        iso_vlist, isoquad_vert, num_split, num_non_manifold_split);
+    sharp_info.num_non_manifold_split = num_non_manifold_split;
   }
   else {
     IJK::split_dual_isovert
@@ -1083,6 +1085,8 @@ void ISODUAL3D::split_dual_isovert
        isoquad_cube, facet_vertex,
        iso_vlist, isoquad_vert, num_split);
   }
+  sharp_info.num_cube_multi_isov = num_split;
+  sharp_info.num_cube_single_isov = num_gcube - num_split;
 }
 
 
