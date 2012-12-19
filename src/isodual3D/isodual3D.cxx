@@ -589,8 +589,6 @@ void ISODUAL3D::dual_contouring_merge_sharp
       (scalar_grid, isovalue, isovert, isodual_param,
        isoquad_cube, isodual_info.sharpiso);
 
-    // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
-
     std::vector<DUAL_ISOVERT> iso_vlist;
     VERTEX_INDEX num_split;
 
@@ -604,6 +602,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
     IJK::get_non_degenerate_quad_btlr
       (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
+
+    // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
 
     position_dual_isovertices
       (scalar_grid, isodual_table, isovalue, isovert,
@@ -705,8 +705,6 @@ void ISODUAL3D::dual_contouring_merge_sharp
       (scalar_grid, isovalue, isovert, isodual_param,
        isoquad_cube, isodual_info.sharpiso);
 
-    // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
-
     VERTEX_INDEX num_split;
     split_dual_isovert
       (scalar_grid, isodual_table, isovalue,
@@ -719,6 +717,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
     IJK::get_non_degenerate_quad_btlr
       (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
+
+    // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
 
     position_dual_isovertices
       (scalar_grid, isodual_table, isovalue, isovert,

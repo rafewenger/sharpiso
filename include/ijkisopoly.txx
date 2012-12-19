@@ -30,7 +30,6 @@
 #include "ijkbits.txx"
 #include "ijkcube.txx"
 
-
 namespace IJK {
 
   // **************************************************
@@ -711,6 +710,17 @@ namespace IJK {
     }
   }
 
+  template <typename ISODUAL_TABLE, typename TABLE_INDEX, typename NTYPE0>
+  void complement_table_index
+  (const ISODUAL_TABLE & isodual_table,
+   TABLE_INDEX & table_index,
+   NTYPE0 & num_isov)
+  {
+    table_index = isodual_table.Complement(table_index);
+    num_isov = isodual_table.NumIsoVertices(table_index);
+  }
+
+
   template <typename GRID_TYPE, typename ISODUAL_TABLE, typename AMBIG_INFO,
             typename CINDEX_TYPE, typename TABLE_INDEX,
             typename FACETV_TYPE, typename NTYPE>
@@ -721,7 +731,7 @@ namespace IJK {
    const std::vector<CINDEX_TYPE> & cube_list, 
    std::vector<TABLE_INDEX> & cube_table_index,
    std::vector<FACETV_TYPE> & num_isov,
-   NTYPE & num_modified)
+   NTYPE & num_split)
   {
     typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
     typedef typename GRID_TYPE::NUMBER_TYPE NUM_TYPE;
@@ -732,7 +742,7 @@ namespace IJK {
     const NUM_TYPE num_vertices = grid.NumVertices();
     IJK::ARRAY<SIZE_TYPE> index_to_cube_list(num_vertices);
 
-    num_modified = 0;
+    num_split = 0;
 
     // Set up index_to_cube_list.
     for (SIZE_TYPE i = 0; i < cube_list.size(); i++) {
@@ -741,44 +751,38 @@ namespace IJK {
     }
 
     for (SIZE_TYPE i0 = 0; i0 < cube_list.size(); i0++) {
+
       if (num_isov[i0] == 1) {
         TABLE_INDEX it0 = cube_table_index[i0];
         if (ambig_info.NumAmbiguousFacets(it0) == 1) {
           CINDEX_TYPE cube_index0 = cube_list[i0];
           int facet_set = ambig_info.AmbiguousFacetBits(it0);
           NUM_TYPE kf = get_first_one_bit(facet_set, num_cube_facets);
-          int boundary_bits;
-          grid.ComputeBoundaryCubeBits(cube_index0, boundary_bits);
 
-          // Convert kf to index into boundary bits.
           DTYPE orth_dir = IJK::cube_facet_orth_dir(dimension, kf);
           NUM_TYPE side = IJK::cube_facet_side(dimension, kf);
-          NUM_TYPE bit_index;
-          IJK::compute_boundary_bit_index(orth_dir, side, bit_index);
-          int mask = (int(1) << bit_index);
-          if ((boundary_bits & mask) == 0) {
+
+          if (!grid.IsCubeFacetOnGridBoundary(cube_index0, orth_dir, side)) {
+
             CINDEX_TYPE cube_index1 =
               grid.AdjacentVertex(cube_index0, orth_dir, side);
             SIZE_TYPE i1 = index_to_cube_list[cube_index1];
             if (num_isov[i1] == 1) {
               TABLE_INDEX it1 = cube_table_index[i1];
               if (ambig_info.NumAmbiguousFacets(it1) == 1) {
-                it0 = isodual_table.Complement(it0);
-                it1 = isodual_table.Complement(it1);
-                cube_table_index[i0] = it0;
-                cube_table_index[i1] = it1;
-                num_isov[i0] = isodual_table.NumIsoVertices(it0);
-                num_isov[i1] = isodual_table.NumIsoVertices(it1);
-                num_modified += 2;
+                complement_table_index
+                  (isodual_table, cube_table_index[i0], num_isov[i0]);
+                complement_table_index
+                  (isodual_table, cube_table_index[i1], num_isov[i1]);
+                num_split += 2;
               }
             }
           }
           else {
             // Split isosurface vertices in cube_index0.
-            it0 = isodual_table.Complement(it0);
-            cube_table_index[i0] = it0;
-            num_isov[i0] = isodual_table.NumIsoVertices(it0);
-            num_modified++;
+            complement_table_index
+              (isodual_table, cube_table_index[i0], num_isov[i0]);
+            num_split++;
           }
         }
       }
@@ -950,6 +954,66 @@ namespace IJK {
   }
 
   /// Split dual isosurface vertices.
+  /// Split non-manifold isosurface vertex pairs.
+  /// Don't split vertices in cubes with no_split[icube] = true.
+  /// @param cube_list[] List of cubes containing isosurface vertices.
+  /// @param no_split[] Flags indicating cubes which should not be split.
+  /// @param isopoly_cube[] isopoly_cube[j*num_polyv+k] is the cube containing
+  ///    the k'th vertex of isosurface polytope j
+  /// @param facet_vertex[] facet_vertex[j*num_polyv+k] is the location
+  ///    of the k'th vertex on isosurface polytope j.
+  /// @param iso_vlist[] List of isosurface vertices.
+  ///    isosurface patch in iso_vlist_cube[i] containing vertex i.
+  template <typename GRID_TYPE, typename ISODUAL_TABLE,
+            typename SCALAR_TYPE, 
+            typename CINDEX_TYPE0, typename CINDEX_TYPE1, typename FACETV_TYPE,
+            typename ISOV_TYPE, typename ISOV_INDEX_TYPE, typename NTYPE>
+  void split_dual_isovert_manifold
+  (const GRID_TYPE & scalar_grid, const ISODUAL_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const std::vector<CINDEX_TYPE0> & cube_list, 
+   const std::vector<bool> & no_split,
+   const std::vector<CINDEX_TYPE1> & isopoly_cube, 
+   const std::vector<FACETV_TYPE> & facet_vertex,
+   std::vector<ISOV_TYPE> & iso_vlist, 
+   std::vector<ISOV_INDEX_TYPE> & isopoly,
+   NTYPE & num_split,
+   NTYPE & num_non_manifold_split)
+  {
+    typedef typename ISODUAL_TABLE::TABLE_INDEX TABLE_INDEX;
+
+    std::vector<TABLE_INDEX> cube_table_index;
+    std::vector<FACETV_TYPE> num_isov;
+    std::vector<ISOV_INDEX_TYPE> first_cube_isov;
+
+    num_isov.resize(cube_list.size());
+    first_cube_isov.resize(cube_list.size());
+    cube_table_index.resize(cube_list.size());
+
+    compute_cube_isotable_index
+      (scalar_grid, isodual_table, isovalue, cube_list,
+       cube_table_index, num_isov);
+
+    IJK::set_array(1, no_split, num_isov);
+
+    /* DEBUG
+    split_non_manifold_isov_pairs
+      (scalar_grid, isodual_table, ambig_info, cube_list,
+       cube_table_index, num_isov, no_split, num_non_manifold_split);
+    */
+
+    construct_dual_isovert_list
+      (cube_list, cube_table_index, num_isov, iso_vlist, first_cube_isov);
+
+    set_dual_isopoly_vertices
+      (isodual_table, isopoly_cube, facet_vertex, cube_table_index,
+       first_cube_isov, no_split, isopoly);
+
+    num_split = IJK::count_ge<2>(num_isov);
+  }
+
+  /// *** DEPRECATED ***
+  /// Split dual isosurface vertices.
   /// Don't split vertices in cubes with no_split[icube] = true.
   /// @param cube_list[] List of cubes containing isosurface vertices.
   /// @param no_split[] Flags indicating cubes which should not be split.
@@ -1055,7 +1119,7 @@ namespace IJK {
     }
   }
 
-  /// *** OBSOLETE CODE ****
+  /// *** DEPRECATED ***
   /// Split dual isosurface vertices.
   /// @param cube_list[] List of cubes containing isosurface vertices.
   /// @param isopoly_cube[] isopoly_cube[j*num_polyv+k] is the cube containing

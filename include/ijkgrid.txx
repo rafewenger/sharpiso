@@ -143,6 +143,12 @@ namespace IJK {
     template <typename BOX_TYPE>
     bool ContainsRegion(const BOX_TYPE & region) const;
 
+    /// Return true if cube facet is on grid boundary.
+    template <typename CTYPE, typename DTYPE2>
+    bool IsCubeFacetOnGridBoundary
+    (const CTYPE cube_index, const DTYPE2 facet_orth_dir, 
+     const bool facet_side) const;
+
     // check function
     template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
     bool CheckDimension
@@ -2940,6 +2946,31 @@ namespace IJK {
   }
 
   // ********************************************************
+  // TEMPLATE FUNCTIONS: GRID BOUNDARIES
+  // ********************************************************
+
+  template <typename DTYPE, typename ATYPE, 
+            typename DTYPE2, typename CTYPE>
+  bool is_cube_facet_on_grid_boundary
+  (const DTYPE dimension, const ATYPE * axis_size,
+   const CTYPE cube_index, const DTYPE2 facet_orth_dir,
+   const bool facet_side)
+  {
+    long boundary_bits;
+    compute_boundary_cube_bits
+      (cube_index, dimension, axis_size, boundary_bits);
+
+    // Convert kf to index into boundary bits.
+    long bit_index;
+    IJK::compute_boundary_bit_index(facet_orth_dir, facet_side, bit_index);
+    long mask = (long(1) << bit_index);
+    if ((boundary_bits & mask) == 0) 
+      { return(false); }
+    else 
+      { return(true); }
+  }
+
+  // ********************************************************
   // TEMPLATE FUNCTIONS: COMPUTING NEIGHBORS
   // ********************************************************
 
@@ -3630,6 +3661,18 @@ namespace IJK {
     }
 
     return(true);
+  }
+
+  /// Return true if cube facet is on grid boundary.
+  template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
+  template <typename CTYPE, typename DTYPE2>
+  bool GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  IsCubeFacetOnGridBoundary
+  (const CTYPE cube_index, const DTYPE2 facet_orth_dir, 
+   const bool facet_side) const
+  {
+    return(is_cube_facet_on_grid_boundary
+           (Dimension(), AxisSize(), cube_index, facet_orth_dir, facet_side));
   }
 
   template <class DTYPE, class ATYPE, class VTYPE, class NTYPE>
