@@ -49,12 +49,13 @@ namespace {
 // Merge some isosurface vertices
 // **************************************************
 
+// *** OBSOLETE ***
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 void ISODUAL3D::merge_sharp_iso_vertices
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
  ISOVERT & isovert,
  const SHARP_ISOVERT_PARAM & sharp_isovert_param,
- std::vector<VERTEX_INDEX> & quad_vert,
+ std::vector<VERTEX_INDEX> & isoquad_cube,
  std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info)
 {
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
@@ -70,18 +71,19 @@ void ISODUAL3D::merge_sharp_iso_vertices
   }
   sharpiso_info.num_merged_iso_vertices = num_merged;
 
-  for (VERTEX_INDEX i = 0; i < quad_vert.size(); i++) {
-    VERTEX_INDEX cube_index = quad_vert[i];
-    quad_vert[i] = gcube_map[cube_index];
+  for (VERTEX_INDEX i = 0; i < isoquad_cube.size(); i++) {
+    VERTEX_INDEX cube_index = isoquad_cube[i];
+    isoquad_cube[i] = gcube_map[cube_index];
   }
 }
 
+// *** OBSOLETE ***
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 void ISODUAL3D::merge_sharp_iso_vertices
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
  ISOVERT & isovert, 
  const SHARP_ISOVERT_PARAM & sharp_isovert_param,
- std::vector<VERTEX_INDEX> & quad_vert,
+ std::vector<VERTEX_INDEX> & isoquad_cube,
  SHARPISO_INFO & sharpiso_info)
 {
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
@@ -89,8 +91,40 @@ void ISODUAL3D::merge_sharp_iso_vertices
 
   merge_sharp_iso_vertices
     (scalar_grid, isovalue, isovert, sharp_isovert_param,
-     quad_vert, gcube_map, sharpiso_info);
+     isoquad_cube, gcube_map, sharpiso_info);
 }
+
+/* DEBUG
+// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
+void ISODUAL3D::merge_sharp_iso_vertices
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
+ ISOVERT & isovert,
+ const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+ std::vector<DUAL_ISOVERT> & iso_vlist,
+ std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info)
+{
+  const NUM_TYPE num_gcube = isovert.gcube_list.size();
+
+  determine_gcube_map
+    (scalar_grid, isovalue, isovert, sharp_isovert_param, 
+     gcube_map, sharpiso_info);
+
+  // Count number merged isosurface vertices.
+  NUM_TYPE num_merged = 0;
+  for (int i = 0; i < num_gcube; i++) {
+    if (gcube_map[i] != i) { num_merged++; }
+  }
+  sharpiso_info.num_merged_iso_vertices = num_merged;
+
+  for (VERTEX_INDEX i = 0; i < isoquad_cube.size(); i++) {
+    VERTEX_INDEX cube_index = iso_vlist.cube_index[i];
+    VERTEX_INDEX new_cube_index = gcube_map[cube_index];
+    iso_vlist.cube_index[i] = new_cube_index;
+    iso_vlist.table_index[i] = 
+      isovert.gcube_list[new_cube_index].table_index;
+  }
+}
+*/
 
 
 // **************************************************

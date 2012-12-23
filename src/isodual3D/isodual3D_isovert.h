@@ -7,6 +7,8 @@
 #ifndef _ISODUAL3D_ISOVERT_H_
 #define _ISODUAL3D_ISOVERT_H_
 
+#include "ijkdualtable.h"
+
 #include "isodual3D_types.h"
 #include "sharpiso_grids.h"
 #include "sharpiso_feature.h"
@@ -34,9 +36,14 @@ public:
 	COORD_TYPE isovert_coord[DIM3]; ///< Location of the sharp isovertex.
 	unsigned char num_eigen;        ///< Number of eigenvalues.
 	GRID_CUBE_FLAG flag;            ///< Type for this cube.
-	SCALAR_TYPE linf_dist;          /// Linf-dist from sharp point to cube-center.
-	int boundary_bits;              /// boundary bits for the cube
-	VERTEX_INDEX cube_index;        /// Index of cube in scalar grid.
+	int boundary_bits;              ///< Boundary bits for the cube
+	VERTEX_INDEX cube_index;        ///< Index of cube in scalar grid.
+
+  /// Index into isosurface dual lookup table.
+  IJKDUALTABLE::TABLE_INDEX table_index;        
+
+  /// Linf-dist from isovert_coord[] to cube-center.
+	SCALAR_TYPE linf_dist;          
 };
 
 
