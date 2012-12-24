@@ -53,6 +53,26 @@ namespace ISODUAL3D {
    std::vector<VERTEX_INDEX> & isoquad_cube,
    SHARPISO_INFO & sharpiso_info);
 
+  // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
+  // Allows multiple isosurface vertices per cube.
+  void merge_sharp_iso_vertices_multi
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
+   const std::vector<DUAL_ISOVERT> & iso_vlist,
+   ISOVERT & isovert,
+   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+   std::vector<VERTEX_INDEX> & poly_vert,
+   std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info);
+
+  // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
+  // Allows multiple isosurface vertices per cube.
+  void merge_sharp_iso_vertices_multi
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
+   const std::vector<DUAL_ISOVERT> & iso_vlist,
+   ISOVERT & isovert,
+   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+   std::vector<VERTEX_INDEX> & poly_vert,
+   SHARPISO_INFO & sharpiso_info);
+
 
   // **************************************************
   // Function class: IS_ISOPATCH_DISK

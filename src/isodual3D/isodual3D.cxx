@@ -563,16 +563,16 @@ void ISODUAL3D::dual_contouring_merge_sharp
     map_isopoly_vert(isovert, isoquad_cube);
     t4 = clock();
 
-    merge_sharp_iso_vertices
-      (scalar_grid, isovalue, isovert, isodual_param,
-       isoquad_cube, isodual_info.sharpiso);
-
     std::vector<DUAL_ISOVERT> iso_vlist;
 
-    split_dual_isovert
+    full_split_dual_isovert
       (scalar_grid, isodual_table, isovalue,
        isovert, isoquad_cube, facet_vertex, isodual_param,
        iso_vlist, quad_vert, isodual_info.sharpiso);
+
+    merge_sharp_iso_vertices_multi
+      (scalar_grid, isovalue, iso_vlist, isovert, isodual_param,
+       quad_vert, isodual_info.sharpiso);
 
     IJK::get_non_degenerate_quad_btlr
       (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);

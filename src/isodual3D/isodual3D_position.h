@@ -380,7 +380,25 @@ namespace ISODUAL3D {
    VERTEX_INDEX & num_split);
 
   /// Split dual isosurface vertices.
+  /// Don't split isosurface vertices in cubes merged with other cubes.
+  /// @param isodual_table Dual isosurface lookup table.
   void split_dual_isovert
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
+   const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+   const ISODUAL_PARAM & isodual_param,
+   std::vector<DUAL_ISOVERT> & iso_vlist,
+   std::vector<VERTEX_INDEX> & isoquad_vert,
+   SHARPISO_INFO & sharp_info);
+
+  /// Split dual isosurface vertices.
+  /// Split all isosurface vertices as determined by the lookup table
+  ///   of the non-manifold edges (if flag_split_non_manifold is true.)
+  /// @param isodual_table Dual isosurface lookup table.
+  void full_split_dual_isovert
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const SCALAR_TYPE isovalue,

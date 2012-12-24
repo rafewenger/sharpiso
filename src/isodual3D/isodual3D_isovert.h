@@ -39,9 +39,6 @@ public:
 	int boundary_bits;              ///< Boundary bits for the cube
 	VERTEX_INDEX cube_index;        ///< Index of cube in scalar grid.
 
-  /// Index into isosurface dual lookup table.
-  IJKDUALTABLE::TABLE_INDEX table_index;        
-
   /// Linf-dist from isovert_coord[] to cube-center.
 	SCALAR_TYPE linf_dist;          
 };
