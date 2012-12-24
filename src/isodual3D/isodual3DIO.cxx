@@ -56,7 +56,8 @@ typedef enum {
 	REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
 	ALLOW_CONFLICT_PARAM,
 	CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
-  MERGE_CONFLICT_PARAM, MERGE_SHARP_PARAM, NO_MERGE_SHARP_PARAM, MERGE_SHARP_LINF_THRES_PARAM,
+  MERGE_CONFLICT_PARAM, MERGE_SHARP_PARAM, NO_MERGE_SHARP_PARAM, 
+  MERGE_SHARP_LINF_THRES_PARAM,
 	CLAMP_FAR_PARAM, CENTROID_FAR_PARAM,
 	RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,RECOMPUTE_ISOVERT,NO_RECOMPUTE_ISOVERT,
 	CHECK_TRIANGLE_ANGLE, NO_CHECK_TRIANGLE_ANGLE,
@@ -73,6 +74,7 @@ typedef enum {
 	SEP_NEG_PARAM, SEP_POS_PARAM, RESOLVE_AMBIG_PARAM,
   CHECK_DISK_PARAM, NO_CHECK_DISK_PARAM,
 	ROUND_PARAM, NO_ROUND_PARAM,
+  KEEPV_PARAM,
   MINC_PARAM, MAXC_PARAM,
 	HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
 	OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
@@ -87,8 +89,9 @@ typedef enum {
     "-allow_conflict", "-clamp_conflict", "-centroid_conflict", 
     "-merge_conflict", "-merge_sharp","-no_merge_sharp", "-merge_linf_th",
     "-clamp_far", "-centroid_far",
-    "-recompute_eigen2", "-no_recompute_eigen2","-recompute_isovert","-no_recompute_isovert",
-    "-check_triangle_angle","-no_check_triangle_angle",
+    "-recompute_eigen2", "-no_recompute_eigen2",
+    "-recompute_isovert", "-no_recompute_isovert",
+    "-check_triangle_angle", "-no_check_triangle_angle",
     "-removeg", "-no_removeg",
     "-reselectg", "-no_reselectg",
     "-dist2center", "-dist2centroid",
@@ -99,6 +102,7 @@ typedef enum {
     "-sep_neg", "-sep_pos", "-resolve_ambig", 
     "-check_disk", "-no_check_disk",
     "-round", "-no_round",
+    "-keepv",
     "-minc", "-maxc",
     "-help", "-off", "-iv", "-out_param",
     "-o", "-stdout",
@@ -401,6 +405,10 @@ typedef enum {
 
     case IV_PARAM:
       input_info.output_format = IV;
+      break;
+
+    case KEEPV_PARAM:
+      input_info.flag_remove_unreferenced_vertices = false;
       break;
 
     case OUTPUT_PARAM_PARAM:
@@ -1289,16 +1297,22 @@ void ISODUAL3D::report_iso_info3D
 	{ percent = float(num_non_empty_cubes)/float(num_grid_cubes); }
 	int ipercent = int(100*percent);
 	cout << "  Isovalue " << output_info.isovalue << ".  "
-			<< numv << " isosurface vertices.  ";
-  if (num_tri > 0) {
-		cout << num_tri << " isosurface triangles." << endl;
-	}
-  if (num_quad > 0) {
-		cout << num_quad << " isosurface quadrilaterals." << endl;
-  }
+       << numv << " isosurface vertices.  " << endl;
   if (num_tri+num_quad == 0) {
 		cout << "No isosurface polygons." << endl;
   }
+  else {
+    cout << "    ";
+    if (num_tri > 0) {
+      cout << num_tri << " isosurface triangles.  ";
+    }
+    if (num_quad > 0) {
+      cout << num_quad << " isosurface quadrilaterals.";
+    }
+    cout << endl;
+  }
+  
+
 
 
 	if (output_info.flag_output_alg_info) {
@@ -1512,6 +1526,7 @@ namespace {
     cerr << "  [-centroid_eigen1 | -no_centroid_eigen1]" << endl;
     cerr << "  [-check_disk | -no_check_disk]" << endl;
     cerr << "  [-no_round | -round <n>]" << endl;
+    cerr << "  [-keepv]" << endl;
     cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
          << endl;
     cerr << "  [-help] [-s] [-out_param] [-info] [-nowrite] [-time]" << endl;
@@ -1668,6 +1683,9 @@ void ISODUAL3D::help(const char * command_path)
 	cout << "  -round <n>: Round coordinates to nearest 1/n." << endl;
 	cout << "              Suggest using n=16,32,64,... or 2^k for some k."
 			<< endl;
+  cerr << "  -keepv:    Keep isosurface vertices.  Do not remove isosurface vertices"
+       << endl
+       << "             which do not lie in any isosurface polygon." << endl;
   cout << "  -check_disk: Check that merged vertices form a disk." << endl;
   cout << "  -no_check_disk: Skip disk check for merged vertices." << endl;
 	cout << "  -trimesh:   Output triangle mesh." << endl;

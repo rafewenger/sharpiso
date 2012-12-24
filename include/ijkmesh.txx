@@ -163,6 +163,172 @@ namespace IJK {
   }
 
   // **************************************************
+  // REMOVE UNREFERENCED VERTICES
+  // **************************************************
+
+  /// Set flag[x] to true for every x in list.
+  template <bool bool_value, typename ETYPE, typename NTYPE>
+  void set_bool_flag
+  (const ETYPE * list, const NTYPE list_length, bool * flag)
+  {
+    for (NTYPE i = 0; i < list_length; i++)
+      { flag[list[i]] = bool_value; }
+  }
+
+  /// Copy coord0 to coord1, removing coordinates for any vertices iv 
+  ///   where flag[iv] is false.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1,
+            typename NTYPE0, typename NTYPE1, typename ITYPE>
+  void compact_coord_array
+  (const DTYPE dimension, const CTYPE0 * coord0, const NTYPE0 numv0,
+   const bool * flag, ITYPE * new_index, CTYPE1 * coord1, NTYPE1 & numv1)
+  {
+    NTYPE0 k = 0;
+    for (NTYPE0 iv = 0; iv < numv0; iv++) {
+      if (flag[iv]) {
+        if (k < iv) {
+          const CTYPE0 * coord0_ptr = coord0+dimension*iv;
+          CTYPE1 * coord1_ptr = coord1+dimension*k;
+          std::copy(coord0_ptr, coord0_ptr+dimension, coord1_ptr);
+        }
+        new_index[iv] = k;
+        k++;
+      }
+    }
+
+    numv1 = k;
+  }
+
+  /// Remove vertex coordinates of vertices which are not in vlist.
+  /// Compact coord0[] and relabel remaining vertices.
+  /// @param coord0[] Array of vertex coordinates.
+  /// @param[out] coord1[] Compacted array of vertex coordinates.
+  ///      Unreferenced vertices have been removed.
+  ///      coord0[] and coord1[] could be the same array.
+  /// @pre Array coord1[] is pre-allocated to length at least numv0*dimension.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1,
+            typename NTYPE0, typename NTYPE1,
+            typename VTYPE, typename NUMV_TYPE>
+  void remove_unreferenced_vertices
+  (const DTYPE dimension, const CTYPE0 * coord0, const NTYPE0 numv0,
+   VTYPE * vlist, const NUMV_TYPE vlist_length,
+   CTYPE1 * coord1, NTYPE1 & numv1)
+  {
+    // flag_referenced[i] = true if vertex i is referenced.
+    IJK::ARRAY<bool> flag_referenced(numv0, false); 
+
+    // new_index[i] = new index of vertex i.
+    IJK::ARRAY<VTYPE> new_index(numv0);
+
+    set_bool_flag<true>(vlist, vlist_length, flag_referenced.Ptr());
+
+    compact_coord_array
+      (dimension, coord0, numv0, flag_referenced.PtrConst(), new_index.Ptr(),
+       coord1, numv1);
+
+    for (NUMV_TYPE j = 0; j < vlist_length; j++)
+      { vlist[j] = new_index[vlist[j]]; }
+  }
+
+  /// Remove vertex coordinates of vertices which are not in vlist.
+  /// Compact coord[] and relabel remaining vertices.
+  /// Version which alters coord[] and numv.
+  /// @param coord0[] Array of vertex coordinates.
+  template <typename DTYPE, typename CTYPE, typename NTYPE,
+            typename VTYPE, typename NUMV_TYPE>
+  void remove_unreferenced_vertices
+  (const DTYPE dimension, CTYPE * coord, NTYPE & numv,
+   VTYPE * vlist, const NUMV_TYPE vlist_length)
+  {
+    NTYPE numv1;
+    remove_unreferenced_vertices
+      (dimension, coord, numv, vlist, vlist_length, coord, numv1);
+    numv = numv1;
+  }
+
+  /// Remove vertex coordinates of vertices which are not in vlistA or vlistB.
+  /// Compact coord0[] and relabel remaining vertices.
+  /// @param coord0[] Array of vertex coordinates.
+  /// @param[out] coord1[] Compacted array of vertex coordinates.
+  ///      Unreferenced vertices have been removed.
+  ///      coord0[] and coord1[] could be the same array.
+  /// @pre Array coord1[] is pre-allocated to length at least numv0*dimension.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1,
+            typename NTYPE0, typename NTYPE1,
+            typename VTYPEA, typename VTYPEB,
+            typename NUMV_TYPEA, typename NUMV_TYPEB>
+  void remove_unreferenced_vertices_two_lists
+  (const DTYPE dimension, const CTYPE0 * coord0, const NTYPE0 numv0,
+   VTYPEA * vlistA, const NUMV_TYPEA vlistA_length,
+   VTYPEB * vlistB, const NUMV_TYPEB vlistB_length,
+   CTYPE1 * coord1, NTYPE1 & numv1)
+  {
+    // flag_referenced[i] = true if vertex i is referenced.
+    IJK::ARRAY<bool> flag_referenced(numv0, false); 
+
+    // new_index[i] = new index of vertex i.
+    IJK::ARRAY<NTYPE0> new_index(numv0);
+
+    set_bool_flag<true>(vlistA, vlistA_length, flag_referenced.Ptr());
+    set_bool_flag<true>(vlistB, vlistB_length, flag_referenced.Ptr());
+
+    compact_coord_array
+      (dimension, coord0, numv0, flag_referenced.PtrConst(), new_index.Ptr(),
+       coord1, numv1);
+
+    for (NUMV_TYPEA j = 0; j < vlistA_length; j++)
+      { vlistA[j] = new_index[vlistA[j]]; }
+
+    for (NUMV_TYPEB j = 0; j < vlistB_length; j++)
+      { vlistB[j] = new_index[vlistB[j]]; }
+  }
+
+  /// Remove vertex coordinates of vertices which are not in vlistA or vlistB.
+  /// Compact coord[] and relabel remaining vertices.
+  /// Version which alters coord[] and numv.
+  /// @param coord0[] Array of vertex coordinates.
+  template <typename DTYPE, typename CTYPE, typename NTYPE,
+            typename VTYPEA, typename VTYPEB,
+            typename NUMV_TYPEA, typename NUMV_TYPEB>
+  void remove_unreferenced_vertices_two_lists
+  (const DTYPE dimension, CTYPE * coord, NTYPE & numv,
+   VTYPEA * vlistA, const NUMV_TYPEA vlistA_length,
+   VTYPEB * vlistB, const NUMV_TYPEB vlistB_length)
+  {
+    NTYPE numv1;
+    remove_unreferenced_vertices_two_lists
+      (dimension, coord, numv, vlistA, vlistA_length, vlistB, vlistB_length,
+       coord, numv1);
+    numv = numv1;
+  }
+
+  /// Remove vertex coordinates of vertices which are not in vlistA or vlistB.
+  /// C++ STL vector format for coord, vlistA and vlistB
+  template <typename DTYPE, typename CTYPE,
+            typename VTYPEA, typename VTYPEB>
+  void remove_unreferenced_vertices_two_lists
+  (const DTYPE dimension, std::vector<CTYPE> & coord,
+   std::vector<VTYPEA> & vlistA, std::vector<VTYPEB> & vlistB)
+  {
+    typedef typename std::vector<CTYPE>::size_type SIZE_TYPE;
+
+    if (coord.size() == 0) { return; }
+
+    SIZE_TYPE numv = coord.size()/dimension;
+    VTYPEA * vlistA_ptr = NULL;
+    VTYPEB * vlistB_ptr = NULL;
+
+    if (vlistA.size() > 0) { vlistA_ptr = &(vlistA.front()); }
+    if (vlistB.size() > 0) { vlistB_ptr = &(vlistB.front()); }
+
+    remove_unreferenced_vertices_two_lists
+      (dimension, &(coord[0]), numv, 
+       vlistA_ptr, vlistA.size(), vlistB_ptr, vlistB.size());
+
+    coord.resize(numv*dimension);
+  }
+
+  // **************************************************
   // REORDER QUADRILATERALS
   // **************************************************
 
@@ -300,7 +466,7 @@ namespace IJK {
 
 
   /// Get a single non-degenerate quadrilateral.
-  /// A quadrilateral with a single edge collapse are reported as triangles.
+  /// A quadrilateral with a single edge collapse is reported as a triangle.
   /// Note: Does not clear new_quad_vert or new_tri_vert.
   /// @param quad_vert Four quadrilateral vertices.
   /// @pre Quadrilateral vertices are ordered bottom-left, bottom-right,

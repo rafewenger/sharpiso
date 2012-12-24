@@ -143,6 +143,9 @@ namespace ISODUAL3D {
     /// If true, split isosurface vertices to avoid non-manifold edges.
     bool flag_split_non_manifold;
 
+    /// If true, remove isosurface vertices which do not lie in any isosurface polygon.
+    bool flag_remove_unreferenced_vertices;
+
   public:
     ISODUAL_PARAM() { Init(); };
     ~ISODUAL_PARAM() { Init(); };

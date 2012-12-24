@@ -577,11 +577,15 @@ void ISODUAL3D::dual_contouring_merge_sharp
     IJK::get_non_degenerate_quad_btlr
       (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
 
-    // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
-
     position_dual_isovertices
       (scalar_grid, isodual_table, isovalue, isovert,
        iso_vlist, dual_isosurface.vertex_coord);
+
+    if (isodual_param.flag_remove_unreferenced_vertices) {
+      IJK::remove_unreferenced_vertices_two_lists
+        (dimension, dual_isosurface.vertex_coord,
+         dual_isosurface.tri_vert, dual_isosurface.quad_vert);
+    }
   }
   else {
 
@@ -597,10 +601,14 @@ void ISODUAL3D::dual_contouring_merge_sharp
     IJK::get_non_degenerate_quad_btlr
       (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
 
-    // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
-
     copy_isovert_positions
       (isovert.gcube_list, dual_isosurface.vertex_coord);
+
+    if (isodual_param.flag_remove_unreferenced_vertices) {
+      IJK::remove_unreferenced_vertices_two_lists
+        (dimension, dual_isosurface.vertex_coord,
+         dual_isosurface.tri_vert, dual_isosurface.quad_vert);
+    }
 
   }
 
