@@ -39,7 +39,7 @@ namespace IJK {
   /// @param dimension = Coordinate dimension (= number of coordinates.)
   /// @param c = Scalar constant.  Set vertex coordinates to \a c.
   /// @param[out] coord[] = Output coordinates.
-  template <class DTYPE, class STYPE, class CTYPE>
+  template <typename DTYPE, typename STYPE, typename CTYPE>
   void set_coord(const DTYPE dimension, const STYPE c, CTYPE coord[])
   {
     for (DTYPE d = 0; d < dimension; d++)
@@ -50,7 +50,7 @@ namespace IJK {
   /// @param dimension = Coordinate dimension (= number of coordinates.)
   /// @param coord0 = Input coordinates.
   /// @param[out] coord1 = Output coordinates.
-  template <class DTYPE, class CTYPE0, class CTYPE1>
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1>
   void copy_coord(const DTYPE dimension, 
                   const CTYPE0 coord0[], CTYPE1 coord1[])
   {
@@ -61,7 +61,7 @@ namespace IJK {
   /// Copy \a coord0[] to \a coord1[].
   /// Faster algorithm when \a coord0[] and \a coord1[] are both type float.
   /// @param[out] coord1 = Output coordinates.
-  template <class DTYPE>
+  template <typename DTYPE>
   void copy_coord(const DTYPE dimension, 
                   const float * coord0[], const float * coord1[])
   {
@@ -71,7 +71,7 @@ namespace IJK {
   /// Copy \a coord0[] to \a coord1[].
   /// Faster algorithm when \a coord0[] and \a coord1[] are both type double.
   /// @param[out] coord1 = Output coordinates.
-  template <class DTYPE>
+  template <typename DTYPE>
   void copy_coord(const DTYPE dimension, 
                   const double * coord0[], const double * coord1[])
   {
@@ -83,7 +83,7 @@ namespace IJK {
   /// @param coord0 = Input coordinates.
   /// @param coord1 = Input coordinates.
   /// @param[out] coord2 = Output coordinate equal to (\a coord0[] + \a coord1[]).
-  template <class DTYPE, class CTYPE0, class CTYPE1, class CTYPE2>
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, typename CTYPE2>
   void add_coord(const DTYPE dimension, const CTYPE0 coord0[],
                  const CTYPE1 coord1[], CTYPE2 coord2[])
   {
@@ -96,7 +96,7 @@ namespace IJK {
   /// @param coord0 = Input coordinates.
   /// @param coord1 = Input coordinates.
   /// @param[out] coord2 = Output coordinate equal to (\a coord0[] - \a coord1[]).
-  template <class DTYPE, class CTYPE0, class CTYPE1, class CTYPE2>
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, typename CTYPE2>
   inline void subtract_coord
   (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
    CTYPE2 coord2[])
@@ -110,7 +110,7 @@ namespace IJK {
   /// @param coord0 = Input coordinates.
   /// @param s = Scalar.
   /// @param[out] coord1 = Output coordinate equal to (\a s * \a coord0[]).
-  template <class DTYPE, class STYPE, class CTYPE0, class CTYPE1>
+  template <typename DTYPE, typename STYPE, typename CTYPE0, typename CTYPE1>
   inline void multiply_coord
   (const DTYPE dimension, const STYPE s, const CTYPE0 coord0[],
    CTYPE1 coord1[])
@@ -125,8 +125,8 @@ namespace IJK {
   /// @param coord1 = Input coordinates.
   /// @param[out] coord2 = Output coordinate.
   ///                      Equals (\a s * \a coord0[] + \a coord1[]).
-  template <class DTYPE, class STYPE, 
-            class CTYPE0, class CTYPE1, class CTYPE2>
+  template <typename DTYPE, typename STYPE, 
+            typename CTYPE0, typename CTYPE1, typename CTYPE2>
   void add_scaled_coord
   (const DTYPE dimension, const STYPE s, const CTYPE0 coord0[],
    const CTYPE1 coord1[], CTYPE2 coord2[])
@@ -140,7 +140,7 @@ namespace IJK {
   /// @param coord0 = Input coordinates.
   /// @param coord1 = Input coordinates.
   /// @param[out] midpoint_coord = Coordinates of midpoint.
-  template <class DTYPE, class CTYPE0, class CTYPE1, class CTYPE2>
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, typename CTYPE2>
   inline void compute_midpoint
   (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
    CTYPE2 midpoint_coord[])
@@ -153,7 +153,7 @@ namespace IJK {
   /// @param dimension = Coordinate dimension (= number of coordinates.)
   /// @param coord0 = Input coordinates.
   /// @param[out] sum = sum of squares
-  template <class DTYPE, class CTYPE0, class STYPE>
+  template <typename DTYPE, typename CTYPE0, typename STYPE>
   void compute_sum_of_squares(const DTYPE dimension, const CTYPE0 coord0[],
                               STYPE & sum)
   {
@@ -166,7 +166,7 @@ namespace IJK {
   /// @param dimension = Coordinate dimension (= number of coordinates.)
   /// @param coord0 = Input coordinates.
   /// @param[out] magnitude = magnitude
-  template <class DTYPE, class CTYPE0, class STYPE>
+  template <typename DTYPE, typename CTYPE0, typename STYPE>
   void compute_magnitude(const DTYPE dimension, const CTYPE0 coord0[],
                          STYPE & magnitude)
   {
@@ -179,7 +179,8 @@ namespace IJK {
   // **************************************************
 
   /// Compute square of distance between two points.
-  template <class DTYPE, class CTYPE0, class CTYPE1, class DIST_TYPE>
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename DIST_TYPE>
   void compute_distance_squared
   (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
    DIST_TYPE & distance_squared)
@@ -192,7 +193,8 @@ namespace IJK {
   }
 
   /// Compute distance between two points.
-  template <class DTYPE, class CTYPE0, class CTYPE1, class DIST_TYPE>
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename DIST_TYPE>
   void compute_distance
   (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
    DIST_TYPE & distance)
@@ -210,7 +212,7 @@ namespace IJK {
   /// @param coord0 = Input coordinates.
   /// @param coord1 = Input coordinates.
   /// @param[out] product = Inner product.
-  template <class DTYPE, class CTYPE0, class CTYPE1, class STYPE>
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, typename STYPE>
   void compute_inner_product(const DTYPE dimension, const CTYPE0 coord0[],
                              const CTYPE1 coord1[], STYPE & product)
   {
@@ -276,7 +278,7 @@ namespace IJK {
   /// @param dimension = Coordinate dimension (= number of coordinates.)
   /// @param coord0 = Input coordinates.
   /// @param coord1 = Input coordinates.
-  template <class DTYPE, class CTYPE0, class CTYPE1>
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1>
   bool is_coord_equal(const DTYPE dimension, 
                       const CTYPE0 coord0[], const CTYPE1 coord1[])
   {
@@ -288,7 +290,7 @@ namespace IJK {
 
   /// Return true if all elements of coord0[] are less than or equal
   ///   to all elements of coord1[].
-  template <class DTYPE, class CTYPE0, class CTYPE1>
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1>
   bool is_coord_less_than_or_equal
   (const DTYPE dimension, const CTYPE0 coord0, const CTYPE1 coord1)
   {
@@ -428,7 +430,7 @@ namespace IJK {
   // **************************************************
 
   /// DEPRECATED: Replaced by is_coord_equal()
-  template <class DTYPE, class CTYPE0, class CTYPE1>
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1>
   bool compare_coord(const DTYPE dimension, 
                      const CTYPE0 coord0[], const CTYPE1 coord1[])
   {
@@ -436,7 +438,7 @@ namespace IJK {
   }
 
   /// DEPRECATED: Replaced by is_coord_less_than_or_equal()
-  template <class DTYPE, class CTYPE0, class CTYPE1>
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1>
   bool is_less_than_or_equal_to
   (const DTYPE dimension, const CTYPE0 coord0, const CTYPE1 coord1)
   {
@@ -455,7 +457,7 @@ namespace IJK {
   /// Set all vertex coordinates to \a c.
   /// @param c = Scalar constant.  Set vertex coordinates to \a c.
   /// @param[out] coord[] = Output coordinates.
-  template <class STYPE, class CTYPE>
+  template <typename STYPE, typename CTYPE>
   void set_coord_3D(const STYPE c, CTYPE coord[])
   { 
     const int DIM3 = 3;
@@ -465,7 +467,7 @@ namespace IJK {
   /// Copy \a coord0[] to \a coord1[].
   /// @param coord0 = Input coordinates.
   /// @param[out] coord1 = Output coordinates.
-  template <class CTYPE0, class CTYPE1>
+  template <typename CTYPE0, typename CTYPE1>
   void copy_coord_3D(const CTYPE0 coord0[], CTYPE1 coord1[])
   { 
     const int DIM3 = 3;
@@ -476,7 +478,7 @@ namespace IJK {
   /// @param coord0 = Input coordinates.
   /// @param coord1 = Input coordinates.
   /// @param[out] coord2 = Output coordinate equal to (\a coord0[] + \a coord1[]).
-  template <class CTYPE0, class CTYPE1, class CTYPE2>
+  template <typename CTYPE0, typename CTYPE1, typename CTYPE2>
   void add_coord_3D(const CTYPE0 coord0[],
                     const CTYPE1 coord1[], CTYPE2 coord2[])
   { 
@@ -489,7 +491,7 @@ namespace IJK {
   /// @param coord0 = Input coordinates.
   /// @param coord1 = Input coordinates.
   /// @param[out] coord2 = Output coordinate equal to (\a coord1[] - \a coord1[]).
-  template <class CTYPE0, class CTYPE1, class CTYPE2>
+  template <typename CTYPE0, typename CTYPE1, typename CTYPE2>
   inline void subtract_coord_3D
   (const CTYPE0 coord0[], const CTYPE1 coord1[], CTYPE2 coord2[])
   { 
@@ -498,7 +500,7 @@ namespace IJK {
   }
 
   /// Multiply \a coord0[] by the scalar \a s.
-  template <class STYPE, class CTYPE0, class CTYPE1>
+  template <typename STYPE, typename CTYPE0, typename CTYPE1>
   inline void multiply_coord_3D
   (const STYPE s, const CTYPE0 coord0[], CTYPE1 coord1[])
   { 
@@ -511,7 +513,7 @@ namespace IJK {
   /// @param coord1 = Input coordinates.
   /// @param[out] coord2 = Output coordinate.
   ///                      Equals (\a s * \a coord0[] + \a coord1[]).
-  template <class STYPE, class CTYPE0, class CTYPE1, class CTYPE2>
+  template <typename STYPE, typename CTYPE0, typename CTYPE1, typename CTYPE2>
   void add_scaled_coord_3D
   (const STYPE s, 
    const CTYPE0 coord0[], const CTYPE1 coord1[], CTYPE2 coord2[])
@@ -521,7 +523,7 @@ namespace IJK {
   }
 
   /// Compute the midpoint of two coordinates.
-  template <class CTYPE0, class CTYPE1, class CTYPE2>
+  template <typename CTYPE0, typename CTYPE1, typename CTYPE2>
   inline void compute_midpoint_3D
   (const CTYPE0 coord0[], const CTYPE1 coord1[], CTYPE2 midpoint_coord[])
   { 
@@ -533,7 +535,7 @@ namespace IJK {
   /// @param coord0 = Input coordinates.
   /// @param coord1 = Input coordinates.
   /// @param[out] product = Inner product.
-  template <class CTYPE0, class CTYPE1, class STYPE>
+  template <typename CTYPE0, typename CTYPE1, typename STYPE>
   void compute_inner_product_3D
   (const CTYPE0 coord0[], const CTYPE1 coord1[], STYPE & product)
   { 
@@ -542,7 +544,7 @@ namespace IJK {
   }
 
   /// Compute sum of squares of coordinates.
-  template <class CTYPE0, class STYPE>
+  template <typename CTYPE0, typename STYPE>
   void compute_sum_of_squares_3D(const CTYPE0 coord0[], STYPE & sum)
   { 
     const int DIM3 = 3;
@@ -552,7 +554,7 @@ namespace IJK {
   /// Compute magnitude of coordinate vector.
   /// @param coord0 = Input coordinates.
   /// @param[out] magnitude = magnitude
-  template <class CTYPE0, class STYPE>
+  template <typename CTYPE0, typename STYPE>
   void compute_magnitude_3D(const CTYPE0 coord0[], STYPE & magnitude)
   { 
     const int DIM3 = 3;
@@ -562,7 +564,7 @@ namespace IJK {
   /// Return true if coordinates are the same.
   /// @param coord0 = Input coordinates.
   /// @param coord1 = Input coordinates.
-  template <class CTYPE0, class CTYPE1>
+  template <typename CTYPE0, typename CTYPE1>
   bool is_coord_equal_3D(const CTYPE0 coord0[], const CTYPE1 coord1[])
   { 
     const int DIM3 = 3;
@@ -571,7 +573,7 @@ namespace IJK {
 
   /// Return true if all elements of coord0[] are less than or equal
   ///   to all elements of coord1[].
-  template <class CTYPE0, class CTYPE1>
+  template <typename CTYPE0, typename CTYPE1>
   bool is_coord_less_than_or_equal_3D
   (const CTYPE0 coord0, const CTYPE1 coord1)
   { 

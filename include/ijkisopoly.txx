@@ -37,8 +37,8 @@ namespace IJK {
   // **************************************************
 
   /// Return true if isosurface intersects polyhedron
-  template <class STYPE, class STYPE2, class VTYPE, class ITYPE, 
-            class NTYPE>
+  template <typename STYPE, typename STYPE2, typename VTYPE, typename ITYPE, 
+            typename NTYPE>
   inline bool intersects_poly
   (const STYPE * scalar, const STYPE2 isovalue, 
    const VTYPE iv0, const ITYPE * increment, const NTYPE num_poly_vertices)
@@ -64,7 +64,7 @@ namespace IJK {
   }
 
   /// Return true if isosurface intersects polyhedron
-  template <class STYPE, class STYPE2, class NTYPE>
+  template <typename STYPE, typename STYPE2, typename NTYPE>
   inline bool intersects_poly
   (const STYPE * scalar, const STYPE2 isovalue, 
    const NTYPE num_poly_vertices)
@@ -87,8 +87,8 @@ namespace IJK {
   }
 
   /// Compute isosurface table index of polyhedron with primary vertex iv0
-  template <class STYPE, class STYPE2, class VTYPE, class INC_TYPE, 
-            class NTYPE, class ITYPE>
+  template <typename STYPE, typename STYPE2, typename VTYPE, typename INC_TYPE, 
+            typename NTYPE, typename ITYPE>
   inline void compute_isotable_index
   (const STYPE * scalar, const STYPE2 isovalue,
    const VTYPE iv0, const INC_TYPE * increment,
@@ -104,7 +104,7 @@ namespace IJK {
   }
 
   /// Compute isosurface table index of polyhedron
-  template <class STYPE, class STYPE2, class NTYPE, class ITYPE>
+  template <typename STYPE, typename STYPE2, typename NTYPE, typename ITYPE>
   void compute_isotable_index
   (const STYPE * scalar, const STYPE2 isovalue,
    const NTYPE num_poly_vertices, ITYPE & it)
@@ -174,9 +174,9 @@ namespace IJK {
   }
 
   /// Add isosurface simplex vertices.
-  template <class ISOTABLE_TYPE, class INDEX_TYPE, 
-            class VTYPE, class ITYPE, class STYPE, 
-            class VTYPE2, class VTYPE3>
+  template <typename ISOTABLE_TYPE, typename INDEX_TYPE, 
+            typename VTYPE, typename ITYPE, typename STYPE, 
+            typename VTYPE2, typename VTYPE3>
   inline void add_iso_simplex_vertices
   (const ISOTABLE_TYPE & isotable, const INDEX_TYPE it,
    const VTYPE iv_primary, const STYPE is, 
@@ -202,9 +202,9 @@ namespace IJK {
   }
 
   /// Add isosurface simplices.
-  template <class ISOTABLE_TYPE, class INDEX_TYPE, 
-            class VTYPE, class ITYPE, class VTYPE2, class VTYPE3,
-            class NTYPE>
+  template <typename ISOTABLE_TYPE, typename INDEX_TYPE, 
+            typename VTYPE, typename ITYPE, typename VTYPE2, typename VTYPE3,
+            typename NTYPE>
   inline void add_iso_simplices
   (const ISOTABLE_TYPE & isotable, const INDEX_TYPE it,
    const VTYPE iv0, const ITYPE * increment,
@@ -219,9 +219,9 @@ namespace IJK {
   }
 
   /// Add isosurface simplices and reverse orientation.
-  template <class ISOTABLE_TYPE, class INDEX_TYPE, 
-            class VTYPE, class ITYPE, class VTYPE2, class VTYPE3,
-            class NTYPE>
+  template <typename ISOTABLE_TYPE, typename INDEX_TYPE, 
+            typename VTYPE, typename ITYPE, typename VTYPE2, typename VTYPE3,
+            typename NTYPE>
   inline void add_reverse_orient_iso_simplices
   (const ISOTABLE_TYPE & isotable, const INDEX_TYPE it,
    const VTYPE iv0, const ITYPE * increment,
@@ -240,9 +240,9 @@ namespace IJK {
   }
 
   /// Add isosurface simplices.
-  template <class ISOTABLE_TYPE, class INDEX_TYPE, 
-            class VTYPE, class ITYPE, class VTYPE2, class VTYPE3,
-            class NTYPE>
+  template <typename ISOTABLE_TYPE, typename INDEX_TYPE, 
+            typename VTYPE, typename ITYPE, typename VTYPE2, typename VTYPE3,
+            typename NTYPE>
   inline void add_iso_simplices
   (const ISOTABLE_TYPE & isotable, const INDEX_TYPE it,
    const VTYPE iv0, const ITYPE * increment,
@@ -276,9 +276,9 @@ namespace IJK {
   /// @param endpoint = List of endpoints of edges containing isosurface vertices.
   ///      (endpoint[2*i],endpoint[2*i+1]) = endpoints of i'th edge.
   /// @param num_simplices = Numver of simplices added to isosurface.
-  template <class STYPE, class ISOTABLE_TYPE, class STYPE2,
-            class VTYPE, class ITYPE, class VTYPE2, class VTYPE3,
-            class NTYPE>
+  template <typename STYPE, typename ISOTABLE_TYPE, typename STYPE2,
+            typename VTYPE, typename ITYPE, typename VTYPE2, typename VTYPE3,
+            typename NTYPE>
   inline void extract_isopatch_from_mesh_poly
   (const STYPE * mesh_scalar, const ISOTABLE_TYPE & isotable,
    const STYPE2 isovalue, const VTYPE iv0, const ITYPE * increment,
@@ -315,9 +315,9 @@ namespace IJK {
   /// @param endpoint = List of endpoints of edges containing isosurface vertices.
   ///      (endpoint[2*i],endpoint[2*i+1]) = endpoints of i'th edge.
   /// @param num_simplices = Number of simplices added to isosurface.
-  template <class STYPE, class ISOTABLE_TYPE, class STYPE2,
-            class VTYPE, class ITYPE, class VTYPE2, class VTYPE3,
-            class NTYPE>
+  template <typename STYPE, typename ISOTABLE_TYPE, typename STYPE2,
+            typename VTYPE, typename ITYPE, typename VTYPE2, typename VTYPE3,
+            typename NTYPE>
   inline void extract_isopatch_reverse_orient_from_mesh_poly
   (const STYPE * mesh_scalar, const ISOTABLE_TYPE & isotable,
    const STYPE2 isovalue, const VTYPE iv0, const ITYPE * increment,
@@ -353,8 +353,8 @@ namespace IJK {
   /// @param endpoint = List of endpoints of edges containing isosurface vertices.
   ///      (endpoint[2*i],endpoint[2*i+1]) = endpoints of i'th edge.
   /// @param num_simplices = Number of simplices added to isosurface.
-  template <class STYPE, class VTYPE, class ISOTABLE_TYPE, class STYPE2,
-            class VTYPE2, class VTYPE3, class NTYPE>
+  template <typename STYPE, typename VTYPE, typename ISOTABLE_TYPE, typename STYPE2,
+            typename VTYPE2, typename VTYPE3, typename NTYPE>
   inline void extract_isopatch_from_poly
   (const STYPE * scalar, const VTYPE * poly_vertex,
    const ISOTABLE_TYPE & isotable, const STYPE2 isovalue, 
@@ -387,8 +387,8 @@ namespace IJK {
   /// @param endpoint = List of endpoints of edges containing isosurface vertices.
   ///      (endpoint[2*i],endpoint[2*i+1]) = endpoints of i'th edge.
   /// @param num_simplices = Number of simplices added to isosurface.
-  template <class STYPE, class VTYPE, class ISOTABLE_TYPE, class STYPE2,
-            class VTYPE2, class VTYPE3, class NTYPE>
+  template <typename STYPE, typename VTYPE, typename ISOTABLE_TYPE, typename STYPE2,
+            typename VTYPE2, typename VTYPE3, typename NTYPE>
   inline void extract_isopatch_reverse_orient_from_poly
   (const STYPE * scalar, const VTYPE * poly_vertex,
    const ISOTABLE_TYPE & isotable, const STYPE2 isovalue, 
@@ -422,8 +422,8 @@ namespace IJK {
   /// @param endpoint = List of endpoints of edges containing isosurface vertices.
   ///      (endpoint[2*i],endpoint[2*i+1]) = endpoints of i'th edge.
   /// @param num_simplices = Number of simplices added to isosurface.
-  template <class STYPE, class VTYPE, class ISOTABLE_TYPE, class STYPE2,
-            class VTYPE2, class VTYPE3, class NTYPE>
+  template <typename STYPE, typename VTYPE, typename ISOTABLE_TYPE, typename STYPE2,
+            typename VTYPE2, typename VTYPE3, typename NTYPE>
   inline void extract_isopatch_from_poly
   (const STYPE * scalar, const VTYPE * poly_vertex,
    const ISOTABLE_TYPE & isotable, const STYPE2 isovalue, 
@@ -963,6 +963,7 @@ namespace IJK {
 
   }
 
+  /// Compute number of cubes which have more than one isosurface vertex.
   template <typename ISODUAL_TABLE, typename CDATA_TYPE, typename NTYPE>
   void compute_num_split(const ISODUAL_TABLE & isodual_table,
                          const std::vector<CDATA_TYPE> & cube_data,

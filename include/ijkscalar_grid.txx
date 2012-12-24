@@ -39,7 +39,7 @@ namespace IJK {
   /// Does not allocate or destroy any scalar information.
   /// Note: SCALAR_GRID_BASE does not provide any way to allocate memory
   ///    for scalar or set scalar to point to existing memory.
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   class SCALAR_GRID_BASE:public GRID_CLASS {
 
   protected:
@@ -83,12 +83,12 @@ namespace IJK {
 
 
     /// Set scalar values of vertices in region to \a s.
-    template <class GTYPE>
+    template <typename GTYPE>
     void SetRegion(const IJK::BOX<GTYPE> & box,
                    const ATYPE scale, const STYPE s);
 
     /// Set scalar values of vertices in list of regions to \a s.
-    template <class GTYPE>
+    template <typename GTYPE>
     void SetRegion(const std::vector< IJK::BOX<GTYPE> > & box_list,
                    const ATYPE scale, const STYPE s);
 
@@ -134,7 +134,7 @@ namespace IJK {
 
   /// Class storing scalar grid information
   /// Allocates and destroys array scalar[]
-  template <class SCALAR_GRID_BASE_CLASS>
+  template <typename SCALAR_GRID_BASE_CLASS>
   class SCALAR_GRID_ALLOC:public SCALAR_GRID_BASE_CLASS {
 
   protected:
@@ -149,12 +149,12 @@ namespace IJK {
 
     /// Copy (x0,x1,...,xd) in scalar_grid to p*(x0,x1,...,xd) in current grid
     ///   where p is supersample_period.
-    template <class GTYPE, class PTYPE>
+    template <typename GTYPE, typename PTYPE>
     void SupersampleCopy
     (const GTYPE & scalar_grid, const PTYPE supersample_period);
 
     /// Linear interpolate between supersampled vertices.
-    template <class PTYPE>
+    template <typename PTYPE>
     void LinearInterpolate(const PTYPE supersample_period);
 
 
@@ -164,7 +164,7 @@ namespace IJK {
     ~SCALAR_GRID_ALLOC() { FreeAll(); };
 
     /// Copy scalar grid
-    template <class GTYPE>
+    template <typename GTYPE>
     void Copy(const GTYPE & scalar_grid);
     SCALAR_GRID_ALLOC(const SCALAR_GRID_BASE_CLASS & scalar_grid2) ///< Copy SCALAR_GRID
     { Copy(scalar_grid2); }
@@ -172,21 +172,21 @@ namespace IJK {
     (const SCALAR_GRID_BASE_CLASS & right);
 
     // set functions
-    template <class DTYPE2, class ATYPE2>
+    template <typename DTYPE2, typename ATYPE2>
     void SetSize     ///< Set dimensions and axis sizes.
     (const DTYPE2 dimension, const ATYPE2 * axis_size);
-    template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
+    template <typename DTYPE2, typename ATYPE2, typename VTYPE2, typename NTYPE2>
     void SetSize       ///< Set dimensions and axis size.
     (const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2);
 
 
     /// Subsample \a scalar_grid2. Resizes current grid.
-    template <class GTYPE, class PTYPE>
+    template <typename GTYPE, typename PTYPE>
     void Subsample
     (const GTYPE & scalar_grid2, const PTYPE subsample_period);
 
     /// Supersample \a scalar_grid2.  Resizes current grid.
-    template <class GTYPE, class PTYPE>
+    template <typename GTYPE, typename PTYPE>
     void Supersample
     (const GTYPE & scalar_grid2, const PTYPE supersample_period);
 
@@ -198,7 +198,7 @@ namespace IJK {
 
   /// Class storing scalar grid information
   /// Default class using SCALAR_GRID_BASE
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   class SCALAR_GRID:
     public SCALAR_GRID_ALLOC< SCALAR_GRID_BASE<GRID_CLASS,STYPE> >
   {
@@ -221,7 +221,7 @@ namespace IJK {
 
   /// scalar grid wrapper for scalar array
   /// Does not allocate or destroy any scalar information
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   class SCALAR_GRID_WRAPPER:
     public SCALAR_GRID_BASE<GRID_CLASS,STYPE> {
 
@@ -243,7 +243,7 @@ namespace IJK {
   // **************************************************
 
   /// Grid of boolean values.
-  template <class GRID_CLASS>
+  template <typename GRID_CLASS>
   class BOOL_GRID_BASE:public SCALAR_GRID_BASE<GRID_CLASS,bool> {
 
   protected:
@@ -260,11 +260,11 @@ namespace IJK {
     // Operators
 
     /// Form logical "and" of grid2 and grid
-    template <class GRID_CLASS2>
+    template <typename GRID_CLASS2>
     void And(const BOOL_GRID_BASE<GRID_CLASS2> & grid2);
 
     /// Form logical "and" of current grid with negation of grid2.
-    template <class GRID_CLASS2>
+    template <typename GRID_CLASS2>
     void AndNot(const BOOL_GRID_BASE<GRID_CLASS2> & grid2);
   };
 
@@ -273,7 +273,7 @@ namespace IJK {
   // **************************************************
 
   /// Grid of boolean values.
-  template <class GRID_CLASS>
+  template <typename GRID_CLASS>
   class BOOL_GRID:public SCALAR_GRID_ALLOC
   < BOOL_GRID_BASE<GRID_CLASS> > {
 
@@ -295,7 +295,7 @@ namespace IJK {
   // **************************************************
 
   /// Base class for representing min & max of scalar grid regions.
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   class MINMAX_BASE:public GRID_CLASS {
 
   protected:
@@ -320,10 +320,10 @@ namespace IJK {
     const MINMAX_BASE & operator = (const MINMAX_BASE & right);
 
     // set functions
-    template <class DTYPE2, class ATYPE2>
+    template <typename DTYPE2, typename ATYPE2>
     void SetSize     ///< Set dimensions and axis sizes.
     (const DTYPE2 dimension, const ATYPE2 * axis_size);
-    template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
+    template <typename DTYPE2, typename ATYPE2, typename VTYPE2, typename NTYPE2>
     void SetSize       ///< Set dimensions and axis size.
     (const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2);
 
@@ -342,7 +342,7 @@ namespace IJK {
   // **************************************************
 
   /// class for computing min & max of scalar grid
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   class MINMAX_GRID:public MINMAX_BASE<GRID_CLASS,STYPE> {
 
   protected:
@@ -390,7 +390,7 @@ namespace IJK {
   // **************************************************
 
   /// class for computing min & max of scalar grid regions
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   class MINMAX_REGIONS:
     public MINMAX_BASE<GRID_CLASS,STYPE> {
 
@@ -444,7 +444,7 @@ namespace IJK {
   // **************************************************
 
   /// Linear interpolate.
-  template <class STYPE, class CTYPE0, class CTYPE1, class CTYPE2>
+  template <typename STYPE, typename CTYPE0, typename CTYPE1, typename CTYPE2>
   inline STYPE linear_interpolate
   (const STYPE s0, const CTYPE0 x0, const STYPE s1, const CTYPE1 x1,
    const CTYPE2 x2)
@@ -466,7 +466,7 @@ namespace IJK {
   }
 
   /// Linear interpolate.  Force use of float in calculations.
-  template <class STYPE>
+  template <typename STYPE>
   inline STYPE linear_interpolate
   (const STYPE s0, const int x0, const STYPE s1, const int x1,
    const int x2)
@@ -475,7 +475,7 @@ namespace IJK {
   }
 
   /// Linear interpolate.  Force use of double in calculations.
-  template <class STYPE>
+  template <typename STYPE>
   inline STYPE linear_interpolate
   (const STYPE s0, const long x0, const STYPE s1, const long x1,
    const long x2)
@@ -488,7 +488,7 @@ namespace IJK {
   // **************************************************
 
   /// Comparison function template.
-  template <class STYPE> class SCALAR_LESS_THAN {
+  template <typename STYPE> class SCALAR_LESS_THAN {
   protected:
     const STYPE * scalar;
 
@@ -501,7 +501,7 @@ namespace IJK {
   };
 
   /// Sort grid vertices by increasing scalar value.
-  template <class STYPE, class NTYPE, class ITYPE>
+  template <typename STYPE, typename NTYPE, typename ITYPE>
   void sort_grid_vertices
   (const STYPE * scalar, const NTYPE num_vertices, ITYPE * index_sorted)
   {
@@ -514,7 +514,7 @@ namespace IJK {
   }
 
   /// Find and store locations of elements in list
-  template <class ETYPE, class NTYPE, class LTYPE>
+  template <typename ETYPE, typename NTYPE, typename LTYPE>
   void list_locate(const ETYPE * list, const NTYPE num_elements,
                    LTYPE * list_loc)
   {
@@ -597,7 +597,7 @@ namespace IJK {
   // ********************************************************
 
   /// Compute minimum and maximum scalar value of each region
-  template <class DTYPE, class ATYPE, class STYPE>
+  template <typename DTYPE, typename ATYPE, typename STYPE>
   void compute_region_minmax
   (const DTYPE dimension, const ATYPE * axis_size, const STYPE * scalar,
    const ATYPE region_edge_length, STYPE * region_min, STYPE * region_max)
@@ -704,7 +704,7 @@ namespace IJK {
   }
 
   /// Compute minimum and maximum scalar value of each region
-  template <class DTYPE, class ATYPE, class STYPE>
+  template <typename DTYPE, typename ATYPE, typename STYPE>
   void compute_region_minmax
   (const DTYPE dimension, const ATYPE * axis_size, const STYPE * scalar,
    const ATYPE region_edge_length, const ATYPE offset_edge_length,
@@ -829,7 +829,7 @@ namespace IJK {
   // **************************************************
 
   /// Set all scalar values to s.
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::
   SetAll(const STYPE s)
   {
@@ -838,7 +838,7 @@ namespace IJK {
   }
 
   /// Add s to all scalar values.
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::
   Add(const STYPE s)
   {
@@ -847,7 +847,7 @@ namespace IJK {
   }
 
   /// Multiply all scalar values by s.
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::
   Multiply(const STYPE s)
   {
@@ -857,7 +857,7 @@ namespace IJK {
 
   /// Copy scalar values of scalar_grid to current grid.
   /// Precondition: scalar_grid has same axis_size as current grid.
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::
   CopyScalar
   (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid)
@@ -868,7 +868,7 @@ namespace IJK {
   }
 
   /// Set scalar value at grid corners to s.
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::
   SetCorners(const STYPE s)
   {
@@ -888,7 +888,7 @@ namespace IJK {
   }
 
   /// Set scalar values of vertices in subsampled grid to s.
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::
   SetSubsample(const ATYPE scale, const STYPE s)
   {
@@ -936,8 +936,8 @@ namespace IJK {
   }
 
   /// Set scalar values of vertices in region to s.
-  template <class GRID_CLASS, class STYPE>
-  template <class GTYPE>
+  template <typename GRID_CLASS, typename STYPE>
+  template <typename GTYPE>
   void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::
   SetRegion(const IJK::BOX<GTYPE> & box,
             const ATYPE scale, const STYPE s)
@@ -1012,8 +1012,8 @@ namespace IJK {
   }
 
   /// Set scalar values of vertices in region to s.
-  template <class GRID_CLASS, class STYPE>
-  template <class GTYPE>
+  template <typename GRID_CLASS, typename STYPE>
+  template <typename GTYPE>
   void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::
   SetRegion(const std::vector< IJK::BOX<GTYPE> > & box_list,
             const ATYPE scale, const STYPE s)
@@ -1027,7 +1027,7 @@ namespace IJK {
   /// Replace region from iv0 to iv1 with values from scalar_grid2.
   // Precondition: scalar_grid2 has exactly the same dimension
   //   and axis_size as the current scalar grid.
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::Replace
   (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid2,
    const VTYPE iv0, const VTYPE iv1)
@@ -1072,7 +1072,7 @@ namespace IJK {
   }
   */
 
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::CopyRegion
   (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & from_grid,
    const VTYPE from_v0, const ATYPE * region_axis_size,
@@ -1133,7 +1133,7 @@ namespace IJK {
   }
 
   /// Copy region from \a from_grid.
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   template <typename CTYPE>
   void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::CopyRegion
   (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & from_grid,
@@ -1156,7 +1156,7 @@ namespace IJK {
   }
 
   /// Return minimum scalar value
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   STYPE SCALAR_GRID_BASE<GRID_CLASS,STYPE>::FindMinScalar() const
   {
     STYPE min_scalar = *(min_element(ScalarPtrConst(), End()));
@@ -1164,7 +1164,7 @@ namespace IJK {
   }
 
   /// Return maximum scalar value
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   STYPE SCALAR_GRID_BASE<GRID_CLASS,STYPE>::FindMaxScalar() const
   {
     STYPE max_scalar = *(max_element(ScalarPtrConst(), End()));
@@ -1173,7 +1173,7 @@ namespace IJK {
 
 
   /// Count number of vertices with scalar value equal to s.
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   typename GRID_CLASS::NUMBER_TYPE SCALAR_GRID_BASE<GRID_CLASS,STYPE>::
   CountScalar(const STYPE s) const
   {
@@ -1190,14 +1190,14 @@ namespace IJK {
   // TEMPLATE CLASS SCALAR_GRID_ALLOC MEMBER FUNCTIONS
   // **************************************************
 
-  template <class SCALAR_GRID_BASE_CLASS>
+  template <typename SCALAR_GRID_BASE_CLASS>
   SCALAR_GRID_ALLOC<SCALAR_GRID_BASE_CLASS>::SCALAR_GRID_ALLOC()
     // constructor
   {
     this->scalar = NULL;
   }
 
-  template <class SCALAR_GRID_BASE_CLASS>
+  template <typename SCALAR_GRID_BASE_CLASS>
   SCALAR_GRID_ALLOC<SCALAR_GRID_BASE_CLASS>::
   SCALAR_GRID_ALLOC(const DTYPE dimension, const ATYPE * axis_size) :
     SCALAR_GRID_BASE_CLASS(dimension, axis_size)
@@ -1206,7 +1206,7 @@ namespace IJK {
     this->scalar = new STYPE[this->NumVertices()];
   }
 
-  template <class BASE_CLASS>
+  template <typename BASE_CLASS>
   void SCALAR_GRID_ALLOC<BASE_CLASS>::FreeAll()
   {
     delete [] this->scalar;
@@ -1214,8 +1214,8 @@ namespace IJK {
     BASE_CLASS::FreeAll();
   }
 
-  template <class BASE_CLASS>
-  template <class DTYPE2, class ATYPE2>
+  template <typename BASE_CLASS>
+  template <typename DTYPE2, typename ATYPE2>
   void SCALAR_GRID_ALLOC<BASE_CLASS>::
   SetSize(const DTYPE2 dimension, const ATYPE2 * axis_size)
   {
@@ -1229,8 +1229,8 @@ namespace IJK {
     }
   }
 
-  template <class BASE_CLASS>
-  template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
+  template <typename BASE_CLASS>
+  template <typename DTYPE2, typename ATYPE2, typename VTYPE2, typename NTYPE2>
   void SCALAR_GRID_ALLOC<BASE_CLASS>::SetSize
   (const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2)
   {
@@ -1238,15 +1238,15 @@ namespace IJK {
   }
 
   /// Copy scalar grid
-  template <class BASE_CLASS>
-  template <class GTYPE>
+  template <typename BASE_CLASS>
+  template <typename GTYPE>
   void SCALAR_GRID_ALLOC<BASE_CLASS>::Copy(const GTYPE & scalar_grid2)
   {
     this->SetSize(scalar_grid2);
     CopyScalar(scalar_grid2);
   }
 
-  template <class BASE_CLASS>
+  template <typename BASE_CLASS>
   const SCALAR_GRID_ALLOC<BASE_CLASS> &
   SCALAR_GRID_ALLOC<BASE_CLASS>::operator =
   (const BASE_CLASS & right)
@@ -1257,8 +1257,8 @@ namespace IJK {
     }
   }
 
-  template <class BASE_CLASS>
-  template <class GCLASS, class PTYPE>
+  template <typename BASE_CLASS>
+  template <typename GCLASS, typename PTYPE>
   void SCALAR_GRID_ALLOC<BASE_CLASS>::Subsample
   (const GCLASS & scalar_grid, const PTYPE subsample_period)
   {
@@ -1313,8 +1313,8 @@ namespace IJK {
   }
 
 
-  template <class BASE_CLASS>
-  template <class GTYPE, class PTYPE>
+  template <typename BASE_CLASS>
+  template <typename GTYPE, typename PTYPE>
   void SCALAR_GRID_ALLOC<BASE_CLASS>::Supersample
   (const GTYPE & scalar_grid2, const PTYPE supersample_period)
   {
@@ -1335,8 +1335,8 @@ namespace IJK {
     LinearInterpolate(supersample_period);
   }
 
-  template <class BASE_CLASS>
-  template <class GTYPE, class PTYPE>
+  template <typename BASE_CLASS>
+  template <typename GTYPE, typename PTYPE>
   void SCALAR_GRID_ALLOC<BASE_CLASS>::SupersampleCopy
   (const GTYPE & scalar_grid2, const PTYPE supersample_period)
   {
@@ -1373,8 +1373,8 @@ namespace IJK {
 
   }
 
-  template <class BASE_CLASS>
-  template <class PTYPE>
+  template <typename BASE_CLASS>
+  template <typename PTYPE>
   void SCALAR_GRID_ALLOC<BASE_CLASS>::LinearInterpolate
   (const PTYPE supersample_period)
   {
@@ -1428,7 +1428,7 @@ namespace IJK {
   // TEMPLATE CLASS SCALAR_GRID_WRAPPER MEMBER FUNCTIONS
   // ******************************************************
 
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   SCALAR_GRID_WRAPPER<GRID_CLASS,STYPE>::
   SCALAR_GRID_WRAPPER
   (const DTYPE dimension, const ATYPE * axis_size, STYPE * scalar):
@@ -1442,8 +1442,8 @@ namespace IJK {
   /// Form logical "and" of grid2 and current grid.
   /// @param grid2 Boolean grid.
   /// @pre grid2 has same grid dimensions as current grid.
-  template <class GRID_CLASS>
-  template <class GRID_CLASS2>
+  template <typename GRID_CLASS>
+  template <typename GRID_CLASS2>
   void BOOL_GRID_BASE<GRID_CLASS>::
   And(const BOOL_GRID_BASE<GRID_CLASS2> & grid2)
   {
@@ -1456,8 +1456,8 @@ namespace IJK {
   /// Form logical "and" of current grid with negation of grid2.
   /// @param grid2 Boolean grid.
   /// @pre grid2 has same grid dimensions as current grid.
-  template <class GRID_CLASS>
-  template <class GRID_CLASS2>
+  template <typename GRID_CLASS>
+  template <typename GRID_CLASS2>
   void BOOL_GRID_BASE<GRID_CLASS>::
   AndNot(const BOOL_GRID_BASE<GRID_CLASS2> & grid2)
   {
@@ -1471,7 +1471,7 @@ namespace IJK {
   // TEMPLATE CLASS MINMAX_BASE MEMBER FUNCTIONS
   // **************************************************
 
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   MINMAX_BASE<GRID_CLASS,STYPE>::
   MINMAX_BASE()
     // constructor
@@ -1480,7 +1480,7 @@ namespace IJK {
     scalar_max = NULL;
   }
 
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   MINMAX_BASE<GRID_CLASS,STYPE>::
   MINMAX_BASE
   (const DTYPE dimension, const ATYPE * axis_size) :
@@ -1491,7 +1491,7 @@ namespace IJK {
     scalar_max = new STYPE[this->NumVertices()];
   }
 
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void MINMAX_BASE<GRID_CLASS,STYPE>::FreeAll()
   {
     delete [] scalar_min;
@@ -1501,8 +1501,8 @@ namespace IJK {
     GRID_CLASS::FreeAll();
   }
 
-  template <class GRID_CLASS, class STYPE>
-  template <class DTYPE2, class ATYPE2>
+  template <typename GRID_CLASS, typename STYPE>
+  template <typename DTYPE2, typename ATYPE2>
   void MINMAX_BASE<GRID_CLASS,STYPE>::
   SetSize(const DTYPE2 dimension, const ATYPE2 * axis_size)
   {
@@ -1518,15 +1518,15 @@ namespace IJK {
     }
   }
 
-  template <class GRID_CLASS, class STYPE>
-  template <class DTYPE2, class ATYPE2, class VTYPE2, class NTYPE2>
+  template <typename GRID_CLASS, typename STYPE>
+  template <typename DTYPE2, typename ATYPE2, typename VTYPE2, typename NTYPE2>
   void MINMAX_BASE<GRID_CLASS,STYPE>::SetSize
   (const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2)
   {
     SetSize(grid2.Dimension(), grid2.AxisSize());
   }
 
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void MINMAX_BASE<GRID_CLASS,STYPE>::
   Copy(const STYPE * scalar_min, const STYPE * scalar_max)
   {
@@ -1547,7 +1547,7 @@ namespace IJK {
   // **************************************************
 
   /// Compute minimum and maximum of each region and store in primary vertices
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void MINMAX_GRID<GRID_CLASS,STYPE>::
   OverwriteWithMinMax(const ATYPE region_edge_length)
   {
@@ -1612,7 +1612,7 @@ namespace IJK {
 
   /// Compute minimum and maximum of each region and store in primary vertices
   /// @pre offset_edge_length < region_edge_length
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void MINMAX_GRID<GRID_CLASS,STYPE>::
   OverwriteWithMinMax(const ATYPE region_edge_length,
                       const ATYPE offset_edge_length)
@@ -1684,7 +1684,7 @@ namespace IJK {
 
   /// Project scalar grid onto minmax grid
   /// Compute min and max of projection
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void MINMAX_GRID<GRID_CLASS,STYPE>::
   ProjectMinMax
   (const DTYPE dimension, const ATYPE * axis_size, const STYPE * scalar,
@@ -1727,7 +1727,7 @@ namespace IJK {
 
   /// Project scalar grid onto minmax grid
   /// Compute min and max of projection
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void MINMAX_GRID<GRID_CLASS,STYPE>::
   ProjectMinMax
   (const DTYPE dimension, const ATYPE * axis_size, const STYPE * scalar,
@@ -1760,7 +1760,7 @@ namespace IJK {
     }
   }
 
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void MINMAX_GRID<GRID_CLASS,STYPE>::
   ProjectMinMax
   (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid,
@@ -1778,7 +1778,7 @@ namespace IJK {
   // TEMPLATE CLASS MINMAX_REGIONS MEMBER FUNCTIONS
   // **************************************************
 
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   MINMAX_REGIONS<GRID_CLASS,STYPE>::
   MINMAX_REGIONS()
     // constructor
@@ -1786,7 +1786,7 @@ namespace IJK {
     region_edge_length = 0;
   }
 
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   MINMAX_REGIONS<GRID_CLASS,STYPE>::
   MINMAX_REGIONS
   (const DTYPE dimension, const ATYPE * axis_size,
@@ -1797,7 +1797,7 @@ namespace IJK {
     this->region_edge_length = region_edge_length;
   }
 
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   MINMAX_REGIONS<GRID_CLASS,STYPE>::~MINMAX_REGIONS()
     // destructor
   {
@@ -1806,7 +1806,7 @@ namespace IJK {
 
   /// Compute min and max of each region
   /// Creates a grid of regions and stores min and max for each region
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void MINMAX_REGIONS<GRID_CLASS,STYPE>::ComputeMinMax
   (const DTYPE dimension, const ATYPE * axis_size, const STYPE * scalar,
    const ATYPE region_edge_length)
@@ -1832,7 +1832,7 @@ namespace IJK {
 
   /// Compute min and max of each region
   /// Creates a grid of regions and stores min and max for each region
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void MINMAX_REGIONS<GRID_CLASS,STYPE>::ComputeMinMax
   (const DTYPE dimension, const ATYPE * axis_size, const STYPE * scalar,
    const ATYPE region_edge_length, const ATYPE offset_edge_length)
@@ -1853,7 +1853,7 @@ namespace IJK {
        this->scalar_min, this->scalar_max);
   }
 
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void MINMAX_REGIONS<GRID_CLASS,STYPE>::ComputeMinMax
   (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid,
    const ATYPE region_edge_length)
@@ -1862,7 +1862,7 @@ namespace IJK {
                   scalar_grid.ScalarPtrConst(), region_edge_length);
   }
 
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void MINMAX_REGIONS<GRID_CLASS,STYPE>::ComputeMinMax
   (const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid,
    const ATYPE region_edge_length, const ATYPE offset_edge_length)
@@ -1977,7 +1977,7 @@ namespace IJK {
   // **************************************************
 
   /// Output scalar.  Template specialization for bool and char classes.
-  template <class STYPE>
+  template <typename STYPE>
   inline void output_scalar(std::ostream & out, const STYPE s)
   { out << s; }
 
@@ -1998,7 +1998,7 @@ namespace IJK {
 
   /// Output scalar grid (for debugging purposes)
   // *** SHOULD PROVIDE VERSION WHICH SETS OUTPUT WIDTH ***
-  template <class GRID_CLASS, class STYPE>
+  template <typename GRID_CLASS, typename STYPE>
   void output_scalar_grid
   (std::ostream & out,
    const SCALAR_GRID_BASE<GRID_CLASS,STYPE> & scalar_grid)

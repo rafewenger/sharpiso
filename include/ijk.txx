@@ -40,7 +40,7 @@ namespace IJK {
 
   /// \brief Axis-parallel box data structure.  
   /// Represents box by minimum and maximum coordinates.
-  template <class COORD_TYPE> class BOX {
+  template <typename COORD_TYPE> class BOX {
   protected:
     int dimension;
     COORD_TYPE * min_coord;
@@ -93,7 +93,7 @@ namespace IJK {
   // **************************************************
 
   /// \brief Line segment between two grid vertices
-  template <class VTYPE>
+  template <typename VTYPE>
   class LINE_SEGMENT:public std::pair<VTYPE,VTYPE> {  
 
   public:
@@ -115,7 +115,7 @@ namespace IJK {
     // get functions
     VTYPE V0() const { return(this->first); };  ///< Return endpoint 0.
     VTYPE V1() const { return(this->second); };  ///< Return endpoint 1.
-    template <class ITYPE> 
+    template <typename ITYPE> 
     VTYPE V(const ITYPE i) const       ///< Return endpoint i.
     {
       if (i == 0) { return(V0()); }
@@ -126,7 +126,7 @@ namespace IJK {
 
   /// Return true if (V0 < V1) for every pair (V0,V1)
   ///    of line segment endpoints
-  template <class VTYPE>
+  template <typename VTYPE>
   bool is_ordered(const std::vector< LINE_SEGMENT<VTYPE> > & list)
   {
     typename std::vector< LINE_SEGMENT<VTYPE> > ::const_iterator pos;
@@ -146,15 +146,15 @@ namespace IJK {
   ///
   /// Making this a class guarantees that when a program leaves
   /// the function where this class is declared, the array memory is freed.
-  template <class ETYPE> class ARRAY {
+  template <typename ETYPE> class ARRAY {
   protected:
     ETYPE * element;
 
-    template <class LTYPE>
+    template <typename LTYPE>
     void Init(const LTYPE array_length)
     { element = new ETYPE[array_length]; }
 
-    template <class LTYPE>
+    template <typename LTYPE>
     void Init(const LTYPE array_length, const ETYPE init_value)
     { 
       Init(array_length);
@@ -162,10 +162,10 @@ namespace IJK {
     }
 
   public:
-    template <class LTYPE>
+    template <typename LTYPE>
     ARRAY(const LTYPE array_length) // constructor
     { Init(array_length); }
-    template <class LTYPE>
+    template <typename LTYPE>
     ARRAY(const LTYPE array_length, const ETYPE init_value) // constructor
     { Init(array_length, init_value); }
     ~ARRAY();
@@ -173,9 +173,9 @@ namespace IJK {
     // get functions
     ETYPE * Ptr() { return(element); };
     const ETYPE * PtrConst() const { return(element); }
-    template <class ITYPE>
+    template <typename ITYPE>
     ETYPE & operator [] (const ITYPE i) { return(*(element+i)); }
-    template <class ITYPE>
+    template <typename ITYPE>
     ETYPE operator [] (const ITYPE i) const { return(*(element+i)); }
 
     // Free function
@@ -183,7 +183,7 @@ namespace IJK {
   };
 
   /// Class array with length stored
-  template <class ETYPE, class LTYPE>
+  template <typename ETYPE, typename LTYPE>
   class ARRAY_L:public ARRAY<ETYPE> {
   protected:
     LTYPE length;
@@ -211,7 +211,7 @@ namespace IJK {
   // **************************************************
 
   /// Class CONSTANT always returns the same value
-  template <class ITYPE, class CTYPE>
+  template <typename ITYPE, typename CTYPE>
   class CONSTANT {
   protected:
     CTYPE c;           ///< The constant value.
@@ -343,7 +343,6 @@ namespace IJK {
   {
     return(count_ge<X>(v, v.size()));
   }
-
 
   // **************************************************
   // ERROR CLASSES
@@ -649,7 +648,7 @@ namespace IJK {
 
   /// Return true if array memory is allocated.
   /// Return false and set error message if array is NULL.
-  template <class T>
+  template <typename T>
   bool check_array_allocated
   (const T * array, const char * array_name, ERROR & error)
   {
@@ -663,7 +662,7 @@ namespace IJK {
   }
 
   /// Return true if ptr is NULL
-  template <class T>
+  template <typename T>
   bool check_is_NULL
   (const T * ptr, const char * variable_name, ERROR & error)
   {
@@ -681,14 +680,14 @@ namespace IJK {
   // TEMPLATE CLASS BOX MEMBER FUNCTIONS
   // **************************************************
 
-  template <class T> void BOX<T>::Init()
+  template <typename T> void BOX<T>::Init()
   {
     dimension = 0;
     min_coord = 0;
     max_coord = 0;
   }
 
-  template <class T> void BOX<T>::FreeAll()
+  template <typename T> void BOX<T>::FreeAll()
   {
     dimension = 0;
     if (min_coord != NULL) { delete [] min_coord; }
@@ -697,11 +696,11 @@ namespace IJK {
     max_coord = NULL;
   }
 
-  template <class T> BOX<T>::BOX(const int dimension)
+  template <typename T> BOX<T>::BOX(const int dimension)
   { Init(); SetDimension(dimension); }
 
-  template <class COORD_TYPE>
-  template <class CTYPE2>
+  template <typename COORD_TYPE>
+  template <typename CTYPE2>
   bool BOX<COORD_TYPE>::Contains(const CTYPE2 * coord) const
   {
     for (int d = 0; d < dimension; d++) {
@@ -711,7 +710,7 @@ namespace IJK {
     return(true);
   }
 
-  template <class COORD_TYPE> 
+  template <typename COORD_TYPE> 
   void BOX<COORD_TYPE>::SetDimension(const int d)
   {
     FreeAll();
@@ -722,7 +721,7 @@ namespace IJK {
     dimension = d;
   }
 
-  template <class COORD_TYPE>
+  template <typename COORD_TYPE>
   template <typename CTYPE2>
   void BOX<COORD_TYPE>::
   SetMinCoord(const CTYPE2 * coord)
@@ -731,7 +730,7 @@ namespace IJK {
       SetMinCoord(d, coord[d]);
   }
 
-  template <class COORD_TYPE>
+  template <typename COORD_TYPE>
   template <typename CTYPE2>
   void BOX<COORD_TYPE>::
   SetMaxCoord(const CTYPE2 * coord)
@@ -740,7 +739,7 @@ namespace IJK {
       SetMaxCoord(d, coord[d]);
   }
 
-  template <class COORD_TYPE>
+  template <typename COORD_TYPE>
   template <typename CTYPE2, typename CTYPE3>
   void BOX<COORD_TYPE>::SetCoord
   (const CTYPE2 * minc, const CTYPE3 * maxc)
@@ -749,14 +748,14 @@ namespace IJK {
     SetMaxCoord(maxc);
   }
 
-  template <class COORD_TYPE>
+  template <typename COORD_TYPE>
   void BOX<COORD_TYPE>::SetAllMinCoord(const COORD_TYPE c)
   {
     for (int d = 0; d < dimension; d++)
       SetMinCoord(d, c);
   }
 
-  template <class COORD_TYPE>
+  template <typename COORD_TYPE>
   void BOX<COORD_TYPE>::SetAllMaxCoord(const COORD_TYPE c)
   {
     for (int d = 0; d < dimension; d++)
@@ -764,7 +763,7 @@ namespace IJK {
   }
 
   // copy constructor template
-  template <class COORD_TYPE> 
+  template <typename COORD_TYPE> 
   BOX<COORD_TYPE>::BOX(const BOX<COORD_TYPE> & box)
   {
     Init();
@@ -776,7 +775,7 @@ namespace IJK {
   }
 
   // copy assigment template
-  template <class COORD_TYPE> 
+  template <typename COORD_TYPE> 
   const BOX<COORD_TYPE> & BOX<COORD_TYPE>::operator = 
   (const BOX<COORD_TYPE> & right)
   {
@@ -795,12 +794,12 @@ namespace IJK {
   // TEMPLATE CLASS ARRAY MEMBER FUNCTIONS
   // **************************************************
 
-  template <class ETYPE> ARRAY<ETYPE>::~ARRAY()
+  template <typename ETYPE> ARRAY<ETYPE>::~ARRAY()
   {
     Free();
   }
 
-  template <class ETYPE> void ARRAY<ETYPE>::Free()
+  template <typename ETYPE> void ARRAY<ETYPE>::Free()
   {
     delete [] element;
     element = NULL;
