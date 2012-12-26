@@ -68,7 +68,7 @@ void ISODUAL_PARAM::Init()
   flag_resolve_ambiguous_facets = true;
   flag_separate_neg = true;
   flag_split_non_manifold = false;
-  flag_remove_unreferenced_vertices = true;
+  flag_delete_isolated_vertices = true;
 }
 
 /// Set type of interpolation

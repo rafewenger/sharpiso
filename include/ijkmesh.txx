@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2010,2012 Rephael Wenger
+  Copyright (C) 2010-2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -163,7 +163,7 @@ namespace IJK {
   }
 
   // **************************************************
-  // REMOVE UNREFERENCED VERTICES
+  // DELETE ISOLATED VERTICES
   // **************************************************
 
   /// Set flag[x] to true for every x in list.
@@ -199,7 +199,7 @@ namespace IJK {
     numv1 = k;
   }
 
-  /// Remove vertex coordinates of vertices which are not in vlist.
+  /// Delete vertex coordinates of vertices which are not in vlist.
   /// Compact coord0[] and relabel remaining vertices.
   /// @param coord0[] Array of vertex coordinates.
   /// @param[out] coord1[] Compacted array of vertex coordinates.
@@ -209,7 +209,7 @@ namespace IJK {
   template <typename DTYPE, typename CTYPE0, typename CTYPE1,
             typename NTYPE0, typename NTYPE1,
             typename VTYPE, typename NUMV_TYPE>
-  void remove_unreferenced_vertices
+  void delete_unreferenced_vertices
   (const DTYPE dimension, const CTYPE0 * coord0, const NTYPE0 numv0,
    VTYPE * vlist, const NUMV_TYPE vlist_length,
    CTYPE1 * coord1, NTYPE1 & numv1)
@@ -230,34 +230,34 @@ namespace IJK {
       { vlist[j] = new_index[vlist[j]]; }
   }
 
-  /// Remove vertex coordinates of vertices which are not in vlist.
+  /// Delete vertex coordinates of vertices which are not in vlist.
   /// Compact coord[] and relabel remaining vertices.
   /// Version which alters coord[] and numv.
   /// @param coord0[] Array of vertex coordinates.
   template <typename DTYPE, typename CTYPE, typename NTYPE,
             typename VTYPE, typename NUMV_TYPE>
-  void remove_unreferenced_vertices
+  void delete_unreferenced_vertices
   (const DTYPE dimension, CTYPE * coord, NTYPE & numv,
    VTYPE * vlist, const NUMV_TYPE vlist_length)
   {
     NTYPE numv1;
-    remove_unreferenced_vertices
+    delete_unreferenced_vertices
       (dimension, coord, numv, vlist, vlist_length, coord, numv1);
     numv = numv1;
   }
 
-  /// Remove vertex coordinates of vertices which are not in vlistA or vlistB.
+  /// Delete vertex coordinates of vertices which are not in vlistA or vlistB.
   /// Compact coord0[] and relabel remaining vertices.
   /// @param coord0[] Array of vertex coordinates.
   /// @param[out] coord1[] Compacted array of vertex coordinates.
-  ///      Unreferenced vertices have been removed.
+  ///      Unreferenced vertices have been deleted.
   ///      coord0[] and coord1[] could be the same array.
   /// @pre Array coord1[] is pre-allocated to length at least numv0*dimension.
   template <typename DTYPE, typename CTYPE0, typename CTYPE1,
             typename NTYPE0, typename NTYPE1,
             typename VTYPEA, typename VTYPEB,
             typename NUMV_TYPEA, typename NUMV_TYPEB>
-  void remove_unreferenced_vertices_two_lists
+  void delete_unreferenced_vertices_two_lists
   (const DTYPE dimension, const CTYPE0 * coord0, const NTYPE0 numv0,
    VTYPEA * vlistA, const NUMV_TYPEA vlistA_length,
    VTYPEB * vlistB, const NUMV_TYPEB vlistB_length,
@@ -283,30 +283,30 @@ namespace IJK {
       { vlistB[j] = new_index[vlistB[j]]; }
   }
 
-  /// Remove vertex coordinates of vertices which are not in vlistA or vlistB.
+  /// Delete vertex coordinates of vertices which are not in vlistA or vlistB.
   /// Compact coord[] and relabel remaining vertices.
   /// Version which alters coord[] and numv.
   /// @param coord0[] Array of vertex coordinates.
   template <typename DTYPE, typename CTYPE, typename NTYPE,
             typename VTYPEA, typename VTYPEB,
             typename NUMV_TYPEA, typename NUMV_TYPEB>
-  void remove_unreferenced_vertices_two_lists
+  void delete_unreferenced_vertices_two_lists
   (const DTYPE dimension, CTYPE * coord, NTYPE & numv,
    VTYPEA * vlistA, const NUMV_TYPEA vlistA_length,
    VTYPEB * vlistB, const NUMV_TYPEB vlistB_length)
   {
     NTYPE numv1;
-    remove_unreferenced_vertices_two_lists
+    delete_unreferenced_vertices_two_lists
       (dimension, coord, numv, vlistA, vlistA_length, vlistB, vlistB_length,
        coord, numv1);
     numv = numv1;
   }
 
-  /// Remove vertex coordinates of vertices which are not in vlistA or vlistB.
+  /// Delete vertex coordinates of vertices which are not in vlistA or vlistB.
   /// C++ STL vector format for coord, vlistA and vlistB
   template <typename DTYPE, typename CTYPE,
             typename VTYPEA, typename VTYPEB>
-  void remove_unreferenced_vertices_two_lists
+  void delete_unreferenced_vertices_two_lists
   (const DTYPE dimension, std::vector<CTYPE> & coord,
    std::vector<VTYPEA> & vlistA, std::vector<VTYPEB> & vlistB)
   {
@@ -321,7 +321,7 @@ namespace IJK {
     if (vlistA.size() > 0) { vlistA_ptr = &(vlistA.front()); }
     if (vlistB.size() > 0) { vlistB_ptr = &(vlistB.front()); }
 
-    remove_unreferenced_vertices_two_lists
+    delete_unreferenced_vertices_two_lists
       (dimension, &(coord[0]), numv, 
        vlistA_ptr, vlistA.size(), vlistB_ptr, vlistB.size());
 

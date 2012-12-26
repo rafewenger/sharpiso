@@ -408,7 +408,7 @@ typedef enum {
       break;
 
     case KEEPV_PARAM:
-      input_info.flag_remove_unreferenced_vertices = false;
+      input_info.flag_delete_isolated_vertices = false;
       break;
 
     case OUTPUT_PARAM_PARAM:
