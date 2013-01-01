@@ -696,18 +696,10 @@ void output_gcube_map
 }
 
 // External routine
-void get_merged_cubes
-(const SHARPISO_GRID & grid,
- const ISOVERT & isovert,
- const VERTEX_INDEX cube_index0,
- const std::vector<VERTEX_INDEX> & gcube_map,
- const AXIS_SIZE_TYPE dist2cube,
- std::vector<VERTEX_INDEX> & merged_cube_list);
 void get_merged_boundary_edges
 (const SHARPISO_GRID & grid,
  const std::vector<VERTEX_INDEX> & merged_cube_list,
  std::vector<EDGE_INDEX> & boundary_edge_list);
-
 
 // Output cubes merged with cube_index
 void output_merged_cubes
@@ -838,11 +830,10 @@ void output_is_isopatch_disk2
   std::vector<ISO_VERTEX_INDEX> quad_vert;
   std::vector<ISO_VERTEX_INDEX> tri_vert2;
   std::vector<ISO_VERTEX_INDEX> quad_vert2;
-  ISODUAL_INFO isodual_info;
 
   extract_dual_isopatch_incident_on
     (scalar_grid, isovalue, isovert, cube_index,
-     gcube_map, dist2cube, tri_vert, quad_vert, isodual_info);
+     gcube_map, dist2cube, tri_vert, quad_vert);
   
 
   reorder_quad_vertices(quad_vert);

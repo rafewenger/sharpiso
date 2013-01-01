@@ -184,6 +184,15 @@ namespace ISODUAL3D {
   // IS ISOSURFACE PATCH A DISK?
   // **************************************************
 
+  /// Get list of cubes merged with icube.
+  void get_merged_cubes
+  (const SHARPISO_GRID & grid,
+   const ISOVERT & isovert,
+   const VERTEX_INDEX cube_index0,
+   const std::vector<VERTEX_INDEX> & gcube_map,
+   const AXIS_SIZE_TYPE dist2cube,
+   std::vector<VERTEX_INDEX> & merged_cube_list);
+
   /// Extract dual isosurface patch with vertex in merged cube.
   /// Returns list of (possibly degenerate) quadrilaterals.
   void extract_dual_quad_isopatch_incident_on
@@ -194,8 +203,7 @@ namespace ISODUAL3D {
    const std::vector<VERTEX_INDEX> & gcube_map,
    const AXIS_SIZE_TYPE dist2cube,
    std::vector<ISO_VERTEX_INDEX> & isoquad_gcube,
-   std::vector<FACET_VERTEX_INDEX> & facet_vertex,
-   ISODUAL_INFO & isodual_info);
+   std::vector<FACET_VERTEX_INDEX> & facet_vertex);
 
   /// Extract dual isosurface patch with vertex in merged cube.
   /// Returns non-degenerate triangles and quadrilaterals.
@@ -207,8 +215,7 @@ namespace ISODUAL3D {
    const std::vector<VERTEX_INDEX> & gcube_map,
    const AXIS_SIZE_TYPE dist2cube,
    std::vector<ISO_VERTEX_INDEX> & tri_vert,
-   std::vector<ISO_VERTEX_INDEX> & quad_vert,
-   ISODUAL_INFO & isodual_info);
+   std::vector<ISO_VERTEX_INDEX> & quad_vert);
 
   /// Return true if isopatch incident on vertex is a disk.
   /// @param tri_vert Triangle vertices.

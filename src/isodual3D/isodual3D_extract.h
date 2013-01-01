@@ -73,9 +73,7 @@ namespace ISODUAL3D {
    const SCALAR_TYPE isovalue,
    const std::vector<EDGE_INDEX> & edge_list,
    std::vector<ISO_VERTEX_INDEX> & iso_cube,
-   std::vector<FACET_VERTEX_INDEX> & facet_vertex,
-   ISODUAL_INFO & isodual_info);
-
+   std::vector<FACET_VERTEX_INDEX> & facet_vertex);
 
   // **************************************************
   // MAP TO ISOPOLY VERTICES

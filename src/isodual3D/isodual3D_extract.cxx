@@ -109,14 +109,9 @@ void ISODUAL3D::extract_dual_isopoly_from_list
  const SCALAR_TYPE isovalue,
  const std::vector<EDGE_INDEX> & edge_list,
  std::vector<ISO_VERTEX_INDEX> & iso_poly,
- std::vector<FACET_VERTEX_INDEX> & facet_vertex,
- ISODUAL_INFO & isodual_info)
+ std::vector<FACET_VERTEX_INDEX> & facet_vertex)
 {
   const int dimension = scalar_grid.Dimension();
-
-  isodual_info.time.extract = 0;
-
-  clock_t t0 = clock();
 
   // initialize output
   iso_poly.clear();
@@ -129,9 +124,6 @@ void ISODUAL3D::extract_dual_isopoly_from_list
     extract_dual_isopoly_around_bipolar_edge
       (scalar_grid, isovalue, iend0, edge_dir, iso_poly, facet_vertex);
   }
-
-  clock_t t1 = clock();
-  clock2seconds(t1-t0, isodual_info.time.extract);
 }
 
 
