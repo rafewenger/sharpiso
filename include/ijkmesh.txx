@@ -28,6 +28,7 @@
 #include "ijklist.txx"
 
 #include <algorithm>
+#include <numeric>
 #include <vector>
 
 namespace IJK {
@@ -326,6 +327,226 @@ namespace IJK {
        vlistA_ptr, vlistA.size(), vlistB_ptr, vlistB.size());
 
     coord.resize(numv*dimension);
+  }
+
+  // **************************************************
+  // DELETE POLYTOPES
+  // **************************************************
+
+  /// Delete polytopes with few vertices.
+  template <typename NUMV_TYPE0, typename NUMV_TYPE1,
+            typename VTYPE, typename ITYPE, typename NTYPE>
+  void delete_poly_few_vert
+  (const NUMV_TYPE0 min_num_poly_vert, VTYPE * vlist, 
+   NUMV_TYPE1 * num_poly_vert, ITYPE * first_poly_vert, NTYPE & num_poly)
+  {
+    ITYPE vlist_length = 0;
+    NTYPE k = 0;
+    for (NTYPE ipoly = 0; ipoly < num_poly; ipoly++) {
+      if (num_poly_vert[ipoly] >= min_num_poly_vert) {
+        if (k < ipoly) {
+          VTYPE * vlist_ptr0 = vlist + first_poly_vert[ipoly];
+          VTYPE * vlist_ptr1 = vlist + vlist_length;
+          std::copy(vlist_ptr0, vlist_ptr0+num_poly_vert[ipoly], vlist_ptr1);
+          num_poly_vert[k] = num_poly_vert[ipoly];
+          first_poly_vert[k] = vlist_length;
+        }
+        vlist_length += num_poly_vert[k];
+        k++;
+      }
+    }
+    num_poly = k;
+  }
+
+  // **************************************************
+  // DELETE DUPLICATE POLYTOPE VERTICES
+  // **************************************************
+
+  /// Delete duplicate polytope vertices.
+  template <typename NUMV_TYPE, typename VTYPE, typename ITYPE, 
+            typename NTYPE>
+  void delete_poly_vert_duplicate
+  (VTYPE * vlist, NUMV_TYPE * num_poly_vert, ITYPE * first_poly_vert, 
+   const NTYPE num_poly)
+  {
+    ITYPE vlist_length = 0;
+    for (NTYPE ipoly = 0; ipoly < num_poly; ipoly++) {
+      if (num_poly_vert[ipoly] > 0) {
+        VTYPE * vlist_ptr0 = vlist + first_poly_vert[ipoly];
+        VTYPE * vlist_ptr1 = vlist + vlist_length;
+        *vlist_ptr1 = *vlist_ptr0;
+        ITYPE k = 1;
+        for (ITYPE i = 1; i < num_poly_vert[ipoly]; i++) {
+          if (std::find(vlist_ptr1, vlist_ptr1+k, *(vlist_ptr0+i)) ==
+              vlist_ptr1+k) {
+            *(vlist_ptr1+k) = *(vlist_ptr0+i);
+            k++;
+          }
+        }
+        num_poly_vert[ipoly] = k;
+        first_poly_vert[ipoly] = vlist_length;
+        vlist_length = vlist_length + k;
+      }
+      else {
+        first_poly_vert[ipoly] = vlist_length;
+      }
+    }
+  }
+
+  /// Delete polytope vertices with duplicate coodinates.
+  template <typename DTYPE, typename CTYPE, typename NUMV_TYPE, typename VTYPE,
+            typename ITYPE, typename NTYPE>
+  void delete_poly_vert_duplicate_coord
+  (const DTYPE dimension, const CTYPE * vertex_coord, VTYPE * vlist, 
+   NUMV_TYPE * num_poly_vert, ITYPE * first_poly_vert, const NTYPE num_poly)
+  {
+    // Duplicate vertices automatically have duplicate coordinates.
+    // Delete duplicate vertices.
+    delete_poly_vert_duplicate
+      (vlist, num_poly_vert, first_poly_vert, num_poly);
+
+    // Delete distinct vertices with duplicate coordinates.
+    ITYPE vlist_length = 0;
+    for (NTYPE ipoly = 0; ipoly < num_poly; ipoly++) {
+      if (num_poly_vert[ipoly] > 0) {
+        VTYPE * vlist_ptr0 = vlist + first_poly_vert[ipoly];
+        VTYPE * vlist_ptr1 = vlist + vlist_length;
+        *vlist_ptr1 = *vlist_ptr0;
+        ITYPE k = 1;
+        for (ITYPE i = 1; i < num_poly_vert[ipoly]; i++) {
+          VTYPE iv0 = *(vlist_ptr0+i);
+          bool flag_duplicate = false;
+          for (ITYPE j = 0; j < k; j++) {
+            VTYPE iv1 = *(vlist_ptr1+j);
+            const CTYPE * vcoord0 = vertex_coord+iv0*dimension;
+            const CTYPE * vcoord1 = vertex_coord+iv1*dimension;
+            if (std::equal(vcoord0, vcoord0+dimension, vcoord1)) {
+              flag_duplicate = true;
+              break;
+            }
+          }
+
+          if (!flag_duplicate) {
+            *(vlist_ptr1+k) = *(vlist_ptr0+i);
+            k++;
+          }
+        }
+        num_poly_vert[ipoly] = k;
+        first_poly_vert[ipoly] = vlist_length;
+        vlist_length = vlist_length + k;
+      }
+      else {
+        first_poly_vert[ipoly] = vlist_length;
+      }
+    }
+  }
+
+  // **************************************************
+  // DELETE MESH ELEMENTS OUTSIDE REGION
+  // **************************************************
+
+  /// Return true if coordinates are is in region.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, typename CTYPE2>
+  bool region_contains_coord
+  (const DTYPE dimension, const CTYPE0 * min_coord, const CTYPE1 * max_coord,
+   const CTYPE2 * coord)
+  {
+    for (DTYPE d = 0; d < dimension; d++) {
+      if ((coord[d] < min_coord[d]) ||
+          (coord[d] > max_coord[d]))
+        { return(false); }
+    }
+
+    return(true);
+  }
+
+  /// Return true if all polytope vertices are is in region.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, typename CTYPE2,
+            typename VTYPE, typename NUMV_TYPE>
+  bool region_contains_poly
+  (const DTYPE dimension, const CTYPE1 * min_coord, const CTYPE2 * max_coord,
+   const CTYPE0 * vertex_coord, VTYPE * poly_vert, NUMV_TYPE num_poly_vert)
+  {
+    for (NUMV_TYPE i = 0; i < num_poly_vert; i++) {
+      VTYPE iv = poly_vert[i];
+      const CTYPE0 * coord = vertex_coord+iv*dimension;
+      if (!region_contains_coord(dimension, min_coord, max_coord, coord))
+        { return(false); }
+    }
+
+    return(true);
+  }
+
+  /// Delete any polytopes with vertices outside the given region.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, typename CTYPE2,
+            typename NUMV_TYPE, typename VTYPE, typename ITYPE, typename NTYPE>
+  void delete_poly_outside_region
+  (const DTYPE dimension, const CTYPE0 * min_coord, const CTYPE1 * max_coord,
+   const CTYPE2 * vertex_coord, 
+   VTYPE * vlist, NUMV_TYPE * num_poly_vert, ITYPE * first_poly_vert, 
+   NTYPE & num_poly)
+  {
+    ITYPE vlist_length = 0;
+    NTYPE k = 0;
+    for (NTYPE ipoly = 0; ipoly < num_poly; ipoly++) {
+      VTYPE * polyvert = vlist+first_poly_vert[ipoly];
+      if (region_contains_poly(dimension, min_coord, max_coord, vertex_coord, 
+                               polyvert, num_poly_vert[ipoly])) {
+        if (k < ipoly) {
+          VTYPE * vlist_ptr0 = vlist + first_poly_vert[ipoly];
+          VTYPE * vlist_ptr1 = vlist + vlist_length;
+          std::copy(vlist_ptr0, vlist_ptr0+num_poly_vert[ipoly], vlist_ptr1);
+          num_poly_vert[k] = num_poly_vert[ipoly];
+          first_poly_vert[k] = vlist_length;
+        }
+        vlist_length += num_poly_vert[k];
+        k++;
+      }
+    }
+    num_poly = k;
+  }
+
+  /// Delete any vertices outside the given region.
+  /// Also deletes any polytopes incident on those vertices
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, typename CTYPE2,
+            typename NTYPE,
+            typename NUM_POLYV_TYPE, typename VTYPE, typename ITYPE,
+            typename NUMP_TYPE>
+  void delete_vert_outside_region
+  (const DTYPE dimension, 
+   const CTYPE0 * min_coord, const CTYPE1 * max_coord,
+   CTYPE2 * vertex_coord, NTYPE & num_vert,
+   VTYPE * vlist, NUM_POLYV_TYPE * num_poly_vert, ITYPE * first_poly_vert, 
+   NUMP_TYPE & num_poly)
+  {
+    // new_index[i] = new index of vertex i.
+    IJK::ARRAY<VTYPE> new_index(num_vert);
+
+    delete_poly_outside_region
+      (dimension, min_coord, max_coord, vertex_coord, 
+       vlist, num_poly_vert, first_poly_vert, num_poly);
+
+    NTYPE k = 0;
+    for (NTYPE iv = 0; iv < num_vert; iv++) {
+      if (region_contains_coord
+          (dimension, min_coord, max_coord, vertex_coord+iv*dimension)) {
+
+        if (k < iv) {
+          const CTYPE0 * coord0_ptr = vertex_coord+dimension*iv;
+          CTYPE1 * coord1_ptr = vertex_coord+dimension*k;
+          std::copy(coord0_ptr, coord0_ptr+dimension, coord1_ptr);
+        }
+        new_index[iv] = k;
+        k++;
+      }
+    }
+
+    num_vert = k;
+
+    ITYPE vlist_length =
+      std::accumulate(num_poly_vert, num_poly_vert+num_poly, 0);
+    for (ITYPE i = 0; i < vlist_length; i++) 
+      { vlist[i] = new_index[vlist[i]]; }
   }
 
   // **************************************************

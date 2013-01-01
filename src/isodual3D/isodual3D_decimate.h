@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifndef _ISODUAL3D_DECIMATE_
 #define _ISODUAL3D_DECIMATE_
 
+#include <unordered_map>
 #include <vector>
 
 #include "isodual3D_types.h"
@@ -179,6 +180,78 @@ namespace ISODUAL3D {
       { return(selected_cube_boundary); };
   };
 
+  // **************************************************
+  // IS ISOSURFACE PATCH A DISK?
+  // **************************************************
+
+  /// Extract dual isosurface patch with vertex in merged cube.
+  /// Returns list of (possibly degenerate) quadrilaterals.
+  void extract_dual_quad_isopatch_incident_on
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const VERTEX_INDEX cube_index0,
+   const std::vector<VERTEX_INDEX> & gcube_map,
+   const AXIS_SIZE_TYPE dist2cube,
+   std::vector<ISO_VERTEX_INDEX> & isoquad_gcube,
+   std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+   ISODUAL_INFO & isodual_info);
+
+  /// Extract dual isosurface patch with vertex in merged cube.
+  /// Returns non-degenerate triangles and quadrilaterals.
+  void extract_dual_isopatch_incident_on
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const VERTEX_INDEX cube_index0,
+   const std::vector<VERTEX_INDEX> & gcube_map,
+   const AXIS_SIZE_TYPE dist2cube,
+   std::vector<ISO_VERTEX_INDEX> & tri_vert,
+   std::vector<ISO_VERTEX_INDEX> & quad_vert,
+   ISODUAL_INFO & isodual_info);
+
+  /// Return true if isopatch incident on vertex is a disk.
+  /// @param tri_vert Triangle vertices.
+  /// @param quad_vert Quadrilateral vertices in order around quadrilateral.
+  /// @pre Assumes the boundary of the isopatch is the link of some vertex.
+  bool is_isopatch_disk3D
+  (const std::vector<ISO_VERTEX_INDEX> & tri_vert,
+   const std::vector<ISO_VERTEX_INDEX> & quad_vert);
+
+  // **************************************************
+  // EDGE HASH TABLE
+  // **************************************************
+
+  struct HASH_VERTEX_PAIR {
+
+    std::hash<VERTEX_INDEX> hash_func;
+
+    HASH_VERTEX_PAIR(){};
+
+    size_t operator() (const VERTEX_PAIR & key) const
+    {
+      return(hash_func(key.first+key.second));
+    };
+  };
+
+
+  class CYCLE_VERTEX {
+
+  public:
+    VERTEX_INDEX adjacent[2];
+    NUM_TYPE num_adjacent;
+    bool is_visited;
+
+    CYCLE_VERTEX() {
+      num_adjacent = 0; 
+      is_visited = false;
+    };
+  };
+
+  typedef std::unordered_map<VERTEX_PAIR, NUM_TYPE, HASH_VERTEX_PAIR> 
+    EDGE_HASH_TABLE;
+  typedef std::unordered_map<VERTEX_INDEX, NUM_TYPE>
+    VERTEX_HASH_TABLE;
 };
 
 

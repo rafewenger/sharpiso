@@ -34,7 +34,7 @@ namespace ISODUAL3D {
   /// Returns list of isosurface polytope vertices.
   /// @param scalar_grid = scalar grid data
   /// @param isovalue = isosurface scalar value
-  /// @param iso_poly[] = vector of isosurface polygope vertices
+  /// @param iso_poly[] = vector of isosurface polytope vertices
   ///   iso_simplices[numv_per_poly*ip+k] = 
   ///     cube containing k'th vertex of polytope ip.
   void extract_dual_isopoly
@@ -47,14 +47,35 @@ namespace ISODUAL3D {
   /// Return locations of isosurface vertices on each facet.
   /// @param scalar_grid = scalar grid data
   /// @param isovalue = isosurface scalar value
-  /// @param iso_poly[] = vector of isosurface polygope vertices
-  ///   iso_simplices[numv_per_poly*ip+k] = 
+  /// @param iso_cube[] = cubes containing isosurface polytope vertices.
+  ///   iso_cube[numv_per_poly*ip+k] = 
   ///     cube containing k'th vertex of polytope ip.
+  /// @param facet_vertex = Location of iso vertex on facet.
   void extract_dual_isopoly
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-   const SCALAR_TYPE isovalue, std::vector<ISO_VERTEX_INDEX> & iso_poly,
+   const SCALAR_TYPE isovalue, std::vector<ISO_VERTEX_INDEX> & iso_cube,
    std::vector<FACET_VERTEX_INDEX> & facet_vertex,
    ISODUAL_INFO & isodual_info);
+
+  /// Extract dual isosurface polytopes from list of edges.
+  /// Returns list of isosurface polytope vertices.
+  /// Return locations of isosurface vertices on each facet.
+  /// @param scalar_grid = scalar grid data
+  /// @param isovalue = isosurface scalar value
+  /// @param edge_list = List of edges. Polytopes are dual to edges.
+  /// @pre Each edge is an internal grid edge.
+  /// @param iso_cube[] = cubes containing isosurface polytope vertices.
+  ///   iso_cube[numv_per_poly*ip+k] = 
+  ///     cube containing k'th vertex of polytope ip.
+  /// @param facet_vertex = Location of iso vertex on facet.
+  void extract_dual_isopoly_from_list
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const std::vector<EDGE_INDEX> & edge_list,
+   std::vector<ISO_VERTEX_INDEX> & iso_cube,
+   std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+   ISODUAL_INFO & isodual_info);
+
 
   // **************************************************
   // MAP TO ISOPOLY VERTICES

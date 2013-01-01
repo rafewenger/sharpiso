@@ -99,6 +99,40 @@ void ISODUAL3D::extract_dual_isopoly
   clock2seconds(t1-t0, isodual_info.time.extract);
 }
 
+/// Extract dual isosurface polytopes from list of edges.
+/// Returns list of isosurface polytope vertices.
+/// Return locations of isosurface vertices on each facet.
+/// @param edge_list = List of edges. Polytopes are dual to edges.
+/// @pre Each edge is an internal grid edge.
+void ISODUAL3D::extract_dual_isopoly_from_list
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const std::vector<EDGE_INDEX> & edge_list,
+ std::vector<ISO_VERTEX_INDEX> & iso_poly,
+ std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+ ISODUAL_INFO & isodual_info)
+{
+  const int dimension = scalar_grid.Dimension();
+
+  isodual_info.time.extract = 0;
+
+  clock_t t0 = clock();
+
+  // initialize output
+  iso_poly.clear();
+
+  for (NUM_TYPE i = 0; i < edge_list.size(); i++) {
+    EDGE_INDEX edge_index = edge_list[i];
+    VERTEX_INDEX iend0 = edge_index/dimension;
+    int edge_dir = edge_index%dimension;
+
+    extract_dual_isopoly_around_bipolar_edge
+      (scalar_grid, isovalue, iend0, edge_dir, iso_poly, facet_vertex);
+  }
+
+  clock_t t1 = clock();
+  clock2seconds(t1-t0, isodual_info.time.extract);
+}
 
 
 // **************************************************

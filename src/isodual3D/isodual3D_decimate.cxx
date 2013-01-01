@@ -3,7 +3,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2012 Rephael Wenger
+  Copyright (C) 2012-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -30,6 +30,7 @@
 #include "isodual3D_types.h"
 #include "isodual3D_datastruct.h"
 #include "isodual3D_decimate.h"
+#include "isodual3D_extract.h"
 
 
 // forward declarations
@@ -645,3 +646,365 @@ namespace ISODUAL3D {
 
 }
 
+
+// **************************************************
+// IS ISOSURFACE PATCH A DISK?
+// **************************************************
+
+
+/// Get cubes merged with icube.
+void get_merged_cubes
+(const SHARPISO_GRID & grid,
+ const ISOVERT & isovert,
+ const VERTEX_INDEX cube_index0,
+ const std::vector<VERTEX_INDEX> & gcube_map,
+ const AXIS_SIZE_TYPE dist2cube,
+ std::vector<VERTEX_INDEX> & merged_cube_list)
+{
+  const int dimension = grid.Dimension();
+  const VERTEX_INDEX gcube_index0 = 
+    isovert.sharp_ind_grid.Scalar(cube_index0);
+  VERTEX_INDEX region_iv0;
+  IJK::ARRAY<AXIS_SIZE_TYPE> region_axis_size(dimension);
+
+  IJK::compute_region_around_cube
+    (cube_index0, dimension, grid.AxisSize(), dist2cube, 
+     region_iv0, region_axis_size.Ptr());
+
+  NUM_TYPE num_region_cubes;
+  IJK::compute_num_grid_cubes
+    (dimension, region_axis_size.PtrConst(), num_region_cubes);
+
+  IJK::ARRAY<VERTEX_INDEX> region_cube_list(num_region_cubes);
+  IJK::get_subgrid_cubes
+    (dimension, grid.AxisSize(), region_iv0, region_axis_size.PtrConst(),
+     region_cube_list.Ptr());
+
+  for (NUM_TYPE i = 0; i < num_region_cubes; i++) {
+    VERTEX_INDEX cube_index1 = region_cube_list[i];
+    VERTEX_INDEX gcube_index1 = isovert.sharp_ind_grid.Scalar(cube_index1);
+    if (gcube_map[gcube_index1] == gcube_index0) 
+      { merged_cube_list.push_back(cube_index1); }
+  }
+}
+
+/// Get edges on boundary of merged cubes.
+void get_merged_boundary_edges
+(const SHARPISO_GRID & grid,
+ const std::vector<VERTEX_INDEX> & merged_cube_list,
+ std::vector<EDGE_INDEX> & boundary_edge_list)
+{
+  typedef SHARPISO_GRID::DIMENSION_TYPE DTYPE;
+  typedef std::unordered_map<EDGE_INDEX, NUM_TYPE> HASH_TABLE;
+
+  HASH_TABLE edge_hash;
+
+  for (NUM_TYPE i = 0; i < merged_cube_list.size(); i++) {
+    VERTEX_INDEX cube_index = merged_cube_list[i];
+    for (DTYPE edge_dir = 0; edge_dir < DIM3; edge_dir++) {
+      for (NUM_TYPE k = 0; k < NUM_CUBE_FACET_VERTICES3D; k++) {
+        VERTEX_INDEX iv = grid.FacetVertex(cube_index, edge_dir, k);
+        EDGE_INDEX iedge = iv*DIM3+edge_dir;
+
+        HASH_TABLE::iterator edge_iter = edge_hash.find(iedge);
+        if (edge_iter == edge_hash.end()) {
+          edge_hash.insert(HASH_TABLE::value_type(iedge, 1));
+        }
+        else {
+          edge_iter->second++;
+        }
+      }
+    }
+  }
+
+  for (HASH_TABLE::const_iterator edge_iter = edge_hash.begin();
+       edge_iter != edge_hash.end(); edge_iter++) {
+    if (edge_iter->second != NUM_QUAD_VERTICES) 
+      { boundary_edge_list.push_back(edge_iter->first); }
+  }
+
+}
+
+/// Select edges from edge list which are in the grid interior.
+void select_interior_grid_edges
+(const SHARPISO_GRID & grid,
+ const std::vector<EDGE_INDEX> & edge_list,
+ std::vector<EDGE_INDEX> & interior_edge_list)
+{
+  const int dimension = grid.Dimension();
+
+  for (NUM_TYPE i = 0; i < edge_list.size(); i++) {
+    EDGE_INDEX edge_index = edge_list[i];
+    EDGE_INDEX iend0 = edge_index/dimension;
+    int edge_dir = edge_index%dimension;
+    if (!IJK::is_edge_on_grid_boundary
+        (iend0, edge_dir, dimension, grid.AxisSize())) {
+      interior_edge_list.push_back(edge_index);
+    }
+  }
+}
+
+// Extract dual isosurface patch with vertex in merged cube.
+void ISODUAL3D::extract_dual_quad_isopatch_incident_on
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const ISOVERT & isovert,
+ const VERTEX_INDEX cube_index0,
+ const std::vector<VERTEX_INDEX> & gcube_map,
+ const AXIS_SIZE_TYPE dist2cube,
+ std::vector<ISO_VERTEX_INDEX> & isoquad_gcube,
+ std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+ ISODUAL_INFO & isodual_info)
+{
+  std::vector<VERTEX_INDEX> merged_cube_list;
+  std::vector<EDGE_INDEX> boundary_edge_list;
+  std::vector<EDGE_INDEX> edge_list;
+
+  get_merged_cubes(scalar_grid, isovert, cube_index0, gcube_map, dist2cube, 
+                   merged_cube_list);
+  get_merged_boundary_edges(scalar_grid, merged_cube_list, boundary_edge_list);
+  select_interior_grid_edges(scalar_grid, boundary_edge_list, edge_list);
+  extract_dual_isopoly_from_list(scalar_grid, isovalue, edge_list, 
+                                 isoquad_gcube, facet_vertex, isodual_info);
+
+  for (VERTEX_INDEX i = 0; i < isoquad_gcube.size(); i++) {
+    VERTEX_INDEX cube_index = isoquad_gcube[i];
+    VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(cube_index);
+    isoquad_gcube[i] = gcube_map[gcube_index];
+  }
+}
+
+
+// Extract dual isosurface patch with vertex in merged cube.
+void ISODUAL3D::extract_dual_isopatch_incident_on
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const ISOVERT & isovert,
+ const VERTEX_INDEX cube_index0,
+ const std::vector<VERTEX_INDEX> & gcube_map,
+ const AXIS_SIZE_TYPE dist2cube,
+ std::vector<ISO_VERTEX_INDEX> & tri_vert,
+ std::vector<ISO_VERTEX_INDEX> & quad_vert,
+ ISODUAL_INFO & isodual_info)
+{
+  std::vector<ISO_VERTEX_INDEX> isoquad_gcube;
+  std::vector<FACET_VERTEX_INDEX> facet_vertex;
+
+  extract_dual_quad_isopatch_incident_on
+    (scalar_grid, isovalue, isovert, cube_index0, gcube_map, dist2cube,
+     isoquad_gcube, facet_vertex, isodual_info);
+  IJK::get_non_degenerate_quad_btlr(isoquad_gcube, tri_vert, quad_vert);
+}
+
+// Insert polygon edges in edge hash table.
+void insert_poly_edges
+(const std::vector<ISO_VERTEX_INDEX> & poly_vert, 
+ const NUM_TYPE num_vert_per_poly,
+ EDGE_HASH_TABLE & edge_hash)
+{
+  NUM_TYPE num_poly = poly_vert.size()/num_vert_per_poly;
+
+  for (NUM_TYPE i = 0; i < num_poly; i++) {
+    for (int k0 = 0; k0 < num_vert_per_poly; k0++) {
+      VERTEX_INDEX iv0 = poly_vert[i*num_vert_per_poly+k0];
+      int k1 = (k0+1)%num_vert_per_poly;
+      VERTEX_INDEX iv1 = poly_vert[i*num_vert_per_poly+k1];
+      if (iv0 > iv1) { std::swap(iv0, iv1); }
+      VERTEX_PAIR key = std::make_pair(iv0, iv1);
+
+      EDGE_HASH_TABLE::iterator edge_iter = edge_hash.find(key);
+      if (edge_iter == edge_hash.end()) {
+        edge_hash.insert(EDGE_HASH_TABLE::value_type(key, 1));
+      }
+      else {
+        edge_iter->second++;
+      }
+    }
+  }
+}
+
+// Insert triangle and quadrilateral edges into edge hash table.
+void insert_tri_quad_edges
+(const std::vector<ISO_VERTEX_INDEX> & tri_vert,
+ const std::vector<ISO_VERTEX_INDEX> & quad_vert,
+ EDGE_HASH_TABLE & edge_hash)
+{
+  insert_poly_edges(tri_vert, NUM_VERT_PER_TRI, edge_hash);
+  insert_poly_edges(quad_vert, NUM_VERT_PER_QUAD, edge_hash);
+}
+
+// Insert or increment vertex count in vertex hash table.
+void insert_vertex(const VERTEX_INDEX iv,
+                   VERTEX_HASH_TABLE & vertex_hash)
+{
+  VERTEX_HASH_TABLE::iterator vertex_iter = vertex_hash.find(iv);
+  if (vertex_iter == vertex_hash.end()) {
+    vertex_hash.insert({iv, 1});
+  }
+  else {
+    vertex_iter->second++;
+  }
+}
+
+// Insert vertices from vlist into vertex hash table.
+// @param vertex_hash Maps vertex to unique number 
+//        in range [0-(vertex_hash.size()-1)].
+void insert_vertex_list
+(const std::vector<VERTEX_INDEX> & vlist,
+ VERTEX_HASH_TABLE & vertex_hash)
+{
+  for (NUM_TYPE i = 0; i < vlist.size(); i++) {
+    VERTEX_INDEX iv = vlist[i];
+    VERTEX_HASH_TABLE::iterator vertex_iter = vertex_hash.find(iv);
+    if (vertex_iter == vertex_hash.end()) {
+      NUM_TYPE n = vertex_hash.size();
+      vertex_hash.insert({iv, n});
+    }
+  }
+}
+
+// Remap vertices from vlist to values vertex hash table.
+// @pre Every vertex in vlist is in the vertex hash table.
+void remap_vertex_list
+(const VERTEX_HASH_TABLE & vertex_hash,
+ const std::vector<VERTEX_INDEX> & vlist,
+ std::vector<VERTEX_INDEX> & new_vlist)
+{
+  new_vlist.resize(vlist.size());
+
+  for (NUM_TYPE i = 0; i < vlist.size(); i++) {
+    VERTEX_INDEX iv = vlist[i];
+    VERTEX_HASH_TABLE::const_iterator vertex_iter = vertex_hash.find(iv);
+    new_vlist[i] = vertex_iter->second;
+  }
+}
+
+// Insert vertex in cycle.
+// @param vertex_loc Location of vertex in list cycle_vertex.
+void insert_cycle_vertex
+(const VERTEX_INDEX iv0, const VERTEX_INDEX iv1,
+ std::vector<CYCLE_VERTEX> & cycle_vertex)
+{
+  NUM_TYPE num_adjacent = cycle_vertex[iv0].num_adjacent;
+  if (num_adjacent < 2) 
+    { cycle_vertex[iv0].adjacent[num_adjacent] = iv1; }
+  cycle_vertex[iv0].num_adjacent++;
+}
+
+// Construct list of boundary cycle vertices.
+void construct_boundary_cycle
+(const EDGE_HASH_TABLE & edge_hash,
+ std::vector<CYCLE_VERTEX> & cycle_vertex)
+{
+  for (EDGE_HASH_TABLE::const_iterator edge_iter = edge_hash.begin();
+       edge_iter != edge_hash.end(); edge_iter++) {
+    if (edge_iter->second == 1) {
+      VERTEX_INDEX iv0 = (edge_iter->first).first;
+      VERTEX_INDEX iv1 = (edge_iter->first).second;
+      insert_cycle_vertex(iv0, iv1, cycle_vertex);
+      insert_cycle_vertex(iv1, iv0, cycle_vertex);
+    }
+  }
+}
+
+// Renumber tri and quad vertices so that they are from 0 to num_vert-1.
+template <typename VTYPE>
+void renumber_tri_quad_vertices
+(const std::vector<VTYPE> & tri_vert,
+ const std::vector<VTYPE> & quad_vert,
+ std::vector<VTYPE> & new_tri_vert,
+ std::vector<VTYPE> & new_quad_vert,
+ NUM_TYPE & num_vert)
+{
+  VERTEX_HASH_TABLE vertex_hash;
+
+  insert_vertex_list(tri_vert, vertex_hash);
+  insert_vertex_list(quad_vert, vertex_hash);
+
+  num_vert = vertex_hash.size();
+  remap_vertex_list(vertex_hash, tri_vert, new_tri_vert);
+  remap_vertex_list(vertex_hash, quad_vert, new_quad_vert);
+}
+
+// Search cycle starting at iv0.
+// @pre All vertices in cycle containing iv0 have is_visited set to false.
+// @pre All vertices have degree two.
+void search_cycle
+(const VERTEX_INDEX iv0, std::vector<CYCLE_VERTEX> & cycle_vertex)
+{
+  VERTEX_INDEX iv = iv0;
+  VERTEX_INDEX ivprev = cycle_vertex[iv0].adjacent[0];
+  while (!cycle_vertex[iv].is_visited) {
+    cycle_vertex[iv].is_visited = true;
+    if (cycle_vertex[iv].adjacent[0] == ivprev) {
+      ivprev = iv;
+      iv = cycle_vertex[iv].adjacent[1];
+    }
+    else {
+      ivprev = iv;
+      iv = cycle_vertex[iv].adjacent[0];
+    }
+  }
+}
+
+// Return true if isopatch incident on vertex is a disk.
+// @param tri_vert Triangle vertices.
+// @param quad_vert Quadrilateral vertices in order around quadrilateral.
+// @pre Assumes the boundary of the isopatch is the link of some vertex.
+bool ISODUAL3D::is_isopatch_disk3D
+(const std::vector<ISO_VERTEX_INDEX> & tri_vert,
+ const std::vector<ISO_VERTEX_INDEX> & quad_vert)
+{
+  const NUM_TYPE num_tri = tri_vert.size()/NUM_VERT_PER_TRI;
+  const NUM_TYPE num_quad = quad_vert.size()/NUM_VERT_PER_QUAD;
+  std::vector<ISO_VERTEX_INDEX> tri_vert2;
+  std::vector<ISO_VERTEX_INDEX> quad_vert2;
+  NUM_TYPE num_vert;
+
+  VERTEX_HASH_TABLE vertex_hash;
+  EDGE_HASH_TABLE edge_hash;
+
+  // Renumber tri and quad vertices
+  renumber_tri_quad_vertices
+    (tri_vert, quad_vert, tri_vert2, quad_vert2, num_vert);
+
+  // Check for edges in more than two isosurface polygons.
+  insert_tri_quad_edges(tri_vert2, quad_vert2, edge_hash);
+
+  for (EDGE_HASH_TABLE::const_iterator edge_iter = edge_hash.begin();
+       edge_iter != edge_hash.end(); edge_iter++) {
+    if (edge_iter->second > 2) 
+      { return(false); }
+  }
+
+  // Check that boundary is a cycle or edge.
+  std::vector<CYCLE_VERTEX> cycle_vertex(num_vert);
+
+  construct_boundary_cycle(edge_hash, cycle_vertex);
+  NUM_TYPE num_boundary_vertices = 0;
+  NUM_TYPE first_adjacent = 0;
+  for (NUM_TYPE i = 0; i < cycle_vertex.size(); i++) {
+    NUM_TYPE num_adjacent = cycle_vertex[i].num_adjacent;
+    if (num_adjacent == 2) {
+      first_adjacent = i;
+      num_boundary_vertices++;
+    }
+    else if (num_adjacent != 0)
+      { return(false); }
+  }
+
+  if (num_boundary_vertices < 3) { 
+    // Disk must have at least three boundary cycle vertices.
+    return(false); 
+  }
+
+  search_cycle(first_adjacent, cycle_vertex);
+
+  for (NUM_TYPE i = 0; i < cycle_vertex.size(); i++) { 
+    if (cycle_vertex[i].num_adjacent == 2) {
+      if (!cycle_vertex[i].is_visited) { return(false); }
+    }
+  }
+
+  return(true);
+}

@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2008,2009,2010,2011,2012 Rephael Wenger
+  Copyright (C) 2008-2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -789,67 +789,6 @@ namespace IJK {
     return(iv);
   }
 
-  /// Compute boundary bits for vertex \a iv.
-  /// @param iv Vertex index.
-  /// @param dimension Dimension of grid.
-  /// @param axis_size  Array. <em>axis_size[d]</em> = Number of vertices along axis \a d.
-  /// @param [out] boundary_bits Bits flagging boundaries containing vertex \a iv.
-  ///       If bit \a 2d is true, then <em>d</em>'th coordinate of vertex \a iv is zero.
-  ///       If bit <em>(2d+1)</em> is true, then <em>d</em>'th coordinate of vertex \a iv equals
-  ///            <em>axis_size[d]-1</em>.
-  /// @pre \li Variable \a boundary_bits has at least <em>(2*dimension)</em> bits.
-  /// @pre \li axis_size[d] > 0 for all \a d = 0,..., \a dimension-1.
-  template <typename VTYPE, typename DTYPE, typename ATYPE, typename BTYPE>
-  void compute_boundary_bits
-  (const VTYPE iv, const DTYPE dimension,
-   const ATYPE * axis_size, BTYPE & boundary_bits)
-  {
-    VTYPE k = iv;
-    BTYPE flag = 1;
-    boundary_bits = 0;
-    for (DTYPE d = 0; d < dimension; d++) {
-      ATYPE c = k % axis_size[d];
-      k = k / axis_size[d];
-
-      if (c == 0) { boundary_bits = boundary_bits | flag; };
-      flag = (flag << 1);
-      if (c+1 >= axis_size[d]) { boundary_bits = boundary_bits | flag; };
-      flag = (flag << 1);
-    };
-  }
-
-  /// Compute boundary bits for cube \a icube.
-  /// @param icube Cube index.
-  /// @param dimension Dimension of grid.
-  /// @param axis_size  Array. 
-  ///       <em>axis_size[d]</em> = Number of vertices along axis \a d.
-  /// @param [out] boundary_bits Bits flagging boundaries 
-  ///              containing vertex \a iv.
-  ///       If bit \a 2d is true, then <em>d</em>'th coordinate 
-  ///              of cube \a icube is zero.
-  ///       If bit <em>(2d+1)</em> is true, then <em>d</em>'th coordinate 
-  ///              of cube \a icube equals <em>axis_size[d]-2</em>.
-  /// @pre \li Variable \a boundary_bits has at least <em>(2*dimension)</em> bits.
-  /// @pre \li axis_size[d] > 0 for all \a d = 0,..., \a dimension-1.
-  template <typename VTYPE, typename DTYPE, typename ATYPE, typename BTYPE>
-  void compute_boundary_cube_bits
-  (const VTYPE iv, const DTYPE dimension,
-   const ATYPE * axis_size, BTYPE & boundary_bits)
-  {
-    VTYPE k = iv;
-    BTYPE flag = 1;
-    boundary_bits = 0;
-    for (DTYPE d = 0; d < dimension; d++) {
-      ATYPE c = k % axis_size[d];
-      k = k / axis_size[d];
-
-      if (c == 0) { boundary_bits = boundary_bits | flag; };
-      flag = (flag << 1);
-      if (c+2 >= axis_size[d]) { boundary_bits = boundary_bits | flag; };
-      flag = (flag << 1);
-    };
-  }
-
   /// Return number of vertices in grid or subgrid.
   /// @param dimension  Dimension of grid.
   /// @param axis_size  Array: <em>axis_size[d]</em> = Number of vertices along axis \a d.
@@ -1484,6 +1423,130 @@ namespace IJK {
   /* \} */
 
   // **************************************************
+  // COMPUTE BOUNDARY BITS
+  // **************************************************
+
+  /// Compute boundary bits for vertex \a iv.
+  /// @param iv Vertex index.
+  /// @param dimension Dimension of grid.
+  /// @param axis_size  Array. <em>axis_size[d]</em> = Number of vertices along axis \a d.
+  /// @param [out] boundary_bits Bits flagging boundaries containing vertex \a iv.
+  ///       If bit \a 2d is true, then <em>d</em>'th coordinate of vertex \a iv is zero.
+  ///       If bit <em>(2d+1)</em> is true, then <em>d</em>'th coordinate of vertex \a iv equals
+  ///            <em>axis_size[d]-1</em>.
+  /// @pre \li Variable \a boundary_bits has at least <em>(2*dimension)</em> bits.
+  /// @pre \li axis_size[d] > 0 for all \a d = 0,..., \a dimension-1.
+  template <typename VTYPE, typename DTYPE, typename ATYPE, typename BTYPE>
+  void compute_boundary_bits
+  (const VTYPE iv, const DTYPE dimension,
+   const ATYPE * axis_size, BTYPE & boundary_bits)
+  {
+    VTYPE k = iv;
+    BTYPE flag = 1;
+    boundary_bits = 0;
+    for (DTYPE d = 0; d < dimension; d++) {
+      ATYPE c = k % axis_size[d];
+      k = k / axis_size[d];
+
+      if (c == 0) { boundary_bits = boundary_bits | flag; };
+      flag = (flag << 1);
+      if (c+1 >= axis_size[d]) { boundary_bits = boundary_bits | flag; };
+      flag = (flag << 1);
+    };
+  }
+
+  /// Compute boundary bits for cube \a icube.
+  /// @param icube Cube index.
+  /// @param dimension Dimension of grid.
+  /// @param axis_size  Array. 
+  ///       <em>axis_size[d]</em> = Number of vertices along axis \a d.
+  /// @param [out] boundary_bits Bits flagging boundaries 
+  ///              containing vertex \a iv.
+  ///       If bit \a 2d is true, then <em>d</em>'th coordinate 
+  ///              of cube \a icube is zero.
+  ///       If bit <em>(2d+1)</em> is true, then <em>d</em>'th coordinate 
+  ///              of cube \a icube equals <em>axis_size[d]-2</em>.
+  /// @pre \li Variable \a boundary_bits has at least <em>(2*dimension)</em> bits.
+  /// @pre \li axis_size[d] > 0 for all \a d = 0,..., \a dimension-1.
+  template <typename VTYPE, typename DTYPE, typename ATYPE, typename BTYPE>
+  void compute_boundary_cube_bits
+  (const VTYPE iv, const DTYPE dimension,
+   const ATYPE * axis_size, BTYPE & boundary_bits)
+  {
+    VTYPE k = iv;
+    BTYPE flag = 1;
+    boundary_bits = 0;
+    for (DTYPE d = 0; d < dimension; d++) {
+      ATYPE c = k % axis_size[d];
+      k = k / axis_size[d];
+
+      if (c == 0) { boundary_bits = boundary_bits | flag; };
+      flag = (flag << 1);
+      if (c+2 >= axis_size[d]) { boundary_bits = boundary_bits | flag; };
+      flag = (flag << 1);
+    };
+  }
+
+  /// Return true if edge is on grid boundary.
+  template <typename VTYPE, typename DIR_TYPE,
+            typename DTYPE, typename ATYPE>
+  bool is_edge_on_grid_boundary
+  (const VTYPE iend0, const DIR_TYPE edge_dir, 
+   const DTYPE dimension, const ATYPE * axis_size)
+  {
+    VTYPE k = iend0;
+    for (DTYPE d = 0; d < dimension; d++) {
+      ATYPE c = k % axis_size[d];
+      k = k / axis_size[d];
+
+      if (c == 0) {
+        if (edge_dir != d)
+          { return(true); }
+      }
+      if (c+1 >= axis_size[d]) { 
+        if (edge_dir != d)
+          { return(true); }
+      }
+    }
+
+    return(false);
+  }
+              
+  // **************************************************
+  // COMPUTE REGION
+  // **************************************************
+
+  /// Compute region within boundary around given cube.
+  template <typename VTYPE0, typename DTYPE, typename ATYPE0,
+            typename DIST_TYPE, typename VTYPE1, typename ATYPE1>
+  void compute_region_around_cube
+  (const VTYPE0 icube, const DTYPE dimension, const ATYPE0 * axis_size,
+   const DIST_TYPE dist2cube, VTYPE1 & region_iv0, ATYPE1 * region_axis_size)
+  {
+    IJK::ARRAY<ATYPE0> cube_coord(dimension);
+    IJK::ARRAY<ATYPE0> region_iv0_coord(dimension);
+
+    compute_coord(icube, dimension, axis_size, cube_coord.Ptr());
+
+    for (DTYPE d = 0; d < dimension; d++) {
+      if (cube_coord[d] > dist2cube) 
+        { region_iv0_coord[d] = cube_coord[d]-dist2cube; }
+      else
+        { region_iv0_coord[d] = 0; }
+
+      ATYPE0 c = cube_coord[d]+dist2cube+2;
+      if (c <= axis_size[d]) 
+        { region_axis_size[d] = c-region_iv0_coord[d]; }
+      else 
+        { region_axis_size[d] = axis_size[d]-region_iv0_coord[d]; }
+    }
+
+    region_iv0 = 
+      compute_vertex_index<VTYPE1>
+      (region_iv0_coord.PtrConst(), dimension, axis_size);
+  }
+
+  // **************************************************
   // TEMPLATES TO CHECK VALUES AND ARRAYS.
   // **************************************************
 
@@ -1967,7 +2030,6 @@ namespace IJK {
   /// @param dimension  Grid dimension.
   /// @param axis_size  Array: <em>axis_size[d]</em> = Number of vertices along axis \a d.
   /// @param  subgrid_origin  Subgrid origin.
-  ///   Note: subgrid_origin is always reported (unless num_vertices == 0.)
   /// @param subgrid_axis_size 
   ///        Array: <em>subgrid_axis_size[d]</em> = Number of vertices along subgrid axis d.
   /// @param subsample_period 
@@ -2060,12 +2122,10 @@ namespace IJK {
   /// @param dimension  Grid dimension.
   /// @param axis_size  Array: <em>axis_size[d]</em> = Number of vertices along axis \a d.
   /// @param  subgrid_origin  Subgrid origin.
-  ///   Note: subgrid_origin is always reported (unless num_vertices == 0.)
   /// @param subgrid_axis_size
   ///        Array: <em>subgrid_axis_size[d]</em> = Number of vertices along subgrid axis d.
   /// @param[out] vlist[]  List of vertices.
   /// @pre \li Subgrid is contained in grid, i.e. ( \a d'th coord of \a subgrid_origin ) + \a subgrid_axis_size[d] < \a axis_size[d].
-  /// @pre \li \a subsample_period is a positive integer.
   /// @pre \li Array vlist[] is preallocated to length at least number of vertices in grid or subgrid.
   template <typename DTYPE, typename ATYPE, typename VTYPE>
   void get_subgrid_vertices
@@ -2078,6 +2138,33 @@ namespace IJK {
     subsample_subgrid_vertices
       (dimension, axis_size, subgrid_origin, subgrid_axis_size, 
        ONE, vlist);
+  }
+
+  /// Get cubes in subgrid.
+  /// @param dimension  Grid dimension.
+  /// @param axis_size  Array: <em>axis_size[d]</em> = Number of vertices along axis \a d.
+  /// @param  subgrid_origin  Subgrid origin.
+  /// @param subgrid_axis_size
+  ///        Array: <em>subgrid_axis_size[d]</em> = Number of vertices along subgrid axis d.
+  /// @param[out] vlist[]  List of vertices.
+  /// @pre \li Subgrid is contained in grid, i.e. ( \a d'th coord of \a subgrid_origin ) + \a subgrid_axis_size[d] < \a axis_size[d].
+  /// @pre \li Array cube_list[] is preallocated to length at least number of cubes in grid or subgrid.
+  template <typename DTYPE, typename ATYPE, typename VTYPE>
+  void get_subgrid_cubes
+  (const DTYPE dimension, const ATYPE * axis_size, 
+   const VTYPE subgrid_origin, const ATYPE * subgrid_axis_size, 
+   VTYPE * cube_list)
+  {
+    IJK::ARRAY<ATYPE> subgrid2_axis_size(dimension);
+
+    for (DTYPE d = 0; d < dimension; d++) {
+      if (subgrid_axis_size[d] < 2) { return; }
+      subgrid2_axis_size[d] = subgrid_axis_size[d]-1;
+    }
+
+    get_subgrid_vertices
+      (dimension, axis_size, subgrid_origin, subgrid2_axis_size.PtrConst(), 
+       cube_list);
   }
 
   /// Get vertices in grid.

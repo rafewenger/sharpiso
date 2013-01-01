@@ -623,7 +623,6 @@ namespace IJK {
       extract_dual_isopoly_around_edge_reverse_orient
         (scalar_grid, iend0, iend1, edge_dir, iso_poly, facet_vertex);
     }
-
   }
 
 

@@ -1,12 +1,12 @@
 // Test bin
 
 
-#include "isodual3D_datastruct.h"
+#include "sharpiso_grids.h"
 
-typedef ISODUAL3D::BIN_GRID <int> BGRID;
+typedef SHARPISO::BIN_GRID <int> BGRID;
 
 std::ostream & operator << 
-  (std::ostream & output, const ISODUAL3D::BIN<int> & bin) 
+  (std::ostream & output, const SHARPISO::BIN<int> & bin) 
 {
   output << "(";
   for (int i = 0; i < bin.list.size(); i++) {
@@ -24,7 +24,7 @@ void output_bin_grid(const BGRID & bgrid);
 
 
 using namespace IJK;
-using namespace ISODUAL3D;
+using namespace SHARPISO;
 using namespace std;
 
 
