@@ -477,7 +477,7 @@ void ISODUAL3D::position_dual_isovertices
 
 // Position dual isosurface vertices using isovert information.
 // Allows multiple vertices in a grid cube.
-void ISODUAL3D::position_dual_isovertices
+void ISODUAL3D::position_dual_isovertices_multi
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
  const SCALAR_TYPE isovalue,
@@ -522,7 +522,7 @@ void ISODUAL3D::position_dual_isovertices
 
 // Position dual isosurface vertices using isovert information.
 // Allows multiple vertices in a grid cube.
-void ISODUAL3D::position_dual_isovertices
+void ISODUAL3D::position_dual_isovertices_multi
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
  const SCALAR_TYPE isovalue,
@@ -533,7 +533,7 @@ void ISODUAL3D::position_dual_isovertices
   const int dimension = scalar_grid.Dimension();
 
   isov_coord.resize(iso_vlist.size()*dimension);
-  position_dual_isovertices
+  position_dual_isovertices_multi
     (scalar_grid, isodual_table, isovalue, isovert,
      iso_vlist, &(isov_coord.front()));
 }
@@ -1092,6 +1092,7 @@ void ISODUAL3D::full_split_dual_isovert
  const ISODUAL_PARAM & isodual_param,
  std::vector<DUAL_ISOVERT> & iso_vlist,
  std::vector<VERTEX_INDEX> & isoquad_vert,
+ std::vector<CUBE_ISOVERT_DATA> & cube_isovert_data,
  SHARPISO_INFO & sharp_info)
 {
   const int dimension = isodual_table.Dimension();
@@ -1110,16 +1111,41 @@ void ISODUAL3D::full_split_dual_isovert
     IJK::split_dual_isovert_manifold
       (scalar_grid, isodual_table, ambig_info, isovalue, 
        cube_list, isoquad_cube, facet_vertex,
-       iso_vlist, isoquad_vert, num_split, num_non_manifold_split);
+       iso_vlist, isoquad_vert, cube_isovert_data,
+       num_split, num_non_manifold_split);
     sharp_info.num_non_manifold_split = num_non_manifold_split;
   }
   else {
     IJK::split_dual_isovert
       (scalar_grid, isodual_table, isovalue, cube_list,
-       isoquad_cube, facet_vertex, iso_vlist, isoquad_vert, num_split);
+       isoquad_cube, facet_vertex, iso_vlist, isoquad_vert, 
+       cube_isovert_data, num_split);
   }
   sharp_info.num_cube_multi_isov = num_split;
   sharp_info.num_cube_single_isov = num_gcube - num_split;
+}
+
+// Split dual isosurface vertices.
+// Split all isosurface vertices as determined by the lookup table
+//   of the non-manifold edges (if flag_split_non_manifold is true.)
+// @param isodual_table Dual isosurface lookup table.
+void ISODUAL3D::full_split_dual_isovert
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+ const SCALAR_TYPE isovalue,
+ const ISOVERT & isovert,
+ const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
+ const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+ const ISODUAL_PARAM & isodual_param,
+ std::vector<DUAL_ISOVERT> & iso_vlist,
+ std::vector<VERTEX_INDEX> & isoquad_vert,
+ SHARPISO_INFO & sharp_info)
+{
+  std::vector<CUBE_ISOVERT_DATA> cube_isovert_data;
+
+  full_split_dual_isovert
+    (scalar_grid, isodual_table,isovalue, isovert, isoquad_cube, facet_vertex,
+     isodual_param, iso_vlist, isoquad_vert, cube_isovert_data, sharp_info);
 }
 
 

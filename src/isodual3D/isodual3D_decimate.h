@@ -3,7 +3,7 @@
 
 /*
 IJK: Isosurface Jeneration Kode
-Copyright (C) 2012 Rephael Wenger
+Copyright (C) 2012-2013 Rephael Wenger
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -40,7 +40,8 @@ namespace ISODUAL3D {
 
   /// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
   void merge_sharp_iso_vertices
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
+   const SCALAR_TYPE isovalue,
    ISOVERT & isovert, 
    const SHARP_ISOVERT_PARAM & sharp_isovert_param,
    std::vector<VERTEX_INDEX> & isoquad_cube,
@@ -57,7 +58,9 @@ namespace ISODUAL3D {
   // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
   // Allows multiple isosurface vertices per cube.
   void merge_sharp_iso_vertices_multi
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
    const std::vector<DUAL_ISOVERT> & iso_vlist,
    ISOVERT & isovert,
    const SHARP_ISOVERT_PARAM & sharp_isovert_param,
@@ -67,7 +70,9 @@ namespace ISODUAL3D {
   // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
   // Allows multiple isosurface vertices per cube.
   void merge_sharp_iso_vertices_multi
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
    const std::vector<DUAL_ISOVERT> & iso_vlist,
    ISOVERT & isovert,
    const SHARP_ISOVERT_PARAM & sharp_isovert_param,
@@ -192,6 +197,12 @@ namespace ISODUAL3D {
    const std::vector<VERTEX_INDEX> & gcube_map,
    const AXIS_SIZE_TYPE dist2cube,
    std::vector<VERTEX_INDEX> & merged_cube_list);
+
+  /// Get edges on boundary of merged cubes.
+  void get_merged_boundary_edges
+  (const SHARPISO_GRID & grid,
+   const std::vector<VERTEX_INDEX> & merged_cube_list,
+   std::vector<EDGE_INDEX> & boundary_edge_list);
 
   /// Extract dual isosurface patch with vertex in merged cube.
   /// Returns list of (possibly degenerate) quadrilaterals.

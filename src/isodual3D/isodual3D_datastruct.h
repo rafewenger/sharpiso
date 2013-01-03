@@ -3,7 +3,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011,2012 Rephael Wenger
+  Copyright (C) 2011-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -63,12 +63,15 @@ namespace ISODUAL3D {
   typedef IJK::ARRAY<VERTEX_INDEX> VERTEX_ARRAY;
 
   // **************************************************
-  // DUAL ISOSURFACE VERTICES
+  // DUAL ISOSURFACE VERTICES, CUBE DATA
   // **************************************************
 
   typedef IJK::DUAL_ISOVERT
     <ISO_VERTEX_INDEX, FACET_VERTEX_INDEX, IJKDUALTABLE::TABLE_INDEX>
     DUAL_ISOVERT;
+
+  typedef IJK::CUBE_ISOVERT_DATA<IJKDUALTABLE::TABLE_INDEX, NUM_TYPE> 
+    CUBE_ISOVERT_DATA;
 
   // **************************************************
   // DUAL CONTOURING ISOSURFACE CLASS

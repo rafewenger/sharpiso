@@ -61,6 +61,7 @@ ADD_EXECUTABLE(testmerge testmerge.cxx
 ADD_EXECUTABLE(testmerge2 testmerge2.cxx
                          isodual3D_decimate.cxx isodual3D_isovert.cxx
                          isodual3D_extract.cxx isodual3D_datastruct.cxx
+                         ijkdualtable.cxx
                          sharpiso_feature.cxx sharpiso_get_gradients.cxx
                          sharpiso_svd.cxx sharpiso_intersect.cxx
                          sharpiso_findIntersect.cxx sh_point_find.cxx

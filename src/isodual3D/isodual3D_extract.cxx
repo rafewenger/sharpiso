@@ -115,6 +115,7 @@ void ISODUAL3D::extract_dual_isopoly_from_list
 
   // initialize output
   iso_poly.clear();
+  facet_vertex.clear();
 
   for (NUM_TYPE i = 0; i < edge_list.size(); i++) {
     EDGE_INDEX edge_index = edge_list[i];

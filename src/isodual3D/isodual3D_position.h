@@ -97,14 +97,24 @@ namespace ISODUAL3D {
 
   /// Position dual isosurface vertices using isovert information.
   /// Allows multiple vertices in a grid cube.
-  void position_dual_isovertices
+  void position_dual_isovertices_multi
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const SCALAR_TYPE isovalue,
    const ISOVERT & isovert,
-   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
-   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
+   const std::vector<DUAL_ISOVERT> & iso_vlist,
    COORD_TYPE * isov_coord);
+
+  /// Position dual isosurface vertices using isovert information.
+  /// Allows multiple vertices in a grid cube.
+  /// Version using std::vector for array coord[].
+  void position_dual_isovertices_multi
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const std::vector<DUAL_ISOVERT> & iso_vlist,
+   std::vector<COORD_TYPE> & isov_coord);
 
   // *** DEPRECATED ***
   /// Position dual isosurface vertices using isovert information.
@@ -127,19 +137,9 @@ namespace ISODUAL3D {
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const SCALAR_TYPE isovalue,
    const ISOVERT & isovert,
-   const std::vector<DUAL_ISOVERT> & iso_vlist,
+   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
+   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    COORD_TYPE * isov_coord);
-
-  /// Position dual isosurface vertices using isovert information.
-  /// Allows multiple vertices in a grid cube.
-  /// Version using std::vector for array coord[].
-  void position_dual_isovertices
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
-   const SCALAR_TYPE isovalue,
-   const ISOVERT & isovert,
-   const std::vector<DUAL_ISOVERT> & iso_vlist,
-   std::vector<COORD_TYPE> & isov_coord);
 
   /// Position dual isosurface vertices in centroid
   ///   of isosurface-edge intersections.
@@ -392,6 +392,24 @@ namespace ISODUAL3D {
    const ISODUAL_PARAM & isodual_param,
    std::vector<DUAL_ISOVERT> & iso_vlist,
    std::vector<VERTEX_INDEX> & isoquad_vert,
+   SHARPISO_INFO & sharp_info);
+
+  /// Split dual isosurface vertices.
+  /// Split all isosurface vertices as determined by the lookup table
+  ///   of the non-manifold edges (if flag_split_non_manifold is true.)
+  /// Version which returns cube_isovert_data.
+  /// @param isodual_table Dual isosurface lookup table.
+  void full_split_dual_isovert
+  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
+   const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+   const ISODUAL_PARAM & isodual_param,
+   std::vector<DUAL_ISOVERT> & iso_vlist,
+   std::vector<VERTEX_INDEX> & isoquad_vert,
+   std::vector<CUBE_ISOVERT_DATA> & cube_isovert_data,
    SHARPISO_INFO & sharp_info);
 
   /// Split dual isosurface vertices.

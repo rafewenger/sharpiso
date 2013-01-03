@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011,2012 Rephael Wenger
+  Copyright (C) 2011-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -32,6 +32,7 @@
 #include "isodual3D_decimate.h"
 #include "isodual3D_extract.h"
 #include "isodual3D_position.h"
+
 
 using namespace IJK;
 using namespace ISODUAL3D;
@@ -571,13 +572,13 @@ void ISODUAL3D::dual_contouring_merge_sharp
        iso_vlist, quad_vert, isodual_info.sharpiso);
 
     merge_sharp_iso_vertices_multi
-      (scalar_grid, isovalue, iso_vlist, isovert, isodual_param,
-       quad_vert, isodual_info.sharpiso);
+      (scalar_grid, isodual_table, isovalue, iso_vlist, isovert, 
+       isodual_param, quad_vert, isodual_info.sharpiso);
 
     IJK::get_non_degenerate_quad_btlr
       (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
 
-    position_dual_isovertices
+    position_dual_isovertices_multi
       (scalar_grid, isodual_table, isovalue, isovert,
        iso_vlist, dual_isosurface.vertex_coord);
 

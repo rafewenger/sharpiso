@@ -974,7 +974,8 @@ namespace IJK {
     num_split = 0;
     for (SIZE_TYPE i = 0; i < cube_data.size(); i++) {
       TABLE_INDEX it = cube_data[i].table_index;
-      num_split += isodual_table.NumIsoVertices(it);
+      if (isodual_table.NumIsoVertices(it) > 1) 
+        { num_split ++; }
     }
   }
                               
