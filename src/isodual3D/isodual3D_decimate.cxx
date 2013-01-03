@@ -349,49 +349,6 @@ namespace {
 
 namespace {
 
-  /* OBSOLETE
-  // Reverse merges which create isopatches which are not disks.
-  void unmap_non_disk_isopatches
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SCALAR_TYPE isovalue,
-   ISODUAL3D::ISOVERT & isovert, 
-   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map, 
-   ISODUAL3D::SHARPISO_INFO & sharpiso_info)
-  {
-    const NUM_TYPE num_gcube = isovert.gcube_list.size();
-
-    sharpiso_info.num_non_disk_isopatches = 0;
-
-    for (int d = 0; d < DIM3; d++) {
-      if (scalar_grid.AxisSize(d) < 
-          IS_ISOPATCH_DISK::num_vert_along_region_axis) 
-        { return; }
-    }
-
-    IS_ISOPATCH_DISK is_isopatch_disk(scalar_grid);
-
-    // Set cubes which share facets with selected cubes.
-    for (NUM_TYPE i = 0; i < num_gcube; i++) {
-      if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
-
-        // *** Ignore boundary cubes for now. ***
-        if (isovert.gcube_list[i].boundary_bits == 0) {
-
-          VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
-
-          if (!is_isopatch_disk.IsIsopatchDisk
-              (scalar_grid, isovalue, cube_index, isovert, gcube_map)) {
-            is_isopatch_disk.UnmapAdjacent(cube_index, isovert, gcube_map); 
-            isovert.gcube_list[i].flag = NON_DISK_GCUBE;
-
-            sharpiso_info.num_non_disk_isopatches++;
-          }
-        }
-      }
-    }
-  }
-  */
-
   void unmap_merged_cubes
   (ISODUAL3D::ISOVERT & isovert, const VERTEX_INDEX cube_index0,
    const AXIS_SIZE_TYPE dist2cube,
@@ -537,304 +494,90 @@ namespace {
 
 }
 
+
+
 // **************************************************
-// Function class IS_ISOPATCH_DISK
+// ROUTINE: is_isopatch_disk3D
 // **************************************************
 
-namespace ISODUAL3D {
+// Forward declarations:
+template <typename VTYPE>
+void renumber_tri_quad_vertices
+(const std::vector<VTYPE> & tri_vert,
+ const std::vector<VTYPE> & quad_vert,
+ std::vector<VTYPE> & new_tri_vert,
+ std::vector<VTYPE> & new_quad_vert,
+ NUM_TYPE & num_vert);
 
-  /// Constructor for IS_ISOPATCH_DISK
-  IS_ISOPATCH_DISK::IS_ISOPATCH_DISK(const SHARPISO_GRID & grid)
-  {
-    for (int d = 0; d < DIM3; d++) 
-      { region_axis_size[d] = num_vert_along_region_axis; }
+// Search cycle starting at iv0.
+// @pre All vertices in cycle containing iv0 have is_visited set to false.
+// @pre All vertices have degree two.
+void search_cycle
+(const VERTEX_INDEX iv0, std::vector<CYCLE_VERTEX> & cycle_vertex);
 
-    cube_flag.SetSize(DIM3, region_axis_size);
-    selected_cube_boundary.SetSize(DIM3, region_axis_size);
-    region_scalar.SetSize(DIM3, region_axis_size);
-    region_boundary.SetSize(DIM3, region_axis_size);
-    compute_boundary_grid(region_boundary);
+// Return true if isopatch incident on vertex is a disk.
+// @param tri_vert Triangle vertices.
+// @param quad_vert Quadrilateral vertices in order around quadrilateral.
+// @pre Assumes the boundary of the isopatch is the link of some vertex.
+bool ISODUAL3D::is_isopatch_disk3D
+(const std::vector<ISO_VERTEX_INDEX> & tri_vert,
+ const std::vector<ISO_VERTEX_INDEX> & quad_vert)
+{
+  const NUM_TYPE num_tri = tri_vert.size()/NUM_VERT_PER_TRI;
+  const NUM_TYPE num_quad = quad_vert.size()/NUM_VERT_PER_QUAD;
+  std::vector<ISO_VERTEX_INDEX> tri_vert2;
+  std::vector<ISO_VERTEX_INDEX> quad_vert2;
+  NUM_TYPE num_vert;
 
-    region_boundary_cube.resize
-      (selected_cube_boundary.ComputeNumBoundaryCubes());
-    IJK::get_boundary_grid_cubes
-      (DIM3, region_axis_size, &(region_boundary_cube[0]));
+  VERTEX_HASH_TABLE vertex_hash;
+  EDGE_HASH_TABLE edge_hash;
 
-    visited = new bool[region_scalar.NumVertices()];
-    region_vertex_increment = new INDEX_DIFF_TYPE[region_scalar.NumVertices()];
+  // Renumber tri and quad vertices
+  renumber_tri_quad_vertices
+    (tri_vert, quad_vert, tri_vert2, quad_vert2, num_vert);
 
-    neighbor_grid.SetSize(grid);
-    SetRegionVertexIncrement(grid);
-  }
+  // Check for edges in more than two isosurface polygons.
+  insert_tri_quad_edges(tri_vert2, quad_vert2, edge_hash);
 
-  /// Destructor for IS_ISOPATCH_DISK
-  IS_ISOPATCH_DISK::~IS_ISOPATCH_DISK()
-  {
-    delete [] visited;
-    visited = NULL;
-    delete [] region_vertex_increment;
-    region_vertex_increment = NULL;
-  }
-
-  bool IS_ISOPATCH_DISK::IsIsopatchDisk
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const SCALAR_TYPE isovalue,
-   const VERTEX_INDEX cube_index,
-   const ISOVERT & isovert,
-   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
-   NUM_TYPE & num_neg, NUM_TYPE & num_pos)
-  {
-    std::vector<VERTEX_INDEX> vlist;
-    std::vector<VERTEX_INDEX> elist;
-    
-    SetSelectedCubeBoundary(cube_index, isovert, gcube_map);
-    SetScalar(scalar_grid, cube_index);
-
-    // Compute number of negative components.
-    GetBoundaryNegVertices(isovalue, vlist);
-    GetBoundaryNegEdges(isovalue, elist);
-
-    IJK::compute_num_connected_components_using_elist
-      (IJK::vector2pointer(vlist), vlist.size(), region_scalar.NumVertices(),
-       IJK::vector2pointer(elist), elist.size()/2,
-       num_neg, visited);
-
-    // Compute number of positive components.
-    GetBoundaryPosVertices(isovalue, vlist);
-    GetBoundaryPosEdges(isovalue, elist);
-
-    IJK::compute_num_connected_components_using_elist
-      (IJK::vector2pointer(vlist), vlist.size(), region_scalar.NumVertices(),
-       IJK::vector2pointer(elist), elist.size()/2,
-       num_pos, visited);
-
-    if (num_neg <= 1 && num_pos <= 1)
-      { return(true); }
-    else
-      { return(false); }
-  }
-
-  bool IS_ISOPATCH_DISK::IsIsopatchDisk
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const SCALAR_TYPE isovalue,
-   const VERTEX_INDEX cube_index,
-   const ISOVERT & isovert,
-   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
-  {
-    NUM_TYPE num_neg, num_pos;
-
-    return(IsIsopatchDisk(scalar_grid, isovalue, cube_index, isovert, 
-                          gcube_map, num_neg, num_pos));
-  }
-
-  // Reverse merges to isosurface vertex at cube_index.
-  void IS_ISOPATCH_DISK::UnmapAdjacent
-  (const NUM_TYPE cube_index, const ISODUAL3D::ISOVERT & isovert, 
-   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map) const
-  {
-    for (NUM_TYPE i = 0; i < region_boundary_cube.size(); i++) {
-      VERTEX_INDEX region_cube_index = region_boundary_cube[i];
-
-      if (cube_flag.Scalar(region_cube_index)) {
-        INDEX_DIFF_TYPE iv = 
-          cube_index + region_vertex_increment[region_cube_index];
-
-        if (0 <= iv && iv < neighbor_grid.NumVertices()) {
-
-          INDEX_DIFF_TYPE gcube_index = isovert.sharp_ind_grid.Scalar(iv);
-
-          // Reset gcube_map[gcube_index] to gcube_index.
-          gcube_map[gcube_index] = gcube_index;
-        }
-      }
+  for (EDGE_HASH_TABLE::const_iterator edge_iter = edge_hash.begin();
+       edge_iter != edge_hash.end(); edge_iter++) {
+    if (edge_iter->second > 2) { 
+      return(false); 
     }
   }
 
-  void IS_ISOPATCH_DISK::SetScalar
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const VERTEX_INDEX cube_index)
-  {
-    VERTEX_INDEX iv0 = 
-      cube_index -  neighbor_grid.CubeVertexIncrement(NUM_CUBE_VERTICES3D-1);
-    region_scalar.CopyRegion(scalar_grid, iv0, region_axis_size, 0);
-  }
+  // Check that boundary is a cycle or edge.
+  std::vector<CYCLE_VERTEX> cycle_vertex(num_vert);
 
-  void IS_ISOPATCH_DISK::SetRegionVertexIncrement
-  (const SHARPISO_GRID & grid)
-  {
-    const int dimension = grid.Dimension();
-    const AXIS_SIZE_TYPE * axis_size = grid.AxisSize();
-    IJK::PROCEDURE_ERROR error("SetRegionVertexIncrement");
-
-    NUM_TYPE num_region_vertices;
-    IJK::compute_num_grid_vertices_in_region
-      (dimension, axis_size, 0, region_edge_length, num_region_vertices);
-
-    if (num_region_vertices != cube_flag.NumVertices()) {
-      error.AddMessage
-        ("Programming error. Scalar grid is smaller than region.");
-      error.AddMessage
-        ("  Grid size: ", grid.AxisSize(0), "x", grid.AxisSize(1),
-         "x", grid.AxisSize(2), ".");
-      error.AddMessage
-        ("  Region size: ", cube_flag.AxisSize(0), "x", cube_flag.AxisSize(1),
-         "x", cube_flag.AxisSize(2), ".");
-      throw error;
+  construct_boundary_cycle(edge_hash, cycle_vertex);
+  NUM_TYPE num_boundary_vertices = 0;
+  NUM_TYPE first_adjacent = 0;
+  for (NUM_TYPE i = 0; i < cycle_vertex.size(); i++) {
+    NUM_TYPE num_adjacent = cycle_vertex[i].num_adjacent;
+    if (num_adjacent == 2) {
+      first_adjacent = i;
+      num_boundary_vertices++;
     }
-
-    IJK::get_grid_vertices_in_region
-      (dimension, axis_size, 0, region_edge_length, region_vertex_increment);
-
-    VERTEX_INDEX offset 
-      = neighbor_grid.CubeVertexIncrement(NUM_CUBE_VERTICES3D-1);
-    for (NUM_TYPE k = 0; k < num_region_vertices; k++)
-      { region_vertex_increment[k] = region_vertex_increment[k] - offset; }
-  }
-
-  void IS_ISOPATCH_DISK::SetCubeFlag
-  (const VERTEX_INDEX cube_index,
-   const ISOVERT & isovert,
-   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
-  {
-    const INDEX_DIFF_TYPE gcube_index = 
-      isovert.sharp_ind_grid.Scalar(cube_index);
-
-    cube_flag.SetAll(false);
-
-    for (NUM_TYPE i = 0; i < region_boundary_cube.size(); i++) {
-      VERTEX_INDEX region_cube_index = region_boundary_cube[i];
-      INDEX_DIFF_TYPE iv = 
-        cube_index + region_vertex_increment[region_cube_index];
-
-      if (0 <= iv && iv < neighbor_grid.NumVertices()) {
-
-        INDEX_DIFF_TYPE neighbor_gcube_index = 
-          isovert.sharp_ind_grid.Scalar(iv);
-
-        if (neighbor_gcube_index != ISOVERT::NO_INDEX) {
-          if (gcube_map[neighbor_gcube_index] == gcube_index) {
-            cube_flag.Set(region_cube_index, true);
-          }
-        }
-      }
+    else if (num_adjacent != 0) {
+      return(false); 
     }
   }
 
-  /// Set region boundary.
-  /// @pre Region is a 4x4x4 patch and center cube is in region.
-  void IS_ISOPATCH_DISK::SetSelectedCubeBoundary
-  (const VERTEX_INDEX cube_index,
-   const ISOVERT & isovert,
-   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
-  {
-    SetCubeFlag(cube_index, isovert, gcube_map);
+  if (num_boundary_vertices < 3) { 
+    // Disk must have at least three boundary cycle vertices.
+    return(false); 
+  }
 
-    selected_cube_boundary.SetAll(false);
+  search_cycle(first_adjacent, cycle_vertex);
 
-    for (NUM_TYPE i = 0; i < region_boundary_cube.size(); i++) {
-      VERTEX_INDEX icube = region_boundary_cube[i];
-
-      if (cube_flag.Scalar(icube)) {
-
-        for (NUM_TYPE j = 0; j < NUM_CUBE_VERTICES3D; j++) {
-          VERTEX_INDEX iv = selected_cube_boundary.CubeVertex(icube, j);
-          if (region_boundary.Scalar(iv)) 
-            { selected_cube_boundary.Set(iv, true); }
-        }
-      }
-      else {
-        for (NUM_TYPE j = 0; j < NUM_CUBE_VERTICES3D; j++) {
-          VERTEX_INDEX iv = selected_cube_boundary.CubeVertex(icube, j);
-          if (!region_boundary.Scalar(iv)) 
-            { selected_cube_boundary.Set(iv, true); }
-        }
-      }
+  for (NUM_TYPE i = 0; i < cycle_vertex.size(); i++) { 
+    if (cycle_vertex[i].num_adjacent == 2) {
+      if (!cycle_vertex[i].is_visited) { return(false); }
     }
   }
 
-  void IS_ISOPATCH_DISK::GetBoundaryVertices
-  (const SCALAR_TYPE isovalue, const bool flag_pos,
-   std::vector<int> & vlist) const 
-  {
-    if (flag_pos) 
-      { GetBoundaryPosVertices(isovalue, vlist); }
-    else 
-      { GetBoundaryNegVertices(isovalue, vlist); }
-  }
-
-  void IS_ISOPATCH_DISK::GetBoundaryPosVertices
-  (const SCALAR_TYPE isovalue, std::vector<int> & vlist) const 
-  {
-    vlist.clear();
-    for (NUM_TYPE iv = 0; iv < selected_cube_boundary.NumVertices(); iv++) {
-      if (selected_cube_boundary.Scalar(iv) && 
-          region_scalar.Scalar(iv) >= isovalue)
-        { vlist.push_back(iv); }
-    }
-  }
-
-  void IS_ISOPATCH_DISK::GetBoundaryNegVertices
-  (const SCALAR_TYPE isovalue, std::vector<int> & vlist) const 
-  {
-    vlist.clear();
-    for (NUM_TYPE iv = 0; iv < selected_cube_boundary.NumVertices(); iv++) {
-      if (selected_cube_boundary.Scalar(iv) && 
-          region_scalar.Scalar(iv) < isovalue)
-        { vlist.push_back(iv); }
-    }
-  } 
-
-  void IS_ISOPATCH_DISK::GetBoundaryEdges
-  (const SCALAR_TYPE isovalue, const bool flag_pos,
-   std::vector<int> & elist) const 
-  {
-    if (flag_pos) 
-      { GetBoundaryPosEdges(isovalue, elist); }
-    else 
-      { GetBoundaryNegEdges(isovalue, elist); }
-  }
-
-
-  void IS_ISOPATCH_DISK::GetBoundaryPosEdges
-  (const SCALAR_TYPE isovalue, std::vector<int> & elist) const 
-  {
-    elist.clear();
-    IJK_FOR_EACH_GRID_EDGE(iv0, dir, selected_cube_boundary, VERTEX_INDEX) 
-      {
-      VERTEX_INDEX iv1 = selected_cube_boundary.NextVertex(iv0, dir);
-      if (selected_cube_boundary.Scalar(iv0) && 
-          region_scalar.Scalar(iv0) >= isovalue &&
-          selected_cube_boundary.Scalar(iv1) &&
-          region_scalar.Scalar(iv1) >= isovalue ) {
-        elist.push_back(iv0);
-        elist.push_back(iv1);
-      }
-    }
-  }
-
-  void IS_ISOPATCH_DISK::GetBoundaryNegEdges
-  (const SCALAR_TYPE isovalue, std::vector<int> & elist) const 
-  {
-    elist.clear();
-    IJK_FOR_EACH_GRID_EDGE(iv0, dir, selected_cube_boundary, VERTEX_INDEX) 
-      {
-      VERTEX_INDEX iv1 = selected_cube_boundary.NextVertex(iv0, dir);
-      if (selected_cube_boundary.Scalar(iv0) && 
-          region_scalar.Scalar(iv0) < isovalue &&
-          selected_cube_boundary.Scalar(iv1) &&
-          region_scalar.Scalar(iv1) < isovalue ) {
-        elist.push_back(iv0);
-        elist.push_back(iv1);
-      }
-    }
-  }
-
+  return(true);
 }
-
-
-// **************************************************
-// IS ISOSURFACE PATCH A DISK?
-// **************************************************
 
 
 /// Get list of cubes merged with icube.
@@ -929,37 +672,6 @@ void select_interior_grid_edges
   }
 }
 
-/* OBSOLETE
-// Extract dual isosurface patch with vertex in merged cube.
-void ISODUAL3D::extract_dual_quad_isopatch_incident_on
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const SCALAR_TYPE isovalue,
- const ISOVERT & isovert,
- const VERTEX_INDEX cube_index0,
- const std::vector<VERTEX_INDEX> & gcube_map,
- const AXIS_SIZE_TYPE dist2cube,
- std::vector<ISO_VERTEX_INDEX> & isoquad_gcube,
- std::vector<FACET_VERTEX_INDEX> & facet_vertex)
-{
-  std::vector<VERTEX_INDEX> merged_cube_list;
-  std::vector<EDGE_INDEX> boundary_edge_list;
-  std::vector<EDGE_INDEX> edge_list;
-
-  get_merged_cubes(scalar_grid, isovert, cube_index0, gcube_map, dist2cube, 
-                   merged_cube_list);
-  get_merged_boundary_edges(scalar_grid, merged_cube_list, boundary_edge_list);
-  select_interior_grid_edges(scalar_grid, boundary_edge_list, edge_list);
-  extract_dual_isopoly_from_list(scalar_grid, isovalue, edge_list, 
-                                 isoquad_gcube, facet_vertex);
-
-  for (VERTEX_INDEX i = 0; i < isoquad_gcube.size(); i++) {
-    VERTEX_INDEX cube_index = isoquad_gcube[i];
-    VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(cube_index);
-    isoquad_gcube[i] = gcube_map[gcube_index];
-  }
-}
-*/
-
 // Extract dual isosurface patch with vertex in merged cube.
 void ISODUAL3D::extract_dual_quad_isopatch_incident_on
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -1040,7 +752,7 @@ void insert_poly_edges
 }
 
 // Insert triangle and quadrilateral edges into edge hash table.
-void insert_tri_quad_edges
+void ISODUAL3D::insert_tri_quad_edges
 (const std::vector<ISO_VERTEX_INDEX> & tri_vert,
  const std::vector<ISO_VERTEX_INDEX> & quad_vert,
  EDGE_HASH_TABLE & edge_hash)
@@ -1108,7 +820,7 @@ void insert_cycle_vertex
 }
 
 // Construct list of boundary cycle vertices.
-void construct_boundary_cycle
+void ISODUAL3D::construct_boundary_cycle
 (const EDGE_HASH_TABLE & edge_hash,
  std::vector<CYCLE_VERTEX> & cycle_vertex)
 {
@@ -1163,66 +875,3 @@ void search_cycle
   }
 }
 
-// Return true if isopatch incident on vertex is a disk.
-// @param tri_vert Triangle vertices.
-// @param quad_vert Quadrilateral vertices in order around quadrilateral.
-// @pre Assumes the boundary of the isopatch is the link of some vertex.
-bool ISODUAL3D::is_isopatch_disk3D
-(const std::vector<ISO_VERTEX_INDEX> & tri_vert,
- const std::vector<ISO_VERTEX_INDEX> & quad_vert)
-{
-  const NUM_TYPE num_tri = tri_vert.size()/NUM_VERT_PER_TRI;
-  const NUM_TYPE num_quad = quad_vert.size()/NUM_VERT_PER_QUAD;
-  std::vector<ISO_VERTEX_INDEX> tri_vert2;
-  std::vector<ISO_VERTEX_INDEX> quad_vert2;
-  NUM_TYPE num_vert;
-
-  VERTEX_HASH_TABLE vertex_hash;
-  EDGE_HASH_TABLE edge_hash;
-
-  // Renumber tri and quad vertices
-  renumber_tri_quad_vertices
-    (tri_vert, quad_vert, tri_vert2, quad_vert2, num_vert);
-
-  // Check for edges in more than two isosurface polygons.
-  insert_tri_quad_edges(tri_vert2, quad_vert2, edge_hash);
-
-  for (EDGE_HASH_TABLE::const_iterator edge_iter = edge_hash.begin();
-       edge_iter != edge_hash.end(); edge_iter++) {
-    if (edge_iter->second > 2) { 
-      return(false); 
-    }
-  }
-
-  // Check that boundary is a cycle or edge.
-  std::vector<CYCLE_VERTEX> cycle_vertex(num_vert);
-
-  construct_boundary_cycle(edge_hash, cycle_vertex);
-  NUM_TYPE num_boundary_vertices = 0;
-  NUM_TYPE first_adjacent = 0;
-  for (NUM_TYPE i = 0; i < cycle_vertex.size(); i++) {
-    NUM_TYPE num_adjacent = cycle_vertex[i].num_adjacent;
-    if (num_adjacent == 2) {
-      first_adjacent = i;
-      num_boundary_vertices++;
-    }
-    else if (num_adjacent != 0) {
-      return(false); 
-    }
-  }
-
-  if (num_boundary_vertices < 3) { 
-    // Disk must have at least three boundary cycle vertices.
-    return(false); 
-  }
-
-  search_cycle(first_adjacent, cycle_vertex);
-
-  for (NUM_TYPE i = 0; i < cycle_vertex.size(); i++) { 
-    if (cycle_vertex[i].num_adjacent == 2) {
-      if (!cycle_vertex[i].is_visited) { return(false); }
-    }
-  }
-
-  return(true);
-}

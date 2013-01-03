@@ -85,18 +85,12 @@ void out_gcube
  const SHARPISO_EDGE_INDEX_GRID & edge_index,
  const std::vector<VERTEX_INDEX> & gcube_map,
  const std::vector<VERTEX_INDEX> & gcube_map_no_check_disk,
- const BIN_GRID<VERTEX_INDEX> & bin_grid,
- IS_ISOPATCH_DISK & is_isopatch_disk);
+ const BIN_GRID<VERTEX_INDEX> & bin_grid);
 void out_gcube_type(std::ostream & out, const GRID_CUBE_FLAG flag);
 void out_neighborhood
 (std::ostream & out, const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const VERTEX_INDEX cube_index,
  const ISOVERT & isovert, const std::vector<VERTEX_INDEX> & gcube_map);
-void out_IS_ISOPATCH_DISK_info
-(std::ostream & out, const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const VERTEX_INDEX cube_index,
- const ISOVERT & isovert, const std::vector<VERTEX_INDEX> & gcube_map,
- IS_ISOPATCH_DISK & is_isopatch_disk);
 void parse_isovert_command_line
 (int argc, char **argv, INPUT_INFO & input_info);
 
@@ -361,8 +355,6 @@ void print_isovert_info
       }
     }
 
-    IS_ISOPATCH_DISK is_isopatch_disk(isodual_data.ScalarGrid());
-
     for (int i = 0; i < isovert.gcube_list.size(); i++) {
       VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
 
@@ -374,26 +366,21 @@ void print_isovert_info
 
             out_gcube(cout, isovalue, isodual_data, isovert, i,
                       edge_index, gcube_map, gcube_map_no_check_disk,
-                      bin_grid, is_isopatch_disk);
+                      bin_grid);
             cout << endl;
 
             out_neighborhood(cout, isodual_data.ScalarGrid(), cube_index,
                              isovert, gcube_map_no_check_disk);
-            out_IS_ISOPATCH_DISK_info
-              (cout, isodual_data.ScalarGrid(), cube_index, isovert,
-               gcube_map_no_check_disk, is_isopatch_disk);
+            // *** OUTPUT is_isopatch_disk info ***
           }
           else {
             out_gcube(cout, isovalue, isodual_data, isovert, i,
-                      edge_index, gcube_map, gcube_map, bin_grid,
-                      is_isopatch_disk);
+                      edge_index, gcube_map, gcube_map, bin_grid);
             cout << endl;
 
             out_neighborhood(cout, isodual_data.ScalarGrid(), cube_index,
                              isovert, gcube_map);
-            out_IS_ISOPATCH_DISK_info
-              (cout, isodual_data.ScalarGrid(), cube_index, isovert,
-               gcube_map, is_isopatch_disk);
+            // *** OUTPUT is_isopatch_disk info ***
           }
         }
       }
@@ -408,7 +395,7 @@ void print_isovert_info
           else {
             out_gcube(cout, isovalue, isodual_data, isovert, i,
                       edge_index, gcube_map, gcube_map_no_check_disk,
-                      bin_grid, is_isopatch_disk);
+                      bin_grid);
           }
         }
       }
@@ -505,8 +492,7 @@ void out_gcube
  const SHARPISO_EDGE_INDEX_GRID & edge_index,
  const std::vector<VERTEX_INDEX> & gcube_map,
  const std::vector<VERTEX_INDEX> & gcube_map_no_check_disk,
- const BIN_GRID<VERTEX_INDEX> & bin_grid,
- IS_ISOPATCH_DISK & is_isopatch_disk)
+ const BIN_GRID<VERTEX_INDEX> & bin_grid)
 {
   VERTEX_INDEX cube_index = isovert.gcube_list[gcube_index].cube_index;
 
@@ -520,6 +506,7 @@ void out_gcube
 
   if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
     NUM_TYPE num_neg, num_pos;
+    /* *** REDO ***
     if (!is_isopatch_disk.IsIsopatchDisk
         (isodual_data.ScalarGrid(), isovalue, cube_index, isovert, 
          gcube_map_no_check_disk, num_neg, num_pos)) {
@@ -528,6 +515,7 @@ void out_gcube
       out << "  Num pos components: " << num_pos << ".";
       out << endl;
     }
+    */
   }
   else if (isovert.gcube_list[gcube_index].flag == UNAVAILABLE_GCUBE) {
     const bool flag_check_angle = isodual_data.flag_check_triangle_angle;
@@ -715,18 +703,6 @@ void out_neighborhood
 
   out << "gcube map around cube " << cube_index << ": " << endl;
   output_scalar_grid(cout, gcube_map_grid);
-  out << endl;
-}
-
-void out_IS_ISOPATCH_DISK_info
-(std::ostream & out, const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const VERTEX_INDEX cube_index,
- const ISOVERT & isovert, const std::vector<VERTEX_INDEX> & gcube_map,
- IS_ISOPATCH_DISK & is_isopatch_disk)
-{
-  is_isopatch_disk.SetSelectedCubeBoundary(cube_index, isovert, gcube_map);
-  out << "Selected cube boundary vertices: " << endl;
-  output_scalar_grid(cout, is_isopatch_disk.selectedCubeBoundary());
   out << endl;
 }
 

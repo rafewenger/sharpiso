@@ -35,6 +35,18 @@ namespace ISODUAL3D {
 
 
   // **************************************************
+  // Type definitions
+  // **************************************************
+
+  class HASH_VERTEX_PAIR;
+  class CYCLE_VERTEX;
+
+  typedef std::unordered_map<VERTEX_PAIR, NUM_TYPE, HASH_VERTEX_PAIR> 
+    EDGE_HASH_TABLE;
+  typedef std::unordered_map<VERTEX_INDEX, NUM_TYPE>
+    VERTEX_HASH_TABLE;
+
+  // **************************************************
   // Merge some isosurface vertices
   // **************************************************
 
@@ -81,113 +93,16 @@ namespace ISODUAL3D {
 
 
   // **************************************************
-  // Function class: IS_ISOPATCH_DISK
+  // ROUTINE: is_isopatch_disk3D
   // **************************************************
 
-  /// Function class for determining if isopatch is a disk.
-  class IS_ISOPATCH_DISK {
-
-  public:
-    static const AXIS_SIZE_TYPE num_vert_along_region_axis = 4;
-    static const AXIS_SIZE_TYPE region_edge_length = 
-      num_vert_along_region_axis-1;
-
-  protected:
-    AXIS_SIZE_TYPE region_axis_size[DIM3];
-
-    SHARPISO_SCALAR_GRID region_scalar;
-    SHARPISO_BOOL_GRID cube_flag;
-
-    /// Indicates vertices on region boundary.
-    SHARPISO_BOOL_GRID region_boundary;
-
-    /// Indicates vertices on boundary of region formed by selected cubes.
-    SHARPISO_BOOL_GRID selected_cube_boundary;
-
-    SHARPISO_GRID_NEIGHBORS neighbor_grid;
-
-    /// List of boundary cubes in region.
-    std::vector<VERTEX_INDEX> region_boundary_cube;
-
-    /// Increments for region vertices.
-    /// Vertex k in region corresponds to vertex iv+region_vertex_increment[k]
-    ///   around vertex iv.
-    INDEX_DIFF_TYPE * region_vertex_increment;
-
-    bool * visited;
-
-    void SetCubeFlag
-    (const VERTEX_INDEX cube_index,
-     const ISOVERT & isovert,
-     const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
-    void SetScalar
-    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-     const VERTEX_INDEX cube_index);
-
-    /// Set region_vertex_increment.
-    void SetRegionVertexIncrement(const SHARPISO_GRID & grid);
-
-    void GetBoundaryVertices
-    (const SCALAR_TYPE isovalue, const bool flag_pos,
-     std::vector<int> & vlist) const;
-    void GetBoundaryPosVertices
-    (const SCALAR_TYPE isovalue, std::vector<int> & vlist) const;
-    void GetBoundaryNegVertices
-    (const SCALAR_TYPE isovalue, std::vector<int> & vlist) const;
-    void GetBoundaryEdges
-    (const SCALAR_TYPE isovalue, const bool flag_pos,
-     std::vector<int> & elist) const;
-    void GetBoundaryPosEdges
-    (const SCALAR_TYPE isovalue, std::vector<int> & elist) const;
-    void GetBoundaryNegEdges
-    (const SCALAR_TYPE isovalue, std::vector<int> & elist) const;
-
-  public:
-    IS_ISOPATCH_DISK(const SHARPISO_GRID & grid);
-    ~IS_ISOPATCH_DISK();
-
-    /// Return true is isopatch is a disk.
-    bool IsIsopatchDisk
-    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-     SCALAR_TYPE isovalue,
-     const VERTEX_INDEX cube_index,
-     const ISOVERT & isovert,
-     const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
-     NUM_TYPE & num_neg, NUM_TYPE & num_pos);
-
-    /// Return true is isopatch is a disk.
-    bool IsIsopatchDisk
-    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-     SCALAR_TYPE isovalue,
-     const VERTEX_INDEX cube_index,
-     const ISOVERT & isovert,
-     const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
-
-    /// Reverse merges to isosurface vertex at cube_index.
-    void UnmapAdjacent
-    (const NUM_TYPE cube_index, const ISODUAL3D::ISOVERT & isovert, 
-     std::vector<SHARPISO::VERTEX_INDEX> & gcube_map) const;
-
-    /// Set vertices on boundary of selected cubes.
-    void SetSelectedCubeBoundary
-      (const VERTEX_INDEX cube_index,
-       const ISOVERT & isovert,
-       const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
-
-    // Get routines.
-    const SHARPISO_SCALAR_GRID & regionScalar() const
-      { return(region_scalar); };
-    const SHARPISO_BOOL_GRID & cubeFlag() const
-      { return(cube_flag); };
-    const SHARPISO_BOOL_GRID & regionBoundary() const
-      { return(region_boundary); };
-    const SHARPISO_BOOL_GRID & selectedCubeBoundary() const
-      { return(selected_cube_boundary); };
-  };
-
-  // **************************************************
-  // IS ISOSURFACE PATCH A DISK?
-  // **************************************************
+  /// Return true if isopatch incident on vertex is a disk.
+  /// @param tri_vert Triangle vertices.
+  /// @param quad_vert Quadrilateral vertices in order around quadrilateral.
+  /// @pre Assumes the boundary of the isopatch is the link of some vertex.
+  bool is_isopatch_disk3D
+  (const std::vector<ISO_VERTEX_INDEX> & tri_vert,
+   const std::vector<ISO_VERTEX_INDEX> & quad_vert);
 
   /// Get list of cubes merged with icube.
   void get_merged_cubes
@@ -228,13 +143,16 @@ namespace ISODUAL3D {
    std::vector<ISO_VERTEX_INDEX> & tri_vert,
    std::vector<ISO_VERTEX_INDEX> & quad_vert);
 
-  /// Return true if isopatch incident on vertex is a disk.
-  /// @param tri_vert Triangle vertices.
-  /// @param quad_vert Quadrilateral vertices in order around quadrilateral.
-  /// @pre Assumes the boundary of the isopatch is the link of some vertex.
-  bool is_isopatch_disk3D
+  /// Insert triangle and quadrilateral edges into edge hash table.
+  void insert_tri_quad_edges
   (const std::vector<ISO_VERTEX_INDEX> & tri_vert,
-   const std::vector<ISO_VERTEX_INDEX> & quad_vert);
+   const std::vector<ISO_VERTEX_INDEX> & quad_vert,
+   EDGE_HASH_TABLE & edge_hash);
+
+  /// Construct list of boundary cycle vertices.
+  void construct_boundary_cycle
+  (const EDGE_HASH_TABLE & edge_hash,
+   std::vector<CYCLE_VERTEX> & cycle_vertex);
 
   // **************************************************
   // EDGE HASH TABLE
@@ -266,10 +184,6 @@ namespace ISODUAL3D {
     };
   };
 
-  typedef std::unordered_map<VERTEX_PAIR, NUM_TYPE, HASH_VERTEX_PAIR> 
-    EDGE_HASH_TABLE;
-  typedef std::unordered_map<VERTEX_INDEX, NUM_TYPE>
-    VERTEX_HASH_TABLE;
 };
 
 
