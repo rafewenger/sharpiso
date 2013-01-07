@@ -581,12 +581,6 @@ void ISODUAL3D::dual_contouring_merge_sharp
     position_dual_isovertices_multi
       (scalar_grid, isodual_table, isovalue, isovert,
        iso_vlist, dual_isosurface.vertex_coord);
-
-    if (isodual_param.flag_delete_isolated_vertices) {
-      IJK::delete_unreferenced_vertices_two_lists
-        (dimension, dual_isosurface.vertex_coord,
-         dual_isosurface.tri_vert, dual_isosurface.quad_vert);
-    }
   }
   else {
 
@@ -604,13 +598,12 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
     copy_isovert_positions
       (isovert.gcube_list, dual_isosurface.vertex_coord);
+  }
 
-    if (isodual_param.flag_delete_isolated_vertices) {
-      IJK::delete_unreferenced_vertices_two_lists
-        (dimension, dual_isosurface.vertex_coord,
-         dual_isosurface.tri_vert, dual_isosurface.quad_vert);
-    }
-
+  if (isodual_param.flag_delete_isolated_vertices) {
+    IJK::delete_unreferenced_vertices_two_lists
+      (dimension, dual_isosurface.vertex_coord,
+       dual_isosurface.tri_vert, dual_isosurface.quad_vert);
   }
 
   t5 = clock();
@@ -652,21 +645,32 @@ void ISODUAL3D::dual_contouring_merge_sharp
   std::vector<VERTEX_INDEX> quad_vert;
   PROCEDURE_ERROR error("dual_contouring");
 
-  clock_t t0, t1, t2, t3;
+  clock_t t0, t1, t2, t3, t4, t5;
 
   dual_isosurface.Clear();
   isodual_info.time.Clear();
 
   t0 = clock();
 
-  // *** NEED TO REWRITE AND TEST ***
   compute_dual_isovert
     (scalar_grid, edgeI_coord, edgeI_normal_coord, 
      isovalue, isodual_param, isovert);
 
+  t1 = clock();
+
+  select_sharp_isovert(scalar_grid, isovalue, isodual_param, isovert);
+
+  t2 = clock();
+
+	if (isodual_param.flag_recompute_isovert)
+	{
+		recompute_isovert_positions
+      (scalar_grid, edgeI_coord, isovalue, isodual_param, isovert);
+	}
+
   count_vertices(isovert, isovert_info);
 
-  t1 = clock();
+  t3 = clock();
 
   if (allow_multiple_iso_vertices) {
 
@@ -683,38 +687,32 @@ void ISODUAL3D::dual_contouring_merge_sharp
       (scalar_grid, isovalue, isoquad_cube, facet_vertex, isodual_info);
 
     map_isopoly_vert(isovert, isoquad_cube);
-    t2 = clock();
+    t4 = clock();
 
-    merge_sharp_iso_vertices
-      (scalar_grid, isovalue, isovert, isodual_param,
-       isoquad_cube, isodual_info.sharpiso);
+    std::vector<DUAL_ISOVERT> iso_vlist;
 
-    // *** NEED TO REWRITE AND TEST ***
-    VERTEX_INDEX num_split;
-    split_dual_isovert
+    full_split_dual_isovert
       (scalar_grid, isodual_table, isovalue,
-       isovert, isoquad_cube, facet_vertex,
-       iso_vlist_cube, iso_vlist_patch, quad_vert,
-       num_split);
-    isodual_info.sharpiso.num_cube_multi_isov = num_split;
-    isodual_info.sharpiso.num_cube_single_isov = 
-      isovert.gcube_list.size() - num_split;
+       isovert, isoquad_cube, facet_vertex, isodual_param,
+       iso_vlist, quad_vert, isodual_info.sharpiso);
+
+    merge_sharp_iso_vertices_multi
+      (scalar_grid, isodual_table, isovalue, iso_vlist, isovert, 
+       isodual_param, quad_vert, isodual_info.sharpiso);
 
     IJK::get_non_degenerate_quad_btlr
       (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
 
-    // *** NEED TO DELETE ISOLATED ISOSURFACE VERTICES ***
-
-    position_dual_isovertices
+    position_dual_isovertices_multi
       (scalar_grid, isodual_table, isovalue, isovert,
-       iso_vlist_cube, iso_vlist_patch, dual_isosurface.vertex_coord);
+       iso_vlist, dual_isosurface.vertex_coord);
   }
   else {
 
     extract_dual_isopoly(scalar_grid, isovalue, quad_vert, isodual_info);
 
     map_isopoly_vert(isovert, quad_vert);
-    t2 = clock();
+    t4 = clock();
 
     merge_sharp_iso_vertices
       (scalar_grid, isovalue, isovert, isodual_param,
@@ -723,14 +721,18 @@ void ISODUAL3D::dual_contouring_merge_sharp
     IJK::get_non_degenerate_quad_btlr
       (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
 
-    // *** NEED TO REMOVE UNUSED ISOSURFACE VERTICES ***
-
     copy_isovert_positions
       (isovert.gcube_list, dual_isosurface.vertex_coord);
 
   }
 
-  t3 = clock();
+  if (isodual_param.flag_delete_isolated_vertices) {
+    IJK::delete_unreferenced_vertices_two_lists
+      (dimension, dual_isosurface.vertex_coord,
+       dual_isosurface.tri_vert, dual_isosurface.quad_vert);
+  }
+
+  t5 = clock();
 
   // Set isodual_info
   isodual_info.sharpiso.num_sharp_corners = isovert_info.num_sharp_corners;
@@ -739,8 +741,9 @@ void ISODUAL3D::dual_contouring_merge_sharp
     isovert_info.num_smooth_vertices;
 
   // store times
-  clock2seconds(t1-t0, isodual_info.time.position);
-  clock2seconds(t2-t1, isodual_info.time.extract);
-  clock2seconds(t3-t0, isodual_info.time.total);
+  clock2seconds(t1-t0+t3-t2, isodual_info.time.position);
+  clock2seconds(t4-t3, isodual_info.time.extract);
+  clock2seconds(t5-t4+t2-t1, isodual_info.time.merge_sharp);
+  clock2seconds(t5-t0, isodual_info.time.total);
 }
 

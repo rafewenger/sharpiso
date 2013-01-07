@@ -96,25 +96,51 @@ void ISODUAL3D::recompute_isovert_positions (
 		const GRADIENT_GRID_BASE & gradient_grid,
 		const SCALAR_TYPE isovalue,
 		const SHARP_ISOVERT_PARAM & isovert_param,
-		ISOVERT & isovertData)
+		ISOVERT & isovert)
 {
-	for (NUM_TYPE i = 0; i < isovertData.gcube_list.size(); i++) {
-		GRID_CUBE_FLAG cube_flag = isovertData.gcube_list[i].flag;
+	for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
+		GRID_CUBE_FLAG cube_flag = isovert.gcube_list[i].flag;
 
 		if ((cube_flag == AVAILABLE_GCUBE) || (cube_flag == UNAVAILABLE_GCUBE)) {
 
-			VERTEX_INDEX cube_index = isovertData.gcube_list[i].cube_index;
+			VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
 
 			compute_edgeI_centroid
-			(scalar_grid, gradient_grid, isovalue, cube_index,
-					isovert_param.use_sharp_edgeI, isovertData.gcube_list[i].isovert_coord);
+        (scalar_grid, gradient_grid, isovalue, cube_index,
+         isovert_param.use_sharp_edgeI, isovert.gcube_list[i].isovert_coord);
 		}
 	}
 
 }
 
 
+/// Recompute isosurface vertex positions for cubes 
+///   which are not selected or covered.
+void ISODUAL3D::recompute_isovert_positions (
+    const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+    const std::vector<COORD_TYPE> & edgeI_coord,
+		const SCALAR_TYPE isovalue,
+		const SHARP_ISOVERT_PARAM & isovert_param,
+		ISOVERT & isovert)
+{
+	SHARPISO_EDGE_INDEX_GRID edge_index
+	(DIM3, scalar_grid.AxisSize(), DIM3);
+  
+	set_edge_index(edgeI_coord, edge_index);
 
+	for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
+		GRID_CUBE_FLAG cube_flag = isovert.gcube_list[i].flag;
+
+		if ((cube_flag == AVAILABLE_GCUBE) || (cube_flag == UNAVAILABLE_GCUBE)) {
+
+			VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
+			compute_edgeI_centroid
+        (scalar_grid, edgeI_coord, edge_index, isovalue, cube_index,
+         isovert.gcube_list[i].isovert_coord);
+		}
+	}
+
+}
 
 
 void round_down(const COORD_TYPE * coord, GRID_COORD_TYPE min_coord[DIM3])
@@ -123,8 +149,9 @@ void round_down(const COORD_TYPE * coord, GRID_COORD_TYPE min_coord[DIM3])
 	{ min_coord[d] = int(std::floor(coord[d])); }
 }
 
-void ISODUAL3D::set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
-		SHARPISO_EDGE_INDEX_GRID & edge_index)
+void ISODUAL3D::set_edge_index
+(const std::vector<COORD_TYPE> & edgeI_coord,
+ SHARPISO_EDGE_INDEX_GRID & edge_index)
 {
 	GRID_COORD_TYPE min_coord[DIM3];
 
@@ -179,7 +206,7 @@ void compute_isovert_positions (
 		const std::vector<COORD_TYPE> & edgeI_normal_coord,
 		const SCALAR_TYPE isovalue,
 		const SHARP_ISOVERT_PARAM & isovert_param,
-		ISOVERT &isovertData)
+		ISOVERT & isovertData)
 {
 	const SIGNED_COORD_TYPE grad_selection_cube_offset =
 			isovert_param.grad_selection_cube_offset;
@@ -753,12 +780,6 @@ void ISODUAL3D::compute_dual_isovert(
 	compute_isovert_positions 
 	(scalar_grid, edgeI_coord, edgeI_normal_coord,
    isovalue, isovert_param, isovertData);
-
-	// keep track of the sorted indices
-	std::vector<NUM_TYPE> sortd_ind2gcube_list;
-	sort_gcube_list(isovertData.gcube_list, sortd_ind2gcube_list);
-	select_3x3x3_regions (scalar_grid, isovalue, isovert_param, 
-                        sortd_ind2gcube_list, isovertData);
 }
 
 

@@ -118,6 +118,16 @@ void recompute_isovert_positions(
 		const SHARP_ISOVERT_PARAM & isovert_param,
     ISOVERT & isovertData);
 
+/// Recompute isosurface vertex positions for cubes 
+///   which are not selected or covered.
+/// Version for hermite data.
+void recompute_isovert_positions (
+    const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+    const std::vector<COORD_TYPE> & edgeI_coord,
+		const SCALAR_TYPE isovalue,
+		const SHARP_ISOVERT_PARAM & isovert_param,
+		ISOVERT & isovert);
+
 /// Set grid containing locations of edges in edgeI_coord[].
 void set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
                     SHARPISO_EDGE_INDEX_GRID & edge_index);

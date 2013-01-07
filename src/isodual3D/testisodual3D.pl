@@ -68,6 +68,11 @@ while (scalar(@proglist) > 0 &&
     next;
   }
 
+  if ($new_option eq "-hermite") {
+    $data_flag{hermite} = 1;
+    next;
+  }
+
   if ($new_option eq "-offset") {
     $isoval_offset = shift(@proglist);
     next;
@@ -222,6 +227,13 @@ if ($use_all_data || defined($data_flag{flange})) {
   $testdata{flange_F61}{isovalue} = [ 4, 4.5, 8 ];
 }
 
+if (defined($data_flag{hermite})) {
+
+    $testdata{weld}{fname} = "weld.nhdr";
+    $testdata{weld}{normalFile} = "weld-normals.off";
+    $testdata{weld}{isovalue} = [ 0.5 ];
+}
+
 
 my $prog0 = shift(@proglist);
 
@@ -261,10 +273,16 @@ sub run_isodual3D_count_sharp_edges {
 
     my $tfile = "$testdir"."/"."$testdata{$tdata}{fname}";
     my @isovalue_list = @{$testdata{$tdata}{isovalue}};
+    my @option_listB = @option_list;
+    if (exists $testdata{$tdata}{normalFile}) {
+      my $nfile = "$testdir"."/"."$testdata{$tdata}{normalFile}";
+      push(@option_listB, "-normal", "$nfile");
+    };
+
     foreach my $isoval (@isovalue_list) {
 
       $isoval = $isoval + $isoval_offset;
-      run_isodual3D($prog0, $tfile, "$outfile0", \@option_list, $isoval);
+      run_isodual3D($prog0, $tfile, "$outfile0", \@option_listB, $isoval);
 
       count_sharp_edges("$outfile0");
     }
@@ -339,12 +357,20 @@ sub compare_executables {
 
     my $tfile = "$testdir"."/"."$testdata{$tdata}{fname}";
     my @isovalue_list = @{$testdata{$tdata}{isovalue}};
+    my @option_listB0 = @option_list0;
+    my @option_listB = @option_list;
+    if (exists $testdata{$tdata}{normalFile}) {
+      my $nfile = "$testdir"."/"."$testdata{$tdata}{normalFile}";
+      push(@option_listB0, "-normal", "$nfile");
+      push(@option_listB, "-normal", "$nfile");
+    };
+
     foreach my $isoval (@isovalue_list) {
 
       $isoval = $isoval + $isoval_offset;
-      run_isodual3D($prog0, $tfile, "$outfile0", \@option_list0, $isoval);
+      run_isodual3D($prog0, $tfile, "$outfile0", \@option_listB0, $isoval);
       foreach my $isodual (@proglist) {
-        run_isodual3D($isodual, $tfile, "$outfile", \@option_list, $isoval);
+        run_isodual3D($isodual, $tfile, "$outfile", \@option_listB, $isoval);
         diff_files("$outfile0", "$outfile");
       }
     }
