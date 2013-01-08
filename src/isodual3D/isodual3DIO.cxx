@@ -1190,6 +1190,10 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
     }
     break;
 
+  case EDGEI_INPUT_DATA:
+    cout << "Hermite data" << endl;
+    break;
+
   default:
     cout << "Unkown" << endl;
     break;
@@ -1208,10 +1212,13 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
          << isodual_param.max_small_eigenvalue << endl;
     cout << "Max (Linf) distance from cube to isosurface vertex: "
          << isodual_param.max_dist << endl;
-    cout << "Max small gradient magnitude: "
-         << isodual_param.max_small_magnitude << endl;
-    cout << "Gradient selection cube offset: "
-         << isodual_param.grad_selection_cube_offset << endl;
+
+    if (vpos_method != EDGEI_INPUT_DATA) {
+      cout << "Max small gradient magnitude: "
+           << isodual_param.max_small_magnitude << endl;
+      cout << "Gradient selection cube offset: "
+           << isodual_param.grad_selection_cube_offset << endl;
+    }
 
     if (isodual_param.use_lindstrom) {
       cout << "Using Lindstrom formula." << endl;
@@ -1239,7 +1246,7 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
     }
   }
 
-  if (vpos_method != CUBECENTER) {
+  if (vpos_method != CUBECENTER && vpos_method != EDGEI_INPUT_DATA) {
 
     if (isodual_param.use_sharp_edgeI) {
       cout << "Using sharp formula to calculate intersections of isosurface and grid edges." << endl;
@@ -1271,6 +1278,13 @@ void ISODUAL3D::report_isodual_param(const ISODUAL_PARAM & isodual_param)
   }
   else {
     cout << "One isosurface vertex per grid cube." << endl;
+  }
+
+  if (isodual_param.flag_delete_isolated_vertices) {
+    cout << "Remove isosurface vertices which are not in any isosurface polygons." << endl;
+  }
+  else {
+    cout << "Keep all isosurface vertices, including vertices which are not in any polygons." << endl;
   }
 
 	cout << endl;
