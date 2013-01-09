@@ -3,7 +3,7 @@
 
 /*
  IJK: Isosurface Jeneration Kode
- Copyright (C) 2011,2012 Rephael Wenger
+ Copyright (C) 2011-2013 Rephael Wenger
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public License
@@ -319,6 +319,7 @@ typedef enum {
     case MERGE_SHARP_PARAM:
     	input_info.flag_merge_sharp = true;
     	break;
+
     case NO_MERGE_SHARP_PARAM:
     	input_info.flag_merge_sharp = false;
     	break;
@@ -1431,7 +1432,9 @@ void ISODUAL3D::report_isodual_time
 	cout << "CPU time to run Marching Cubes: "
 			<< isodual_time.total << " seconds." << endl;
 
-  if (input_info.flag_merge_sharp) {
+  if ((input_info.VertexPositionMethod() != CUBECENTER &&
+       input_info.VertexPositionMethod() != CENTROID_EDGE_ISO) &&
+      input_info.flag_merge_sharp) {
 
     cout << "    Time to position "
          << mesh_type_string << " vertices: "
