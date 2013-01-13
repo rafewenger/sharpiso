@@ -3,7 +3,7 @@
 
 /*
 IJK: Isosurface Jeneration Kode
-Copyright (C) 2011,2012 Rephael Wenger
+Copyright (C) 2011-2013 Rephael Wenger
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -494,15 +494,22 @@ void ISODUAL3D::position_dual_isovertices_multi
 
     VERTEX_INDEX cube_index = iso_vlist[i].cube_index;
     VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(cube_index);
-    if (isovert.gcube_list[gcube_index].flag == SMOOTH_GCUBE ||
-        isovert.gcube_list[gcube_index].flag == UNAVAILABLE_GCUBE ||
-        isovert.gcube_list[gcube_index].flag == NON_DISK_GCUBE ) {
+
+    if (isovert.gcube_list[gcube_index].flag != SELECTED_GCUBE) {
 
       it = iso_vlist[i].table_index;
 
+
       if (isodual_table.NumIsoVertices(it) == 1) {
-        IJK::copy_coord_3D(isovert.gcube_list[gcube_index].isovert_coord,
-                           isov_coord+i*DIM3);
+        if (isovert.gcube_list[gcube_index].flag == SMOOTH_GCUBE) {
+
+          IJK::copy_coord_3D(isovert.gcube_list[gcube_index].isovert_coord,
+                             isov_coord+i*DIM3);
+        }
+        else {
+          compute_isosurface_grid_edge_centroid
+            (scalar_grid, isovalue, cube_index, isov_coord+i*DIM3);
+        }
       }
       else {
         FACET_VERTEX_INDEX ipatch= iso_vlist[i].patch_index;

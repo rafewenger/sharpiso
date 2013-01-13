@@ -454,9 +454,9 @@ void out_gcube_multi
           (isodual_data.ScalarGrid(), isodual_table, isovalue, cube_index, j,
            table_index, cube, isov_coord.Ptr());
         print_coord3D(out, isov_coord.Ptr());
-        cerr << "  ";
+        out << "  ";
       }
-      cerr << endl;
+      out << endl;
     }
   }
 
