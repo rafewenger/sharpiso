@@ -122,7 +122,7 @@ void compute_reliable_gradients
 						COORD_TYPE coord0[DIM3];
 						scalar_grid.ComputeCoord(in_cube,coord0);
 						cout << "loc ["<<coord0[0]<<" "<<coord0[1]<<" "<<coord0[2]<<"] ";
-						cout<<  "gradient ["<< cube_grad[0]<<","<<cube_grad[1]<<","<<cube_grad[2]<<"]"<<endl;
+						cout<<  "gradient ["<< cube_grad[0]<<","<<cube_grad[1]<<","<<cube_grad[2]<<"]";
 					}
 
 					SCALAR_TYPE inn_pdt=0;
