@@ -445,13 +445,8 @@ namespace {
     const NUM_TYPE num_gcube = isovert.gcube_list.size();
 
     const int dist2cube = 1;
-    std::vector<ISO_VERTEX_INDEX> isoquad_cube;
-    std::vector<FACET_VERTEX_INDEX> facet_vertex;
     std::vector<ISO_VERTEX_INDEX> tri_vert;
     std::vector<ISO_VERTEX_INDEX> quad_vert;
-    std::vector<ISO_VERTEX_INDEX> quad_vert2;
-    std::vector<VERTEX_INDEX> cube_list;
-    std::vector<DUAL_ISOVERT> iso_vlist;
 
     bool passed_all_disk_checks;
     do {
@@ -461,21 +456,9 @@ namespace {
         if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
           VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
 
-          extract_dual_quad_isopatch_incident_on
-            (scalar_grid, isovalue, isovert, cube_index, gcube_map, dist2cube,
-             isoquad_cube, facet_vertex);
-
-          construct_cube_list(isoquad_cube, cube_list);
-
-          NUM_TYPE num_split;
-
-          IJK::split_dual_isovert
-            (scalar_grid, isodual_table, isovalue, cube_list,
-             isoquad_cube, facet_vertex, iso_vlist, quad_vert2, num_split);
-
-          tri_vert.clear();
-          quad_vert.clear();
-          IJK::get_non_degenerate_quad_btlr(quad_vert2, tri_vert, quad_vert);
+          extract_dual_isopatch_incident_on_multi
+            (scalar_grid, isodual_table, isovalue, isovert, cube_index, gcube_map, dist2cube,
+             tri_vert, quad_vert);
           IJK::reorder_quad_vertices(quad_vert);
 
           if (!is_isopatch_disk3D(tri_vert, quad_vert)) {
@@ -722,6 +705,42 @@ void ISODUAL3D::extract_dual_isopatch_incident_on
     (scalar_grid, isovalue, isovert, cube_index0, gcube_map, dist2cube,
      isoquad_cube, facet_vertex);
   IJK::get_non_degenerate_quad_btlr(isoquad_cube, tri_vert, quad_vert);
+}
+
+// Extract dual isosurface patch with vertex in merged cube.
+// Allow multiple isosurface vertices in each cube
+void ISODUAL3D::extract_dual_isopatch_incident_on_multi
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+ const SCALAR_TYPE isovalue,
+ const ISOVERT & isovert,
+ const VERTEX_INDEX cube_index,
+ const std::vector<VERTEX_INDEX> & gcube_map,
+ const AXIS_SIZE_TYPE dist2cube,
+ std::vector<ISO_VERTEX_INDEX> & tri_vert,
+ std::vector<ISO_VERTEX_INDEX> & quad_vert)
+{
+  std::vector<ISO_VERTEX_INDEX> isoquad_cube;
+  std::vector<FACET_VERTEX_INDEX> facet_vertex;
+  std::vector<VERTEX_INDEX> cube_list;
+  std::vector<DUAL_ISOVERT> iso_vlist;
+  std::vector<ISO_VERTEX_INDEX> quad_vert2;
+
+  extract_dual_quad_isopatch_incident_on
+    (scalar_grid, isovalue, isovert, cube_index, gcube_map, dist2cube,
+     isoquad_cube, facet_vertex);
+
+  construct_cube_list(isoquad_cube, cube_list);
+
+  NUM_TYPE num_split;
+
+  IJK::split_dual_isovert
+    (scalar_grid, isodual_table, isovalue, cube_list,
+     isoquad_cube, facet_vertex, iso_vlist, quad_vert2, num_split);
+
+  tri_vert.clear();
+  quad_vert.clear();
+  IJK::get_non_degenerate_quad_btlr(quad_vert2, tri_vert, quad_vert);
 }
 
 // Insert polygon edges in edge hash table.

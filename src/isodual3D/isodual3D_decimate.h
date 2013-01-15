@@ -143,6 +143,19 @@ namespace ISODUAL3D {
    std::vector<ISO_VERTEX_INDEX> & tri_vert,
    std::vector<ISO_VERTEX_INDEX> & quad_vert);
 
+  /// Extract dual isosurface patch with vertex in merged cube.
+  /// Allow multiple isosurface vertices in each cube
+  void extract_dual_isopatch_incident_on_multi
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const VERTEX_INDEX cube_index,
+   const std::vector<VERTEX_INDEX> & gcube_map,
+   const AXIS_SIZE_TYPE dist2cube,
+   std::vector<ISO_VERTEX_INDEX> & tri_vert,
+   std::vector<ISO_VERTEX_INDEX> & quad_vert);
+
   /// Insert triangle and quadrilateral edges into edge hash table.
   void insert_tri_quad_edges
   (const std::vector<ISO_VERTEX_INDEX> & tri_vert,

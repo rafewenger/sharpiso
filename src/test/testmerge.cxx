@@ -62,22 +62,7 @@ void output_is_isopatch_disk
  const VERTEX_INDEX cube_index,
  const ISOVERT & isovert, 
  const std::vector<VERTEX_INDEX> & gcube_map);
-void check_scalarA
-(const VERTEX_INDEX cube_index,
- const ISOVERT & isovert,
- std::vector<VERTEX_INDEX> & gcube_map);
-void check_scalarB
-(const VERTEX_INDEX cube_index,
- const ISOVERT & isovert,
- std::vector<VERTEX_INDEX> & gcube_map);
-void check_scalarC
-(const VERTEX_INDEX cube_index,
- const ISOVERT & isovert,
- std::vector<VERTEX_INDEX> & gcube_map);
-void check_scalarD
-(const VERTEX_INDEX cube_index,
- const ISOVERT & isovert,
- std::vector<VERTEX_INDEX> & gcube_map);
+
 
 int main()
 {
@@ -114,13 +99,6 @@ int main()
     output_is_isopatch_disk
       (scalar_grid, isovalue, cube_index, isovert, gcube_map);
   }
-
-  /* DEBUG
-  check_scalarA(cube_index, isovert, gcube_map);
-  check_scalarB(cube_index, isovert, gcube_map);
-  check_scalarC(cube_index, isovert, gcube_map);
-  check_scalarD(cube_index, isovert, gcube_map);
-  */
 }
 
 void set_isovert(const SHARPISO_GRID & grid, ISOVERT & isovert)
@@ -373,145 +351,6 @@ void set_gcube_mapE
 // Check routines
 // **************************************************
 
-void check_scalarA
-(const VERTEX_INDEX cube_index,
- const ISOVERT & isovert,
- std::vector<VERTEX_INDEX> & gcube_map)
-{
-  const int dimension = isovert.sharp_ind_grid.Dimension();
-  const AXIS_SIZE_TYPE * axis_size = isovert.sharp_ind_grid.AxisSize();
-  const int REGION_EDGE_LENGTH = 3;
-  const int isovalue = 1;
-  SHARPISO_SCALAR_GRID scalar_grid(dimension, axis_size);
-  IS_ISOPATCH_DISK is_isopatch_disk(scalar_grid);
-  VERTEX_INDEX num_vertices;
-  int num_non_disk(0);
-
-  compute_num_grid_vertices_in_region
-    (dimension, REGION_EDGE_LENGTH, num_vertices);
-
-  for (int i = 0; i <= num_vertices; i++) {
-    set_scalarA(scalar_grid, cube_index, i);
-
-    if (!is_isopatch_disk.IsIsopatchDisk
-        (scalar_grid, isovalue, cube_index, isovert, gcube_map)) {
-      cout << "Isopatch formed by cube " << cube_index << " is not a disk." 
-           << endl;
-
-      output_scalar_subgrid(scalar_grid, cube_index);
-      num_non_disk++;
-    }
-  }
-
-  if (num_non_disk == 0) {
-    cout << "Passed check_scalarA." << endl;
-  }
-}
-
-void check_scalarB
-(const VERTEX_INDEX cube_index,
- const ISOVERT & isovert,
- std::vector<VERTEX_INDEX> & gcube_map)
-{
-  const int dimension = isovert.sharp_ind_grid.Dimension();
-  const AXIS_SIZE_TYPE * axis_size = isovert.sharp_ind_grid.AxisSize();
-  const int REGION_EDGE_LENGTH = 3;
-  const int isovalue = 1;
-  SHARPISO_SCALAR_GRID scalar_grid(dimension, axis_size);
-  IS_ISOPATCH_DISK is_isopatch_disk(scalar_grid);
-  VERTEX_INDEX num_cubes;
-  int num_non_disk(0);
-
-  compute_num_grid_cubes_in_region(dimension, REGION_EDGE_LENGTH, num_cubes);
-
-  for (int i = 0; i <= num_cubes; i++) {
-    set_scalarB(scalar_grid, cube_index, i);
-
-    if (!is_isopatch_disk.IsIsopatchDisk
-        (scalar_grid, isovalue, cube_index, isovert, gcube_map)) {
-      cout << "Isopatch formed by cube " << cube_index << " is not a disk." 
-           << endl;
-
-      output_scalar_subgrid(scalar_grid, cube_index);
-      num_non_disk++;
-    }
-  }
-
-  if (num_non_disk == 0) {
-    cout << "Passed check_scalarB." << endl;
-  }
-}
-
-void check_scalarC
-(const VERTEX_INDEX cube_index,
- const ISOVERT & isovert,
- std::vector<VERTEX_INDEX> & gcube_map)
-{
-  const int dimension = isovert.sharp_ind_grid.Dimension();
-  const AXIS_SIZE_TYPE * axis_size = isovert.sharp_ind_grid.AxisSize();
-  const int isovalue = 1;
-  SHARPISO_SCALAR_GRID scalar_grid(dimension, axis_size);
-  IS_ISOPATCH_DISK is_isopatch_disk(scalar_grid);
-
-  set_scalarC(scalar_grid, cube_index);
-
-  if (!is_isopatch_disk.IsIsopatchDisk
-      (scalar_grid, isovalue, cube_index, isovert, gcube_map)) {
-    cout << "Isopatch formed by cube " << cube_index << " is not a disk." 
-         << endl;
-
-    output_scalar_subgrid(scalar_grid, cube_index);
-  }
-  else {
-    cout << "Passed check_scalarC." << endl;
-  }
-}
-
-void check_scalarD
-(const VERTEX_INDEX cube_index,
- const ISOVERT & isovert,
- std::vector<VERTEX_INDEX> & gcube_map)
-{
-  const int dimension = isovert.sharp_ind_grid.Dimension();
-  const AXIS_SIZE_TYPE * axis_size = isovert.sharp_ind_grid.AxisSize();
-  const int REGION_EDGE_LENGTH = 3;
-  const int isovalue = 1;
-  const VERTEX_INDEX diagonal_increment = 
-    isovert.sharp_ind_grid.CubeVertexIncrement(NUM_CUBE_VERTICES3D-1);
-  SHARPISO_SCALAR_GRID scalar_grid(dimension, axis_size);
-  IS_ISOPATCH_DISK is_isopatch_disk(scalar_grid);
-  IJK::BOX<GRID_COORD_TYPE> box(DIM3);
-  GRID_COORD_TYPE coord[DIM3];
-  int num_non_disk(0);
-
-  VERTEX_INDEX ivmin = cube_index - diagonal_increment;
-  VERTEX_INDEX ivmax = cube_index + 2*diagonal_increment;
-
-  for (VERTEX_INDEX iv0 = ivmin; iv0 <= ivmax; iv0++) 
-    for (VERTEX_INDEX iv1 = iv0; iv1 <= ivmax; iv1++) {
-
-      scalar_grid.ComputeCoord(iv0, coord);
-      box.SetMinCoord(coord);
-      scalar_grid.ComputeCoord(iv1, coord);
-      box.SetMaxCoord(coord);
-
-      set_scalarD(scalar_grid, cube_index, box);
-
-      if (!is_isopatch_disk.IsIsopatchDisk
-          (scalar_grid, isovalue, cube_index, isovert, gcube_map)) {
-        cout << "Isopatch formed by cube " << cube_index << " is not a disk." 
-             << endl;
-
-        output_scalar_subgrid(scalar_grid, cube_index);
-        num_non_disk++;
-      }
-    }
-
-  if (num_non_disk == 0) {
-    cout << "Passed check_scalarD." << endl;
-  }
-}
-
 
 // **************************************************
 // Output routines
@@ -594,24 +433,5 @@ void output_is_isopatch_disk
  const ISOVERT & isovert, 
  const std::vector<VERTEX_INDEX> & gcube_map)
 {
-  IS_ISOPATCH_DISK is_isopatch_disk(scalar_grid);
-
-  is_isopatch_disk.SetSelectedCubeBoundary
-    (cube_index, isovert, gcube_map);
-  cout << "Cube flag:" << endl;
-  output_scalar_grid(cout, is_isopatch_disk.cubeFlag());
-  cout << "Region boundary:" << endl;
-  output_scalar_grid(cout, is_isopatch_disk.regionBoundary());
-  cout << "Selected cube boundary:" << endl;
-  output_scalar_grid(cout, is_isopatch_disk.selectedCubeBoundary());
-
-  if (is_isopatch_disk.IsIsopatchDisk
-      (scalar_grid, isovalue, cube_index, isovert, gcube_map)) {
-    cout << "Isopatch formed by cube " << cube_index << " is a disk." << endl;
-  }
-  else {
-    cout << "Isopatch formed by cube " << cube_index << " is not a disk." 
-         << endl;
-  }
 
 }
