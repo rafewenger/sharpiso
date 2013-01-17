@@ -328,20 +328,35 @@ namespace {
                         const std::vector<DUAL_ISOVERT> & iso_vlist,
                         std::vector<ISO_VERTEX_INDEX> & isov_index)
   {
-    const NUM_TYPE num_gcube = isovert.gcube_list.size();
-    IJK::ARRAY<NUM_TYPE> first_gcube_isov(num_gcube);
+    VERTEX_HASH_TABLE cube_hash;
 
-    set_first_gcube_isov(isovert, iso_vlist, first_gcube_isov.Ptr());
+    for (NUM_TYPE i = 0; i < iso_vlist.size(); i++) {
+      VERTEX_INDEX cube_index = iso_vlist[i].cube_index;
+      
+      VERTEX_HASH_TABLE::iterator cube_iter = cube_hash.find(cube_index);
+      if (cube_iter == cube_hash.end()) {
+        cube_hash.insert(VERTEX_HASH_TABLE::value_type(cube_index, i));
+      }
+    }
 
     for (NUM_TYPE i = 0; i < isov_index.size(); i++) {
       ISO_VERTEX_INDEX j0 = isov_index[i];
       VERTEX_INDEX cube_index0 = iso_vlist[j0].cube_index;
       VERTEX_INDEX gcube_index0 = isovert.sharp_ind_grid.Scalar(cube_index0);
       VERTEX_INDEX gcube_index1 = gcube_map[gcube_index0];
-      ISO_VERTEX_INDEX j1 = first_gcube_isov[gcube_index1];
-      isov_index[i] = j1;
+      VERTEX_INDEX cube_index1 = isovert.gcube_list[gcube_index1].cube_index;
+      VERTEX_HASH_TABLE::iterator cube1_iter = cube_hash.find(cube_index1);
+
+      // *** DEBUG ***
+      if (cube1_iter == cube_hash.end()) {
+        using namespace std;
+        cerr << "*** ERROR.  Cube index: " << cube_index1
+             << " is not in the hash table." << endl;
+        exit(1000);
+      }
+      isov_index[i] = cube1_iter->second;
     }
-  };
+  }
 
 
   // Forward declaration
