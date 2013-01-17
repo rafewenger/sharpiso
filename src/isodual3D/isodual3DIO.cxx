@@ -1405,6 +1405,14 @@ void ISODUAL3D::report_iso_info3D
         }
       }
 
+      if (output_info.flag_merge_sharp) {
+        if (output_info.flag_check_disk) {
+          cout << "  # of merges blocked by non-disk isosurface patches: "
+               << isodual_info.sharpiso.num_non_disk_isopatches << endl;
+        }
+      }
+
+
       cout << endl;
 		}
 
