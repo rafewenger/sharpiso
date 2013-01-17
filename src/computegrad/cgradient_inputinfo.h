@@ -29,6 +29,7 @@ public:
 	bool print_info;          // print info of the vertex
 	bool flag_print_grad_loc;      // prints the location of the unreliable grads
 	int print_info_vertex;
+	float param_angle;
 	float min_gradient_mag;   // minimum gradient
 	float min_cos_of_angle;
 
@@ -40,8 +41,8 @@ public:
 		flag_print_grad_loc=false;
 		print_info = false;
 		min_gradient_mag = 0.001;
-		float param=30;
-		min_cos_of_angle = cos((param*M_PI/180.0));// 20 degrees=0.34906585, 30 degrees=0.523598776;
+		param_angle=20;
+		min_cos_of_angle = cos((param_angle*M_PI/180.0)); // 20 degrees=0.34906585, 30 degrees=0.523598776;
 		out_info.set_defaults();
 	}
 

@@ -130,7 +130,8 @@ void compute_reliable_gradients
 					if ( inn_pdt > io_info.min_cos_of_angle){
 						numAgree++;
 						if(io_info.print_info && iv==io_info.print_info_vertex){
-							cout <<"angle < cos_angle NumAgree= " << numAgree<<endl;
+							cout <<" angle diff "<< (acos(inn_pdt)*180.0)/M_PI;
+							cout <<" NumAgree "<< numAgree <<endl;
 						}
 					}
 					else{
@@ -139,7 +140,7 @@ void compute_reliable_gradients
 					}
 				}
 			}
-			if (numAgree < 5){
+			if (numAgree < 6){
 				if(io_info.print_info && iv==io_info.print_info_vertex)
 				{cout <<"Vertex "<<iv <<" not reliable, num agree " << numAgree<<endl;}
 
@@ -265,7 +266,7 @@ void compute_cube_grad(
 		SCALAR_TYPE diff =0;
 		for (int k=0; k< num_facet_vertices; k++){
 			VERTEX_INDEX iend0 = scalar_grid.FacetVertex(iv1,d,k);
-			VERTEX_INDEX iend1 = scalar_grid.NextVertex(iv1,d);
+			VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0,d);
 
 			if(io_info.print_info && iv1==io_info.print_info_vertex){
 				cout <<iend0<<"("<<scalar_grid.Scalar(iend0)<<")"<<"-"<<iend1
