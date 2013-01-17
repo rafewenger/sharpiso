@@ -187,6 +187,12 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info)
 			iarg++;
 			io_info.min_gradient_mag= (float)atof(argv[iarg]);
 		}
+		else if (string(argv[iarg])== "-angle")
+		{
+			iarg++;
+			io_info.param_angle= (float)atof(argv[iarg]);
+			io_info.min_cos_of_angle = cos((io_info.param_angle*M_PI/180.0));
+		}
 		else if (string(argv[iarg])== "-print_info")
 		{
 			iarg++;
@@ -217,6 +223,7 @@ void usage_msg()
 	cerr << "\t\t-min_gradient_mag [float] : min gradient magnitude." <<endl;
 	cerr << "\t\t-print_info [int] : print_info of the vertex." <<endl;
 	cerr << "\t\t-print_grad_loc : prints the location of all the vertices with unreliable grads" <<endl;
+	cerr << "\t\t-angle : angle" <<endl;
 }
 
 void usage_error()
