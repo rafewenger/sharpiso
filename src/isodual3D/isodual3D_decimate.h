@@ -67,8 +67,8 @@ namespace ISODUAL3D {
    std::vector<VERTEX_INDEX> & isoquad_cube,
    SHARPISO_INFO & sharpiso_info);
 
-  // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
-  // Allows multiple isosurface vertices per cube.
+  /// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
+  /// Allows multiple isosurface vertices per cube.
   void merge_sharp_iso_vertices_multi
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
@@ -79,8 +79,8 @@ namespace ISODUAL3D {
    std::vector<VERTEX_INDEX> & poly_vert,
    std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info);
 
-  // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
-  // Allows multiple isosurface vertices per cube.
+  /// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
+  /// Allows multiple isosurface vertices per cube.
   void merge_sharp_iso_vertices_multi
   (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
@@ -142,6 +142,34 @@ namespace ISODUAL3D {
    const AXIS_SIZE_TYPE dist2cube,
    std::vector<ISO_VERTEX_INDEX> & tri_vert,
    std::vector<ISO_VERTEX_INDEX> & quad_vert);
+
+  /// Extract dual isosurface patch with vertex in merged cube.
+  /// Allow multiple isosurface vertices in each cube.
+  void extract_dual_isopatch_incident_on_multi
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const VERTEX_INDEX cube_index,
+   const std::vector<VERTEX_INDEX> & gcube_map,
+   const AXIS_SIZE_TYPE dist2cube,
+   std::vector<ISO_VERTEX_INDEX> & tri_vert,
+   std::vector<ISO_VERTEX_INDEX> & quad_vert);
+
+  /// Extract dual isosurface patch with vertex in merged cube.
+  /// Allow multiple isosurface vertices in each cube.
+  /// Version returning iso_vlist.
+  void extract_dual_isopatch_incident_on_multi
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const VERTEX_INDEX cube_index,
+   const std::vector<VERTEX_INDEX> & gcube_map,
+   const AXIS_SIZE_TYPE dist2cube,
+   std::vector<ISO_VERTEX_INDEX> & tri_vert,
+   std::vector<ISO_VERTEX_INDEX> & quad_vert,
+   std::vector<DUAL_ISOVERT> & iso_vlist);
 
   /// Insert triangle and quadrilateral edges into edge hash table.
   void insert_tri_quad_edges

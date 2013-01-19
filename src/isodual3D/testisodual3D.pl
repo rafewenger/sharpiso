@@ -19,6 +19,7 @@ my $outfile = "temp.off";
 my $outfile0 = "temp0.off";
 my $min_diff_flag = 0;
 my $min_diff = 0.0;
+my $flag_info = 0;
 
 my %data_flag;
 my $use_all_data = 0;
@@ -109,6 +110,10 @@ while (scalar(@proglist) > 0 &&
   if ($new_option eq "-no_check_disk0") {
     push(@input_options0, "-no_check_disk");
     next;
+  }
+
+  if ($new_option eq "-info") {
+    $flag_info = 1;
   }
 
   push(@input_options, $new_option);
@@ -389,8 +394,11 @@ sub run_isodual3D {
   my $isoval1 = $_[4];
 
   my $command_line;
+  $command_line = "./$isodual @option_list";
+  if (!$flag_info) 
+    { $command_line = "$command_line" . " -s"; }
   $command_line = 
-    "./$isodual @option_list -s -o $output_filename $isoval1 $input_filename";
+    "$command_line" . " -o $output_filename $isoval1 $input_filename";
 
   print "$command_line\n";
   system("$command_line") == 0 ||

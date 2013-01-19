@@ -75,7 +75,6 @@ void out_gcube_multi
  const SHARPISO_EDGE_INDEX_GRID & edge_index,
  const std::vector<ISODUAL3D::CUBE_ISOVERT_DATA> & cube_isovert_data,
  const std::vector<VERTEX_INDEX> & gcube_map,
- const std::vector<VERTEX_INDEX> & gcube_map_no_check_disk,
  const BIN_GRID<VERTEX_INDEX> & bin_grid);
 void out_gcube
 (std::ostream & out, const SCALAR_TYPE isovalue, 
@@ -84,7 +83,6 @@ void out_gcube
  const VERTEX_INDEX gcube_index,
  const SHARPISO_EDGE_INDEX_GRID & edge_index,
  const std::vector<VERTEX_INDEX> & gcube_map,
- const std::vector<VERTEX_INDEX> & gcube_map_no_check_disk,
  const BIN_GRID<VERTEX_INDEX> & bin_grid);
 void out_gcube_type(std::ostream & out, const GRID_CUBE_FLAG flag);
 void out_neighborhood
@@ -231,14 +229,16 @@ void print_isovert_info
   const bool allow_multiple_iso_vertices =
     isodual_data.allow_multiple_iso_vertices;
   const bool flag_check_disk = isodual_data.flag_check_disk;
+  const int dist2cube = 1;
   std::vector<VERTEX_INDEX> gcube_map;
-  std::vector<VERTEX_INDEX> gcube_map_no_check_disk;
   GRID_COORD_TYPE cube_coord[DIM3];
   IJK::BOX<COORD_TYPE> box(DIM3);
   std::vector<VERTEX_INDEX> quad_vert;
   std::vector<VERTEX_INDEX> isoquad_cube;
   std::vector<ISODUAL3D::DUAL_ISOVERT> iso_vlist;
   std::vector<ISODUAL3D::CUBE_ISOVERT_DATA> cube_isovert_data;
+  std::vector<ISO_VERTEX_INDEX> tri_vert2;
+  std::vector<ISO_VERTEX_INDEX> quad_vert2;
   SHARPISO_EDGE_INDEX_GRID edge_index(DIM3, axis_size, DIM3);
 
 
@@ -308,7 +308,8 @@ void print_isovert_info
       std::vector<FACET_VERTEX_INDEX> iso_vlist_patch;
 
       extract_dual_isopoly
-        (isodual_data.ScalarGrid(), isovalue, isoquad_cube, facet_vertex, isodual_info);
+        (isodual_data.ScalarGrid(), isovalue, isoquad_cube, 
+         facet_vertex, isodual_info);
 
       map_isopoly_vert(isovert, isoquad_cube);
 
@@ -319,19 +320,10 @@ void print_isovert_info
 
       const NUM_TYPE num_gcube = isovert.gcube_list.size();
       gcube_map.resize(num_gcube);
-      gcube_map_no_check_disk.resize(num_gcube);
 
       merge_sharp_iso_vertices_multi
         (isodual_data.ScalarGrid(), isodual_table, isovalue, iso_vlist, isovert, 
          isodual_data, quad_vert, gcube_map, isodual_info.sharpiso);
-
-      if (flag_check_disk) {
-        SHARP_ISOVERT_PARAM sharp_param = isodual_data;
-        sharp_param.flag_check_disk = false;
-        merge_sharp_iso_vertices_multi
-          (isodual_data.ScalarGrid(), isodual_table, isovalue, iso_vlist, isovert, 
-           isodual_data, quad_vert, gcube_map_no_check_disk, isodual_info.sharpiso);
-      }
     }
     else {
       extract_dual_isopoly
@@ -341,18 +333,9 @@ void print_isovert_info
 
       const NUM_TYPE num_gcube = isovert.gcube_list.size();
       gcube_map.resize(num_gcube);
-      gcube_map_no_check_disk.resize(num_gcube);
       merge_sharp_iso_vertices
         (isodual_data.ScalarGrid(), isovalue, isovert, isodual_data,
          isoquad_cube, gcube_map, isodual_info.sharpiso);
-
-      if (flag_check_disk) {
-        SHARP_ISOVERT_PARAM sharp_param = isodual_data;
-        sharp_param.flag_check_disk = false;
-        merge_sharp_iso_vertices
-          (isodual_data.ScalarGrid(), isovalue, isovert, sharp_param,
-           isoquad_cube, gcube_map_no_check_disk, isodual_info.sharpiso);
-      }
     }
 
     for (int i = 0; i < isovert.gcube_list.size(); i++) {
@@ -362,25 +345,63 @@ void print_isovert_info
 
         if (cube_index == input_cube_index) {
 
-          if (flag_check_disk) {
+          out_gcube(cout, isovalue, isodual_data, isovert, i,
+                    edge_index, gcube_map, bin_grid);
+          cout << endl;
 
-            out_gcube(cout, isovalue, isodual_data, isovert, i,
-                      edge_index, gcube_map, gcube_map_no_check_disk,
-                      bin_grid);
+          out_neighborhood
+            (cout, isodual_data.ScalarGrid(), cube_index, isovert, gcube_map);
+
+          std::vector<ISODUAL3D::DUAL_ISOVERT> iso_vlist2;
+          if (allow_multiple_iso_vertices) {
+            extract_dual_isopatch_incident_on_multi
+              (isodual_data.ScalarGrid(), isodual_table, isovalue, 
+               isovert, cube_index, gcube_map, dist2cube, 
+               tri_vert2, quad_vert2, iso_vlist2);
+
+            cout << "Neighboring cubes with multiple vertices: " << endl;
+            for (int i = 0; i < iso_vlist2.size(); i++) {
+              IJKDUALTABLE::TABLE_INDEX table_index = iso_vlist2[i].table_index;
+              NUM_TYPE patch_index = iso_vlist2[i].patch_index;
+              NUM_TYPE num_isov = isodual_table.NumIsoVertices(table_index);
+              if (num_isov > 1) {
+                cout << "  Isovert: " << i
+                     << "  Cube: " << iso_vlist2[i].cube_index
+                     << "  Table index: " << table_index
+                     << "  Num iso vert: " << num_isov << endl;
+              }
+            }
             cout << endl;
-
-            out_neighborhood(cout, isodual_data.ScalarGrid(), cube_index,
-                             isovert, gcube_map_no_check_disk);
-            // *** OUTPUT is_isopatch_disk info ***
           }
           else {
-            out_gcube(cout, isovalue, isodual_data, isovert, i,
-                      edge_index, gcube_map, gcube_map, bin_grid);
-            cout << endl;
+            extract_dual_isopatch_incident_on
+              (isodual_data.ScalarGrid(), isovalue, isovert, cube_index,
+               gcube_map, dist2cube, tri_vert2, quad_vert2);
+          }
 
-            out_neighborhood(cout, isodual_data.ScalarGrid(), cube_index,
-                             isovert, gcube_map);
-            // *** OUTPUT is_isopatch_disk info ***
+          IJK::reorder_quad_vertices(quad_vert2);
+
+          cout << "Isosurface triangles: ";
+          for (NUM_TYPE j = 0; j < tri_vert2.size()/NUM_VERT_PER_TRI; j++) {
+            cout << " ";
+            IJK::print_list(cout, &(tri_vert2[NUM_VERT_PER_TRI*j]), 
+                            NUM_VERT_PER_TRI);
+          }
+          cout << endl;
+
+          cout << "Isosurface quadrilaterals: ";
+          for (NUM_TYPE j = 0; j < quad_vert2.size()/NUM_VERT_PER_QUAD; j++) {
+            cout << " ";
+            IJK::print_list(cout, &(quad_vert2[NUM_VERT_PER_QUAD*j]), 
+                            NUM_VERT_PER_QUAD);
+          }
+          cout << endl << endl;
+
+          if (is_isopatch_disk3D(tri_vert2, quad_vert2)) {
+            cout << "      Isopatch is a disk." << endl;
+          }
+          else {
+            cout << "      Isopatch is not a disk." << endl;
           }
         }
       }
@@ -390,12 +411,11 @@ void print_isovert_info
           if (allow_multiple_iso_vertices) {
             out_gcube_multi(cout, isovalue, isodual_data, isodual_table, 
                             isovert, i, edge_index, cube_isovert_data,
-                            gcube_map, gcube_map_no_check_disk, bin_grid);
+                            gcube_map, bin_grid);
           }
           else {
             out_gcube(cout, isovalue, isodual_data, isovert, i,
-                      edge_index, gcube_map, gcube_map_no_check_disk,
-                      bin_grid);
+                      edge_index, gcube_map, bin_grid);
           }
         }
       }
@@ -425,7 +445,6 @@ void out_gcube_multi
  const SHARPISO_EDGE_INDEX_GRID & edge_index,
  const std::vector<ISODUAL3D::CUBE_ISOVERT_DATA> & cube_isovert_data,
  const std::vector<VERTEX_INDEX> & gcube_map,
- const std::vector<VERTEX_INDEX> & gcube_map_no_check_disk,
  const BIN_GRID<VERTEX_INDEX> & bin_grid)
 {
   ISODUAL3D_CUBE_FACE_INFO cube(DIM3);
@@ -491,10 +510,12 @@ void out_gcube
  const NUM_TYPE gcube_index,
  const SHARPISO_EDGE_INDEX_GRID & edge_index,
  const std::vector<VERTEX_INDEX> & gcube_map,
- const std::vector<VERTEX_INDEX> & gcube_map_no_check_disk,
  const BIN_GRID<VERTEX_INDEX> & bin_grid)
 {
-  VERTEX_INDEX cube_index = isovert.gcube_list[gcube_index].cube_index;
+  const VERTEX_INDEX cube_index = isovert.gcube_list[gcube_index].cube_index;
+  const int dist2cube = 1;
+  std::vector<ISO_VERTEX_INDEX> tri_vert;
+  std::vector<ISO_VERTEX_INDEX> quad_vert;
 
   out_gcube(out, isovalue, isodual_data, isovert.gcube_list[gcube_index],
             edge_index); 
@@ -505,17 +526,18 @@ void out_gcube
   }
 
   if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
-    NUM_TYPE num_neg, num_pos;
-    /* *** REDO ***
-    if (!is_isopatch_disk.IsIsopatchDisk
-        (isodual_data.ScalarGrid(), isovalue, cube_index, isovert, 
-         gcube_map_no_check_disk, num_neg, num_pos)) {
+
+    extract_dual_isopatch_incident_on
+      (isodual_data.ScalarGrid(), isovalue, isovert, cube_index,
+       gcube_map, dist2cube, tri_vert, quad_vert);
+
+    IJK::reorder_quad_vertices(quad_vert);
+
+    if (!is_isopatch_disk3D(tri_vert, quad_vert)) {
       out << "      Isopatch is not a disk.";
-      out << "  Num neg components: " << num_neg << ".";
-      out << "  Num pos components: " << num_pos << ".";
       out << endl;
     }
-    */
+
   }
   else if (isovert.gcube_list[gcube_index].flag == UNAVAILABLE_GCUBE) {
     const bool flag_check_angle = isodual_data.flag_check_triangle_angle;

@@ -53,6 +53,13 @@ namespace {
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map, 
    ISODUAL3D::SHARPISO_INFO & sharpiso_info);
 
+  void map_gcube_indices(const std::vector<VERTEX_INDEX> & gcube_map,
+                         std::vector<VERTEX_INDEX> & gcube_index);
+
+  void set_first_gcube_isov
+  (const ISODUAL3D::ISOVERT & isovert, 
+   const std::vector<ISODUAL3D::DUAL_ISOVERT> & iso_vlist,
+   SHARPISO::NUM_TYPE * first_gcube_isov);
 }
 
 // **************************************************
@@ -81,10 +88,7 @@ void ISODUAL3D::merge_sharp_iso_vertices
   }
   sharpiso_info.num_merged_iso_vertices = num_merged;
 
-  for (VERTEX_INDEX i = 0; i < isoquad_cube.size(); i++) {
-    VERTEX_INDEX cube_index = isoquad_cube[i];
-    isoquad_cube[i] = gcube_map[cube_index];
-  }
+  map_gcube_indices(gcube_map, isoquad_cube);
 }
 
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
@@ -116,7 +120,7 @@ void ISODUAL3D::merge_sharp_iso_vertices_multi
  std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info)
 {
   const NUM_TYPE num_gcube = isovert.gcube_list.size();
-  IJK::ARRAY<NUM_TYPE> first_isov(num_gcube);
+  IJK::ARRAY<NUM_TYPE> first_gcube_isov(num_gcube);
 
   determine_gcube_map
     (scalar_grid, isodual_table, isovalue, isovert, sharp_isovert_param, 
@@ -129,13 +133,7 @@ void ISODUAL3D::merge_sharp_iso_vertices_multi
   }
   sharpiso_info.num_merged_iso_vertices = num_merged;
 
-  // Set first_isov.  Scan iso_vlist from back to front.
-  for (int i = 0; i < iso_vlist.size(); i++) {
-    int j = iso_vlist.size()-i-1;
-    VERTEX_INDEX cube_index = iso_vlist[j].cube_index;
-    VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(cube_index);
-    first_isov[gcube_index] = j;
-  }
+  set_first_gcube_isov(isovert, iso_vlist, first_gcube_isov.Ptr());
 
   for (NUM_TYPE i = 0; i < poly_vert.size(); i++) {
     NUM_TYPE k = poly_vert[i];
@@ -144,7 +142,7 @@ void ISODUAL3D::merge_sharp_iso_vertices_multi
     VERTEX_INDEX gcube_index1 = gcube_map[gcube_index0];
     if (isovert.gcube_list[gcube_index1].flag == SELECTED_GCUBE) {
       // Reset poly_vert[i] to first isosurface vertex for cube_index1.
-      poly_vert[i] = first_isov[gcube_index1];
+      poly_vert[i] = first_gcube_isov[gcube_index1];
     }
   }
 }
@@ -290,6 +288,76 @@ namespace {
       }
     }
   }
+
+  void set_first_gcube_isov
+  (const ISOVERT & isovert, const std::vector<DUAL_ISOVERT> & iso_vlist,
+   NUM_TYPE * first_gcube_isov)
+  {
+    // Scan iso_vlist from back to front.
+    for (int i = 0; i < iso_vlist.size(); i++) {
+      int j = iso_vlist.size()-i-1;
+      VERTEX_INDEX cube_index = iso_vlist[j].cube_index;
+      VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(cube_index);
+      first_gcube_isov[gcube_index] = j;
+    }
+  }
+
+  void map_gcube_indices(const std::vector<VERTEX_INDEX> & gcube_map,
+                         std::vector<VERTEX_INDEX> & gcube_index)
+  {
+    for (VERTEX_INDEX i = 0; i < gcube_index.size(); i++) {
+      VERTEX_INDEX gcube_index_i = gcube_index[i];
+      gcube_index[i] = gcube_map[gcube_index_i];
+    }
+  }
+
+  void map_cube_list(const ISOVERT & isovert,
+                     const std::vector<VERTEX_INDEX> & gcube_map,
+                     std::vector<VERTEX_INDEX> & cube_list)
+  {
+    for (VERTEX_INDEX i = 0; i < cube_list.size(); i++) {
+      VERTEX_INDEX cube_index0 = cube_list[i];
+      VERTEX_INDEX gcube_index0 = isovert.sharp_ind_grid.Scalar(cube_index0);
+      VERTEX_INDEX gcube_index1 = gcube_map[gcube_index0];
+      cube_list[i] = isovert.gcube_list[gcube_index1].cube_index;
+    }
+  }
+
+  void map_isov_indices(const ISOVERT & isovert,
+                        const std::vector<VERTEX_INDEX> & gcube_map,
+                        const std::vector<DUAL_ISOVERT> & iso_vlist,
+                        std::vector<ISO_VERTEX_INDEX> & isov_index)
+  {
+    VERTEX_HASH_TABLE cube_hash;
+
+    for (NUM_TYPE i = 0; i < iso_vlist.size(); i++) {
+      VERTEX_INDEX cube_index = iso_vlist[i].cube_index;
+      
+      VERTEX_HASH_TABLE::iterator cube_iter = cube_hash.find(cube_index);
+      if (cube_iter == cube_hash.end()) {
+        cube_hash.insert(VERTEX_HASH_TABLE::value_type(cube_index, i));
+      }
+    }
+
+    for (NUM_TYPE i = 0; i < isov_index.size(); i++) {
+      ISO_VERTEX_INDEX j0 = isov_index[i];
+      VERTEX_INDEX cube_index0 = iso_vlist[j0].cube_index;
+      VERTEX_INDEX gcube_index0 = isovert.sharp_ind_grid.Scalar(cube_index0);
+      VERTEX_INDEX gcube_index1 = gcube_map[gcube_index0];
+      VERTEX_INDEX cube_index1 = isovert.gcube_list[gcube_index1].cube_index;
+      VERTEX_HASH_TABLE::iterator cube1_iter = cube_hash.find(cube_index1);
+
+      // *** DEBUG ***
+      if (cube1_iter == cube_hash.end()) {
+        using namespace std;
+        cerr << "*** ERROR.  Cube index: " << cube_index1
+             << " is not in the hash table." << endl;
+        exit(1000);
+      }
+      isov_index[i] = cube1_iter->second;
+    }
+  }
+
 
   // Forward declaration
   void unmap_non_disk_isopatches
@@ -445,13 +513,8 @@ namespace {
     const NUM_TYPE num_gcube = isovert.gcube_list.size();
 
     const int dist2cube = 1;
-    std::vector<ISO_VERTEX_INDEX> isoquad_cube;
-    std::vector<FACET_VERTEX_INDEX> facet_vertex;
     std::vector<ISO_VERTEX_INDEX> tri_vert;
     std::vector<ISO_VERTEX_INDEX> quad_vert;
-    std::vector<ISO_VERTEX_INDEX> quad_vert2;
-    std::vector<VERTEX_INDEX> cube_list;
-    std::vector<DUAL_ISOVERT> iso_vlist;
 
     bool passed_all_disk_checks;
     do {
@@ -461,21 +524,9 @@ namespace {
         if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
           VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
 
-          extract_dual_quad_isopatch_incident_on
-            (scalar_grid, isovalue, isovert, cube_index, gcube_map, dist2cube,
-             isoquad_cube, facet_vertex);
-
-          construct_cube_list(isoquad_cube, cube_list);
-
-          NUM_TYPE num_split;
-
-          IJK::split_dual_isovert
-            (scalar_grid, isodual_table, isovalue, cube_list,
-             isoquad_cube, facet_vertex, iso_vlist, quad_vert2, num_split);
-
-          tri_vert.clear();
-          quad_vert.clear();
-          IJK::get_non_degenerate_quad_btlr(quad_vert2, tri_vert, quad_vert);
+          extract_dual_isopatch_incident_on_multi
+            (scalar_grid, isodual_table, isovalue, isovert, 
+             cube_index, gcube_map, dist2cube, tri_vert, quad_vert);
           IJK::reorder_quad_vertices(quad_vert);
 
           if (!is_isopatch_disk3D(tri_vert, quad_vert)) {
@@ -488,7 +539,6 @@ namespace {
       }
     }
     while (!passed_all_disk_checks);
-
   }
 
 
@@ -693,15 +743,6 @@ void ISODUAL3D::extract_dual_quad_isopatch_incident_on
   select_interior_grid_edges(scalar_grid, boundary_edge_list, edge_list);
   extract_dual_isopoly_from_list(scalar_grid, isovalue, edge_list, 
                                  isoquad_cube, facet_vertex);
-
-  for (VERTEX_INDEX i = 0; i < isoquad_cube.size(); i++) {
-    VERTEX_INDEX cube_index = isoquad_cube[i];
-    VERTEX_INDEX gcube_index1 = isovert.sharp_ind_grid.Scalar(cube_index);
-    VERTEX_INDEX gcube_index2 = gcube_map[gcube_index1];
-    isoquad_cube[i] = isovert.gcube_list[gcube_index2].cube_index;
-    if (isoquad_cube[i] == cube_index0) 
-      { facet_vertex[i] = 0; }
-  }
 }
 
 // Extract dual isosurface patch with vertex in merged cube.
@@ -718,10 +759,75 @@ void ISODUAL3D::extract_dual_isopatch_incident_on
   std::vector<ISO_VERTEX_INDEX> isoquad_cube;
   std::vector<FACET_VERTEX_INDEX> facet_vertex;
 
+  tri_vert.clear();
+  quad_vert.clear();
+
   extract_dual_quad_isopatch_incident_on
     (scalar_grid, isovalue, isovert, cube_index0, gcube_map, dist2cube,
      isoquad_cube, facet_vertex);
+  map_cube_list(isovert, gcube_map, isoquad_cube);
   IJK::get_non_degenerate_quad_btlr(isoquad_cube, tri_vert, quad_vert);
+}
+
+// Extract dual isosurface patch with vertex in merged cube.
+// Allow multiple isosurface vertices in each cube.
+// Version returning iso_vlist.
+void ISODUAL3D::extract_dual_isopatch_incident_on_multi
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+ const SCALAR_TYPE isovalue,
+ const ISOVERT & isovert,
+ const VERTEX_INDEX cube_index,
+ const std::vector<VERTEX_INDEX> & gcube_map,
+ const AXIS_SIZE_TYPE dist2cube,
+ std::vector<ISO_VERTEX_INDEX> & tri_vert,
+ std::vector<ISO_VERTEX_INDEX> & quad_vert,
+ std::vector<DUAL_ISOVERT> & iso_vlist)
+{
+  std::vector<ISO_VERTEX_INDEX> isoquad_cube;
+  std::vector<FACET_VERTEX_INDEX> facet_vertex;
+  std::vector<VERTEX_INDEX> cube_list;
+  std::vector<ISO_VERTEX_INDEX> quad_vert2;
+
+  extract_dual_quad_isopatch_incident_on
+    (scalar_grid, isovalue, isovert, cube_index, gcube_map, dist2cube,
+     isoquad_cube, facet_vertex);
+
+  map_cube_list(isovert, gcube_map, isoquad_cube);
+
+  construct_cube_list(isoquad_cube, cube_list);
+
+  NUM_TYPE num_split;
+
+  IJK::split_dual_isovert
+    (scalar_grid, isodual_table, isovalue, cube_list,
+     isoquad_cube, facet_vertex, iso_vlist, quad_vert2, num_split);
+
+  map_isov_indices(isovert, gcube_map, iso_vlist, quad_vert2);
+
+  tri_vert.clear();
+  quad_vert.clear();
+  IJK::get_non_degenerate_quad_btlr(quad_vert2, tri_vert, quad_vert);
+}
+
+// Extract dual isosurface patch with vertex in merged cube.
+// Allow multiple isosurface vertices in each cube.
+void ISODUAL3D::extract_dual_isopatch_incident_on_multi
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+ const SCALAR_TYPE isovalue,
+ const ISOVERT & isovert,
+ const VERTEX_INDEX cube_index,
+ const std::vector<VERTEX_INDEX> & gcube_map,
+ const AXIS_SIZE_TYPE dist2cube,
+ std::vector<ISO_VERTEX_INDEX> & tri_vert,
+ std::vector<ISO_VERTEX_INDEX> & quad_vert)
+{
+  std::vector<DUAL_ISOVERT> iso_vlist;
+
+  extract_dual_isopatch_incident_on_multi
+    (scalar_grid, isodual_table, isovalue, isovert, cube_index, gcube_map,
+     dist2cube, tri_vert, quad_vert, iso_vlist);
 }
 
 // Insert polygon edges in edge hash table.
