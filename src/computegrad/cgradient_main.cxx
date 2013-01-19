@@ -232,6 +232,7 @@ void usage_error()
 	exit(100);
 }
 
+/// print information of the unreliable gradients
 void print_unreliable_grad_info
 (const ISODUAL3D::ISODUAL_SCALAR_GRID_BASE & scalar_grid,
 		const INPUT_INFO & input_info){
@@ -239,7 +240,7 @@ void print_unreliable_grad_info
 	for (int i=0; i<input_info.out_info.un_reliable_grads_vert_info.size();i++){
 		VERTEX_INDEX v = input_info.out_info.un_reliable_grads_vert_info[i];
 		scalar_grid.ComputeCoord(v,coord0);
-				cout <<" iv " << v;
-				cout <<" ["<<coord0[0]<<" "<<coord0[1]<<" "<<coord0[2]<<"]"<<endl;
+		cout <<" iv " << v;
+		cout <<" ["<<coord0[0]<<" "<<coord0[1]<<" "<<coord0[2]<<"]"<<endl;
 	}
 }

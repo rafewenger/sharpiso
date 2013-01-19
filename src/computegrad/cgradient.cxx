@@ -69,10 +69,13 @@ void compute_reliable_gradients
 	//Compute the vertex gradients using central difference
 	compute_gradient_central_difference
 	(scalar_grid, vertex_gradient_grid, io_info);
+
 	//Compute cube gradients
 	GRADIENT_GRID  cube_gradient_grid;
+
 	compute_cube_gradients
 	(scalar_grid, cube_gradient_grid, io_info);
+
 	BOOL_GRID boundary_grid;
 	boundary_grid.SetSize(scalar_grid);
 	compute_boundary_grid(boundary_grid);
@@ -89,23 +92,26 @@ void compute_reliable_gradients
 	for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) {
 		if (!boundary_grid.Scalar(iv)) {
 			int numAgree=0;
-			GRADIENT_TYPE * gradient;
+			GRADIENT_TYPE  gradient[DIM3]={0.0,0.0,0.0};
 			SCALAR_TYPE mag,cube_grad_magnitude;
-			gradient=vertex_gradient_grid.VectorPtr(iv);
-			IJK::compute_magnitude_3D(gradient, mag);
 
+			std::copy(vertex_gradient_grid.VectorPtrConst(iv),
+			                vertex_gradient_grid.VectorPtrConst(iv)+DIM3,
+			                &(gradient[0]));
+			IJK::compute_magnitude_3D(gradient, mag);
 			/// DEBUG
 			if(io_info.print_info && iv==io_info.print_info_vertex){
 				cout <<"vertex_gradient (cdiff) "<<gradient[0]<<","<<gradient[1]<<","<<gradient[2];
 				cout <<" mag "<<mag<<endl;
 			}
-			if (mag > 0.0){
+			if (mag > 0.0)
+			{
 				// compute unit vertex gradient
 				for (int l=0;l<DIM3;l++){
 					gradient[l]=gradient[l]/mag;
 				}
 				GRADIENT_TYPE * cube_grad;
-				VERTEX_INDEX cube_temp=iv-scalar_grid.CubeVertexIncrement(NUM_CUBE_VERTICES3D-1);
+				VERTEX_INDEX cube_temp = iv-scalar_grid.CubeVertexIncrement(NUM_CUBE_VERTICES3D-1);
 
 				for (int k=0; k< NUM_CUBE_VERTICES3D; k++){
 					VERTEX_INDEX in_cube = scalar_grid.CubeVertex(cube_temp,k);
@@ -139,27 +145,32 @@ void compute_reliable_gradients
 							cout <<" angle diff "<< (acos(inn_pdt)*180.0)/M_PI <<endl;
 					}
 				}
-			}
-			if (numAgree < 6){
-				if(io_info.print_info && iv==io_info.print_info_vertex)
-				{cout <<"Vertex "<<iv <<" not reliable, num agree " << numAgree<<endl;}
 
-				vertex_gradient_grid.Set(iv, zero_vector);
-				io_info.out_info.num_unreliable++;
-				io_info.out_info.un_reliable_grads_vert_info.push_back(iv);
-			}
-			else {
-				io_info.out_info.num_reliable++;
+				if (numAgree < 7){
+					if(io_info.print_info && iv==io_info.print_info_vertex)
+					{cout <<"Vertex "<<iv <<" not reliable, num agree " << numAgree<<endl;}
+
+					vertex_gradient_grid.Set(iv, zero_vector);
+					io_info.out_info.num_unreliable++;
+					io_info.out_info.un_reliable_grads_vert_info.push_back(iv);
+				}
+				else {
+					io_info.out_info.num_reliable++;
+				}
 			}
 		}
-		else {
+		else
+		{
 			// boundary
-			if(io_info.print_info && iv==io_info.print_info_vertex){
+			if(io_info.print_info && iv==io_info.print_info_vertex)
+			{
 				cout << "The vertex is in boundary."<<endl;
 			}
 			io_info.out_info.boundary_verts++;
 		}
+
 	}
+
 }
 
 void compute_gradient_central_difference
