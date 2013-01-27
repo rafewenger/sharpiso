@@ -25,6 +25,13 @@
 #include <iostream>
 #include <iomanip>
 
+#include "ijkcoord.txx"
+#include "ijkmesh.txx"
+#include "ijkmesh_geom.txx"
+#include "ijkprint.txx"
+#include "ijkstring.txx"
+
+#include "sharpiso_scalar.txx"
 #include "isodual3D.h"
 #include "isodual3DIO.h"
 #include "isodual3D_decimate.h"
@@ -32,12 +39,6 @@
 #include "isodual3D_isovert.h"
 #include "isodual3D_position.h"
 #include "ijkdualtable.h"
-
-#include "ijkcoord.txx"
-#include "ijkmesh.txx"
-#include "ijkmesh_geom.txx"
-#include "ijkprint.txx"
-#include "ijkstring.txx"
 
 using namespace IJK;
 using namespace ISODUAL3D;
@@ -48,6 +49,8 @@ using namespace std;
 std::vector<VERTEX_INDEX> input_cube_coord;
 VERTEX_INDEX input_cube_index;
 bool flag_input_cube(false);
+bool flag_list_gradients(false);
+bool flag_disk_info(false);
 
 // local subroutines
 void memory_exhaustion();
@@ -66,6 +69,10 @@ void insert_selected_in_bin_grid
 void out_gcube(std::ostream & out, const SCALAR_TYPE isovalue,
                const ISODUAL_DATA & isodual_data, const GRID_CUBE & gcube,
                const SHARPISO_EDGE_INDEX_GRID & edge_index);
+void out_gradients
+(std::ostream & out, const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid, const VERTEX_INDEX cube_index,
+ const SCALAR_TYPE isovalue, const ISODUAL_PARAM & param);
 void out_gcube_multi
 (std::ostream & out, const SCALAR_TYPE isovalue, 
  const ISODUAL_DATA & isodual_data,
@@ -349,59 +356,69 @@ void print_isovert_info
                     edge_index, gcube_map, bin_grid);
           cout << endl;
 
-          out_neighborhood
-            (cout, isodual_data.ScalarGrid(), cube_index, isovert, gcube_map);
-
-          std::vector<ISODUAL3D::DUAL_ISOVERT> iso_vlist2;
-          if (allow_multiple_iso_vertices) {
-            extract_dual_isopatch_incident_on_multi
-              (isodual_data.ScalarGrid(), isodual_table, isovalue, 
-               isovert, cube_index, gcube_map, dist2cube, 
-               tri_vert2, quad_vert2, iso_vlist2);
-
-            cout << "Neighboring cubes with multiple vertices: " << endl;
-            for (int i = 0; i < iso_vlist2.size(); i++) {
-              IJKDUALTABLE::TABLE_INDEX table_index = iso_vlist2[i].table_index;
-              NUM_TYPE patch_index = iso_vlist2[i].patch_index;
-              NUM_TYPE num_isov = isodual_table.NumIsoVertices(table_index);
-              if (num_isov > 1) {
-                cout << "  Isovert: " << i
-                     << "  Cube: " << iso_vlist2[i].cube_index
-                     << "  Table index: " << table_index
-                     << "  Num iso vert: " << num_isov << endl;
-              }
-            }
+          if (flag_list_gradients) {
+            out_gradients(cout, isodual_data.ScalarGrid(), 
+                          isodual_data.GradientGrid(), cube_index,
+                          isovalue, isodual_data);
             cout << endl;
           }
-          else {
-            extract_dual_isopatch_incident_on
-              (isodual_data.ScalarGrid(), isovalue, isovert, cube_index,
-               gcube_map, dist2cube, tri_vert2, quad_vert2);
-          }
 
-          IJK::reorder_quad_vertices(quad_vert2);
+          if (flag_disk_info) {
 
-          cout << "Isosurface triangles: ";
-          for (NUM_TYPE j = 0; j < tri_vert2.size()/NUM_VERT_PER_TRI; j++) {
-            cout << " ";
-            IJK::print_list(cout, &(tri_vert2[NUM_VERT_PER_TRI*j]), 
-                            NUM_VERT_PER_TRI);
-          }
-          cout << endl;
+            out_neighborhood
+              (cout, isodual_data.ScalarGrid(), cube_index, isovert, gcube_map);
 
-          cout << "Isosurface quadrilaterals: ";
-          for (NUM_TYPE j = 0; j < quad_vert2.size()/NUM_VERT_PER_QUAD; j++) {
-            cout << " ";
-            IJK::print_list(cout, &(quad_vert2[NUM_VERT_PER_QUAD*j]), 
-                            NUM_VERT_PER_QUAD);
-          }
-          cout << endl << endl;
+            std::vector<ISODUAL3D::DUAL_ISOVERT> iso_vlist2;
+            if (allow_multiple_iso_vertices) {
+              extract_dual_isopatch_incident_on_multi
+                (isodual_data.ScalarGrid(), isodual_table, isovalue, 
+                 isovert, cube_index, gcube_map, dist2cube, 
+                 tri_vert2, quad_vert2, iso_vlist2);
 
-          if (is_isopatch_disk3D(tri_vert2, quad_vert2)) {
-            cout << "      Isopatch is a disk." << endl;
-          }
-          else {
-            cout << "      Isopatch is not a disk." << endl;
+              cout << "Neighboring cubes with multiple vertices: " << endl;
+              for (int i = 0; i < iso_vlist2.size(); i++) {
+                IJKDUALTABLE::TABLE_INDEX table_index = iso_vlist2[i].table_index;
+                NUM_TYPE patch_index = iso_vlist2[i].patch_index;
+                NUM_TYPE num_isov = isodual_table.NumIsoVertices(table_index);
+                if (num_isov > 1) {
+                  cout << "  Isovert: " << i
+                       << "  Cube: " << iso_vlist2[i].cube_index
+                       << "  Table index: " << table_index
+                       << "  Num iso vert: " << num_isov << endl;
+                }
+              }
+              cout << endl;
+            }
+            else {
+              extract_dual_isopatch_incident_on
+                (isodual_data.ScalarGrid(), isovalue, isovert, cube_index,
+                 gcube_map, dist2cube, tri_vert2, quad_vert2);
+            }
+
+            IJK::reorder_quad_vertices(quad_vert2);
+
+            cout << "Isosurface triangles: ";
+            for (NUM_TYPE j = 0; j < tri_vert2.size()/NUM_VERT_PER_TRI; j++) {
+              cout << " ";
+              IJK::print_list(cout, &(tri_vert2[NUM_VERT_PER_TRI*j]), 
+                              NUM_VERT_PER_TRI);
+            }
+            cout << endl;
+
+            cout << "Isosurface quadrilaterals: ";
+            for (NUM_TYPE j = 0; j < quad_vert2.size()/NUM_VERT_PER_QUAD; j++) {
+              cout << " ";
+              IJK::print_list(cout, &(quad_vert2[NUM_VERT_PER_QUAD*j]), 
+                              NUM_VERT_PER_QUAD);
+            }
+            cout << endl << endl;
+
+            if (is_isopatch_disk3D(tri_vert2, quad_vert2)) {
+              cout << "      Isopatch is a disk." << endl;
+            }
+            else {
+              cout << "      Isopatch is not a disk." << endl;
+            }
           }
         }
       }
@@ -696,6 +713,50 @@ void compute_eigenvalues
   }
 }
 
+void out_gradients
+(std::ostream & out, const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid, const VERTEX_INDEX cube_index,
+ const SCALAR_TYPE isovalue, const ISODUAL_PARAM & param)
+{
+	const SIGNED_COORD_TYPE grad_selection_cube_offset =
+    param.grad_selection_cube_offset;
+	OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+	std::vector<COORD_TYPE> point_coord;
+	std::vector<GRADIENT_COORD_TYPE> gradient_coord;
+	std::vector<SCALAR_TYPE> scalar;
+  COORD_TYPE cube_center[DIM3];
+  int num_gradients;
+
+
+  scalar_grid.ComputeCubeCenterCoord(cube_index, cube_center);
+
+	get_gradients
+    (scalar_grid, gradient_grid, cube_index, isovalue,
+     param, cube_111, false,
+     point_coord, gradient_coord, scalar, num_gradients);
+
+  for (NUM_TYPE i = 0; i < num_gradients; i++) {
+    GRADIENT_COORD_TYPE magnitude;
+    IJK::compute_magnitude(DIM3, &(gradient_coord[i*DIM3]), magnitude);
+
+    COORD_TYPE distance;
+    compute_signed_distance_to_gfield_plane
+      (&(gradient_coord[i*DIM3]), &(point_coord[i*DIM3]), scalar[i], 
+       cube_center, isovalue, distance);
+
+    out << "Point " << setw(2)  << i << " ";
+    IJK::print_coord3D(out, &(point_coord[i*DIM3]));
+    out << ":  Scalar " << scalar[i];
+    out << " Grad ";
+    IJK::print_coord3D(out, &(gradient_coord[i*DIM3]));
+    out << "  Mag " << magnitude;
+    out << "  Dist " << distance;
+    out << endl;
+  }
+
+}
+
+
 void out_neighborhood
 (std::ostream & out, const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const VERTEX_INDEX cube_index,
@@ -799,6 +860,14 @@ void parse_isovert_command_line
           else
             { usage_error(argv[0]); }
         }
+        else if (s == "-listg") {
+          flag_list_gradients = true;
+          next_arg = iarg+1;
+        }
+        else if (s == "-disk_info") {
+          flag_disk_info = true;
+          next_arg = iarg+1;
+        }
         else
           { break; }
       }
@@ -808,6 +877,9 @@ void parse_isovert_command_line
 
     iarg = next_arg;
   }
+
+  if (!flag_disk_info && !flag_list_gradients) 
+    { flag_disk_info = true; }
 
   parse_isovalue_and_filename(argc, argv, iarg, input_info);
   set_input_info_defaults(input_info);
