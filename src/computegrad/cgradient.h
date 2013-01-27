@@ -33,4 +33,11 @@ void compute_reliable_gradients
 (const ISODUAL3D::ISODUAL_SCALAR_GRID_BASE & scalar_grid,
  ISODUAL3D::GRADIENT_GRID & gradient_grid, INPUT_INFO & io_info);
 
-
+/*
+ * Compute reliable gradients far, computes the central differnce on all grid vertex.
+ * if the gradient matches its grid neighbors then it is reliable
+ * for far we look at 2 vertices one vertex over A-*-B
+ */
+void compute_reliable_gradients_far
+(const ISODUAL3D::ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ ISODUAL3D::GRADIENT_GRID & gradient_grid, INPUT_INFO & io_info);

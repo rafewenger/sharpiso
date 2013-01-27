@@ -28,6 +28,10 @@ public:
 	bool flag_reliable_grad;  // reliable grad
 	bool print_info;          // print info of the vertex
 	bool flag_print_grad_loc;      // prints the location of the unreliable grads
+	bool flag_reliable_grad_far; // compare the cdiff gradient with immediate neighbors or
+								 // neighbors at a certain distance
+	int reliable_grad_far_dist;  // how far to look for reliable grads default is 2
+	int min_num_agree;
 	int print_info_vertex;
 	float param_angle;
 	float min_gradient_mag;   // minimum gradient
@@ -39,9 +43,12 @@ public:
 		flag_cdiff = false;
 		flag_reliable_grad = false;
 		flag_print_grad_loc=false;
+		flag_reliable_grad_far=false;
 		print_info = false;
 		min_gradient_mag = 0.001;
 		param_angle=20;
+		reliable_grad_far_dist=2;
+		min_num_agree=4;
 		min_cos_of_angle = cos((param_angle*M_PI/180.0)); // 20 degrees=0.34906585, 30 degrees=0.523598776;
 		out_info.set_defaults();
 	}

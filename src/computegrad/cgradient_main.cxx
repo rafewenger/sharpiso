@@ -23,6 +23,8 @@
 
 
 #include <iostream>
+#include <cmath>
+
 
 #include "ijkNrrd.h"
 #include "ijkgrid_nrrd.txx"
@@ -97,6 +99,15 @@ int main(int argc, char **argv)
 				print_unreliable_grad_info (full_scalar_grid, input_info);
 			}
 		}
+		else if (input_info.flag_reliable_grad_far){
+			compute_reliable_gradients_far
+			(full_scalar_grid, vertex_gradient_grid, input_info);
+			// print info
+			cout <<"Total number of vertices "<<full_scalar_grid.NumVertices() << endl;
+			cout <<"Number of vertices with reliable grads " << input_info.out_info.num_reliable << endl;
+			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
+			cout <<"Number of boundary vertices "<<input_info.out_info.boundary_verts <<endl;
+		}
 		else
 		{
 			cerr <<"No gradients were computed"<<endl;
@@ -149,7 +160,20 @@ void memory_exhaustion()
 
 /// print out the parameter informations
 void output_param (INPUT_INFO & io_info){
+	/*
+	 * bool flag_cdiff;	 		// compute central difference
+	bool flag_reliable_grad;  // reliable grad
+	bool print_info;          // print info of the vertex
+	bool flag_print_grad_loc;      // prints the location of the unreliable grads
+	bool flag_reliable_grad_far; // compare the cdiff gradient with immediate neighbors or
+								 // neighbors at a certain distance
+	int print_info_vertex;
+	float param_angle;
+	float min_gradient_mag;   // minimum gradient
+	float min_cos_of_angle;
+	 */
 	if (flag_out_param){
+		cout <<" OUTPARAM \n ";
 		if (io_info.flag_cdiff)
 		{
 			cout <<" flag_cdiff, ";
@@ -158,6 +182,13 @@ void output_param (INPUT_INFO & io_info){
 		{
 			cout <<" reliable_grad, ";
 		}
+		if (io_info.flag_reliable_grad_far)
+		{
+			cout <<" reliable grad far,";
+			cout <<" reliable_grad_dist : "<< io_info.reliable_grad_far_dist <<endl;
+		}
+		cout << "min cos angle    " << (acos(io_info.min_cos_of_angle)*180.0)/M_PI << endl;
+		cout << "min num agree    " << io_info.min_num_agree << endl;
 		cout << "min_gradient_mag " << io_info.min_gradient_mag << endl;
 	}
 }
@@ -193,6 +224,11 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info)
 			io_info.param_angle= (float)atof(argv[iarg]);
 			io_info.min_cos_of_angle = cos((io_info.param_angle*M_PI/180.0));
 		}
+		else if (string(argv[iarg])== "-min_num_agree")
+		{
+			iarg++;
+			io_info.min_num_agree=(int)atoi(argv[iarg]);
+		}
 		else if (string(argv[iarg])== "-print_info")
 		{
 			iarg++;
@@ -202,6 +238,15 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info)
 		else if (string(argv[iarg])== "-print_grad_loc")
 		{
 			io_info.flag_print_grad_loc = true;
+		}
+		else if (string (argv[iarg])== "-reliable_grad_far")
+		{
+			io_info.flag_reliable_grad_far = true;
+		}
+		else if (string(argv[iarg])=="-reliable_grad_far_dist"){
+			iarg++;
+			io_info.flag_reliable_grad_far = true;
+			io_info.reliable_grad_far_dist=(int)atof(argv[iarg]);
 		}
 		else
 		{ usage_error(); }
@@ -224,6 +269,7 @@ void usage_msg()
 	cerr << "\t\t-print_info [int] : print_info of the vertex." <<endl;
 	cerr << "\t\t-print_grad_loc : prints the location of all the vertices with unreliable grads" <<endl;
 	cerr << "\t\t-angle : angle" <<endl;
+	cerr << "\t\t-min_num_agree: default set to 4" <<endl;
 }
 
 void usage_error()
