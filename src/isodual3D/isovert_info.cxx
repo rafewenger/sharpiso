@@ -51,6 +51,7 @@ VERTEX_INDEX input_cube_index;
 bool flag_input_cube(false);
 bool flag_list_gradients(false);
 bool flag_list_normalized_gradients(false);
+bool flag_list_iso_points(false);
 bool flag_disk_info(false);
 
 // local subroutines
@@ -726,6 +727,8 @@ void out_gradients
 	std::vector<GRADIENT_COORD_TYPE> gradient_coord;
 	std::vector<SCALAR_TYPE> scalar;
   GRADIENT_COORD_TYPE normalized_gradient_coord[DIM3];
+  COORD_TYPE isop_coord[DIM3];
+  COORD_TYPE w[DIM3];
   COORD_TYPE cube_center[DIM3];
   int num_gradients;
 
@@ -753,11 +756,22 @@ void out_gradients
       out << " Grad ";
       IJK::print_coord3D(out, &(gradient_coord[i*DIM3]));
     }
+
     if (flag_list_normalized_gradients) {
       out << " Normalized grad ";
       IJK::normalize_vector
         (DIM3, &(gradient_coord[i*DIM3]), 0.0, normalized_gradient_coord);
       IJK::print_coord3D(out, normalized_gradient_coord);
+    }
+    if (flag_list_iso_points) {
+      if (magnitude > 0) {
+        GRADIENT_COORD_TYPE scale = 
+          (isovalue - scalar[i])/(magnitude*magnitude);
+        IJK::multiply_coord_3D(scale, &(gradient_coord[i*DIM3]), w);
+        IJK::add_coord_3D(&(point_coord[i*DIM3]), w, isop_coord);
+        out << " Iso point ";
+        IJK::print_coord3D(out, isop_coord);
+      }
     }
     out << "  Mag " << magnitude;
     out << "  Dist " << distance;
@@ -878,6 +892,10 @@ void parse_isovert_command_line
           flag_list_normalized_gradients = true;
           next_arg = iarg+1;
         }
+        else if (s == "-list_isop") {
+          flag_list_iso_points = true;
+          next_arg = iarg+1;
+        }
         else if (s == "-disk_info") {
           flag_disk_info = true;
           next_arg = iarg+1;
@@ -892,8 +910,13 @@ void parse_isovert_command_line
     iarg = next_arg;
   }
 
+  if (flag_list_iso_points) {
+    if (!flag_list_gradients && !flag_list_normalized_gradients)
+      { flag_list_gradients = true; }
+  }
+
   if (!flag_disk_info && !flag_list_gradients && 
-      !flag_list_normalized_gradients) 
+      !flag_list_normalized_gradients)
     { flag_disk_info = true; }
 
   parse_isovalue_and_filename(argc, argv, iarg, input_info);
