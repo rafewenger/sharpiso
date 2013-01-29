@@ -687,7 +687,7 @@ void compute_eigenvalues
   if (num_large_eigenvalues != gcube.num_eigen) {
     cerr << "Warning: Number of large eigenvalues mismatch for cube "
          << cube_index << endl;
-    cerr << "  gcube.num_eigen: " << gcube.num_eigen << ".";
+    cerr << "  gcube.num_eigen: " << int(gcube.num_eigen) << ".";
     cerr << "  num_large_eigen: "
          << num_large_eigenvalues << endl;
   }
