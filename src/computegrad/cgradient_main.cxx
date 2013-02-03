@@ -30,7 +30,6 @@
 #include "ijkgrid_nrrd.txx"
 
 #include "cgradient.h"
-#include "isodual3D_datastruct.h"
 #include "cgradient_inputinfo.h"
 
 using namespace IJK;
@@ -70,7 +69,7 @@ int main(int argc, char **argv)
 		std::set_new_handler(memory_exhaustion);
 
 		parse_command_line(argc, argv, input_info);
-		output_param(input_info);
+	  output_param(input_info);
 
 		ISODUAL_SCALAR_GRID full_scalar_grid;
 		GRID_NRRD_IN<int,int> nrrd_in;
@@ -270,7 +269,7 @@ void usage_msg()
 	cerr << "\t\t-print_grad_loc : prints the location of all the vertices with unreliable grads" <<endl;
 	cerr << "\t\t-angle : angle" <<endl;
 	cerr << "\t\t-min_num_agree: default set to 4" <<endl;
-	cerr << "\t\t--reliable_grad_far_dist: <how far to look, e.x 2>" <<endl;
+	cerr << "\t\t-reliable_grad_far_dist: <how far to look, e.x 2>" <<endl;
 }
 
 void usage_error()
