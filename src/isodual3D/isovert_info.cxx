@@ -751,7 +751,7 @@ void out_gradients
 
     out << "Point " << setw(2)  << i << " ";
     IJK::print_coord3D(out, &(point_coord[i*DIM3]));
-    out << ":  Scalar " << scalar[i];
+    out << " :  Scalar " << scalar[i];
     if (flag_list_gradients) {
       out << " Grad ";
       IJK::print_coord3D(out, &(gradient_coord[i*DIM3]));

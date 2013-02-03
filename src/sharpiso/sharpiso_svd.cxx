@@ -81,7 +81,6 @@ void compute_cube_vertex_lindstrom_3x3
 		COORD_TYPE * _masspoint,
 		COORD_TYPE * isoVertCoords)
 {
-
 	Map<const Matrix3f >eigenA(A);
 	Map<const RowVector3f >massPoint(_masspoint);
 	Map<const RowVector3f>b(_b);

@@ -73,8 +73,9 @@ void compute_isovert_positions (
 			//set num eigen
 			isovertData.gcube_list[index].num_eigen =  (unsigned char)num_large_eigenvalues;
 			//set the sharp vertex type to be *AVAILABLE*
-			if(num_large_eigenvalues > 1)
+			if(num_large_eigenvalues > 1 && svd_info.location == LOC_SVD){
 				isovertData.gcube_list[index].flag=AVAILABLE_GCUBE;
+			}
 			else
 				isovertData.gcube_list[index].flag=SMOOTH_GCUBE;
 
@@ -237,7 +238,9 @@ void compute_isovert_positions (
 			isovertData.gcube_list[index].num_eigen =  (unsigned char)num_large_eigenvalues;
 			//set the sharp vertex type to be *AVAILABLE*
 			if(num_large_eigenvalues > 1)
-				isovertData.gcube_list[index].flag=AVAILABLE_GCUBE;
+				{
+					isovertData.gcube_list[index].flag=AVAILABLE_GCUBE;
+				}
 			else
 				isovertData.gcube_list[index].flag=SMOOTH_GCUBE;
 

@@ -270,6 +270,7 @@ void usage_msg()
 	cerr << "\t\t-print_grad_loc : prints the location of all the vertices with unreliable grads" <<endl;
 	cerr << "\t\t-angle : angle" <<endl;
 	cerr << "\t\t-min_num_agree: default set to 4" <<endl;
+	cerr << "\t\t--reliable_grad_far_dist: <how far to look, e.x 2>" <<endl;
 }
 
 void usage_error()
