@@ -5,7 +5,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -128,6 +128,10 @@ namespace IJK {
     { return(vec[ic+iv*vector_length]); };
     VCTYPE ComputeMagnitudeSquared(const VITYPE iv) const;
     VCTYPE ComputeMagnitude(const VITYPE iv) const;
+    template <typename MAG_TYPE>
+    bool IsMagnitudeGE(const VITYPE iv, const MAG_TYPE mag) const;
+    template <typename MAG_TYPE>
+    bool IsMagnitudeGT(const VITYPE iv, const MAG_TYPE mag) const;
 
     // *** DEPRECATED ***
     void SetAll(const VCTYPE s)
@@ -361,6 +365,34 @@ namespace IJK {
       { magnitude = std::sqrt(magnitude); }
 
     return(magnitude);
+  }
+
+  /// Return true if magnitude is greater than or equal to mag.
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
+  template <typename MAG_TYPE>
+  bool VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::
+  IsMagnitudeGE(const VITYPE iv, const MAG_TYPE mag) const
+  {
+    VCTYPE gradient_mag_squared = ComputeMagnitudeSquared(iv);
+
+    if (gradient_mag_squared >= (mag*mag)) 
+      { return(true); }
+    else
+      { return(false); }
+  }
+
+  /// Return true if magnitude is greater than mag.
+  template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
+  template <typename MAG_TYPE>
+  bool VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::
+  IsMagnitudeGT(const VITYPE iv, const MAG_TYPE mag) const
+  {
+    VCTYPE gradient_mag_squared = ComputeMagnitudeSquared(iv);
+
+    if (gradient_mag_squared > (mag*mag)) 
+      { return(true); }
+    else
+      { return(false); }
   }
 
   // **************************************************

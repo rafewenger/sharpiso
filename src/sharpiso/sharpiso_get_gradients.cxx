@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2012 Rephael Wenger
+  Copyright (C) 2012-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -248,9 +248,9 @@ namespace {
     vertex_list.resize(num_selected);
   }
 
-  /// Get vertices with large gradient magnitudes.
+  /// Select vertices with large gradient magnitudes.
   /// Returns vertex_list[] with selected vertices in first num_selected positions.
-  void get_vertices_with_large_gradient_magnitudes
+  void select_vertices_with_large_gradient_magnitudes
   (const GRADIENT_GRID_BASE & gradient_grid,
    const GRADIENT_COORD_TYPE max_small_mag_squared,
    const NUM_TYPE num_vertices,
@@ -509,6 +509,14 @@ void SHARPISO::get_gradients
         (scalar_grid, gradient_grid, cube_index, isovalue, 
          vertex_list);
     }
+    else if (sharpiso_param.use_large_neighborhood) {
+      GRADIENT_COORD_TYPE max_small_mag = sharpiso_param.max_small_magnitude;
+      NUM_TYPE max_grad_dist = sharpiso_param.max_grad_dist;
+
+      get_vertices_with_large_gradient_magnitudes
+        (scalar_grid, gradient_grid, cube_index, max_small_mag, max_grad_dist,
+         vertex_list);
+    }
     else if (sharpiso_param.use_intersected_edge_endpoint_gradients) {
       get_intersected_cube_neighbor_edge_endpoints
         (scalar_grid, cube_index, isovalue, vertex_list);
@@ -560,7 +568,7 @@ void SHARPISO::get_two_cube_gradients
     (scalar_grid, facet_v0, orth_dir, isovalue,
      vertex_list, num_vertices);
 
-  get_vertices_with_large_gradient_magnitudes
+  select_vertices_with_large_gradient_magnitudes
     (gradient_grid, max_small_mag_squared, 
      num_vertices, vertex_list, num_gradients);
 
@@ -1568,6 +1576,72 @@ void SHARPISO::get_intersected_two_cube_edge_endpoints
 
 }
 
+// Get cube vertices with large gradients.
+void SHARPISO::get_cube_vertices_with_large_gradients
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const GRADIENT_COORD_TYPE max_small_magnitude,
+ std::vector<VERTEX_INDEX> & vertex_list)
+{
+  for (NUM_TYPE i = 0; i < NUM_CUBE_VERTICES3D; i++) {
+    VERTEX_INDEX iv = scalar_grid.CubeVertex(cube_index, i);
+    
+    if (gradient_grid.IsMagnitudeGT(iv, max_small_magnitude)) 
+      { vertex_list.push_back(iv); }
+  }
+}
+
+// Get vertices with large gradients magnitudes.
+void SHARPISO::get_vertices_with_large_gradient_magnitudes
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const GRADIENT_COORD_TYPE max_small_magnitude,
+ const NUM_TYPE max_dist,
+ std::vector<VERTEX_INDEX> & vertex_list)
+{
+  COORD_TYPE cube_coord[DIM3];
+
+  vertex_list.clear();
+
+  get_cube_vertices_with_large_gradients
+    (scalar_grid, gradient_grid, cube_index, max_small_magnitude,
+     vertex_list);
+
+  scalar_grid.ComputeCoord(cube_index, cube_coord);
+  for (NUM_TYPE d = 0; d < DIM3; d++) {
+    for (int i = 0; i < NUM_CUBE_FACET_VERTICES3D; i++) {
+      VERTEX_INDEX iv0 = scalar_grid.FacetVertex(cube_index, d, i);
+      VERTEX_INDEX iv = iv0;
+      NUM_TYPE k = 0;
+      while (k+1 < cube_coord[d] && k < max_dist) {
+        iv = scalar_grid.PrevVertex(iv, d);
+        k++;
+
+        if (gradient_grid.IsMagnitudeGT(iv, max_small_magnitude)) {
+          vertex_list.push_back(iv);
+          // Don't get any other vertices in this direction.
+          break;
+        }
+      }
+
+      iv = scalar_grid.NextVertex(iv0, d);
+      k = 0;
+      while (k+cube_coord[d]+1 < scalar_grid.AxisSize(d) && k < max_dist) {
+        iv = scalar_grid.NextVertex(iv, d);
+        k++;
+
+        if (gradient_grid.IsMagnitudeGT(iv, max_small_magnitude)) {
+          vertex_list.push_back(iv);
+          // Don't get any other vertices in this direction.
+          break;
+        }
+      }
+    }
+  }
+}
+
 
 // **************************************************
 // SORT VERTICES
@@ -1844,6 +1918,7 @@ void SHARPISO::GET_GRADIENTS_PARAM::Init()
 {
   grad_selection_method = UNKNOWN_GRAD_SELECTION_METHOD;
   use_only_cube_gradients = false;
+  use_large_neighborhood = false;
   use_selected_gradients = true;
   select_based_on_grad_dir = false;
   use_intersected_edge_endpoint_gradients = false;
@@ -1853,6 +1928,7 @@ void SHARPISO::GET_GRADIENTS_PARAM::Init()
   grad_selection_cube_offset = 0;
   max_small_magnitude = 0.0;
   zero_tolerance = 0.0000001;
+  max_grad_dist = 1;
 }
 
 

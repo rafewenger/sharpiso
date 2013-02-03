@@ -356,6 +356,23 @@ namespace SHARPISO {
      VERTEX_INDEX vertex_list[NUM_TWO_CUBE_VERTICES3D], 
      NUM_TYPE & num_vertices);
 
+  /// Get cube vertices with large gradients.
+  void get_cube_vertices_with_large_gradients
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const GRADIENT_COORD_TYPE max_small_magnitude,
+   std::vector<VERTEX_INDEX> & vertex_list);
+
+  /// Get vertices with large gradients magnitudes.
+  void get_vertices_with_large_gradient_magnitudes
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const GRADIENT_COORD_TYPE max_small_magnitude,
+   const NUM_TYPE max_dist,
+   std::vector<VERTEX_INDEX> & vertex_list);
+
   // **************************************************
   // SORT VERTICES
   // **************************************************
@@ -476,6 +493,7 @@ namespace SHARPISO {
 
   public:
     bool use_only_cube_gradients;
+    bool use_large_neighborhood;
     bool use_selected_gradients;
     bool select_based_on_grad_dir;
     bool use_intersected_edge_endpoint_gradients;
@@ -488,7 +506,10 @@ namespace SHARPISO {
     /// Gradients with magnitude less than max_small_magnitude 
     ///   are treated as zero gradients.
     GRADIENT_COORD_TYPE max_small_magnitude;
-    
+
+    /// Maximum distance (in edges) of neighborhood vertices from cube.
+    NUM_TYPE max_grad_dist;
+
     /// Constructor
     GET_GRADIENTS_PARAM() { Init(); };
 
