@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2008-2012 Rephael Wenger
+  Copyright (C) 2008-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -26,6 +26,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <vector>
 
 #include "ijk.txx"
 #include "ijkcube.txx"
@@ -328,6 +329,17 @@ namespace IJK {
     /// @pre \a k is less than the number of facet vertices.
     VTYPE FacetVertex(const VTYPE iv0, const DTYPE ifacet, const int k) const
     { return(iv0+facet_vertex_increment[k+ifacet*num_facet_vertices]); }
+
+    /// \brief Compute vertex neighbors.
+    template <typename VTYPE0, typename VTYPE1, typename DIST_TYPE>
+    void GetVertexNeighbors
+    (const VTYPE0 iv0, const DIST_TYPE distance, std::vector<VTYPE1> & vlist)
+      const
+    {
+      get_grid_vertices_in_neighborhood
+        (this->Dimension(), this->AxisSize(), this->AxisIncrement(), 
+         iv0, distance, vlist);
+    }
   };
 
   // **************************************************
@@ -852,6 +864,7 @@ namespace IJK {
   }
 
   /// Return number of grid vertices
+  /// NOTE: REPLACE BY FASTER VERSION WHICH DOES NOT USE FACET_LIST0.
   template <typename DTYPE, typename ATYPE, typename NTYPE>
   void compute_num_grid_vertices
   (const DTYPE dimension, const ATYPE * axis_size, NTYPE & num_vertices)
@@ -1546,6 +1559,30 @@ namespace IJK {
       (region_iv0_coord.PtrConst(), dimension, axis_size);
   }
 
+  /// Compute region within boundary around given vertex coord
+  template <typename CTYPE0, typename DTYPE, typename ATYPE0, 
+            typename DIST_TYPE, typename CTYPE1, typename ATYPE1>
+  void compute_region_around_vertex_coord
+  (const CTYPE0 * vertex_coord, 
+   const DTYPE dimension, const ATYPE0 * axis_size, 
+   const DIST_TYPE dist2vertex, 
+   CTYPE1 * region_iv0_coord, ATYPE1 * region_axis_size)
+  {
+    for (DTYPE d = 0; d < dimension; d++) {
+      if (vertex_coord[d] > dist2vertex) 
+        { region_iv0_coord[d] = vertex_coord[d]-dist2vertex; }
+      else
+        { region_iv0_coord[d] = 0; }
+
+      ATYPE0 c = vertex_coord[d]+dist2vertex;
+      if (c < axis_size[d]) 
+        { region_axis_size[d] = c-region_iv0_coord[d]+1; }
+      else 
+        { region_axis_size[d] = axis_size[d]-region_iv0_coord[d]; }
+    }
+
+  }
+
   // **************************************************
   // TEMPLATES TO CHECK VALUES AND ARRAYS.
   // **************************************************
@@ -1707,9 +1744,8 @@ namespace IJK {
   /// @param axis_size  Array: <em>axis_size[d]</em> = Number of vertices along axis \a d.
   /// @param[out] increment[] = Axis increment. iv+increment[d] is the index of the vertex after iv along axis \a d.
   /// @pre Array increment[] is pre-allocated to size at least \a dimension.
-  // NOTE: *** SHOULD RENAME THIS: compute_axis_increment.
   template <typename DTYPE, typename ATYPE, typename ITYPE>
-  void compute_increment
+  void compute_axis_increment
   (const DTYPE dimension, const ATYPE * axis_size, ITYPE * increment)
   {
     IJK::PROCEDURE_ERROR error("compute_increment");
@@ -1724,6 +1760,15 @@ namespace IJK {
     increment[0] = 1;
     for (DTYPE d = 1; d < dimension; d++)
       { increment[d] = increment[d-1]*axis_size[d-1]; }
+  }
+
+  /// DEPRECATED
+  /// OLD function name.
+  template <typename DTYPE, typename ATYPE, typename ITYPE>
+  void compute_increment
+  (const DTYPE dimension, const ATYPE * axis_size, ITYPE * increment)
+  {
+    compute_axis_increment(dimension, axis_size, increment);
   }
 
   /// Compute increment to add to index of current vertex to get
@@ -1908,7 +1953,8 @@ namespace IJK {
 
   /// Compute increment to add to vertex 0 to compute vertex i of hypercube.
   /// @param dimension  Dimension of grid.
-  /// @param axis_increment[] = Axis increment. iv+axis_increment[i] is the next vertex after vertex iv along axis i.
+  /// @param axis_increment[] = Axis increment. iv+axis_increment[i] 
+  ///        is the next vertex after vertex iv along axis i.
   /// @param[out] cube_vertex_increment[] = Cube vertex increment. iv0+cube_vertex_increment[i] is the i'th vertex of the hypercube with primary vertex iv0.
   /// @pre Array cube_vertex_increment[] is allocated with size at least number of cube vertices
   template <typename DTYPE, typename ITYPE1, typename ITYPE2>
@@ -2120,24 +2166,92 @@ namespace IJK {
 
   /// Get vertices in subgrid.
   /// @param dimension  Grid dimension.
-  /// @param axis_size  Array: <em>axis_size[d]</em> = Number of vertices along axis \a d.
+  /// @param axis_size  Array: <em>axis_size[d]</em> = 
+  ///        Number of vertices along axis \a d.
+  /// @param axis_increment[] = Axis increment. iv+axis_increment[i] 
+  ///        is the next vertex after vertex iv along axis i.
   /// @param  subgrid_origin  Subgrid origin.
   /// @param subgrid_axis_size
   ///        Array: <em>subgrid_axis_size[d]</em> = Number of vertices along subgrid axis d.
   /// @param[out] vlist[]  List of vertices.
   /// @pre \li Subgrid is contained in grid, i.e. ( \a d'th coord of \a subgrid_origin ) + \a subgrid_axis_size[d] < \a axis_size[d].
   /// @pre \li Array vlist[] is preallocated to length at least number of vertices in grid or subgrid.
+  /// @pre dimension >= 1.
+  template <typename DTYPE, typename ATYPE, typename ITYPE, typename VTYPE,
+            typename NTYPE>
+  void get_subgrid_vertices
+  (const DTYPE dimension, const ATYPE * axis_size, 
+   const ITYPE * axis_increment,
+   const VTYPE subgrid_origin, const ATYPE * subgrid_axis_size, 
+   VTYPE * vlist, NTYPE & num_subgrid_vertices)
+  {
+    IJK::PROCEDURE_ERROR error("get_subgrid_vertices");
+
+    compute_num_grid_vertices
+      (dimension, subgrid_axis_size, num_subgrid_vertices);
+    if (num_subgrid_vertices < 1) { return; };
+    // Note: subgrid_axis_size[d] >= 1 for all d
+
+    if (!check_vertex_list(vlist, error)) { throw error; };
+
+    // add vertices along dimension 0 to vlist.
+    vlist[0] = subgrid_origin;
+    for (VTYPE i = 1; i < subgrid_axis_size[0]; i++) 
+      { vlist[i] = subgrid_origin + i; }
+
+    // initialize prev_num_vertices
+    VTYPE prev_num_vertices = subgrid_axis_size[0];
+
+    // Process axes 1,2,...,dimension-1
+    VTYPE * vcur_ptr = vlist + prev_num_vertices;
+    for (DTYPE d = 1; d < dimension; d++) {
+
+      VTYPE iv0 = axis_increment[d];
+
+      for (VTYPE i = 1; i < subgrid_axis_size[d]; i++) {
+        for (VTYPE * vprev_ptr = vlist;
+             vprev_ptr != vlist+prev_num_vertices; vprev_ptr++) {
+          *(vcur_ptr) = iv0 + *(vprev_ptr);
+          vcur_ptr++;
+        }
+        iv0 = iv0+axis_increment[d];
+      }
+
+      prev_num_vertices = prev_num_vertices*subgrid_axis_size[d];
+    }
+
+    if (!check_num_vertices_added
+        (prev_num_vertices, num_subgrid_vertices, error))
+      throw error;
+  }
+
+  /// Get vertices in subgrid.
+  /// @param dimension  Grid dimension.
+  /// @param axis_size  Array: <em>axis_size[d]</em> = 
+  ///        Number of vertices along axis \a d.
+  /// @param  subgrid_origin  Subgrid origin.
+  /// @param subgrid_axis_size
+  ///        Array: <em>subgrid_axis_size[d]</em> = 
+  ///        Number of vertices along subgrid axis d.
+  /// @param[out] vlist[]  List of vertices.
+  /// @pre \li Subgrid is contained in grid, 
+  ///     i.e. ( \a d'th coord of \a subgrid_origin ) + \a subgrid_axis_size[d] < \a axis_size[d].
+  /// @pre \li Array vlist[] is preallocated to length at least 
+  ///          number of vertices in grid or subgrid.
   template <typename DTYPE, typename ATYPE, typename VTYPE>
   void get_subgrid_vertices
   (const DTYPE dimension, const ATYPE * axis_size, 
    const VTYPE subgrid_origin, const ATYPE * subgrid_axis_size, 
    VTYPE * vlist)
   {
-    IJK::CONSTANT<ATYPE,ATYPE> ONE(1);
+    VTYPE num_subgrid_vertices;
 
-    subsample_subgrid_vertices
-      (dimension, axis_size, subgrid_origin, subgrid_axis_size, 
-       ONE, vlist);
+    IJK::ARRAY<VTYPE> axis_increment(dimension);
+    compute_axis_increment(dimension, axis_size, axis_increment.Ptr());
+
+    get_subgrid_vertices(dimension, axis_size, axis_increment.Ptr(),
+                         subgrid_origin, subgrid_axis_size, 
+                         vlist, num_subgrid_vertices);
   }
 
   /// Get cubes in subgrid.
@@ -2286,6 +2400,57 @@ namespace IJK {
 
     get_subgrid_vertices
       (dimension, axis_size, iv0, subgrid_size.PtrConst(), vlist);
+  }
+
+  /// Get grid vertices in neighborhood around vertex \a iv.
+  /// @param dimension  Dimension of grid.
+  /// @param axis_size  Array: <em>axis_size[d]</em> = Number of vertices along axis \a d.
+  /// @param axis_increment[] = Axis increment. iv+axis_increment[i] 
+  ///        is the next vertex after vertex iv along axis i.
+  /// @param iv  Neighborhood around vertex \a iv.
+  /// @param distance Distance to \a iv.
+  /// @param[out] vlist[] List of vertices in neighborhood around \a iv.
+  /// @pre Array vlist[] is preallocated to size at least (2*distance)^d.
+  /// @pre dimension > 0.
+  template <typename DTYPE, typename ATYPE, typename VTYPE0, typename VTYPE1,
+            typename DIST_TYPE>
+  void get_grid_vertices_in_neighborhood
+  (const DTYPE dimension, const ATYPE * axis_size, const ATYPE * axis_increment,
+   const VTYPE0 iv, const DIST_TYPE distance,
+   std::vector<VTYPE1> & vlist)
+  {
+    VTYPE0 region_iv0;
+    IJK::ARRAY<ATYPE> region_iv0_coord(dimension);
+    IJK::ARRAY<ATYPE> region_axis_size(dimension);
+    IJK::ARRAY<ATYPE> vertex_coord(dimension);
+    VTYPE0 num_subgrid_vertices;
+
+    compute_coord(iv, dimension, axis_size, vertex_coord.Ptr());
+
+    compute_region_around_vertex_coord
+      (vertex_coord.PtrConst(), dimension, axis_size, 
+       distance, region_iv0_coord.Ptr(), region_axis_size.Ptr());
+    region_iv0 =
+      compute_vertex_index<VTYPE0>
+      (region_iv0_coord.PtrConst(), dimension, axis_size);
+
+    compute_num_grid_vertices
+      (dimension, region_axis_size.PtrConst(), num_subgrid_vertices);
+
+    if (num_subgrid_vertices == 0) {
+      vlist.clear();
+      return;
+    }
+
+    // get all vertices including iv, then remove iv.
+    vlist.resize(num_subgrid_vertices);
+    get_subgrid_vertices(dimension, axis_size, axis_increment,
+                         region_iv0, region_axis_size.PtrConst(),
+                         &(vlist[0]), num_subgrid_vertices);
+
+    // remove iv from list
+    std::remove(vlist.begin(), vlist.end(), iv);
+    vlist.pop_back();
   }
 
   /// Get primary cube vertices in subgrid.
