@@ -26,6 +26,7 @@
 #include "ijkgrid.txx"
 #include "ijkcoord.txx"
 #include "isodual3D_datastruct.h"
+#include "sharpiso_scalar.txx"
 #include "ijkgrid_macros.h"
 #include "sharpiso_types.h"
 #include <algorithm>
@@ -55,7 +56,13 @@ void compute_cube_grad
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
 		const VERTEX_INDEX iv1, GRADIENT_TYPE * gradient,
 		const SCALAR_TYPE & min_gradient_mag, const INPUT_INFO & io_info);
-
+void print_info (
+		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+		const GRADIENT_GRID & vertex_gradient_grid,
+		const INPUT_INFO & io_info,
+		const int direction,
+		const VERTEX_INDEX iv,
+		out e);
 
 SCALAR_TYPE zero_vector [3] = { 0.0, 0.0, 0.0};
 
@@ -97,6 +104,79 @@ bool gradients_agree
 
 }
 
+/*
+ * Compute reliable gradients by comparing how good the gradients
+ * predict the scalar values of neighboring grids
+ */
+void compute_reliable_gradients_SBP
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+		GRADIENT_GRID & vertex_gradient_grid,
+		INPUT_INFO & io_info)
+{
+	using namespace SHARPISO;
+	//compute the gradients using central difference
+	compute_gradient_central_difference
+	(scalar_grid, vertex_gradient_grid, io_info);
+
+	// setup a secondary grid to keep track
+	// of which gradients are reliable
+	BOOL_GRID reliable_grid;
+	reliable_grid.SetSize(scalar_grid);
+	reliable_grid.SetAll(false);
+
+	for (VERTEX_INDEX iv=0; iv < scalar_grid.NumVertices(); iv++)
+	{
+		int num_agree = 0;
+		GRADIENT_TYPE  grad1[DIM3]={0.0,0.0,0.0};
+		GRADIENT_TYPE  grad2[DIM3]={0.0,0.0,0.0};
+		std::copy(vertex_gradient_grid.VectorPtrConst(iv),
+				vertex_gradient_grid.VectorPtrConst(iv)+DIM3, grad1);
+		SCALAR_TYPE mag1;
+		IJK::compute_magnitude_3D(grad1, mag1);
+		if (mag1 > io_info.min_gradient_mag)
+		{
+			IJK::multiply_coord_3D(-1.0, grad1, grad1);
+			COORD_TYPE coord_iv[DIM3],coord_iv_prev[DIM3],coord_iv_next[DIM3];
+			scalar_grid.ComputeCoord(iv, coord_iv);
+			print_info (scalar_grid, vertex_gradient_grid, io_info, 0, iv, CURR_VERTEX);
+			print_info (scalar_grid, vertex_gradient_grid, io_info, 0, iv, GRADIENT);
+			for (unsigned int d = 0; d < DIM3; d++)
+			{
+				int k = min(io_info.scalar_prediction_dist, int(coord_iv[d]));
+				VERTEX_INDEX prev_vertex = iv - k*scalar_grid.AxisIncrement(d);
+				scalar_grid.ComputeCoord(prev_vertex, coord_iv_prev);
+
+				print_info (scalar_grid, vertex_gradient_grid, io_info, d, iv, PREV_VERTEX);
+
+				COORD_TYPE distance = 0;
+				compute_signed_distance_to_gfield_plane
+				(grad1, coord_iv, scalar_grid.Scalar(iv),
+						coord_iv_prev, scalar_grid.Scalar(prev_vertex), distance);
+
+
+				if(io_info.print_info && iv==io_info.print_info_vertex){
+					cout <<"Distance: "<< distance <<endl;
+				}
+				k = min(io_info.scalar_prediction_dist,
+						(scalar_grid.AxisSize(d)-int(coord_iv[d])-1));
+				VERTEX_INDEX next_vertex = iv + k*scalar_grid.AxisIncrement(d);
+
+				print_info (scalar_grid, vertex_gradient_grid, io_info, d, iv, NEXT_VERTEX);
+				scalar_grid.ComputeCoord(next_vertex, coord_iv_next);
+				compute_signed_distance_to_gfield_plane
+				(grad1, coord_iv, scalar_grid.Scalar(iv),
+						coord_iv_next, scalar_grid.Scalar(next_vertex), distance);
+				if(io_info.print_info && iv==io_info.print_info_vertex){
+					cout <<"Distance: "<< distance <<endl;
+				}
+			}
+
+
+		}
+
+	}
+
+}
 void compute_reliable_gradients_far
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
 		GRADIENT_GRID & vertex_gradient_grid,
@@ -132,6 +212,7 @@ void compute_reliable_gradients_far
 				vertex_gradient_grid.VectorPtrConst(iv)+DIM3,
 				&(gradient1[0]));
 		IJK::compute_magnitude_3D(gradient1, mag);
+
 
 		if (mag > 0.0)
 		{
@@ -466,4 +547,72 @@ void compute_cube_grad(
 
 	}
 }
+/*
+ * Helper print function
+ */
 
+void print_info (
+		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+		const		GRADIENT_GRID & vertex_gradient_grid,
+		const		INPUT_INFO & io_info,
+		const 		int direction,
+		const VERTEX_INDEX iv,
+		out e)
+{
+	//CURR_VERTEX, PREV_VERTEX, NEXT_VERTEX
+	if (io_info.print_info && io_info.print_info_vertex == iv )
+	{
+		COORD_TYPE coord_iv[DIM3], coord_iv_prev[DIM3], coord_iv_next[DIM3];
+		scalar_grid.ComputeCoord(iv, coord_iv);
+		int k;
+		switch ( e )
+		{
+		case CURR_VERTEX:
+		{
+			cout <<"Curr Vertex: " << iv;
+			cout << " ("<<coord_iv[0]<<","<<coord_iv[1]<<","<<coord_iv[2]<<")";
+			cout <<" Scalar: "<< scalar_grid.Scalar(iv)<<endl;
+			break;
+		}
+		case PREV_VERTEX:  // intentional fall-through
+		{
+
+			k = min(io_info.scalar_prediction_dist, int(coord_iv[direction ]));
+			VERTEX_INDEX prev_vertex = iv - k*scalar_grid.AxisIncrement(direction);
+			scalar_grid.ComputeCoord(prev_vertex, coord_iv_prev);
+			cout <<"Prev Vertex: (direction "<<direction<<") "<< prev_vertex;
+			cout << " ("<<coord_iv_prev[0]<<","<<coord_iv_prev[1]<<","<<coord_iv_prev[2]<<")";
+			cout <<" Scalar: "<< scalar_grid.Scalar(prev_vertex)<<endl;
+			break;
+		}
+		case NEXT_VERTEX:
+		{
+			k = min(io_info.scalar_prediction_dist,
+					(scalar_grid.AxisSize(direction)-int(coord_iv[direction])-1));
+			VERTEX_INDEX next_vertex = iv + k*scalar_grid.AxisIncrement(direction);
+			cout <<"Next Vertex: (direction "<<direction<<") "<< next_vertex;
+			scalar_grid.ComputeCoord(next_vertex, coord_iv_next);
+			cout << " ("<<coord_iv_next[0]<<","<<coord_iv_next[1]<<","<<coord_iv_next[2]<<")";
+			cout <<" Scalar: "<< scalar_grid.Scalar(next_vertex)<<endl;
+			break;
+		}
+		case GRADIENT:
+		{
+			GRADIENT_TYPE  grad1[DIM3]={0.0,0.0,0.0};
+			std::copy(vertex_gradient_grid.VectorPtrConst(iv),
+					vertex_gradient_grid.VectorPtrConst(iv)+DIM3, grad1);
+			SCALAR_TYPE mag1;
+			IJK::compute_magnitude_3D(grad1, mag1);
+			cout <<"Gradient: "<< grad1[0]<<" "<< grad1[1]<<" "<<grad1[2];
+			IJK::normalize_vector
+			(DIM3, grad1, io_info.min_gradient_mag, grad1);
+			cout <<" Gradient Dir: "<< grad1[0]<<" "<< grad1[1]<<" "<<grad1[2];
+			cout <<" Mag: "<<mag1<<endl;
+			break;
+		}
+		default:
+			cout <<" ERROR: "<< e << " is not defined."<<endl;
+			break;
+		}
+	}
+}

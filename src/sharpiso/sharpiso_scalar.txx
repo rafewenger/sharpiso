@@ -158,13 +158,14 @@ namespace SHARPISO {
       gfield_gradient[2]*gfield_gradient[2];
 
     gradient_magnitude = std::sqrt(gradient_magnitude);
-
+    
     distance =
       gfield_gradient[0]*(point[0]-gfield_point[0]) +
       gfield_gradient[1]*(point[1]-gfield_point[1]) +
       gfield_gradient[2]*(point[2]-gfield_point[2]) +
       gfield_point_scalar - plane_scalar;
     distance = distance/gradient_magnitude;
+
   }
 
   /// Compute (non-negative) distance from point to plane 
