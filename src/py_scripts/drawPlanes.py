@@ -81,8 +81,8 @@ def computePlane(vertexPoint, vertexGrad, planePoint, Mag):
   u=cross (baseDirc,vertexGrd)
   v= cross (vertexGrd, u)
   print 'U ', u, ' V ',v
-  maxDistU=3
-  maxDistV=3
+  maxDistU=1
+  maxDistV=1
   endPt1=[planePt[0]+maxDistU*u[0]+maxDistV*v[0],planePt[1]+maxDistU*u[1]+maxDistV*v[1], planePt[2]+maxDistU*u[2]+maxDistV*v[2]]
   maxDistU=1
   maxDistV=-1

@@ -23,6 +23,7 @@
 
 
 #include <iostream>
+#include <cstdlib>
 #include <cmath>
 
 
@@ -69,7 +70,7 @@ int main(int argc, char **argv)
 		std::set_new_handler(memory_exhaustion);
 
 		parse_command_line(argc, argv, input_info);
-	  output_param(input_info);
+		output_param(input_info);
 
 		ISODUAL_SCALAR_GRID full_scalar_grid;
 		GRID_NRRD_IN<int,int> nrrd_in;
@@ -107,9 +108,20 @@ int main(int argc, char **argv)
 			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
 			cout <<"Number of boundary vertices "<<input_info.out_info.boundary_verts <<endl;
 		}
+		else if (input_info.flag_reliable_scalar_prediction){
+			compute_reliable_gradients_SBP
+			(full_scalar_grid, vertex_gradient_grid, input_info);
+			// print info
+			cout <<"Total number of vertices "<<full_scalar_grid.NumVertices() << endl;
+			cout <<"Number of vertices with reliable grads " << input_info.out_info.num_reliable << endl;
+			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
+			cout <<"Number of boundary vertices "<<input_info.out_info.boundary_verts <<endl;
+
+		}
 		else
 		{
 			cerr <<"No gradients were computed"<<endl;
+			exit(0);
 		}
 
 		if (flag_gzip) {
@@ -247,6 +259,11 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info)
 			io_info.flag_reliable_grad_far = true;
 			io_info.reliable_grad_far_dist=(int)atof(argv[iarg]);
 		}
+		else if (string(argv[iarg])=="-reliable_scalar_pred_dist"){
+			iarg++;
+			io_info.flag_reliable_scalar_prediction = true;
+			io_info.scalar_prediction_dist = atoi(argv[iarg]);
+		}
 		else
 		{ usage_error(); }
 		iarg++;
@@ -270,6 +287,7 @@ void usage_msg()
 	cerr << "\t\t-angle : angle" <<endl;
 	cerr << "\t\t-min_num_agree: default set to 4" <<endl;
 	cerr << "\t\t-reliable_grad_far_dist: <how far to look, e.x 2>" <<endl;
+	cerr << "\t\t-reliable_scalar_pred_dist: <how far to look, e.x 2>" <<endl;
 }
 
 void usage_error()
