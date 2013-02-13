@@ -373,6 +373,14 @@ namespace SHARPISO {
    const NUM_TYPE max_dist,
    std::vector<VERTEX_INDEX> & vertex_list);
 
+  /// Get vertices with large gradients magnitudes.
+  void get_vertices_with_large_gradient_magnitudes
+    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+     const GRADIENT_GRID_BASE & gradient_grid,
+     const VERTEX_INDEX cube_index,
+     const GET_GRADIENTS_PARAM & gradient_param,
+     std::vector<VERTEX_INDEX> & vertex_list);
+
   // **************************************************
   // SORT VERTICES
   // **************************************************
@@ -494,6 +502,7 @@ namespace SHARPISO {
   public:
     bool use_only_cube_gradients;
     bool use_large_neighborhood;
+    bool use_diagonal_neighbors;
     bool use_selected_gradients;
     bool select_based_on_grad_dir;
     bool use_intersected_edge_endpoint_gradients;

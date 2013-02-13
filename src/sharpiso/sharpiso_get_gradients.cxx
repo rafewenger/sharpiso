@@ -513,9 +513,14 @@ void SHARPISO::get_gradients
       GRADIENT_COORD_TYPE max_small_mag = sharpiso_param.max_small_magnitude;
       NUM_TYPE max_grad_dist = sharpiso_param.max_grad_dist;
 
+      /* OBSOLETE
       get_vertices_with_large_gradient_magnitudes
         (scalar_grid, gradient_grid, cube_index, max_small_mag, max_grad_dist,
          vertex_list);
+      */
+
+      get_vertices_with_large_gradient_magnitudes
+        (scalar_grid, gradient_grid, cube_index, sharpiso_param, vertex_list);
     }
     else if (sharpiso_param.use_intersected_edge_endpoint_gradients) {
       get_intersected_cube_neighbor_edge_endpoints
@@ -1642,6 +1647,67 @@ void SHARPISO::get_vertices_with_large_gradient_magnitudes
   }
 }
 
+// Get vertices with large gradients magnitudes.
+void SHARPISO::get_vertices_with_large_gradient_magnitudes
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const GET_GRADIENTS_PARAM & gradient_param,
+ std::vector<VERTEX_INDEX> & vertex_list)
+{
+  const GRADIENT_COORD_TYPE max_small_magnitude =
+    gradient_param.max_small_magnitude;
+  const NUM_TYPE max_grad_dist = gradient_param.max_grad_dist;
+  GRID_COORD_TYPE cube_coord[DIM3];
+
+  get_vertices_with_large_gradient_magnitudes
+    (scalar_grid, gradient_grid, cube_index, max_small_magnitude,
+     max_grad_dist, vertex_list);
+
+  if (gradient_param.use_diagonal_neighbors) {
+
+    scalar_grid.ComputeCoord(cube_index, cube_coord);
+
+    for (int zcoef = 0; zcoef < 2; zcoef++)
+      for (int ycoef = 0; ycoef < 2; ycoef++)
+        for (int xcoef = 0; xcoef < 2; xcoef++) {
+
+          VERTEX_INDEX vertex_increment =
+            (2*xcoef-1)*scalar_grid.AxisIncrement(0) +
+            (2*ycoef-1)*scalar_grid.AxisIncrement(1) +
+            (2*zcoef-1)*scalar_grid.AxisIncrement(2);
+          VERTEX_INDEX iv0 =  cube_index + 
+            xcoef*scalar_grid.AxisIncrement(0) +
+            ycoef*scalar_grid.AxisIncrement(1) + 
+            zcoef*scalar_grid.AxisIncrement(2);
+          NUM_TYPE kmax = max_grad_dist;
+          kmax = std::min(kmax, cube_coord[0]+xcoef*max_grad_dist);
+          kmax = std::min(kmax, cube_coord[1]+ycoef*max_grad_dist);
+          kmax = std::min(kmax, cube_coord[2]+zcoef*max_grad_dist);
+          GRID_COORD_TYPE xdiff = scalar_grid.AxisSize(0)-cube_coord[0]-1;
+          kmax = std::min(kmax, xdiff+(1-xcoef)*max_grad_dist);
+          GRID_COORD_TYPE ydiff = scalar_grid.AxisSize(1)-cube_coord[1]-1;
+          kmax = std::min(kmax, ydiff+(1-ycoef)*max_grad_dist);
+          GRID_COORD_TYPE zdiff = scalar_grid.AxisSize(2)-cube_coord[2]-1;
+          kmax = std::min(kmax, zdiff+(1-zcoef)*max_grad_dist);
+
+          NUM_TYPE k = 0;
+          while (k < kmax) {
+
+            VERTEX_INDEX iv = iv0 + vertex_increment;
+            k++;
+
+            if (gradient_grid.IsMagnitudeGT(iv, max_small_magnitude)) {
+              vertex_list.push_back(iv);
+              // Don't get any other vertices in this direction.
+              break;
+            }
+          }
+        }
+  }
+
+}
+
 
 // **************************************************
 // SORT VERTICES
@@ -1919,6 +1985,7 @@ void SHARPISO::GET_GRADIENTS_PARAM::Init()
   grad_selection_method = UNKNOWN_GRAD_SELECTION_METHOD;
   use_only_cube_gradients = false;
   use_large_neighborhood = false;
+  use_diagonal_neighbors = false;
   use_selected_gradients = true;
   select_based_on_grad_dir = false;
   use_intersected_edge_endpoint_gradients = false;
@@ -1942,6 +2009,7 @@ void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
   // set defaults
   use_only_cube_gradients = false;
   use_selected_gradients = true;
+  use_diagonal_neighbors = false;
   use_intersected_edge_endpoint_gradients = false;
   use_gradients_determining_edge_intersections = false;
 	select_based_on_grad_dir = false;
@@ -1966,6 +2034,12 @@ void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
 
   case GRAD_NS:
     use_only_cube_gradients = false;
+    use_selected_gradients = true;
+    break;
+
+  case GRAD_XS:
+    use_only_cube_gradients = false;
+    use_diagonal_neighbors = true;
     use_selected_gradients = true;
     break;
 
@@ -2040,6 +2114,7 @@ GRAD_SELECTION_METHOD SHARPISO::get_grad_selection_method(const string & s)
   else if (s == "gradN") { return(GRAD_N); }
   else if (s == "gradCS") { return(GRAD_CS); }
   else if (s == "gradNS") { return(GRAD_NS); }
+  else if (s == "gradXS") { return(GRAD_XS); }
   else if (s == "gradIE") { return(GRAD_IE); }
   else if (s == "gradIES") { return(GRAD_IES); }
   else if (s == "gradIEDir") { return(GRAD_IE_DIR); }
@@ -2060,6 +2135,7 @@ void SHARPISO::get_grad_selection_string
   if (grad_sel == GRAD_C) { s = "gradCD"; }
   else if (grad_sel == GRAD_CS) { s = "gradCS"; }
   else if (grad_sel == GRAD_NS) { s = "gradNS"; }
+  else if (grad_sel == GRAD_XS) { s = "gradXS"; }
   else if (grad_sel == GRAD_IE) { s = "gradIE"; }
   else if (grad_sel == GRAD_IES) { s = "gradIES"; }
   else if (grad_sel == GRAD_IE_DIR) { s = "gradIEDir"; }

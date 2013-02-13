@@ -1534,7 +1534,7 @@ namespace {
   {
     cerr << "OPTIONS:" << endl;
     cerr << "  [-subsample S]" << endl;
-    cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|"
+    cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|gradXS"
          << endl
          << "              gradIE|gradIES|gradIEDir|gradCD|gradNIE|gradNIES|"
          << endl
@@ -1605,6 +1605,11 @@ void ISODUAL3D::help(const char * command_path)
 			<< endl;
 	cout << "       on selected vertex gradients of cube and cube neighbors."
 			<< endl;
+	cout << "  -position gradXS: Position isosurface vertices using svd"
+			<< endl;
+	cout << "       on selected vertex gradients of cube and cube neighbors."
+			<< endl;
+  cout << "       Neighbors include diagonal neighbors." << endl;
 	cout << "  -position gradIE: Position isosurface vertices using svd"
 			<< endl;
 	cout << "       on gradients at endpoints of intersected cube edges."
