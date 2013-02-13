@@ -40,6 +40,7 @@ public:
 	bool flag_reliable_scalar_prediction; // check how good the gradient predicts the scalar
 										// of the neighborhood grid vertices
 	int scalar_prediction_dist;
+	float scalar_prediction_err;
 
 	int reliable_grad_far_dist;  // how far to look for reliable grads default is 2
 	int min_num_agree;
@@ -47,6 +48,9 @@ public:
 	float param_angle;
 	float min_gradient_mag;   // minimum gradient
 	float min_cos_of_angle;
+	bool draw;
+	int draw_vert;
+
 
 	OUTPUT_INFO	 out_info;    // generate some output_info
 	//Set the default values
@@ -58,8 +62,10 @@ public:
 		print_info = false;
 		min_gradient_mag = 0.001;
 		param_angle=20;
+		draw = false;
 		reliable_grad_far_dist = 2;
 		scalar_prediction_dist = 2;
+		scalar_prediction_err = 1.5;
 		min_num_agree=4;
 		min_cos_of_angle = cos((param_angle*M_PI/180.0)); // 20 degrees=0.34906585, 30 degrees=0.523598776;
 		out_info.set_defaults();

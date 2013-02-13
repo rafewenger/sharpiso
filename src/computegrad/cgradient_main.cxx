@@ -246,6 +246,13 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info)
 			io_info.print_info = true;
 			io_info.print_info_vertex= (int)atof(argv[iarg]);
 		}
+		else if (string(argv[iarg])== "-draw_vert")
+		{
+			iarg++;
+			io_info.draw = true;
+			io_info.draw_vert= atoi(argv[iarg]);
+
+		}
 		else if (string(argv[iarg])== "-print_grad_loc")
 		{
 			io_info.flag_print_grad_loc = true;
@@ -264,6 +271,11 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info)
 			io_info.flag_reliable_scalar_prediction = true;
 			io_info.scalar_prediction_dist = atoi(argv[iarg]);
 		}
+		else if (string(argv[iarg])=="-scalar_pred_err"){
+					iarg++;
+					io_info.flag_reliable_scalar_prediction = true;
+					io_info.scalar_prediction_err = atof(argv[iarg]);
+				}
 		else
 		{ usage_error(); }
 		iarg++;
@@ -288,6 +300,7 @@ void usage_msg()
 	cerr << "\t\t-min_num_agree: default set to 4" <<endl;
 	cerr << "\t\t-reliable_grad_far_dist: <how far to look, e.x 2>" <<endl;
 	cerr << "\t\t-reliable_scalar_pred_dist: <how far to look, e.x 2>" <<endl;
+	cerr << "\t\t-scalar_pred_err: <threhold for error prediction default 0.15>" <<endl;
 }
 
 void usage_error()

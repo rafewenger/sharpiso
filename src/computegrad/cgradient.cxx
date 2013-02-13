@@ -30,6 +30,7 @@
 #include "ijkgrid_macros.h"
 #include "sharpiso_types.h"
 #include <algorithm>
+#include <vector>
 using namespace ISODUAL3D;
 using namespace std;
 using namespace SHARPISO;
@@ -63,6 +64,10 @@ void print_info (
 		const int direction,
 		const VERTEX_INDEX iv,
 		out e);
+
+void compute_plane_point_dist (
+		const GRADIENT_TYPE * normal, const SCALAR_TYPE * pt_on_plane,
+		const SCALAR_TYPE * far_point, SCALAR_TYPE & dist);
 
 SCALAR_TYPE zero_vector [3] = { 0.0, 0.0, 0.0};
 
@@ -107,8 +112,9 @@ bool gradients_agree
 /*
  * Compute reliable gradients by comparing how good the gradients
  * predict the scalar values of neighboring grids
+ * OLD CODE : updating below to work only for certain neighbors
  */
-void compute_reliable_gradients_SBP
+void compute_reliable_gradients_SBP_2
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
 		GRADIENT_GRID & vertex_gradient_grid,
 		INPUT_INFO & io_info)
@@ -177,6 +183,152 @@ void compute_reliable_gradients_SBP
 	}
 
 }
+
+void compute_reliable_gradients_SBP(
+		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+		GRADIENT_GRID & vertex_gradient_grid,
+		INPUT_INFO & io_info)
+{
+	using namespace SHARPISO;
+	//compute the gradients using central difference
+	compute_gradient_central_difference
+	(scalar_grid, vertex_gradient_grid, io_info);
+
+	// setup a secondary grid to keep track
+	// of which gradients are reliable
+	BOOL_GRID reliable_grid;
+	reliable_grid.SetSize(scalar_grid);
+	reliable_grid.SetAll(true);
+
+	for (VERTEX_INDEX iv=0; iv < scalar_grid.NumVertices(); iv++)
+	{
+		int num_agree = 0;
+		// set up a vector to keep track of the distances
+		vector <SCALAR_TYPE> vec_scalar_dists;
+
+		GRADIENT_TYPE  grad1[DIM3]={0.0,0.0,0.0}, grad1_normalized[DIM3]={0.0,0.0,0.0};
+		GRADIENT_TYPE  grad2[DIM3]={0.0,0.0,0.0};
+		std::copy(vertex_gradient_grid.VectorPtrConst(iv),
+				vertex_gradient_grid.VectorPtrConst(iv)+DIM3, grad1);
+		SCALAR_TYPE mag1;
+		IJK::compute_magnitude_3D(grad1, mag1);
+		if (mag1 > io_info.min_gradient_mag)
+		{
+
+			// find the normalized gradient
+			IJK::normalize_vector(DIM3, grad1, io_info.min_gradient_mag, grad1_normalized);
+			// point on the plane
+			COORD_TYPE coord_iv[DIM3];
+			scalar_grid.ComputeCoord(iv, coord_iv);
+			// find neighbor vertices
+			vector <VERTEX_INDEX> near_vertices;
+			scalar_grid.GetVertexNeighbors(iv, io_info.scalar_prediction_dist, near_vertices);
+
+			if(io_info.draw && iv==io_info.draw_vert){
+				cout <<"point "<< coord_iv[0] <<" "<<coord_iv[1]<<" "<<coord_iv[2]<<
+						" 1 1 0"<<endl;
+			}
+			if(io_info.print_info && iv==io_info.print_info_vertex){
+				print_info (scalar_grid, vertex_gradient_grid, io_info, 0, iv, CURR_VERTEX);
+				print_info (scalar_grid, vertex_gradient_grid, io_info, 0, iv, GRADIENT);
+				cout <<"num of neighbors: " << near_vertices.size() << endl;
+			}
+
+
+			// for all the neighboring points find the distance of points to plane
+			// nv_ind = near_vertex_index
+
+			// Number of vertices which are close to the gradient plane through the vertex iv
+			VERTEX_INDEX close_vertices = 0;
+			VERTEX_INDEX correct_prediction = 0;
+			for (unsigned int nv_ind = 0; nv_ind < near_vertices.size(); nv_ind++)
+			{
+				// compute distance from plane
+				COORD_TYPE coord_nv[DIM3]={0.0,0.0,0.0};
+				scalar_grid.ComputeCoord(near_vertices[nv_ind], coord_nv);
+				SCALAR_TYPE dist_to_plane = 0.0;
+				compute_plane_point_dist (grad1_normalized, coord_iv, coord_nv, dist_to_plane);
+				if(io_info.print_info && iv==io_info.print_info_vertex){
+					cout <<"near vert "<< near_vertices[nv_ind] <<" coord (" << coord_nv[0] <<","<<coord_nv[1]<<","<<coord_nv[2]<<") ";
+					cout <<"Distance to plane: "<< dist_to_plane <<endl;
+					cout <<"Draw point "<<" "<< coord_nv[0] <<" "<<coord_nv[1]<<" "<<coord_nv[2]<<endl;
+				}
+
+
+				// if dist_to_plane is within the threshold
+				if (abs (dist_to_plane) < 0.5){
+					close_vertices++;
+
+
+					// compute the distance between prediction and observed scalar value
+					SCALAR_TYPE err_distance = 0.0;
+					compute_signed_distance_to_gfield_plane
+					(grad1, coord_iv, scalar_grid.Scalar(iv),
+							coord_nv, scalar_grid.Scalar(near_vertices[nv_ind]), err_distance);
+					// keep track of the error distances
+					vec_scalar_dists.push_back (abs(err_distance));
+
+					if(io_info.print_info && iv==io_info.print_info_vertex){
+						cout <<"\n within threshold error in scalar pred is "<<
+								err_distance<<"\n\n";
+					}
+					// Compare to error distance (set to .15)
+					if (abs (err_distance) < io_info.scalar_prediction_err)
+					{
+						correct_prediction++;
+						if(io_info.draw && iv==io_info.draw_vert){
+							cout <<"point "<< coord_nv[0] <<" "<<coord_nv[1]<<" "<<coord_nv[2]<<
+									" 0 1 0"<<endl;
+						}
+					}
+					else
+					{
+						if(io_info.draw && iv==io_info.draw_vert){
+							cout <<"point "<< coord_nv[0] <<" "<<coord_nv[1]<<" "<<coord_nv[2]<<
+									" 1 0 0"<<endl;
+						}
+					}
+				}
+				else{
+					if(io_info.draw && iv==io_info.draw_vert){
+						cout <<"point "<< coord_nv[0] <<" "<<coord_nv[1]<<" "<<coord_nv[2]<<
+								" 1 0 1"<<endl;
+					}
+				}
+			}
+
+			if(io_info.print_info && iv==io_info.print_info_vertex){
+				cout << "io_info.scalar_prediction_err: "<<io_info.scalar_prediction_err<<endl;
+				cout <<"correct prediction count: "<< correct_prediction
+						<<" close vertices count: "<< close_vertices << endl;
+				cout <<"prediction rate : " <<  correct_prediction/float(close_vertices) <<endl;
+				sort(vec_scalar_dists.begin(), vec_scalar_dists.end());
+				cout <<"smallest scalar distance is "<< vec_scalar_dists[0]<<" largest "
+						<< vec_scalar_dists[vec_scalar_dists.size()-1]<<endl;
+			}
+			//if ((close_vertices-correct_prediction) > (2* io_info.scalar_prediction_dist +1)){
+			//if ((close_vertices-correct_prediction) / float(close_vertices) > 0.5){
+			if ((close_vertices-correct_prediction) / float(correct_prediction) > 0.5){
+				if(io_info.print_info && iv==io_info.print_info_vertex){
+					cout <<"Not Reliable" <<endl;
+				}
+				reliable_grid.Set(iv,false);
+			}
+
+		}
+
+	}
+
+	// set gradients
+	for (VERTEX_INDEX iv=0; iv < scalar_grid.NumVertices(); iv++){
+
+		if (!reliable_grid.Scalar(iv)){
+			vertex_gradient_grid.Set(iv, zero_vector);
+		}
+	}
+}
+
+
 void compute_reliable_gradients_far
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
 		GRADIENT_GRID & vertex_gradient_grid,
@@ -550,6 +702,23 @@ void compute_cube_grad(
 /*
  * Helper print function
  */
+/*
+ * Given a  plane ( point and a normal),
+ *  find the distance of another point from this plane
+ */
+void compute_plane_point_dist (
+		const GRADIENT_TYPE * normal,
+		const SCALAR_TYPE * pt_on_plane,
+		const SCALAR_TYPE * far_point,
+		SCALAR_TYPE & dist
+)
+{
+	SCALAR_TYPE d = 0; //  n.pt on plane
+	SCALAR_TYPE temp = 0; // n.far_point
+	IJK::compute_inner_product_3D(normal, pt_on_plane, d);
+	IJK::compute_inner_product_3D(normal, far_point, temp);
+	dist = temp - d;
+}
 
 void print_info (
 		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
