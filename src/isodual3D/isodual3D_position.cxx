@@ -407,73 +407,10 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
      &(sharp_coord.front()), conflict_list, sharp_info);
 }
 
-// *** DEPRECATED ***
-// Position dual isosurface vertices using isovert information.
-// Allows multiple vertices in a grid cube.
-void ISODUAL3D::position_dual_isovertices
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
- const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
- const SCALAR_TYPE isovalue,
- const ISOVERT & isovert,
- const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
- const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
- COORD_TYPE * isov_coord)
-{
-  const int dimension = scalar_grid.Dimension();
-  const int num_cube_vertices = scalar_grid.NumCubeVertices();
-  ISODUAL3D_CUBE_FACE_INFO cube(dimension);
-  IJKDUALTABLE::TABLE_INDEX it;
 
-  for (VERTEX_INDEX i = 0; i < iso_vlist_cube.size(); i++) {
-
-    VERTEX_INDEX cube_index = iso_vlist_cube[i];
-    VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(cube_index);
-    if (isovert.gcube_list[gcube_index].flag == SMOOTH_GCUBE ||
-        isovert.gcube_list[gcube_index].flag == UNAVAILABLE_GCUBE ||
-        isovert.gcube_list[gcube_index].flag == NON_DISK_GCUBE ) {
-      IJK::compute_isotable_index
-        (scalar_grid.ScalarPtrConst(), isovalue, cube_index,
-         scalar_grid.CubeVertexIncrement(), num_cube_vertices, it);
-
-      if (isodual_table.NumIsoVertices(it) == 1) {
-        IJK::copy_coord_3D(isovert.gcube_list[gcube_index].isovert_coord,
-                           isov_coord+i*DIM3);
-      }
-      else {
-        FACET_VERTEX_INDEX ipatch= iso_vlist_patch[i];
-
-        compute_isosurface_grid_edge_centroid
-          (scalar_grid, isodual_table, isovalue, cube_index, ipatch,
-           it, cube, isov_coord+i*DIM3);
-      }
-    }
-    else {
-      IJK::copy_coord_3D(isovert.gcube_list[gcube_index].isovert_coord,
-                         isov_coord+i*DIM3);
-    }
-  }
-
-}
-
-// *** DEPRECATED ***
-// Position dual isosurface vertices using isovert information.
-// Allows multiple vertices in a grid cube.
-void ISODUAL3D::position_dual_isovertices
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
- const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
- const SCALAR_TYPE isovalue,
- const ISOVERT & isovert,
- const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
- const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
- std::vector<COORD_TYPE> & isov_coord)
-{
-  const int dimension = scalar_grid.Dimension();
-
-  isov_coord.resize(iso_vlist_cube.size()*dimension);
-  position_dual_isovertices
-    (scalar_grid, isodual_table, isovalue, isovert,
-     iso_vlist_cube, iso_vlist_patch, &(isov_coord.front()));
-}
+// **************************************************
+// Position using isovert information
+// **************************************************
 
 // Position dual isosurface vertices using isovert information.
 // Allows multiple vertices in a grid cube.
@@ -1000,39 +937,6 @@ void ISODUAL3D::split_dual_isovert_ambig
 
   }
 
-}
-
-/// *** DEPRECATED ***
-// Split dual isosurface vertices.
-// @param isodual_table Dual isosurface lookup table.
-void ISODUAL3D::split_dual_isovert
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
- const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
- const SCALAR_TYPE isovalue,
- const ISOVERT & isovert,
- const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
- const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
- std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
- std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
- std::vector<VERTEX_INDEX> & isoquad_vert,
- VERTEX_INDEX & num_split)
-{
-  const NUM_TYPE num_gcube = isovert.gcube_list.size();
-  std::vector<ISO_VERTEX_INDEX> cube_list(num_gcube);
-  std::vector<bool> no_split(num_gcube,true);
-
-  for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
-    cube_list[i] = isovert.gcube_list[i].cube_index;
-    if (isovert.gcube_list[i].flag == SMOOTH_GCUBE ||
-        isovert.gcube_list[i].flag == UNAVAILABLE_GCUBE ||
-        isovert.gcube_list[i].flag == NON_DISK_GCUBE)
-      { no_split[i] = false; }
-  }
-
-  IJK::split_dual_isovert_old
-    (scalar_grid, isodual_table, isovalue, cube_list, no_split, 
-     isoquad_cube, facet_vertex,
-     iso_vlist_cube, iso_vlist_patch, isoquad_vert, num_split);
 }
 
 // Split dual isosurface vertices.
