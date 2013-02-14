@@ -2165,6 +2165,7 @@ namespace IJK {
   }
 
   /// Get vertices in subgrid.
+  /// Returns vertex indices sorted in increasing order.
   /// @param dimension  Grid dimension.
   /// @param axis_size  Array: <em>axis_size[d]</em> = 
   ///        Number of vertices along axis \a d.
@@ -2226,6 +2227,7 @@ namespace IJK {
   }
 
   /// Get vertices in subgrid.
+  /// Returns vertex indices sorted in increasing order.
   /// @param dimension  Grid dimension.
   /// @param axis_size  Array: <em>axis_size[d]</em> = 
   ///        Number of vertices along axis \a d.
@@ -2410,7 +2412,6 @@ namespace IJK {
   /// @param iv  Neighborhood around vertex \a iv.
   /// @param distance Distance to \a iv.
   /// @param[out] vlist[] List of vertices in neighborhood around \a iv.
-  /// @pre Array vlist[] is preallocated to size at least (2*distance)^d.
   /// @pre dimension > 0.
   template <typename DTYPE, typename ATYPE, typename VTYPE0, typename VTYPE1,
             typename DIST_TYPE>
@@ -3213,6 +3214,7 @@ namespace IJK {
   // TEMPLATE FUNCTIONS: GRID BOUNDARIES
   // ********************************************************
 
+  /// Return true if cube_facet is on grid boundary.
   template <typename DTYPE, typename ATYPE, 
             typename DTYPE2, typename CTYPE>
   bool is_cube_facet_on_grid_boundary

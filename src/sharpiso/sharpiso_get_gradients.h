@@ -381,6 +381,15 @@ namespace SHARPISO {
      const GET_GRADIENTS_PARAM & gradient_param,
      std::vector<VERTEX_INDEX> & vertex_list);
 
+  /// Get intersected edge endpoints in large neighborhood.
+  void get_ie_endpoints_in_large_neighborhood
+    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+     const GRADIENT_GRID_BASE & gradient_grid,
+     const SCALAR_TYPE isovalue,
+     const VERTEX_INDEX cube_index,
+     const GET_GRADIENTS_PARAM & gradient_param,
+     std::vector<VERTEX_INDEX> & vertex_list);
+
   // **************************************************
   // SORT VERTICES
   // **************************************************
