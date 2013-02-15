@@ -148,10 +148,11 @@ if __name__ == "__main__":
       intersectPt.append(float(sys.argv[6]))
       print intersectPt
 
-      print >>fw,"appearance { +transparent material {alpha 0.4}}"
+      print >>fw,"appearance { +transparent material {alpha 0.3 diffuse  1   0   1 }}"
       print >> fw, "QUAD"
       print >> fwList, "LIST \n< test.quad"
-      print >> fwList, "LIST \n< cube.vect"
+      print >> fwList, "\n< cube.vect"
+      print >> fwList, "{{appearance { +transparent material {alpha 0.2 diffuse  0   0   1 }} < reliable-dist-2.off}}"
       writeSphere(0.1,base,[1,0,0])
       drawCube(base)
       writeSphere(0.1,intersectPt,[1,1,0])

@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 	INPUT_INFO input_info;
 	input_info.set_defaults();
 	IJK::ERROR error;
-
+	bool OptChosen = false;
 	try {
 
 		std::set_new_handler(memory_exhaustion);
@@ -75,18 +75,25 @@ int main(int argc, char **argv)
 		ISODUAL_SCALAR_GRID full_scalar_grid;
 		GRID_NRRD_IN<int,int> nrrd_in;
 		NRRD_DATA<int,int> nrrd_header;
+		SCALAR_TYPE zero_vector [3] = { 0.0, 0.0, 0.0};
 
 		nrrd_in.ReadScalarGrid
 		(scalar_filename, full_scalar_grid, nrrd_header, error);
 		if (nrrd_in.ReadFailed()) { throw error; }
 		GRADIENT_GRID  vertex_gradient_grid;
+
+		IJK::BOOL_GRID<ISODUAL3D::ISODUAL_GRID> reliable_grid;
+		reliable_grid.SetSize(full_scalar_grid);
+		reliable_grid.SetAll(true);
+
 		// compute central difference
 		if (input_info.flag_cdiff){
 			compute_gradient_central_difference
 			(full_scalar_grid, vertex_gradient_grid, input_info);
-
+			OptChosen = true;
 		}
-		else if (input_info.flag_reliable_grad){
+		/*
+		if (input_info.flag_reliable_grad){
 			compute_reliable_gradients
 			(full_scalar_grid, vertex_gradient_grid, input_info);
 			// print info
@@ -98,31 +105,50 @@ int main(int argc, char **argv)
 			if (input_info.flag_print_grad_loc){
 				print_unreliable_grad_info (full_scalar_grid, input_info);
 			}
+			OptChosen=true
 		}
-		else if (input_info.flag_reliable_grad_far){
+		*/
+		if (input_info.flag_reliable_grad_far){
 			compute_reliable_gradients_far
-			(full_scalar_grid, vertex_gradient_grid, input_info);
+			(full_scalar_grid, vertex_gradient_grid, reliable_grid, input_info);
+			OptChosen=true;
 			// print info
+			/*
 			cout <<"Total number of vertices "<<full_scalar_grid.NumVertices() << endl;
 			cout <<"Number of vertices with reliable grads " << input_info.out_info.num_reliable << endl;
 			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
 			cout <<"Number of boundary vertices "<<input_info.out_info.boundary_verts <<endl;
+			*/
+			cout <<" angle based prediction"<<endl;
 		}
-		else if (input_info.flag_reliable_scalar_prediction){
+		 if (input_info.flag_reliable_scalar_prediction){
 			compute_reliable_gradients_SBP
-			(full_scalar_grid, vertex_gradient_grid, input_info);
+			(full_scalar_grid, vertex_gradient_grid, reliable_grid, input_info);
+			OptChosen=true;
+			cout <<" scalar based prediction "<<endl;
+			/*
 			// print info
 			cout <<"Total number of vertices "<<full_scalar_grid.NumVertices() << endl;
 			cout <<"Number of vertices with reliable grads " << input_info.out_info.num_reliable << endl;
 			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
 			cout <<"Number of boundary vertices "<<input_info.out_info.boundary_verts <<endl;
-
+			*/
 		}
-		else
+		if (!OptChosen)
 		{
 			cerr <<"No gradients were computed"<<endl;
 			exit(0);
 		}
+		// set the correct gradients
+		// set gradients
+		int num_unreliable = 0;
+		for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++){
+			if (!reliable_grid.Scalar(iv)){
+				vertex_gradient_grid.Set(iv, zero_vector);
+				num_unreliable++;
+			}
+		}
+		cout <<"Number of unreliable is: " << num_unreliable <<endl;
 
 		if (flag_gzip) {
 			write_vector_grid_nrrd_gzip(gradient_filename, vertex_gradient_grid);
@@ -141,7 +167,6 @@ int main(int argc, char **argv)
 			cout << "Elapsed time = " << total_elapsed_time << " seconds."
 					<< endl;
 		};
-
 	}
 	catch (ERROR error) {
 		if (error.NumMessages() == 0) {
@@ -187,20 +212,26 @@ void output_param (INPUT_INFO & io_info){
 		cout <<" OUTPARAM \n ";
 		if (io_info.flag_cdiff)
 		{
-			cout <<" flag_cdiff, ";
+			cout <<"flag_cdiff, ";
 		}
 		if (io_info.flag_reliable_grad)
 		{
-			cout <<" reliable_grad, ";
+			cout <<"reliable_grad, ";
 		}
 		if (io_info.flag_reliable_grad_far)
 		{
-			cout <<" reliable grad far,";
-			cout <<" reliable_grad_dist : "<< io_info.reliable_grad_far_dist <<endl;
+			cout <<"reliable grad far"<<endl;
+			cout <<"reliable_grad_dist : "<< io_info.reliable_grad_far_dist <<endl;
+			cout << "min cos angle    " << (acos(io_info.min_cos_of_angle)*180.0)/M_PI << endl;
+			cout << "min num agree    " << io_info.min_num_agree << endl;
+			cout << "min_gradient_mag " << io_info.min_gradient_mag << endl;
 		}
-		cout << "min cos angle    " << (acos(io_info.min_cos_of_angle)*180.0)/M_PI << endl;
-		cout << "min num agree    " << io_info.min_num_agree << endl;
-		cout << "min_gradient_mag " << io_info.min_gradient_mag << endl;
+		if (io_info.flag_reliable_scalar_prediction)
+		{
+			cout <<"scalar based prediction"<<endl;
+			cout <<"scalar error tolerance: "<<io_info.scalar_prediction_err<<endl;
+			cout <<"scalar error distance to neighbors: "<<io_info.scalar_prediction_dist<<endl;
+		}
 	}
 }
 void parse_command_line(int argc, char **argv, INPUT_INFO & io_info)

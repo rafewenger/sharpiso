@@ -57,16 +57,17 @@ public:
 	void set_defaults(){
 		flag_cdiff = false;
 		flag_reliable_grad = false;
-		flag_print_grad_loc=false;
-		flag_reliable_grad_far=false;
+		flag_print_grad_loc = false;
+		flag_reliable_grad_far = false;
+		flag_reliable_scalar_prediction = false;
 		print_info = false;
 		min_gradient_mag = 0.001;
 		param_angle=20;
 		draw = false;
 		reliable_grad_far_dist = 2;
 		scalar_prediction_dist = 2;
-		scalar_prediction_err = 1.5;
-		min_num_agree=4;
+		scalar_prediction_err = .15;
+		min_num_agree = 4;
 		min_cos_of_angle = cos((param_angle*M_PI/180.0)); // 20 degrees=0.34906585, 30 degrees=0.523598776;
 		out_info.set_defaults();
 	}

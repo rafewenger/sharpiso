@@ -40,7 +40,9 @@ void compute_reliable_gradients
  */
 void compute_reliable_gradients_far
 (const ISODUAL3D::ISODUAL_SCALAR_GRID_BASE & scalar_grid,
- ISODUAL3D::GRADIENT_GRID & gradient_grid, INPUT_INFO & io_info);
+ ISODUAL3D::GRADIENT_GRID & gradient_grid,
+ IJK::BOOL_GRID<ISODUAL3D::ISODUAL_GRID> &reliable_grid,
+ INPUT_INFO & io_info);
 
 /*
  * Compute reliable gradients based on how good the gradients predict the scalars around it.
@@ -48,6 +50,8 @@ void compute_reliable_gradients_far
  */
 void compute_reliable_gradients_SBP
 (const ISODUAL3D::ISODUAL_SCALAR_GRID_BASE & scalar_grid,
- ISODUAL3D::GRADIENT_GRID & gradient_grid, INPUT_INFO & io_info);
+ ISODUAL3D::GRADIENT_GRID & gradient_grid,
+ IJK::BOOL_GRID<ISODUAL3D::ISODUAL_GRID> &reliable_grid,
+ INPUT_INFO & io_info);
 
 
