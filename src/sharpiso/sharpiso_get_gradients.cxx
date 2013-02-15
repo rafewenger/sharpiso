@@ -30,6 +30,7 @@
 #include "sharpiso_scalar.txx"
 
 
+
 // **************************************************
 // GET GRADIENTS
 // **************************************************
@@ -510,17 +511,16 @@ void SHARPISO::get_gradients
          vertex_list);
     }
     else if (sharpiso_param.use_large_neighborhood) {
-      GRADIENT_COORD_TYPE max_small_mag = sharpiso_param.max_small_magnitude;
-      NUM_TYPE max_grad_dist = sharpiso_param.max_grad_dist;
 
-      /* OBSOLETE
-      get_vertices_with_large_gradient_magnitudes
-        (scalar_grid, gradient_grid, cube_index, max_small_mag, max_grad_dist,
-         vertex_list);
-      */
-
-      get_vertices_with_large_gradient_magnitudes
-        (scalar_grid, gradient_grid, cube_index, sharpiso_param, vertex_list);
+      if (sharpiso_param.use_zero_grad_boundary) {
+        get_ie_endpoints_in_large_neighborhood
+          (scalar_grid, gradient_grid, isovalue, cube_index,
+           sharpiso_param, vertex_list);
+      }
+      else {
+        get_vertices_with_large_gradient_magnitudes
+          (scalar_grid, gradient_grid, cube_index, sharpiso_param, vertex_list);
+      }
     }
     else if (sharpiso_param.use_intersected_edge_endpoint_gradients) {
       get_intersected_cube_neighbor_edge_endpoints
@@ -1709,6 +1709,182 @@ void SHARPISO::get_vertices_with_large_gradient_magnitudes
 }
 
 
+// local namespace
+namespace {
+
+  /// Return true if iv is adjacent to a visited vertex.
+  /// @param boundary_bits Boundary bits for iv.
+  bool is_adjacent_to_visited
+  (const SHARPISO_BOOL_GRID_BASE & visited,
+   const VERTEX_INDEX kv, const long boundary_bits)
+  {
+    typedef SHARPISO_BOOL_GRID_BASE::DIMENSION_TYPE DTYPE;
+    const DTYPE dimension = visited.Dimension();
+
+    for (DTYPE d = 0; d < dimension; d++) {
+      long mask = (1L << (2*d));
+      long bit = (boundary_bits & mask);
+      if (bit == 0) {
+        VERTEX_INDEX kv2 = visited.PrevVertex(kv, d);
+        if (visited.Scalar(kv2)) 
+          { return(true); }
+      }
+
+      mask = (1L << (2*d+1));
+      bit = (boundary_bits & mask);
+      if (bit == 0) {
+        VERTEX_INDEX kv2 = visited.NextVertex(kv, d);
+        if (visited.Scalar(kv2)) 
+          { return(true); }
+      }
+    }
+
+    return(false);
+  }
+
+  /// Return true if iv is adjacent to a bipolar edge
+  /// @param boundary_bits Boundary bits for iv.
+  bool is_adjacent_to_bipolar_edge
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX kv, const long boundary_bits)
+  {
+    typedef SHARPISO_SCALAR_GRID_BASE::DIMENSION_TYPE DTYPE;
+    const DTYPE dimension = scalar_grid.Dimension();
+
+    for (DTYPE d = 0; d < dimension; d++) {
+      long mask = (1L << (2*d));
+      long bit = (boundary_bits & mask);
+      if (bit == 0) {
+        VERTEX_INDEX kv2 = scalar_grid.PrevVertex(kv, d);
+        if (IJK::is_gt_min_le_max(scalar_grid, kv, kv2, isovalue))
+          { return(true); }
+      }
+
+      mask = (1L << (2*d+1));
+      bit = (boundary_bits & mask);
+      if (bit == 0) {
+        VERTEX_INDEX kv2 = scalar_grid.NextVertex(kv, d);
+        if (IJK::is_gt_min_le_max(scalar_grid, kv, kv2, isovalue))
+          { return(true); }
+      }
+    }
+
+    return(false);
+  }
+  
+};
+
+// Get intersected edge endpoints in large neighborhood.
+void SHARPISO::get_ie_endpoints_in_large_neighborhood
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const VERTEX_INDEX cube_index,
+ const GET_GRADIENTS_PARAM & gradient_param,
+ std::vector<VERTEX_INDEX> & vertex_list)
+{
+  typedef SHARPISO_SCALAR_GRID_BASE::DIMENSION_TYPE DTYPE;
+
+  const DTYPE dimension = scalar_grid.Dimension();
+  const NUM_TYPE max_grad_dist = gradient_param.max_grad_dist;
+  const GRADIENT_COORD_TYPE max_small_magnitude =
+    gradient_param.max_small_magnitude;
+  VERTEX_INDEX region_iv0, subgrid_cube_index;
+  IJK::ARRAY<AXIS_SIZE_TYPE> region_axis_size(dimension);
+  std::vector<VERTEX_INDEX> vlist2;
+  long boundary_bits;
+
+  vertex_list.clear();
+
+  get_cube_vertices_with_large_gradients
+    (scalar_grid, gradient_grid, cube_index, max_small_magnitude,
+     vertex_list);
+
+  IJK::compute_region_around_cube
+    (cube_index, dimension, scalar_grid.AxisSize(), max_grad_dist,
+     region_iv0, region_axis_size.Ptr());
+
+  SHARPISO_INDEX_GRID subgrid(dimension, region_axis_size.PtrConst());
+  subgrid.SetToVertexIndices(scalar_grid, region_iv0);
+
+  // Locate subgrid_cube_index
+  subgrid_cube_index = 0;
+  for (VERTEX_INDEX iv = 0; iv < subgrid.NumVertices(); iv++) {
+    if (subgrid.Scalar(iv) == cube_index)
+      { subgrid_cube_index = iv; }
+  }
+
+  SHARPISO_BOOL_GRID visited;
+  visited.SetSize(subgrid);
+
+  visited.SetAll(false);
+
+  for (NUM_TYPE k = 0; k < NUM_CUBE_VERTICES3D; k++) {
+    VERTEX_INDEX kv = subgrid.CubeVertex(subgrid_cube_index, k);
+    visited.Set(kv, true);
+    vlist2.push_back(kv);
+  }
+
+  while (vlist2.size() != 0) {
+    VERTEX_INDEX kv = vlist2.back();
+    vlist2.pop_back();
+
+    subgrid.ComputeBoundaryBits(kv, boundary_bits);
+
+    for (DTYPE d = 0; d < dimension; d++) {
+
+      long mask = (1L << (2*d));
+      long bit = (boundary_bits & mask);
+      if (bit == 0) {
+        VERTEX_INDEX kv2 = subgrid.PrevVertex(kv, d);
+        if (!visited.Scalar(kv2)) {
+          VERTEX_INDEX iv2 = subgrid.Scalar(kv2);
+          if (!gradient_grid.IsMagnitudeGT(iv2, max_small_magnitude)) {
+            visited.Set(kv2, true);
+            vlist2.push_back(kv2);
+          }
+        }
+      }
+
+      mask = (1L << (2*d+1));
+      bit = (boundary_bits & mask);
+      if (bit == 0) {
+        VERTEX_INDEX kv2 = subgrid.NextVertex(kv, d);
+        if (!visited.Scalar(kv2)) {
+          VERTEX_INDEX iv2 = subgrid.Scalar(kv2);
+          if (!gradient_grid.IsMagnitudeGT(iv2, max_small_magnitude)) {
+            visited.Set(kv2, true);
+            vlist2.push_back(kv2);
+          }
+        }
+      }
+    }
+  }
+
+  SHARPISO_SCALAR_GRID scalar_subgrid;
+  scalar_subgrid.SetSize(subgrid);
+
+  scalar_subgrid.CopyRegion
+    (scalar_grid, region_iv0, scalar_subgrid.AxisSize(), 0);
+
+  for (VERTEX_INDEX kv = 0; kv < subgrid.NumVertices(); kv++) {
+    if (!visited.Scalar(kv)) {
+      subgrid.ComputeBoundaryBits(kv, boundary_bits);
+
+      if (is_adjacent_to_visited(visited, kv, boundary_bits) &&
+          is_adjacent_to_bipolar_edge
+          (scalar_subgrid, isovalue, kv, boundary_bits)) {
+
+        VERTEX_INDEX iv = subgrid.Scalar(kv);
+        vertex_list.push_back(iv);
+      }
+    }
+  }
+
+}
+
+
 // **************************************************
 // SORT VERTICES
 // **************************************************
@@ -1985,6 +2161,7 @@ void SHARPISO::GET_GRADIENTS_PARAM::Init()
   grad_selection_method = UNKNOWN_GRAD_SELECTION_METHOD;
   use_only_cube_gradients = false;
   use_large_neighborhood = false;
+  use_zero_grad_boundary = false;
   use_diagonal_neighbors = false;
   use_selected_gradients = true;
   select_based_on_grad_dir = false;
@@ -2091,6 +2268,13 @@ void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
 		use_intersected_edge_endpoint_gradients = true;
     break;
 
+  case GRAD_BIES:
+    use_only_cube_gradients = false;
+		use_selected_gradients = true;
+		use_intersected_edge_endpoint_gradients = true;
+    use_zero_grad_boundary = true;
+    break;
+
   case GRAD_EDGEI_INTERPOLATE:
     break;
 
@@ -2122,6 +2306,7 @@ GRAD_SELECTION_METHOD SHARPISO::get_grad_selection_method(const string & s)
   else if (s == "gradCDdup") { return(GRAD_CD_DUP); }
   else if (s == "gradNIE") { return(GRAD_NIE); }
   else if (s == "gradNIES") { return(GRAD_NIES); }
+  else if (s == "gradBIES") { return(GRAD_BIES); }
   else if (s == "gradEIinterp") { return(GRAD_EDGEI_INTERPOLATE); }
   else if (s == "gradEIgrad") { return(GRAD_EDGEI_GRAD); }
   else if (s == "gradES") { return(GRAD_EDGEI_INTERPOLATE); }
@@ -2143,6 +2328,7 @@ void SHARPISO::get_grad_selection_string
   else if (grad_sel == GRAD_CD_DUP) { s = "gradCDdup"; }
   else if (grad_sel == GRAD_NIE) { s = "gradNIE"; }
   else if (grad_sel == GRAD_NIES) { s = "gradNIES"; }
+  else if (grad_sel == GRAD_BIES) { s = "gradBIES"; }
   else if (grad_sel == GRAD_EDGEI_INTERPOLATE) { s = "gradEIinterp"; }
   else if (grad_sel == GRAD_EDGEI_GRAD) { s = "gradEIgrad"; }
   else { s = "gradUnknown"; };

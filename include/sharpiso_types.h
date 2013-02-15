@@ -59,6 +59,7 @@ namespace SHARPISO {
 
   typedef enum { GRAD_C, GRAD_N, GRAD_CS, GRAD_NS, GRAD_XS, GRAD_IE, GRAD_IES,
                  GRAD_IE_DIR, GRAD_CD, GRAD_CD_DUP, GRAD_NIE, GRAD_NIES,
+                 GRAD_BIES,
                  GRAD_EDGEI_INTERPOLATE, GRAD_EDGEI_GRAD,
                  UNKNOWN_GRAD_SELECTION_METHOD }
     GRAD_SELECTION_METHOD;

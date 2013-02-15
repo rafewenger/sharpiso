@@ -1536,7 +1536,7 @@ namespace {
     cerr << "  [-subsample S]" << endl;
     cerr << "  [-position {centroid|cube_center|gradC|gradN|gradCS|gradNS|gradXS"
          << endl
-         << "              gradIE|gradIES|gradIEDir|gradCD|gradNIE|gradNIES|"
+         << "              gradIE|gradIES|gradIEDir|gradCD|gradNIE|gradNIES|gradBIES"
          << endl
          << "              gradES|gradEC}]" << endl;
     cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
@@ -1638,6 +1638,12 @@ void ISODUAL3D::help(const char * command_path)
 	cout << "       on selected gradients at endpoints of intersected cube"
 			<< endl;
 	cerr << "       and cube neighbor edges." << endl;
+	cout << "  -position gradBIES: Position isosurface vertices using svd"
+			<< endl;
+	cout << "       on selected gradients on boundary of zero gradient region."
+       << endl;
+  cout << "       Use only gradients from vertices incident on bipolar edges."
+			<< endl;
 	cout << "  -position gradES: Position using isosurface vertices using svd"
 			<< endl;
 	cout << "       on gradients at isosurface-edge intersections."

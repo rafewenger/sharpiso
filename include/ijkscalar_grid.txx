@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2008,2009,2010,2012 Rephael Wenger
+  Copyright (C) 2008-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -91,6 +91,14 @@ namespace IJK {
     template <typename GTYPE>
     void SetRegion(const std::vector< IJK::BOX<GTYPE> > & box_list,
                    const ATYPE scale, const STYPE s);
+
+    /// Set to indices of vertices in region in \a gridB.
+    /// @pre gridB.Dimension() == this->Dimension().
+    /// @pre Region with lowest vertex iv0B and axis size this->AxisSize()
+    ///        is contained in gridB.
+    template <typename GRIDB_TYPE, typename VB_TYPE>
+    void SetToVertexIndices
+    (const GRIDB_TYPE & gridB, const VB_TYPE iv0B);
 
     /// Replace region from \a iv0 to \a iv1 with values from \a scalar_grid2.
     /// @pre scalar_grid2 has exactly the same dimension and axis_size as the current grid.
@@ -1021,6 +1029,16 @@ namespace IJK {
   {
     for (NTYPE i = 0; i < NTYPE(box_list.size()); i++)
       { SetRegion(box_list[i], scale, s); }
+  }
+
+  /// Set to indices of vertices in region in \a gridB.
+  template <typename GRID_CLASS, typename STYPE>
+  template <typename GRIDB_TYPE, typename VB_TYPE>
+  void SCALAR_GRID_BASE<GRID_CLASS,STYPE>::
+  SetToVertexIndices(const GRIDB_TYPE & gridB, const VB_TYPE iv0B)
+  {
+    get_subgrid_vertices(this->Dimension(), gridB.AxisSize(), iv0B, 
+                         this->AxisSize(), this->ScalarPtr());
   }
 
   /* NOT PROPERLY IMPLEMENTED/TESTED
