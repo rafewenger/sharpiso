@@ -30,6 +30,7 @@
 #include "sharpiso_scalar.txx"
 
 
+
 // **************************************************
 // GET GRADIENTS
 // **************************************************
@@ -511,7 +512,7 @@ void SHARPISO::get_gradients
     }
     else if (sharpiso_param.use_large_neighborhood) {
 
-      if (sharpiso_param.use_intersected_edge_endpoint_gradients) {
+      if (sharpiso_param.use_zero_grad_boundary) {
         get_ie_endpoints_in_large_neighborhood
           (scalar_grid, gradient_grid, isovalue, cube_index,
            sharpiso_param, vertex_list);
@@ -1737,6 +1738,8 @@ namespace {
           { return(true); }
       }
     }
+
+    return(false);
   }
 
   /// Return true if iv is adjacent to a bipolar edge
@@ -1766,6 +1769,8 @@ namespace {
           { return(true); }
       }
     }
+
+    return(false);
   }
   
 };
@@ -1791,6 +1796,10 @@ void SHARPISO::get_ie_endpoints_in_large_neighborhood
   long boundary_bits;
 
   vertex_list.clear();
+
+  get_cube_vertices_with_large_gradients
+    (scalar_grid, gradient_grid, cube_index, max_small_magnitude,
+     vertex_list);
 
   IJK::compute_region_around_cube
     (cube_index, dimension, scalar_grid.AxisSize(), max_grad_dist,
@@ -1853,7 +1862,6 @@ void SHARPISO::get_ie_endpoints_in_large_neighborhood
     }
   }
 
-
   SHARPISO_SCALAR_GRID scalar_subgrid;
   scalar_subgrid.SetSize(subgrid);
 
@@ -1866,14 +1874,13 @@ void SHARPISO::get_ie_endpoints_in_large_neighborhood
 
       if (is_adjacent_to_visited(visited, kv, boundary_bits) &&
           is_adjacent_to_bipolar_edge
-          (scalar_subgrid, kv, boundary_bits, isovalue)) {
+          (scalar_subgrid, isovalue, kv, boundary_bits)) {
 
         VERTEX_INDEX iv = subgrid.Scalar(kv);
         vertex_list.push_back(iv);
       }
     }
   }
-
 
 }
 
@@ -2154,6 +2161,7 @@ void SHARPISO::GET_GRADIENTS_PARAM::Init()
   grad_selection_method = UNKNOWN_GRAD_SELECTION_METHOD;
   use_only_cube_gradients = false;
   use_large_neighborhood = false;
+  use_zero_grad_boundary = false;
   use_diagonal_neighbors = false;
   use_selected_gradients = true;
   select_based_on_grad_dir = false;
@@ -2260,6 +2268,13 @@ void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
 		use_intersected_edge_endpoint_gradients = true;
     break;
 
+  case GRAD_BIES:
+    use_only_cube_gradients = false;
+		use_selected_gradients = true;
+		use_intersected_edge_endpoint_gradients = true;
+    use_zero_grad_boundary = true;
+    break;
+
   case GRAD_EDGEI_INTERPOLATE:
     break;
 
@@ -2291,6 +2306,7 @@ GRAD_SELECTION_METHOD SHARPISO::get_grad_selection_method(const string & s)
   else if (s == "gradCDdup") { return(GRAD_CD_DUP); }
   else if (s == "gradNIE") { return(GRAD_NIE); }
   else if (s == "gradNIES") { return(GRAD_NIES); }
+  else if (s == "gradBIES") { return(GRAD_BIES); }
   else if (s == "gradEIinterp") { return(GRAD_EDGEI_INTERPOLATE); }
   else if (s == "gradEIgrad") { return(GRAD_EDGEI_GRAD); }
   else if (s == "gradES") { return(GRAD_EDGEI_INTERPOLATE); }
@@ -2312,6 +2328,7 @@ void SHARPISO::get_grad_selection_string
   else if (grad_sel == GRAD_CD_DUP) { s = "gradCDdup"; }
   else if (grad_sel == GRAD_NIE) { s = "gradNIE"; }
   else if (grad_sel == GRAD_NIES) { s = "gradNIES"; }
+  else if (grad_sel == GRAD_BIES) { s = "gradBIES"; }
   else if (grad_sel == GRAD_EDGEI_INTERPOLATE) { s = "gradEIinterp"; }
   else if (grad_sel == GRAD_EDGEI_GRAD) { s = "gradEIgrad"; }
   else { s = "gradUnknown"; };

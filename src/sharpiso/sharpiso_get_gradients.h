@@ -511,6 +511,7 @@ namespace SHARPISO {
   public:
     bool use_only_cube_gradients;
     bool use_large_neighborhood;
+    bool use_zero_grad_boundary;
     bool use_diagonal_neighbors;
     bool use_selected_gradients;
     bool select_based_on_grad_dir;
