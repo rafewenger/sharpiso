@@ -34,13 +34,16 @@ typedef enum{
 class GRID_CUBE {
 public:
 	COORD_TYPE isovert_coord[DIM3]; ///< Location of the sharp isovertex.
-	unsigned char num_eigen;        ///< Number of eigenvalues.
+	unsigned char num_eigenvalues;  ///< Number of eigenvalues.
 	GRID_CUBE_FLAG flag;            ///< Type for this cube.
 	int boundary_bits;              ///< Boundary bits for the cube
 	VERTEX_INDEX cube_index;        ///< Index of cube in scalar grid.
 
   /// Linf-dist from isovert_coord[] to cube-center.
 	SCALAR_TYPE linf_dist;          
+
+  /// If true, location is centroid of (grid edge)-isosurface intersections.
+  bool flag_centroid_location;
 };
 
 

@@ -24,6 +24,7 @@
 #define _ISODUAL3D_DATASTRUCT_
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "ijk.txx"
@@ -56,11 +57,18 @@ namespace ISODUAL3D {
   typedef SHARPISO_SCALAR_GRID ISODUAL_SCALAR_GRID;
 
   // **************************************************
-  // ARRAY DATA STRUCTURES
+  // DATA STRUCTURES: ARRAY, HASH TABLE
   // **************************************************
 
   /// Array of vertices.
   typedef IJK::ARRAY<VERTEX_INDEX> VERTEX_ARRAY;
+
+  /// Vertex hash table.
+  typedef std::unordered_map<VERTEX_INDEX, NUM_TYPE>
+    VERTEX_HASH_TABLE;
+
+  /// Cube hash table.
+  typedef VERTEX_HASH_TABLE CUBE_HASH_TABLE;
 
   // **************************************************
   // DUAL ISOSURFACE VERTICES, CUBE DATA
@@ -78,8 +86,7 @@ namespace ISODUAL3D {
   // **************************************************
 
   /// Dual contouring isosurface.
-  /// Representation of isosurface 
-  ///   returned by Dual Contouring algorithm.
+  /// Representation of isosurface returned by Dual Contouring algorithm.
   class DUAL_ISOSURFACE {
 
   public:
@@ -97,16 +104,19 @@ namespace ISODUAL3D {
     DUAL_ISOSURFACE() {};
 
     NUM_TYPE NumVerticesPerTri() const
-    { return(3); }
+    { return(NUM_VERT_PER_TRI); }
 
     NUM_TYPE NumVerticesPerQuad() const
-    { return(4); }
+    { return(NUM_VERT_PER_QUAD); }
 
     NUM_TYPE NumTri() const
     { return(tri_vert.size()/NumVerticesPerTri()); };
 
     NUM_TYPE NumQuad() const
     { return(quad_vert.size()/NumVerticesPerQuad()); };
+
+    NUM_TYPE NumVertices() const
+    { return(vertex_coord.size()/DIM3); }
 
     void Clear();
   };
@@ -122,10 +132,22 @@ namespace ISODUAL3D {
     void Init();
 
   public:
-    // control parameters
+
+    /// Interpolation type. Linear or multi-linear interpolation.
     INTERPOLATION_TYPE interpolation_type;
-    VERTEX_POSITION_METHOD vertex_position_method;
+
+    /// Isosurface vertex position method.
+    /// Position at cube center or at of centroid of grid edge-isosurface 
+    ///   intersections or use vertex gradients to position,
+    ///   or use isosurface normals computed using interpolation
+    ///   or use isosurface normals computed using gradients.
+    VERTEX_POSITION_METHOD vertex_position_method; 
+
+    /// If true, convert isosurface quadrilaterals to isosurface triangles.
     bool flag_convert_quad_to_tri;
+
+    /// Quadrilateral triangulation method.
+    /// Uniform triangulation or split max quadrilateral angle.
     QUAD_TRI_METHOD quad_tri_method;
 
     /// If true, merge grid cube near sharp vertices.
@@ -144,9 +166,12 @@ namespace ISODUAL3D {
     /// If true, split isosurface vertices to avoid non-manifold edges.
     bool flag_split_non_manifold;
 
-    /// If true, remove isoslated isosurface vertices.  Isolated vertices
+    /// If true, remove isolated isosurface vertices.  Isolated vertices
     ///   do not lie in any isosurface polygon.
     bool flag_delete_isolated_vertices;
+
+    /// If true, store isosurface vertex information.
+    bool flag_store_isovert_info;
 
   public:
     ISODUAL_PARAM() { Init(); };
@@ -354,6 +379,18 @@ namespace ISODUAL3D {
   // SHARPISO INFO
   // **************************************************
 
+  class DUAL_ISOVERT_INFO:public DUAL_ISOVERT {
+
+  public:
+    unsigned char num_eigenvalues;  ///< Number of eigenvalues.
+
+    /// If true, location is centroid of (grid edge)-isosurface intersections.
+    bool flag_centroid_location;
+
+    /// Set DUAL_ISOVERT_INFO from DUAL_ISOVERT.
+    void Set(const ISODUAL3D::DUAL_ISOVERT & isov);
+  };
+
   /// Sharpiso information.
   class SHARPISO_INFO {
 
@@ -389,6 +426,9 @@ namespace ISODUAL3D {
     /// Increment num_sharp_corners or num_sharp_edges or num_smooth_vertices
     ///   depending upon the number of large eigenvalues.
     void IncrementIsoVertexNum(const int num_large_eigenvalues);
+
+    /// Isosurface vertex information.
+    std::vector<DUAL_ISOVERT_INFO> vertex_info;
   };
 
   // **************************************************
@@ -492,7 +532,9 @@ namespace ISODUAL3D {
     /// Coordinates of mesh vertices.
     /// coord[i*dimension+j] = j'th coordinate of i'th mesh vertex.
     std::vector<CTYPE> coord;
-    std::vector<STYPE> scalar;   ///< scalar[i] = scalar value of i'th mesh vertex.
+
+    /// scalar[i] = scalar value of i'th mesh vertex.
+    std::vector<STYPE> scalar;   
 
     public:
     MESH_VERTEX_LIST(const DTYPE dim) { this->dimension = dim; };
@@ -547,6 +589,25 @@ namespace ISODUAL3D {
 
   typedef MESH_VERTEX_LIST<int, COORD_TYPE, SCALAR_TYPE> 
     ISODUAL_MESH_VERTEX_LIST;    ///< Dual Contouring mesh vertex list.
+
+
+  // **************************************************
+  // SUBROUTINES
+  // **************************************************
+
+  /// Store isosurface vertex information in isovert_info.
+  void set_isovert_info
+    (const std::vector<ISODUAL3D::DUAL_ISOVERT> & iso_vlist,
+     const std::vector<GRID_CUBE> & gcube_list,
+     std::vector<DUAL_ISOVERT_INFO> & isovert_info);
+
+  /// Delete vertices i where flag_keep[i] = false.
+  void delete_vertices
+  (const std::vector<ISODUAL3D::DUAL_ISOVERT> & iso_vlist,
+   const std::vector<NUM_TYPE> & new_isovert_index,
+   const std::vector<bool> & flag_keep,
+   std::vector<ISODUAL3D::DUAL_ISOVERT> & new_iso_vlist);
+
 }
 
 #endif

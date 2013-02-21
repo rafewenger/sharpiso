@@ -74,7 +74,7 @@ typedef enum {
   MINC_PARAM, MAXC_PARAM,
 	HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
 	OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
-	NOWRITE_PARAM, OUTPUT_INFO_PARAM, SILENT_PARAM,
+	NOWRITE_PARAM, OUTPUT_INFO_PARAM, WRITE_ISOV_INFO_PARAM, SILENT_PARAM,
 	TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
 	const char * parameter_string[] =
 	{ "-subsample",
@@ -98,7 +98,7 @@ typedef enum {
     "-minc", "-maxc",
     "-help", "-off", "-iv", "-out_param",
     "-o", "-stdout",
-    "-nowrite", "-info", "-s", "-time", "-unknown"};
+    "-nowrite", "-info", "-write_isov_info", "-s", "-time", "-unknown"};
 
 	PARAMETER get_parameter_token(const char * s)
 	// convert string s into parameter token
@@ -375,6 +375,10 @@ typedef enum {
       input_info.flag_output_alg_info = true;
       break;
 
+    case WRITE_ISOV_INFO_PARAM:
+      input_info.flag_store_isovert_info = true;
+      break;
+
     case SILENT_PARAM:
       input_info.flag_silent = true;
       break;
@@ -487,6 +491,53 @@ typedef enum {
     return(true);
   }
 
+#ifdef _WIN32
+const char PATH_DELIMITER = '\\';
+#else
+const char PATH_DELIMITER = '/';
+#endif
+
+  string remove_nrrd_suffix(const string & filename)
+  {
+    string prefix, suffix;
+
+    // create output filename
+    string fname = filename;
+
+#ifndef _WIN32
+    // remove path from file name
+    split_string(fname, PATH_DELIMITER, prefix, suffix);
+    if (suffix != "") { fname = suffix; }
+#endif
+
+    // construct output filename
+    split_string(fname, '.', prefix, suffix);
+    if (suffix == "nrrd" || suffix == "nhdr") { fname = prefix; }
+    else { fname = filename; }
+
+    return(fname);
+  }
+
+  string remove_off_suffix(const string & filename)
+  {
+    string prefix, suffix;
+
+    // create output filename
+    string fname = filename;
+
+#ifndef _WIN32
+    // remove path from file name
+    split_string(fname, PATH_DELIMITER, prefix, suffix);
+    if (suffix != "") { fname = suffix; }
+#endif
+
+    // construct output filename
+    split_string(fname, '.', prefix, suffix);
+    if (suffix == "off") { fname = prefix; }
+    else { fname = filename; }
+
+    return(fname);
+  }
 
 }
 
@@ -839,20 +890,6 @@ void ISODUAL3D::read_off_file
 
 
 // **************************************************
-// PATH_DELIMITER
-// **************************************************
-
-namespace {
-
-#ifdef _WIN32
-const char PATH_DELIMITER = '\\';
-#else
-const char PATH_DELIMITER = '/';
-#endif
-}
-
-
-// **************************************************
 // OUTPUT ISOSURFACE
 // **************************************************
 
@@ -870,6 +907,10 @@ void ISODUAL3D::output_dual_isosurface
     bool flag_reorder_quad_vertices = true;
 		write_dual_mesh3D
       (output_info, dual_isosurface, flag_reorder_quad_vertices, io_time);
+
+    if (output_info.flag_store_isovert_info) {
+      write_isovert_info(output_info, isodual_info.sharpiso.vertex_info);
+    }
 	}
 }
 
@@ -1437,6 +1478,58 @@ void ISODUAL3D::report_time
 }
 
 // **************************************************
+// WRITE ISOSURFACE VERTEX INFORMATION TO FILE
+// **************************************************
+
+namespace {
+
+  // Construct isovert info filename from "from_filename".
+  void construct_isovert_info_filename
+  (const std::string & from_filename, std::string & info_filename)
+  {
+    info_filename = remove_off_suffix(from_filename);
+    info_filename += ".isov_info";
+  }
+
+}
+
+void ISODUAL3D::write_isovert_info
+(const OUTPUT_INFO & output_info,
+ const std::vector<DUAL_ISOVERT_INFO> & isovert_info)
+{
+	ofstream info_file;
+  IJK::PROCEDURE_ERROR error("write_isovert_info");
+
+  string info_filename;
+  construct_isovert_info_filename
+    (output_info.output_filename, info_filename);
+
+  info_file.open(info_filename.c_str(), ios::out);
+  if (!info_file.good()) {
+    cerr << "Unable to open isovert info file " << info_filename << "." 
+         << endl;
+    exit(95);
+  };
+
+  for (NUM_TYPE i = 0; i < isovert_info.size(); i++) {
+    info_file << i;
+    info_file << " " << int(isovert_info[i].cube_index);
+    info_file << " " << int(isovert_info[i].table_index);
+    info_file << " " << int(isovert_info[i].patch_index);
+    info_file << " " << int(isovert_info[i].num_eigenvalues);
+    info_file << " " << int(isovert_info[i].flag_centroid_location);
+    info_file << endl;
+  }
+
+  info_file.close();
+
+  if (!output_info.flag_silent) {
+		cout << "Wrote isosurface vertex info to file: " << info_filename << endl;
+
+  }
+}
+
+// **************************************************
 // USAGE/HELP MESSAGES
 // **************************************************
 
@@ -1491,7 +1584,9 @@ namespace {
     cerr << "  [-keepv]" << endl;
     cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
          << endl;
-    cerr << "  [-help] [-s] [-out_param] [-info] [-nowrite] [-time]" << endl;
+    cerr << "  [-s] [-out_param] [-info] [-write_isov_info] [-nowrite] [-time]"
+         << endl;
+    cerr << "  [-help]" << endl;
   }
 
 }
@@ -1663,6 +1758,14 @@ void ISODUAL3D::help(const char * command_path)
 	cout << "  -s: Silent mode." << endl;
 	cout << "  -out_param: Print isodual3D parameters." << endl;
 	cout << "  -info: Print algorithm information." << endl;
+  cout << "  -write_isov_info:  Write isosurface vertex information to file."
+       << endl;
+  cout << "     File format: isosurface vertex index, cube index," << endl;
+  cout << "       isosurface lookup table index, isosurface patch index," 
+       << endl;
+  cout << "       number of eigenvalues, centroid location flag." << endl;
+  cout << "     If centroid location flag is 1, location is centroid" << endl;
+  cout << "       of (grid edge)-isosurface intersections." << endl;
 	cout << "  -help: Print this help message." << endl;
 	exit(20);
 }
@@ -1740,41 +1843,26 @@ void ISODUAL3D::OUTPUT_INFO::Init()
 
 namespace {
 
-string construct_output_filename
-(const INPUT_INFO & input_info, const int i)
-{
-	string prefix, suffix;
+  string construct_output_filename
+  (const INPUT_INFO & input_info, const int i)
+  {
+    string ofilename = 
+      remove_nrrd_suffix(input_info.scalar_filename);
 
-	// create output filename
-	string fname = string(input_info.scalar_filename);
+    ofilename += string(".") + string("isov=") + input_info.isovalue_string[i];
 
-#ifndef _WIN32
-	// remove path from file name
-	split_string(fname, PATH_DELIMITER, prefix, suffix);
-	if (suffix != "") { fname = suffix; }
-#endif
+    switch (input_info.output_format) {
+    case OFF:
+      ofilename += ".off";
+      break;
 
-	string ofilename;
+    case IV:
+      ofilename += ".iv";
+      break;
+    }
 
-	// construct output filename
-	split_string(fname, '.', prefix, suffix);
-	if (suffix == "nrrd" || suffix == "nhdr") { ofilename = prefix; }
-	else { ofilename = string(input_info.scalar_filename); }
-
-	ofilename += string(".") + string("isov=") + input_info.isovalue_string[i];
-
-	switch (input_info.output_format) {
-	case OFF:
-		ofilename += ".off";
-		break;
-
-	case IV:
-		ofilename += ".iv";
-		break;
-	}
-
-	return(ofilename);
-}
+    return(ofilename);
+  }
 
 }
 

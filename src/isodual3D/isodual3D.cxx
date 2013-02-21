@@ -527,6 +527,10 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
   t3 = clock();
 
+  std::vector<DUAL_ISOVERT> iso_vlist;
+  std::vector<NUM_TYPE> new_isovert_index;
+  std::vector<bool> flag_keep;
+
   if (allow_multiple_iso_vertices) {
 
     bool flag_separate_opposite(true);
@@ -535,16 +539,12 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
     std::vector<ISO_VERTEX_INDEX> isoquad_cube;
     std::vector<FACET_VERTEX_INDEX> facet_vertex;
-    std::vector<ISO_VERTEX_INDEX> iso_vlist_cube;
-    std::vector<FACET_VERTEX_INDEX> iso_vlist_patch;
 
     extract_dual_isopoly
       (scalar_grid, isovalue, isoquad_cube, facet_vertex, isodual_info);
 
     map_isopoly_vert(isovert, isoquad_cube);
     t4 = clock();
-
-    std::vector<DUAL_ISOVERT> iso_vlist;
 
     full_split_dual_isovert
       (scalar_grid, isodual_table, isovalue,
@@ -583,7 +583,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
   if (isodual_param.flag_delete_isolated_vertices) {
     IJK::delete_unreferenced_vertices_two_lists
       (dimension, dual_isosurface.vertex_coord,
-       dual_isosurface.tri_vert, dual_isosurface.quad_vert);
+       dual_isosurface.tri_vert, dual_isosurface.quad_vert,
+       new_isovert_index, flag_keep);
   }
 
   t5 = clock();
@@ -593,6 +594,20 @@ void ISODUAL3D::dual_contouring_merge_sharp
   isodual_info.sharpiso.num_sharp_edges = isovert_info.num_sharp_edges;
   isodual_info.sharpiso.num_smooth_vertices = 
     isovert_info.num_smooth_vertices;
+
+  if (isodual_param.flag_store_isovert_info) {
+    if (isodual_param.flag_delete_isolated_vertices) {
+      std::vector<DUAL_ISOVERT> iso_vlist2;
+      delete_vertices(iso_vlist, new_isovert_index, flag_keep, iso_vlist2);
+
+      set_isovert_info(iso_vlist2, isovert.gcube_list, 
+                       isodual_info.sharpiso.vertex_info);
+    }
+    else {
+      set_isovert_info(iso_vlist, isovert.gcube_list, 
+                       isodual_info.sharpiso.vertex_info);
+    }
+  };
 
   // store times
   clock2seconds(t1-t0+t3-t2, isodual_info.time.position);
@@ -652,6 +667,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
   t3 = clock();
 
+  std::vector<DUAL_ISOVERT> iso_vlist;
+
   if (allow_multiple_iso_vertices) {
 
     bool flag_separate_opposite(true);
@@ -660,16 +677,12 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
     std::vector<ISO_VERTEX_INDEX> isoquad_cube;
     std::vector<FACET_VERTEX_INDEX> facet_vertex;
-    std::vector<ISO_VERTEX_INDEX> iso_vlist_cube;
-    std::vector<FACET_VERTEX_INDEX> iso_vlist_patch;
 
     extract_dual_isopoly
       (scalar_grid, isovalue, isoquad_cube, facet_vertex, isodual_info);
 
     map_isopoly_vert(isovert, isoquad_cube);
     t4 = clock();
-
-    std::vector<DUAL_ISOVERT> iso_vlist;
 
     full_split_dual_isovert
       (scalar_grid, isodual_table, isovalue,
@@ -719,6 +732,11 @@ void ISODUAL3D::dual_contouring_merge_sharp
   isodual_info.sharpiso.num_sharp_edges = isovert_info.num_sharp_edges;
   isodual_info.sharpiso.num_smooth_vertices = 
     isovert_info.num_smooth_vertices;
+
+  if (isodual_param.flag_store_isovert_info) {
+    set_isovert_info(iso_vlist, isovert.gcube_list, 
+                     isodual_info.sharpiso.vertex_info);
+  };
 
   // store times
   clock2seconds(t1-t0+t3-t2, isodual_info.time.position);

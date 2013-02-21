@@ -67,6 +67,7 @@ void ISODUAL_PARAM::Init()
   flag_separate_neg = true;
   flag_split_non_manifold = false;
   flag_delete_isolated_vertices = true;
+  flag_store_isovert_info = false;
 }
 
 /// Set type of interpolation
@@ -416,6 +417,8 @@ void ISODUAL3D::SHARPISO_INFO::Clear()
   num_cube_multi_isov = 0;
   num_non_disk_isopatches = 0;
   num_non_manifold_split = 0;
+
+  vertex_info.clear();
 }
 
 // Increment num_sharp_corners or num_sharp_edges or num_smooth_vertices
@@ -441,6 +444,96 @@ void ISODUAL3D::ISODUAL_INFO::Clear()
   time.Clear();
   sharpiso.Clear();
 }
+
+// **************************************************
+// DUAL_ISOVERT_INFO
+// **************************************************
+
+void ISODUAL3D::DUAL_ISOVERT_INFO::Set(const ISODUAL3D::DUAL_ISOVERT & isov)
+{
+  cube_index = isov.cube_index;
+  patch_index = isov.patch_index;
+  table_index = isov.table_index;
+}
+
+// **************************************************
+// SET ISOVERT INFORMATION
+// **************************************************
+
+void ISODUAL3D::set_isovert_info
+(const std::vector<ISODUAL3D::DUAL_ISOVERT> & iso_vlist,
+ const std::vector<GRID_CUBE> & gcube_list,
+ std::vector<DUAL_ISOVERT_INFO> & isovert_info)
+{
+  IJK::PROCEDURE_ERROR error("set_isovert_info");
+  CUBE_HASH_TABLE cube_hash;
+
+  isovert_info.resize(iso_vlist.size());
+  for (NUM_TYPE i = 0; i < gcube_list.size(); i++) {
+    VERTEX_INDEX cube_index = gcube_list[i].cube_index;
+    cube_hash.insert(CUBE_HASH_TABLE::value_type(cube_index, i));
+  }
+
+  for (NUM_TYPE i = 0; i < iso_vlist.size(); i++) {
+    isovert_info[i].Set(iso_vlist[i]);
+
+    VERTEX_INDEX cube_index = isovert_info[i].cube_index;
+
+    CUBE_HASH_TABLE::iterator cube_iter = cube_hash.find(cube_index);
+
+    if (cube_iter == cube_hash.end()) {
+      error.AddMessage("Programming error. Illegal isosurface vertex cube.");
+      error.AddMessage("  Isosurface vertex: ", i,
+                       ".  Cube index: ", cube_index, ".");
+      throw error;
+    }
+
+    VERTEX_INDEX gcube_index = cube_iter->second;
+
+    isovert_info[i].num_eigenvalues = gcube_list[gcube_index].num_eigenvalues;
+    isovert_info[i].flag_centroid_location =
+      gcube_list[gcube_index].flag_centroid_location;
+  }
+
+}
+
+// Delete vertices i where flag_keep[i] = false.
+void ISODUAL3D::delete_vertices
+(const std::vector<ISODUAL3D::DUAL_ISOVERT> & iso_vlist,
+ const std::vector<NUM_TYPE> & new_isovert_index,
+ const std::vector<bool> & flag_keep,
+ std::vector<ISODUAL3D::DUAL_ISOVERT> & new_iso_vlist)
+{
+  IJK::PROCEDURE_ERROR error("delete_vertices");
+  new_iso_vlist.clear();
+
+  NUM_TYPE numv = 0;
+  for (NUM_TYPE i = 0; i < flag_keep.size(); i++) {
+    if (flag_keep[i]) { numv++; }
+  }
+
+  IJK::ARRAY<bool> is_set(numv, false);
+  new_iso_vlist.resize(numv);
+
+  for (NUM_TYPE i = 0; i < flag_keep.size(); i++) {
+    if (flag_keep[i]) {
+      NUM_TYPE j = new_isovert_index[i];
+      is_set[j] = true;
+      new_iso_vlist[j] = iso_vlist[i];
+    }
+  }
+
+  for (NUM_TYPE j = 0; j < new_iso_vlist.size(); j++) {
+    if (!is_set[j]) {
+      error.AddMessage
+        ("Programming error.  Reference to new vertex ", j,
+         " missing from new_isovert_index.");
+      throw error;
+    }
+  }
+
+}
+
 
 // **************************************************
 // MERGE DATA

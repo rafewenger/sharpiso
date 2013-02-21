@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2010-2012 Rephael Wenger
+  Copyright (C) 2010-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -254,6 +254,45 @@ namespace IJK {
   ///      Unreferenced vertices have been deleted.
   ///      coord0[] and coord1[] could be the same array.
   /// @pre Array coord1[] is pre-allocated to length at least numv0*dimension.
+  /// @param[out] new_index[] Array indicating new index of vertices.
+  ///      Vertex i is mapped to vertex new_index[i].
+  /// @pre Array new_index[] is pre-allocated to length at least numv0.
+  /// @param[out] flag_keep[] Array indicating vertices which are kept.
+  /// @pre Array flag_keep[] is pre-allocated to length at least numv0.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1,
+            typename NTYPE0, typename NTYPE1,
+            typename VTYPEA, typename VTYPEB,
+            typename NUMV_TYPEA, typename NUMV_TYPEB, typename ITYPE>
+  void delete_unreferenced_vertices_two_lists
+  (const DTYPE dimension, const CTYPE0 * coord0, const NTYPE0 numv0,
+   VTYPEA * vlistA, const NUMV_TYPEA vlistA_length,
+   VTYPEB * vlistB, const NUMV_TYPEB vlistB_length,
+   CTYPE1 * coord1, NTYPE1 & numv1, 
+   ITYPE * new_index, bool * flag_keep)
+  {
+    for (NTYPE0 i = 0; i < numv0; i++)
+      { flag_keep[i] = false; }
+
+    set_bool_flag<true>(vlistA, vlistA_length, flag_keep);
+    set_bool_flag<true>(vlistB, vlistB_length, flag_keep);
+
+    compact_coord_array
+      (dimension, coord0, numv0, flag_keep, new_index, coord1, numv1);
+
+    for (NUMV_TYPEA j = 0; j < vlistA_length; j++)
+      { vlistA[j] = new_index[vlistA[j]]; }
+
+    for (NUMV_TYPEB j = 0; j < vlistB_length; j++)
+      { vlistB[j] = new_index[vlistB[j]]; }
+  }
+
+  /// Delete vertex coordinates of vertices which are not in vlistA or vlistB.
+  /// Compact coord0[] and relabel remaining vertices.
+  /// @param coord0[] Array of vertex coordinates.
+  /// @param[out] coord1[] Compacted array of vertex coordinates.
+  ///      Unreferenced vertices have been deleted.
+  ///      coord0[] and coord1[] could be the same array.
+  /// @pre Array coord1[] is pre-allocated to length at least numv0*dimension.
   template <typename DTYPE, typename CTYPE0, typename CTYPE1,
             typename NTYPE0, typename NTYPE1,
             typename VTYPEA, typename VTYPEB,
@@ -264,24 +303,16 @@ namespace IJK {
    VTYPEB * vlistB, const NUMV_TYPEB vlistB_length,
    CTYPE1 * coord1, NTYPE1 & numv1)
   {
-    // flag_referenced[i] = true if vertex i is referenced.
-    IJK::ARRAY<bool> flag_referenced(numv0, false); 
-
     // new_index[i] = new index of vertex i.
     IJK::ARRAY<NTYPE0> new_index(numv0);
 
-    set_bool_flag<true>(vlistA, vlistA_length, flag_referenced.Ptr());
-    set_bool_flag<true>(vlistB, vlistB_length, flag_referenced.Ptr());
+    // flag_keep[i] = true if vertex i is not deleted.
+    IJK::ARRAY<bool> flag_keep(numv0);
 
-    compact_coord_array
-      (dimension, coord0, numv0, flag_referenced.PtrConst(), new_index.Ptr(),
-       coord1, numv1);
-
-    for (NUMV_TYPEA j = 0; j < vlistA_length; j++)
-      { vlistA[j] = new_index[vlistA[j]]; }
-
-    for (NUMV_TYPEB j = 0; j < vlistB_length; j++)
-      { vlistB[j] = new_index[vlistB[j]]; }
+    delete_unreferenced_vertices_two_lists
+      (dimension, coord0, numv0, vlistA, vlistA_length,
+       vlistB, vlistB_length, coord1, numv1, 
+       new_index.Ptr(), flag_keep.Ptr());
   }
 
   /// Delete vertex coordinates of vertices which are not in vlistA or vlistB.
@@ -290,17 +321,75 @@ namespace IJK {
   /// @param coord0[] Array of vertex coordinates.
   template <typename DTYPE, typename CTYPE, typename NTYPE,
             typename VTYPEA, typename VTYPEB,
-            typename NUMV_TYPEA, typename NUMV_TYPEB>
+            typename NUMV_TYPEA, typename NUMV_TYPEB,
+            typename ITYPE>
   void delete_unreferenced_vertices_two_lists
   (const DTYPE dimension, CTYPE * coord, NTYPE & numv,
    VTYPEA * vlistA, const NUMV_TYPEA vlistA_length,
-   VTYPEB * vlistB, const NUMV_TYPEB vlistB_length)
+   VTYPEB * vlistB, const NUMV_TYPEB vlistB_length,
+   ITYPE * new_index, bool * flag_keep)
   {
     NTYPE numv1;
     delete_unreferenced_vertices_two_lists
       (dimension, coord, numv, vlistA, vlistA_length, vlistB, vlistB_length,
-       coord, numv1);
+       coord, numv1, new_index, flag_keep);
     numv = numv1;
+  }
+
+  /// Delete vertex coordinates of vertices which are not in vlistA or vlistB.
+  /// C++ STL vector format for coord, vlistA and vlistB
+  template <typename DTYPE, typename CTYPE,
+            typename VTYPEA, typename VTYPEB, typename ITYPE>
+  void delete_unreferenced_vertices_two_lists
+  (const DTYPE dimension, std::vector<CTYPE> & coord,
+   std::vector<VTYPEA> & vlistA, std::vector<VTYPEB> & vlistB,
+   std::vector<ITYPE> & new_index, bool * flag_keep)
+  {
+    typedef typename std::vector<CTYPE>::size_type SIZE_TYPE;
+
+    if (coord.size() == 0) { return; }
+
+    SIZE_TYPE numv = coord.size()/dimension;
+    new_index.resize(numv);
+
+    VTYPEA * vlistA_ptr = NULL;
+    VTYPEB * vlistB_ptr = NULL;
+
+    if (vlistA.size() > 0) { vlistA_ptr = &(vlistA.front()); }
+    if (vlistB.size() > 0) { vlistB_ptr = &(vlistB.front()); }
+
+    delete_unreferenced_vertices_two_lists
+      (dimension, &(coord.front()), numv, 
+       vlistA_ptr, vlistA.size(), vlistB_ptr, vlistB.size(),
+       &(new_index.front()), flag_keep);
+
+    coord.resize(numv*dimension);
+  }
+
+  /// Delete vertex coordinates of vertices which are not in vlistA or vlistB.
+  /// C++ STL vector format for coord, vlistA and vlistB
+  template <typename DTYPE, typename CTYPE,
+            typename VTYPEA, typename VTYPEB, typename ITYPE>
+  void delete_unreferenced_vertices_two_lists
+  (const DTYPE dimension, std::vector<CTYPE> & coord,
+   std::vector<VTYPEA> & vlistA, std::vector<VTYPEB> & vlistB,
+   std::vector<ITYPE> & new_index, std::vector<bool> & flag_keep)
+  {
+    typedef typename std::vector<CTYPE>::size_type SIZE_TYPE;
+
+    if (coord.size() == 0) { return; }
+    SIZE_TYPE numv = coord.size()/dimension;
+
+    // Create an array of bool since flag_keep may store bool values as bits.
+    IJK::ARRAY<bool> flag_keep_array(numv);
+
+    delete_unreferenced_vertices_two_lists
+      (dimension, coord, vlistA, vlistB, new_index, flag_keep_array.Ptr());
+
+    // Copy flag_keep_array into flag_keep.
+    flag_keep.resize(numv);
+    for (SIZE_TYPE i = 0; i < numv; i++) 
+      { flag_keep[i] = flag_keep_array[i]; }
   }
 
   /// Delete vertex coordinates of vertices which are not in vlistA or vlistB.
@@ -312,21 +401,13 @@ namespace IJK {
    std::vector<VTYPEA> & vlistA, std::vector<VTYPEB> & vlistB)
   {
     typedef typename std::vector<CTYPE>::size_type SIZE_TYPE;
-
-    if (coord.size() == 0) { return; }
-
-    SIZE_TYPE numv = coord.size()/dimension;
-    VTYPEA * vlistA_ptr = NULL;
-    VTYPEB * vlistB_ptr = NULL;
-
-    if (vlistA.size() > 0) { vlistA_ptr = &(vlistA.front()); }
-    if (vlistB.size() > 0) { vlistB_ptr = &(vlistB.front()); }
+    const SIZE_TYPE numv = coord.size()/dimension;
+    std::vector<SIZE_TYPE> new_index(numv);
+    IJK::ARRAY<bool> flag_keep(numv);
 
     delete_unreferenced_vertices_two_lists
-      (dimension, &(coord[0]), numv, 
-       vlistA_ptr, vlistA.size(), vlistB_ptr, vlistB.size());
-
-    coord.resize(numv*dimension);
+      (dimension, coord, vlistA, vlistB, 
+       new_index, flag_keep.Ptr());
   }
 
   // **************************************************
