@@ -55,8 +55,6 @@ void ISODUAL_PARAM::Init()
 {
   interpolation_type = LINEAR_INTERPOLATION;
   vertex_position_method = CENTROID_EDGE_ISO;
-  flag_reposition = false;
-  flag_merge_conflict = false;
   flag_merge_sharp = true;
   quad_tri_method = UNDEFINED_TRI;
   flag_convert_quad_to_tri = false;

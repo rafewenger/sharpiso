@@ -53,19 +53,14 @@ typedef enum {
   MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, 
   MAX_MAG_PARAM, SNAP_DIST_PARAM, MAX_GRAD_DIST_PARAM,
   SHARP_EDGEI_PARAM, INTERPOLATE_EDGEI_PARAM,
-	REPOSITION_PARAM, NO_REPOSITION_PARAM, SEPDIST_PARAM,
 	ALLOW_CONFLICT_PARAM,
 	CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
-  MERGE_CONFLICT_PARAM, MERGE_SHARP_PARAM, NO_MERGE_SHARP_PARAM, 
+  MERGE_SHARP_PARAM, NO_MERGE_SHARP_PARAM, 
   MERGE_SHARP_LINF_THRES_PARAM,
 	CLAMP_FAR_PARAM, CENTROID_FAR_PARAM,
-	RECOMPUTE_EIGEN2_PARAM, NO_RECOMPUTE_EIGEN2_PARAM,
   RECOMPUTE_ISOVERT, NO_RECOMPUTE_ISOVERT,
 	CHECK_TRIANGLE_ANGLE, NO_CHECK_TRIANGLE_ANGLE,
-	REMOVEG_PARAM, NO_REMOVEG_PARAM,
-	RESELECT_GRAD_PARAM, NO_RESELECT_GRAD_PARAM,
   DIST2CENTER_PARAM, DIST2CENTROID_PARAM,
-	CENTROID_EIGEN1_PARAM, NO_CENTROID_EIGEN1_PARAM,
 	LINF_PARAM, NO_LINF_PARAM,
 	USE_LINDSTROM_PARAM,
 	USE_LINDSTROM2_PARAM,
@@ -87,17 +82,12 @@ typedef enum {
     "-max_eigen", "-max_dist", "-gradS_offset", "-max_mag", "-snap_dist",
     "-max_grad_dist",
     "-sharp_edgeI", "-interpolate_edgeI",
-    "-reposition", "-no_reposition", "-sepdist",
     "-allow_conflict", "-clamp_conflict", "-centroid_conflict", 
-    "-merge_conflict", "-merge_sharp","-no_merge_sharp", "-merge_linf_th",
+    "-merge_sharp","-no_merge_sharp", "-merge_linf_th",
     "-clamp_far", "-centroid_far",
-    "-recompute_eigen2", "-no_recompute_eigen2",
     "-recompute_isovert", "-no_recompute_isovert",
     "-check_triangle_angle", "-no_check_triangle_angle",
-    "-removeg", "-no_removeg",
-    "-reselectg", "-no_reselectg",
     "-dist2center", "-dist2centroid",
-    "-centroid_eigen1", "-no_centroid_eigen1",
     "-Linf", "-no_Linf",
     "-lindstrom",	"-lindstrom2","-lindstrom_fast",
     "-single_isov", "-multi_isov", "-split_non_manifold",
@@ -238,14 +228,6 @@ typedef enum {
       input_info.is_use_sharp_edgeI_set = true;
       break;
 
-    case REPOSITION_PARAM:
-      input_info.flag_reposition = true;
-      break;
-
-    case NO_REPOSITION_PARAM:
-      input_info.flag_reposition = false;
-      break;
-
     case LINF_PARAM:
       input_info.use_Linf_dist = true;
       break;
@@ -313,10 +295,6 @@ typedef enum {
       input_info.is_conflict_set = true;
       break;
 
-    case MERGE_CONFLICT_PARAM:
-      input_info.flag_merge_conflict = true;
-      break;
-
     case MERGE_SHARP_PARAM:
     	input_info.flag_merge_sharp = true;
     	break;
@@ -331,14 +309,6 @@ typedef enum {
 
     case CENTROID_FAR_PARAM:
       input_info.flag_clamp_far = false;
-      break;
-
-    case RECOMPUTE_EIGEN2_PARAM:
-      input_info.flag_recompute_eigen2 = true;
-      break;
-
-    case NO_RECOMPUTE_EIGEN2_PARAM:
-      input_info.flag_recompute_eigen2 = false;
       break;
 
     case RECOMPUTE_ISOVERT:
@@ -357,22 +327,6 @@ typedef enum {
     	input_info.flag_check_triangle_angle = false;
     	break;
 
-    case REMOVEG_PARAM:
-    	input_info.flag_remove_gradients = true;
-    	break;
-
-    case NO_REMOVEG_PARAM:
-      input_info.flag_remove_gradients = false;
-      break;
-
-    case RESELECT_GRAD_PARAM:
-      input_info.flag_reselect_gradients = true;
-      break;
-
-    case NO_RESELECT_GRAD_PARAM:
-      input_info.flag_reselect_gradients = false;
-      break;
-
     case DIST2CENTER_PARAM:
       input_info.flag_dist2centroid = false;
       break;
@@ -380,15 +334,6 @@ typedef enum {
     case DIST2CENTROID_PARAM:
       input_info.flag_dist2centroid = true;
       break;
-
-    case CENTROID_EIGEN1_PARAM:
-      input_info.flag_centroid_eigen1 = true;
-      break;
-
-    case NO_CENTROID_EIGEN1_PARAM:
-      input_info.flag_centroid_eigen1 = false;
-      break;
-
 
     case NO_ROUND_PARAM:
       input_info.flag_round = false;
@@ -506,11 +451,6 @@ typedef enum {
 
     case GRAD_S_OFFSET_PARAM:
       input_info.grad_selection_cube_offset = 
-        get_option_float(option_string, value_string);
-      break;
-
-    case SEPDIST_PARAM:
-      input_info.separation_distance = 
         get_option_float(option_string, value_string);
       break;
 
@@ -1363,16 +1303,6 @@ void ISODUAL3D::report_iso_info3D
              << isodual_info.sharpiso.num_Linf_iso_vertex_locations << endl;
       }
 
-      if (output_info.flag_merge_conflict) {
-        cout << "  # of edge collapses: " 
-             << isodual_info.sharpiso.num_edge_collapses << endl;
-      }
-
-      if (output_info.flag_reposition) {
-        cout << "  # of repositioned isosurface vertices: "
-             << isodual_info.sharpiso.num_repositioned_vertices << endl;
-      }
-
       if (output_info.flag_merge_sharp) {
         cout << "  # of merged isosurface vertices: "
              << isodual_info.sharpiso.num_merged_iso_vertices << endl;
@@ -1548,17 +1478,14 @@ namespace {
     cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}] [-snap_dist {D}]" << endl;
     cerr << "  [-max_grad_dist {D}]" << endl;
     cerr << "  [-sharp_edgeI | -interpolate_edgeI]" << endl;
-    cerr << "  [-reposition | -no_reposition] [-sepdist {dist}]" << endl;
     cerr << "  [-lindstrom]" << endl;
-    cerr << "  [-allow_conflict |-clamp_conflict | -centroid_conflict] [-merge_conflict]" << endl;
+    cerr << "  [-allow_conflict |-clamp_conflict | -centroid_conflict]"\
+         << endl;
     cerr << "  [-clamp_far] [-centroid_far]" << endl;
-    cerr << "  [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
     cerr << "  [-recompute_isovert | -no_recompute_isovert]"<<endl;
     cerr << "  [-check_triangle_angle | -no_check_triangle_angle]"<<endl;
     cerr << "  [-Linf | -no_Linf]" << endl;
-    cerr << "  [-removeg | -no_removeg] [-reselectg | -no_reselectg]" << endl;
     cerr << "  [-dist2center | -dist2centroid]" << endl;
-    cerr << "  [-centroid_eigen1 | -no_centroid_eigen1]" << endl;
     cerr << "  [-check_disk | -no_check_disk]" << endl;
     cerr << "  [-no_round | -round <n>]" << endl;
     cerr << "  [-keepv]" << endl;
@@ -1696,8 +1623,6 @@ void ISODUAL3D::help(const char * command_path)
 			<< " (Default.)"  << endl;
 	cout << "  -centroid_conflict:  Settle conflicts by using centroid."
 			<< endl;
-	cout << "  -merge_conflict:  Settle conflicting isosurface vertices."
-       << endl;
 	cout << "  -clamp_far: Clamp isosurface vertices at distance greater"
 			<< " than max_dist." << endl;
 	cout << "  -centroid_far: Revert to centroid when an isosurface vertex is"
@@ -1707,9 +1632,6 @@ void ISODUAL3D::help(const char * command_path)
        << "                 of isosurface and grid edges." << endl;
   cout << "  -interpolate_edgeI:  Interpolate intersections of isosurface and grid edges."
        << endl;
-	cout << "  -recompute_eigen2:  Recompute with only 2 eigenvalues to settle conflicts." << endl;
-	cout << "  -no_recompute_eigen2:  Don't recompute with only 2 eigenvalues."
-			<< endl;
 	cout << "  -recompute_isovert:    Recompute isosurface vertex locations"
        << endl
        << "             for unavailable cubes." << endl;
@@ -1722,10 +1644,6 @@ void ISODUAL3D::help(const char * command_path)
        << "                   intersections in lindstrom." << endl;
 	cout << "  -Linf:     Use Linf metric to resolve conflicts." << endl;
 	cout << "  -no_Linf:  Don't use Linf metric to resolve conflicts." << endl;
-	cout << "  -removeg:  Remove gradients to resolve conflicts." << endl;
-	cout << "  -no_removeg: Don't remove gradients to resolve conflicts." << endl;
-	cout << "  -centroid_eigen1: Use centroid with one large eigenvalue." << endl;
-	cout << "  -no_centroid_eigen1:  Don't use centroid." << endl;
 	cout << "  -no_round:  Don't round coordinates." << endl;
 	cout << "  -round <n>: Round coordinates to nearest 1/n." << endl;
 	cout << "              Suggest using n=16,32,64,... or 2^k for some k."

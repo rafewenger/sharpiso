@@ -125,8 +125,6 @@ namespace ISODUAL3D {
     // control parameters
     INTERPOLATION_TYPE interpolation_type;
     VERTEX_POSITION_METHOD vertex_position_method;
-    bool flag_reposition;            ///< If true, reposition close vertices.
-    bool flag_merge_conflict;        ///< If true, merge conflicting vertices.
     bool flag_convert_quad_to_tri;
     QUAD_TRI_METHOD quad_tri_method;
 

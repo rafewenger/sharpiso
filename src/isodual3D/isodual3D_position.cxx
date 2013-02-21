@@ -319,7 +319,6 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
  const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
  const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
  COORD_TYPE * sharp_coord,
- std::vector<VERTEX_PAIR> & conflict_list,
  SHARPISO_INFO & sharp_info)
 {
   const int dimension = scalar_grid.Dimension();
@@ -356,14 +355,6 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
          isodual_param, cube_111, sharp_coord+i*DIM3,
          eigenvalues, num_large_eigenvalues, svd_info);
 
-
-      if (isodual_param.flag_merge_conflict) {
-        if (svd_info.flag_conflict) {
-          conflict_list.push_back
-            (make_pair(icube, svd_info.cube_containing_coord));
-        }
-      }
-
       if (svd_info.flag_conflict) 
         { sharp_info.num_conflicts++; }
       else if (svd_info.flag_Linf_iso_vertex_location)
@@ -395,7 +386,6 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
  const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
  const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
  std::vector<COORD_TYPE> & sharp_coord,
- std::vector<VERTEX_PAIR> & conflict_list,
  SHARPISO_INFO & sharp_info)
 {
   const int dimension = scalar_grid.Dimension();
@@ -404,7 +394,7 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
   position_dual_isovertices_using_gradients
     (scalar_grid, gradient_grid, isodual_table, isovalue,
      isodual_param, iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
-     &(sharp_coord.front()), conflict_list, sharp_info);
+     &(sharp_coord.front()), sharp_info);
 }
 
 
@@ -648,7 +638,6 @@ void ISODUAL3D::position_dual_isovertices_edgeI
  const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
  const VERTEX_POSITION_METHOD position_method,
  COORD_TYPE * coord,
- std::vector<VERTEX_PAIR> & conflict_list,
  SHARPISO_INFO & sharp_info)
 {
   const int dimension = scalar_grid.Dimension();
@@ -688,13 +677,6 @@ void ISODUAL3D::position_dual_isovertices_edgeI
            coord+i*dimension, eigenvalues, num_large_eigenvalues, svd_info);
       }
 
-      if (isodual_param.flag_merge_conflict) {
-        if (svd_info.flag_conflict) {
-          conflict_list.push_back
-            (make_pair(icube, svd_info.cube_containing_coord));
-        }
-      }
-
       if (svd_info.flag_conflict) 
         { sharp_info.num_conflicts++; }
       sharp_info.IncrementIsoVertexNum(num_large_eigenvalues);
@@ -725,7 +707,6 @@ void ISODUAL3D::position_dual_isovertices_edgeI
  const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
  const VERTEX_POSITION_METHOD position_method,
  std::vector<COORD_TYPE> & coord,
- std::vector<VERTEX_PAIR> & conflict_list,
  SHARPISO_INFO & sharp_info)
 {
   const int dimension = scalar_grid.Dimension();
@@ -735,7 +716,7 @@ void ISODUAL3D::position_dual_isovertices_edgeI
   position_dual_isovertices_edgeI
     (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param, 
      iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig, position_method,
-     &(coord.front()), conflict_list, sharp_info);
+     &(coord.front()), sharp_info);
 }
 
 
@@ -1057,344 +1038,6 @@ void ISODUAL3D::full_split_dual_isovert
   full_split_dual_isovert
     (scalar_grid, isodual_table,isovalue, isovert, isoquad_cube, facet_vertex,
      isodual_param, iso_vlist, isoquad_vert, cube_isovert_data, sharp_info);
-}
-
-
-// **************************************************
-// Reposition close isosurface vertices
-// **************************************************
-
-namespace {
-
-  typedef IJK::SCALAR_GRID_BASE<SHARPISO_GRID, VERTEX_INDEX>
-  INDEX_GRID_BASE;
-  typedef IJK::SCALAR_GRID<SHARPISO_GRID, VERTEX_INDEX>
-  INDEX_GRID;
-
-  void set_vertex_locations
-  (const std::vector<ISO_VERTEX_INDEX> & vlist,
-   INDEX_GRID_BASE & vloc, SHARPISO_BOOL_GRID_BASE & isovert_flag)
-  {
-    isovert_flag.SetAll(false);
-    for (VERTEX_INDEX i = 0; i < vlist.size(); i++) {
-      VERTEX_INDEX iv = vlist[i];
-      vloc.Set(iv, i);
-      isovert_flag.Set(iv, true);
-    }
-  }
-
-  void set_vertex_locations
-  (const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
-   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
-   INDEX_GRID_BASE & vloc, SHARPISO_BOOL_GRID_BASE & isovert_flag)
-  {
-    SHARPISO_BOOL_GRID multi_isov_flag;
-
-    multi_isov_flag.SetSize(isovert_flag);
-    multi_isov_flag.SetAll(false);
-
-    for (VERTEX_INDEX i = 0; i < iso_vlist_cube.size(); i++) {
-      if (iso_vlist_patch[i] != 0) {
-        VERTEX_INDEX iv = iso_vlist_cube[i];
-        multi_isov_flag.Set(iv, true);
-      }
-    }
-
-    isovert_flag.SetAll(false);
-    for (VERTEX_INDEX i = 0; i < iso_vlist_cube.size(); i++) {
-      VERTEX_INDEX iv = iso_vlist_cube[i];
-      if (!multi_isov_flag.Scalar(iv)) {
-        vloc.Set(iv, i);
-        isovert_flag.Set(iv, true);
-      }
-    }
-  }
-
-  /// Returns true if \a s is greater than min scalar value of facet vertices
-  ///   and \a s is less then or equal to max scalar value of facet vertices.
-  /// @param scalar_grid Scalar grid.
-  /// @pre GRID_TYPE must have member function FacetVertex(iv0,d)
-  /// @pre scalar_grid.Dimension() > 0 so scalar_grid.NumCubeVertices() > 0.
-  /// @param s Scalar value
-  template <typename GRID_TYPE, typename ITYPE, typename DTYPE, 
-            typename STYPE>
-  bool is_gt_facet_min_le_facet_max
-  (const GRID_TYPE & scalar_grid, const ITYPE iv0, const DTYPE orth_dir,
-   const STYPE s)
-  {
-    typedef typename GRID_TYPE::VERTEX_INDEX_TYPE VTYPE;
-    typedef typename GRID_TYPE::NUMBER_TYPE NTYPE;
-
-    if (scalar_grid.Scalar(iv0) < s) {
-      for (NTYPE k = 1; k < scalar_grid.NumFacetVertices(); k++) {
-        VTYPE iv1 = scalar_grid.FacetVertex(iv0, orth_dir, k);
-        if (scalar_grid.Scalar(iv1) >= s)
-          { return(true); }
-      }
-    }
-    else {
-      for (NTYPE k = 1; k < scalar_grid.NumCubeVertices(); k++) {
-        VTYPE iv1 = scalar_grid.FacetVertex(iv0, orth_dir, k);
-        if (scalar_grid.Scalar(iv1) < s)
-          { return(true); }
-      }
-    }
-
-    return(false);
-  }
-
-  void get_cubes_around_interior_edge
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-   const VERTEX_INDEX iv0, const int dir,
-   VERTEX_INDEX & jv0, VERTEX_INDEX & jv1,
-   VERTEX_INDEX & jv2, VERTEX_INDEX & jv3)
-  {
-    int dir1 = (dir+1)%DIM3;
-    int dir2 = (dir+2)%DIM3;
-    jv2 = iv0;
-    jv3 = scalar_grid.PrevVertex(iv0, dir2);
-    jv1 = scalar_grid.PrevVertex(iv0, dir1);
-    jv0 = scalar_grid.PrevVertex(jv1, dir2);
-  }
-
-  void reposition_close_isovertices
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const SCALAR_TYPE isovalue,
-   const COORD_TYPE sep_dist_squared,
-   const ISODUAL_PARAM & isodual_param,
-   const VERTEX_INDEX iv0, const VERTEX_INDEX jloc0,
-   const VERTEX_INDEX iv1, const VERTEX_INDEX jloc1,
-   COORD_TYPE * isovert_coord,
-   SHARPISO_INFO & sharp_info)
-  {
-    static COORD_TYPE coord0[DIM3];
-    static COORD_TYPE coord1[DIM3];
-    
-    COORD_TYPE distance_squared;
-    IJK::compute_distance_squared
-      (DIM3, isovert_coord+jloc0*DIM3, isovert_coord+jloc1*DIM3, 
-       distance_squared);
-
-    if (distance_squared < sep_dist_squared) {
-      ISODUAL3D::compute_isosurface_grid_edge_centroid
-        (scalar_grid, isovalue, iv0, coord0);
-      ISODUAL3D::compute_isosurface_grid_edge_centroid
-        (scalar_grid, isovalue, iv1, coord1);
-
-      COORD_TYPE new_dist_sq0;
-      COORD_TYPE new_dist_sq1;
-      IJK::compute_distance_squared
-        (DIM3, coord0, isovert_coord+jloc1*DIM3, new_dist_sq0);
-      IJK::compute_distance_squared
-        (DIM3, isovert_coord+jloc0*DIM3, coord1, new_dist_sq1);
-
-      if (new_dist_sq0 >= new_dist_sq1) {
-        IJK::copy_coord_3D(coord0, isovert_coord+jloc0*DIM3);
-      }
-      else {
-        IJK::copy_coord_3D(coord1, isovert_coord+jloc1*DIM3);
-      }
-
-      sharp_info.num_repositioned_vertices++;
-    }
-  }
-
-}
-
-/// Reposition to separate isosurface vertices
-void ISODUAL3D::reposition_dual_isovertices
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const SCALAR_TYPE isovalue,
- const ISODUAL_PARAM & isodual_param,
- const std::vector<ISO_VERTEX_INDEX> & vlist,
- COORD_TYPE * isovert_coord,
- SHARPISO_INFO & sharp_info)
-{
-  INDEX_GRID vloc;
-  SHARPISO_BOOL_GRID isovert_flag;
-  GRID_COORD_TYPE v0coord[DIM3];
-
-  COORD_TYPE separation_distance = isodual_param.separation_distance;
-  COORD_TYPE sep_dist_squared = separation_distance*separation_distance;
-  
-  vloc.SetSize(scalar_grid);
-  isovert_flag.SetSize(scalar_grid);
-
-  set_vertex_locations(vlist, vloc, isovert_flag);
-
-  // Reposition close opposing quad vertices.
-  IJK_FOR_EACH_INTERIOR_GRID_EDGE(iv0, dir, scalar_grid, VERTEX_INDEX) {
-    VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, dir);
-
-    if (IJK::is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
-      VERTEX_INDEX jv0, jv1, jv2, jv3;
-      get_cubes_around_interior_edge
-        (scalar_grid, iv0, dir, jv0, jv1, jv2, jv3);
-      VERTEX_INDEX j0 = vloc.Scalar(jv0);
-      VERTEX_INDEX j1 = vloc.Scalar(jv1);
-      VERTEX_INDEX j2 = vloc.Scalar(jv2);
-      VERTEX_INDEX j3 = vloc.Scalar(jv3);
-
-      reposition_close_isovertices
-        (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
-         isodual_param, jv0, j0, jv2, j2, isovert_coord, sharp_info);
-      reposition_close_isovertices
-        (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
-         isodual_param, jv1, j1, jv3, j3, isovert_coord, sharp_info);
-    }
-  }
-  
-}
-
-/// Reposition to separate isosurface vertices.
-/// Skip cubes with more than one isosurface vertex.
-void ISODUAL3D::reposition_dual_isovertices
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const SCALAR_TYPE isovalue,
- const ISODUAL_PARAM & isodual_param,
- const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
- const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
- COORD_TYPE * isovert_coord,
- SHARPISO_INFO & sharp_info)
-{
-  INDEX_GRID vloc;
-  SHARPISO_BOOL_GRID isovert_flag;
-  GRID_COORD_TYPE v0coord[DIM3];
-
-  COORD_TYPE separation_distance = isodual_param.separation_distance;
-  COORD_TYPE sep_dist_squared = separation_distance*separation_distance;
-  
-  vloc.SetSize(scalar_grid);
-  isovert_flag.SetSize(scalar_grid);
-
-  set_vertex_locations(iso_vlist_cube, iso_vlist_patch, vloc, isovert_flag);
-
-  // Reposition close opposing quad vertices.
-  IJK_FOR_EACH_INTERIOR_GRID_EDGE(iv0, dir, scalar_grid, VERTEX_INDEX) {
-    VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, dir);
-
-    if (IJK::is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
-      VERTEX_INDEX jv0, jv1, jv2, jv3;
-      get_cubes_around_interior_edge
-        (scalar_grid, iv0, dir, jv0, jv1, jv2, jv3);
-
-      if (isovert_flag.Scalar(jv0) && isovert_flag.Scalar(jv2)) {
-        VERTEX_INDEX j0 = vloc.Scalar(jv0);
-        VERTEX_INDEX j2 = vloc.Scalar(jv2);
-
-        reposition_close_isovertices
-          (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
-           isodual_param, jv0, j0, jv2, j2, isovert_coord, sharp_info);
-      }
-
-      if (isovert_flag.Scalar(jv1) && isovert_flag.Scalar(jv3)) {
-        VERTEX_INDEX j1 = vloc.Scalar(jv1);
-        VERTEX_INDEX j3 = vloc.Scalar(jv3);
-
-        reposition_close_isovertices
-          (scalar_grid, gradient_grid, isovalue, sep_dist_squared, 
-           isodual_param, jv1, j1, jv3, j3, isovert_coord, sharp_info);
-      }
-    }
-  }
-  
-}
-
-
-// **************************************************
-// Get edge collapses.
-// **************************************************
-
-namespace {
-
-  // Return true if the two cubes share a facet.
-  bool share_facet
-  (const SHARPISO_GRID & grid,
-   const VERTEX_INDEX icube1,
-   const VERTEX_INDEX icube2,
-   VERTEX_INDEX & facet_v0, NUM_TYPE & orth_dir)
-  {
-    VERTEX_INDEX jcube1 = icube1;
-    VERTEX_INDEX jcube2 = icube2;
-
-    if (jcube2 < jcube1) { std::swap(jcube1, jcube2); }
-
-    for (NUM_TYPE d = 0; d < grid.Dimension(); d++) {
-
-      if (grid.NextVertex(jcube1, d) == jcube2) {
-        facet_v0 = jcube2;
-        orth_dir = d;
-        return(true);
-      }
-
-    }
-  }
-
-  // Return true if facet has both pos and neg vertices
-  
-
-  // Return true if iso vertices in two cubes share an edge
-  bool share_isosurface_edge
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-   const VERTEX_INDEX icube1,
-   const VERTEX_INDEX icube2,
-   const SCALAR_TYPE isovalue)
-  {
-    VERTEX_INDEX facet_v0;
-    NUM_TYPE orth_dir;
-
-    if (share_facet(scalar_grid, icube1, icube2, facet_v0, orth_dir)) {
-      if (is_gt_facet_min_le_facet_max
-          (scalar_grid, facet_v0, orth_dir, isovalue))
-      { return(true); }
-    }
-
-    return(false);
-  }
-
-};
-
-/// Get edge collapses.
-/// @param cube_conflict_list List of cube conflicts.
-///   cube_conflict_list[i].first conflicts with cube_conflict_list[i].second
-/// @param[out] edge_list List of collapsed edges.
-///   Map edge_list[i].first to edge_list[i].second.
-void ISODUAL3D::get_edge_collapses
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
- const SCALAR_TYPE isovalue,
- const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
- const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
- const std::vector<VERTEX_PAIR> & cube_conflict_list,
- std::vector<VERTEX_PAIR> & edge_list)
-{
-  INDEX_GRID vloc;
-  SHARPISO_BOOL_GRID isovert_flag;
-  
-  vloc.SetSize(scalar_grid);
-  isovert_flag.SetSize(scalar_grid);
-
-  set_vertex_locations(iso_vlist_cube, iso_vlist_patch, vloc, isovert_flag);
-
-  for (NUM_TYPE i = 0; i < cube_conflict_list.size(); i++) {
-
-    VERTEX_INDEX icube1 = cube_conflict_list[i].first;
-    if (isovert_flag.Scalar(icube1)) {
-      VERTEX_INDEX icube2 = cube_conflict_list[i].second;
-
-      if (isovert_flag.Scalar(icube2)) {
-
-        if (share_isosurface_edge(scalar_grid, icube1, icube2, isovalue)) {
-          ISO_VERTEX_INDEX isov1 = vloc.Scalar(icube1);
-          ISO_VERTEX_INDEX isov2 = vloc.Scalar(icube2);
-          edge_list.push_back(std::make_pair(isov1, isov2));
-        }
-      }
-    }
-  }
-
 }
 
 

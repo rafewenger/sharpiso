@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011,2012 Rephael Wenger
+  Copyright (C) 2011-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -154,48 +154,6 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
        num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
 	}
 
-	if (!sharpiso_param.flag_allow_conflict &&
-			sharpiso_param.flag_remove_gradients ) {
-		snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
-
-		if (check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
-			svd_info.flag_conflict = true;
-			point_coord.clear();
-			gradient_coord.clear();
-			scalar.clear();
-
-			// get gradients sorted by distance to cube center.
-			get_gradients
-			(scalar_grid, gradient_grid, cube_index, isovalue,
-					sharpiso_param, cube_111, true,
-					point_coord, gradient_coord, scalar, num_gradients);
-
-			// Decrease number of gradients.
-			NUM_TYPE numg2 = num_gradients - 1;
-			while (numg2 > 0 &&
-					check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
-
-				svd_calculate_sharpiso_vertex_using_lindstrom
-				(sharpiso_param.use_lindstrom2, &(point_coord[0]),
-						&(gradient_coord[0]), &(scalar[0]),
-						numg2, isovalue, max_small_eigenvalue,
-						num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
-				numg2--;
-			}
-		}
-	}
-
-	if (sharpiso_param.flag_centroid_eigen1) {
-		if (num_large_eigenvalues <= 1) {
-      
-			compute_edgeI_centroid
-        (scalar_grid, gradient_grid, isovalue, cube_index,
-         sharpiso_param.use_sharp_edgeI, sharp_coord);
-
-			svd_info.location = CENTROID;
-		}
-	}
-
 	postprocess_isovert_location
 	(scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
 			sharpiso_param, sharp_coord, svd_info);
@@ -265,62 +223,6 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
 			sharpiso_param, point_coord, gradient_coord, scalar, num_gradients,
 			sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
 
-	if (!sharpiso_param.flag_allow_conflict) {
-		if (sharpiso_param.flag_remove_gradients ) {
-			snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
-
-			if (check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
-				svd_info.flag_conflict = true;
-
-				point_coord.clear();
-				gradient_coord.clear();
-				scalar.clear();
-
-				// get gradients sorted by distance to cube center.
-				get_gradients
-				(scalar_grid, gradient_grid, cube_index, isovalue,
-						sharpiso_param, cube_111, true,
-						point_coord, gradient_coord, scalar, num_gradients);
-
-				// Decrease number of gradients.
-				NUM_TYPE numg2 = num_gradients - 1;
-				while (numg2 > 0 &&
-						check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord) &&
-						num_large_eigenvalues > 1) {
-
-					local_svd_compute_sharp_vertex_for_cube_lc_intersection
-					(scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
-							sharpiso_param, point_coord, gradient_coord, scalar, numg2,
-							sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
-
-					numg2--;
-				}
-			}
-		}
-		else if (sharpiso_param.flag_reselect_gradients) {
-			if (!sharpiso_param.use_only_cube_gradients) {
-				SHARP_ISOVERT_PARAM param2 = sharpiso_param;
-				param2.use_only_cube_gradients = true;
-				param2.use_gradients_determining_edge_intersections = true;
-
-				point_coord.clear();
-				gradient_coord.clear();
-				scalar.clear();
-
-				// get only cube gradients
-				get_gradients
-				(scalar_grid, gradient_grid, cube_index, isovalue,
-						param2, cube_111, sharpiso_param.flag_sort_gradients,
-						point_coord, gradient_coord, scalar, num_gradients);
-
-				local_svd_compute_sharp_vertex_for_cube_lc_intersection
-				(scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
-						sharpiso_param, point_coord, gradient_coord, scalar, num_gradients,
-						sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
-			}
-		}
-	}
-
 	postprocess_isovert_location
 	(scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
 			sharpiso_param, sharp_coord, svd_info);
@@ -354,22 +256,6 @@ void local_svd_compute_sharp_vertex_for_cube_lc_intersection
 	(&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
 			num_gradients, isovalue, max_eigen, num_large_eigenvalues,
 			eigenvalues, sharp_coord, line_direction);
-
-	if (num_large_eigenvalues == 3) {
-
-		// Check for far point or conflict and recompute using 2 eigenvalues.
-		if (sharpiso_param.flag_recompute_eigen2) {
-			snap_to_cube(cube_coord, sharpiso_param.snap_dist, sharp_coord);
-			if (!is_dist_to_cube_le(sharp_coord, cube_coord, max_dist) ||
-					check_conflict(scalar_grid, isovalue, cube_coord, sharp_coord)) {
-
-				svd_calculate_sharpiso_vertex_2_svals_unit_normals
-				(&(point_coord[0]), &(gradient_coord[0]), &(scalar[0]),
-						num_gradients, isovalue, max_eigen, num_large_eigenvalues,
-						eigenvalues, sharp_coord, line_direction);
-			}
-		}
-	}
 
 	if (num_large_eigenvalues == 2) {
 		bool flag_conflict;
@@ -1440,19 +1326,14 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
 	flag_allow_conflict = false;
 	flag_clamp_conflict = true;
 	flag_clamp_far = false;
-	flag_recompute_eigen2 = true;
 	flag_round = false;
-	flag_remove_gradients = false;
-	flag_reselect_gradients = false;
 	flag_dist2centroid = true;
-	flag_centroid_eigen1 = false;
 	flag_check_disk = false;
 	use_sharp_edgeI = false;
 	use_Linf_dist = true;
 	max_dist = 1.0;
 	snap_dist = 1.0/16.0;
 	max_small_eigenvalue = 0.1;
-	separation_distance = 0.1;
 	round_denominator = 16;
 	max_small_grad_coord_Linf = 0.2;
 	linf_dist_thresh_merge_sharp = 1.0;
