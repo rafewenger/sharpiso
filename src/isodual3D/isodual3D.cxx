@@ -668,6 +668,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
   t3 = clock();
 
   std::vector<DUAL_ISOVERT> iso_vlist;
+  std::vector<NUM_TYPE> new_isovert_index;
+  std::vector<bool> flag_keep;
 
   if (allow_multiple_iso_vertices) {
 
@@ -722,7 +724,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
   if (isodual_param.flag_delete_isolated_vertices) {
     IJK::delete_unreferenced_vertices_two_lists
       (dimension, dual_isosurface.vertex_coord,
-       dual_isosurface.tri_vert, dual_isosurface.quad_vert);
+       dual_isosurface.tri_vert, dual_isosurface.quad_vert,
+       new_isovert_index, flag_keep);
   }
 
   t5 = clock();
@@ -734,8 +737,17 @@ void ISODUAL3D::dual_contouring_merge_sharp
     isovert_info.num_smooth_vertices;
 
   if (isodual_param.flag_store_isovert_info) {
-    set_isovert_info(iso_vlist, isovert.gcube_list, 
-                     isodual_info.sharpiso.vertex_info);
+    if (isodual_param.flag_delete_isolated_vertices) {
+      std::vector<DUAL_ISOVERT> iso_vlist2;
+      delete_vertices(iso_vlist, new_isovert_index, flag_keep, iso_vlist2);
+
+      set_isovert_info(iso_vlist2, isovert.gcube_list, 
+                       isodual_info.sharpiso.vertex_info);
+    }
+    else {
+      set_isovert_info(iso_vlist, isovert.gcube_list, 
+                       isodual_info.sharpiso.vertex_info);
+    }
   };
 
   // store times
