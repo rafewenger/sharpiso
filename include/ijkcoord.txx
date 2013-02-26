@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2009, 2011 Rephael Wenger
+  Copyright (C) 2009-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -27,7 +27,6 @@
 #include <algorithm>
 #include <cmath>
 
-/// Coordinate arithmetic functions.
 namespace IJK {
 
   ///
@@ -249,8 +248,10 @@ namespace IJK {
   }
 
   /// Compute magnitude of coordinate vector.
+  /// If magnitude is less than or equal to max_small_magnitude,
+  ///   set coord1[] to the zero vector.
   /// @param coord0 = Input coordinates.
-  /// @param[out] magnitude = magnitude
+  /// @param[out] coord1[] Normalized coordinates or the zero vector.
   template <typename DTYPE, typename CTYPE0, typename MTYPE, 
             typename CTYPE1>
   void normalize_vector

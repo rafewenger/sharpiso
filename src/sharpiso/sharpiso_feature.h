@@ -77,9 +77,6 @@ namespace SHARPISO {
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
 
-
-
-
   /// Compute sharp isosurface vertex using singular valued decomposition.
   /// Use Lindstrom's formula.
   void svd_compute_sharp_vertex_for_cube_lindstrom

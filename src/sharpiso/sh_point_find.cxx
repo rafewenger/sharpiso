@@ -24,6 +24,57 @@ using namespace std;
 using namespace sh_cube;
 using namespace SHARPISO;
 
+// Get gradients at edge intersection points determined by edge endpoints.
+// Use sharp formula for computing gradient at intersection.
+void get_edgeI_sharp_gradients
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const SCALAR_TYPE isovalue,
+ std::vector<COORD_TYPE> & point_coord,
+ std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+ std::vector<SCALAR_TYPE> & scalar,
+ NUM_TYPE & num_gradients)
+{
+  CUBE cube;
+  GRADIENT_COORD_TYPE cube_gradient[NUM_CUBE_VERTICES3D*DIM3];
+  SCALAR_TYPE cube_scalar[NUM_CUBE_VERTICES3D];
+  static COORD_TYPE cube_coord[DIM3];
+
+  point_coord.clear();
+  gradient_coord.clear();
+  scalar.clear();
+  num_gradients = 0;
+
+  get_cube_gradients
+    (scalar_grid, gradient_grid, cube_index,
+     cube_gradient, cube_scalar);
+
+  bool setup_flag = sh_cube::setup_shCube
+    (cube, cube_gradient, isovalue, cube_scalar);
+
+  if (!setup_flag) { 
+    // Isosurface does not intersect cube.
+    return; 
+  }
+
+  setup_edgeIntercepts(cube, isovalue, true);
+
+  scalar_grid.ComputeCoord(cube_index, cube_coord);
+
+  for (int i = 0; i < cube.num_edges; i++) {
+    if (cube.edges[i].is_intersect) {
+      scalar.push_back(cube.edges[i].pt_intersect.scalar);
+      for (int d = 0; d < 3; d++) {
+        COORD_TYPE c = cube.edges[i].pt_intersect.pos[d] + cube_coord[d];
+        point_coord.push_back(c);
+        gradient_coord.push_back(cube.edges[i].pt_intersect.grads[d]);
+      }
+      num_gradients++;
+    }
+  }
+}
+
 void sh_normalize(double intial[],double normalized[])
 {
 	double sum(0.0),mag(0.0);

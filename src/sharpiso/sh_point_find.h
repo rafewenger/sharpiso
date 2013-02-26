@@ -16,6 +16,20 @@
 
 using namespace sh_cube;
 using namespace SHARPISO;
+
+/// Get gradients at edge intersection points determined by edge endpoints.
+/// Use sharp formula for computing gradient at intersection.
+void get_edgeI_sharp_gradients
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const SCALAR_TYPE isovalue,
+ std::vector<COORD_TYPE> & point_coord,
+ std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
+ std::vector<SCALAR_TYPE> & scalar,
+ NUM_TYPE & num_gradients);
+
+
 /*
  For each cube this function returns a double[3] 'point'
  which the dual-vertex for this cube
