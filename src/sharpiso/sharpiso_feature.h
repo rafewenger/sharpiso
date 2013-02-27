@@ -4,7 +4,7 @@
 
 /*
  IJK: Isosurface Jeneration Code
- Copyright (C) 2011,2012 Rephael Wenger
+ Copyright (C) 2011-2013 Rephael Wenger
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public License
@@ -76,9 +76,6 @@ namespace SHARPISO {
    EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
-
-
-
 
   /// Compute sharp isosurface vertex using singular valued decomposition.
   /// Use Lindstrom's formula.
@@ -330,12 +327,8 @@ namespace SHARPISO {
     bool flag_allow_conflict;      ///< If true, allow conflicts
     bool flag_clamp_conflict;      ///< If true, clamp conflicts to cube.
     bool flag_clamp_far;           ///< If true, clamp far points.
-    bool flag_recompute_eigen2;    ///< If true, recompute with 2 eigenvalues.
     bool flag_recompute_isovert;   ///< If true then recompute isovert
     bool flag_round;               ///< Round output coordinates.
-    bool flag_remove_gradients;    ///< Remove gradients to resolve conflicts
-    bool flag_reselect_gradients;  ///< Select fewer grads to resolve conflicts
-    bool flag_centroid_eigen1;     ///< Use centroid for 1 or fewer eigenvalues
     bool use_lindstrom;            ///< If true, use Lindstrom formula
     bool use_lindstrom2;
     bool use_lindstrom_fast;       /// use the garland heckbert approach
@@ -368,9 +361,6 @@ namespace SHARPISO {
     /// Normalized eigenvalues with value less than max_small_eigenvalue
     ///   are set to zero.
     EIGENVALUE_TYPE max_small_eigenvalue;
-
-    /// Minimum separation distance between isosurface vertices.
-    COORD_TYPE separation_distance;
 
     /// Maximum value of a small gradient coordinate.
     /// Used in determining whether to use Linf distance.

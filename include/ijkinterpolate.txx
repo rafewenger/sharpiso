@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2009 Rephael Wenger
+  Copyright (C) 2009-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -47,12 +47,12 @@ namespace IJK {
 
   /// Compute coordinates using linear interpolation.
   /// @param PTYPE = Precision type to be used in calculations. Should be float of double.
-  template <class PTYPE, class DTYPE, class STYPE, class VTYPE,
+  template <class PTYPE, class DTYPE, class STYPE, class STYPE2,
             class CTYPE0, class CTYPE1, class CTYPE2>
   inline void linear_interpolate_coord
   (const DTYPE dimension, const STYPE s0, const CTYPE0 coord0[],
    const STYPE s1, const CTYPE1 coord1[],
-   const VTYPE isovalue, CTYPE2 coord2[])
+   const STYPE2 isovalue, CTYPE2 coord2[])
   {
     PTYPE w0;
     STYPE s_diff = s1 - s0;

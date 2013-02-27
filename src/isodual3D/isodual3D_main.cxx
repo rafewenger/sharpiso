@@ -136,6 +136,7 @@ int main(int argc, char **argv)
     // Note: isodual_data.SetScalarGrid or isodual_data.SetGrids
     //       must be called before set_isodual_data.
     set_isodual_data(input_info, isodual_data, isodual_time);
+
     if (input_info.flag_output_param) 
       { report_isodual_param(isodual_data); }
 

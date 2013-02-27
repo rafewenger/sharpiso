@@ -22,7 +22,6 @@
 */
 
 #include "sharpiso_get_gradients.h"
-#include "sh_point_find.h"
 
 #include "ijkcoord.txx"
 #include "ijkgrid.txx"
@@ -1150,59 +1149,6 @@ void SHARPISO::get_intersected_neighbor_edge_endpoint_gradients
 
 }
 
-
-/// Get gradients at edge intersection points determined by edge endpoints.
-/// Use sharp formula for computing gradient at intersection.
-void SHARPISO::get_edgeI_sharp_gradients
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX cube_index,
- const SCALAR_TYPE isovalue,
- std::vector<COORD_TYPE> & point_coord,
- std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
- std::vector<SCALAR_TYPE> & scalar,
- NUM_TYPE & num_gradients)
-{
-  CUBE cube;
-  GRADIENT_COORD_TYPE cube_gradient[NUM_CUBE_VERTICES3D*DIM3];
-  SCALAR_TYPE cube_scalar[NUM_CUBE_VERTICES3D];
-  static COORD_TYPE cube_coord[DIM3];
-
-  point_coord.clear();
-  gradient_coord.clear();
-  scalar.clear();
-  num_gradients = 0;
-
-  get_cube_gradients
-    (scalar_grid, gradient_grid, cube_index,
-     cube_gradient, cube_scalar);
-
-  bool setup_flag = sh_cube::setup_shCube
-    (cube, cube_gradient, isovalue, cube_scalar);
-
-  if (!setup_flag) { 
-    // Isosurface does not intersect cube.
-    return; 
-  }
-
-  setup_edgeIntercepts(cube, isovalue, true);
-
-  scalar_grid.ComputeCoord(cube_index, cube_coord);
-
-  for (int i = 0; i < cube.num_edges; i++) {
-    if (cube.edges[i].is_intersect) {
-      scalar.push_back(cube.edges[i].pt_intersect.scalar);
-      for (int d = 0; d < 3; d++) {
-        COORD_TYPE c = cube.edges[i].pt_intersect.pos[d] + cube_coord[d];
-        point_coord.push_back(c);
-        gradient_coord.push_back(cube.edges[i].pt_intersect.grads[d]);
-      }
-      num_gradients++;
-    }
-  }
-}
-
-
 /// Get gradients from list of edge-isosurface intersections.
 /// @param sharpiso_param Determines which gradients are selected.
 /// @param flag_sort_gradients If true, sort gradients.  
@@ -1886,6 +1832,91 @@ void SHARPISO::get_ie_endpoints_in_large_neighborhood
 
 
 // **************************************************
+// COMPUTE GRID EDGE-ISOSURFACE INTERSECTION
+// **************************************************
+
+// Compute intersection of isosurface and grid edge and 
+//    normal at the intersection point.
+void SHARPISO::compute_isosurface_grid_edge_intersection
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
+ const GRADIENT_COORD_TYPE max_small_magnitude,
+ COORD_TYPE p[DIM3],
+ GRADIENT_COORD_TYPE normal[DIM3])
+{
+  const SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
+  const SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
+  const GRADIENT_COORD_TYPE g0 = gradient_grid.Vector(iv0, dir);
+  const GRADIENT_COORD_TYPE g1 = gradient_grid.Vector(iv1, dir);
+  COORD_TYPE t0, t1;
+  COORD_TYPE coord0[DIM3], coord1[DIM3];
+
+  compute_edge_intersection(s0, g0, isovalue, t0);
+  compute_edge_intersection(s1, -g1, isovalue, t1);
+  t1 = 1-t1;
+
+  if (s0 == isovalue) { 
+    scalar_grid.ComputeCoord(iv0, p);
+    IJK::normalize_vector(DIM3, gradient_grid.VectorPtrConst(iv0), 
+                          max_small_magnitude, normal);
+    return; 
+  }
+
+  if (s1 == isovalue) { 
+    scalar_grid.ComputeCoord(iv0, p);
+    IJK::normalize_vector(DIM3, gradient_grid.VectorPtrConst(iv1), 
+                          max_small_magnitude, normal);
+    return;
+  }
+
+  scalar_grid.ComputeCoord(iv0, coord0);
+  scalar_grid.ComputeCoord(iv1, coord1);
+
+  if (0 <= t0 && t0 <= 1) {
+    if (0 <= t1 && t1 <= 1) {
+      if (select_t0(s0, s1, g0, g1, t0, t1)) {
+        IJK::linear_interpolate_coord(DIM3, t0, coord0, coord1, p);
+        IJK::normalize_vector(DIM3, gradient_grid.VectorPtrConst(iv0), 
+                              max_small_magnitude, normal);  
+      }
+      else {
+        IJK::linear_interpolate_coord(DIM3, t1, coord0, coord1, p);
+        IJK::normalize_vector(DIM3, gradient_grid.VectorPtrConst(iv1), 
+                              max_small_magnitude, normal);
+      }
+    }
+    else {
+      // Use t0.
+      IJK::linear_interpolate_coord(DIM3, t0, coord0, coord1, p);
+      IJK::normalize_vector(DIM3, gradient_grid.VectorPtrConst(iv0), 
+                            max_small_magnitude, normal);  
+    }
+  }
+  else {
+    if (0 <= t1 && t1 <= 1) {
+      // Use t1.
+      IJK::linear_interpolate_coord(DIM3, t1, coord0, coord1, p);
+      IJK::normalize_vector(DIM3, gradient_grid.VectorPtrConst(iv1), 
+                            max_small_magnitude, normal);
+    }
+    else {
+      // Use linear interpolation to compute intersection point
+      //   and surface normal.
+      IJK::linear_interpolate_coord<float>
+        (DIM3, s0, coord0, s1, coord1, isovalue, p);
+      IJK::linear_interpolate_coord<float>
+        (DIM3, s0, gradient_grid.VectorPtrConst(iv0), 
+         s1, gradient_grid.VectorPtrConst(iv1), isovalue, normal);
+      IJK::normalize_vector(DIM3, normal, max_small_magnitude, normal);
+    }
+  }
+
+}
+
+
+// **************************************************
 // SORT VERTICES
 // **************************************************
 
@@ -2292,7 +2323,8 @@ void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
 // MAP GRAD_SELECTION_METHOD TO/FROM C++ string
 // **************************************************
 
-GRAD_SELECTION_METHOD SHARPISO::get_grad_selection_method(const string & s)
+GRAD_SELECTION_METHOD SHARPISO::get_grad_selection_method
+(const std::string & s)
 {
   if (s == "gradC") { return(GRAD_C); }
   else if (s == "gradN") { return(GRAD_N); }
@@ -2315,7 +2347,7 @@ GRAD_SELECTION_METHOD SHARPISO::get_grad_selection_method(const string & s)
 }
 
 void SHARPISO::get_grad_selection_string
-(const GRAD_SELECTION_METHOD grad_sel, string & s)
+(const GRAD_SELECTION_METHOD grad_sel, std::string & s)
 {
   if (grad_sel == GRAD_C) { s = "gradCD"; }
   else if (grad_sel == GRAD_CS) { s = "gradCS"; }

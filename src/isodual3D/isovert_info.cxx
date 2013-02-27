@@ -608,7 +608,7 @@ void out_gcube
   out << ". Linf dist: " << gcube.linf_dist << ".";
   out << endl;
   out << "  ";
-  out << "    # eigen: " << int(gcube.num_eigen);
+  out << "    # eigen: " << int(gcube.num_eigenvalues);
   out << ".  Eigenvalues: ";
   print_coord3D(out, eigenvalues);
   out << ".  Normalized eigenvalues: ";
@@ -685,10 +685,10 @@ void compute_eigenvalues
     exit(30);
   }
 
-  if (num_large_eigenvalues != gcube.num_eigen) {
+  if (num_large_eigenvalues != gcube.num_eigenvalues) {
     cerr << "Warning: Number of large eigenvalues mismatch for cube "
          << cube_index << endl;
-    cerr << "  gcube.num_eigen: " << int(gcube.num_eigen) << ".";
+    cerr << "  gcube.num_eigen: " << int(gcube.num_eigenvalues) << ".";
     cerr << "  num_large_eigen: "
          << num_large_eigenvalues << endl;
   }

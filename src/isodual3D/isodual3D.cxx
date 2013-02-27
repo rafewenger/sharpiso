@@ -349,9 +349,7 @@ void ISODUAL3D::dual_contouring_sharp
 
       std::vector<ISO_VERTEX_INDEX> iso_vlist_cube;
       std::vector<FACET_VERTEX_INDEX> iso_vlist_patch;
-      std::vector<VERTEX_PAIR> cube_conflict_list;
       std::vector<VERTEX_PAIR> edge_list;
-
       std::vector<AMBIGUITY_TYPE> cube_ambig(cube_list.size());
       std::vector<AMBIGUITY_TYPE> iso_vlist_cube_ambig;
 
@@ -376,8 +374,7 @@ void ISODUAL3D::dual_contouring_sharp
         position_dual_isovertices_using_gradients
           (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
            iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
-           dual_isosurface.vertex_coord, cube_conflict_list, 
-           isodual_info.sharpiso);
+           dual_isosurface.vertex_coord, isodual_info.sharpiso);
       }
       else if (vertex_position_method == EDGEI_INTERPOLATE ||
                vertex_position_method == EDGEI_GRADIENT) {
@@ -386,30 +383,13 @@ void ISODUAL3D::dual_contouring_sharp
           (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
            iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig, 
            vertex_position_method, dual_isosurface.vertex_coord,
-           cube_conflict_list, isodual_info.sharpiso);
+           isodual_info.sharpiso);
       }
       else {
         error.AddMessage("Programming error. Positioning method error.");
         error.AddMessage
           ("  Positioning does not allow resolving ambiguities in a cube.");
         throw error;
-      }
-
-      if (isodual_param.flag_merge_conflict) {
-        std::vector<VERTEX_INDEX> isoquad_vert;
-
-        get_edge_collapses
-          (scalar_grid, isovalue, iso_vlist_cube, iso_vlist_patch,
-           cube_conflict_list, edge_list);
-        isodual_info.sharpiso.num_edge_collapses = edge_list.size();
-
-        IJK::remap_list(edge_list, dual_isosurface.quad_vert);
-        isoquad_vert = dual_isosurface.quad_vert;
-        IJK::reorder_quad_vertices(isoquad_vert);
-        dual_isosurface.quad_vert.clear();
-        IJK::get_non_degenerate_quad_ccw
-          (isoquad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
-        IJK::reorder_quad_vertices(dual_isosurface.quad_vert);
       }
 
     }
@@ -547,6 +527,10 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
   t3 = clock();
 
+  std::vector<DUAL_ISOVERT> iso_vlist;
+  std::vector<NUM_TYPE> new_isovert_index;
+  std::vector<bool> flag_keep;
+
   if (allow_multiple_iso_vertices) {
 
     bool flag_separate_opposite(true);
@@ -555,16 +539,12 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
     std::vector<ISO_VERTEX_INDEX> isoquad_cube;
     std::vector<FACET_VERTEX_INDEX> facet_vertex;
-    std::vector<ISO_VERTEX_INDEX> iso_vlist_cube;
-    std::vector<FACET_VERTEX_INDEX> iso_vlist_patch;
 
     extract_dual_isopoly
       (scalar_grid, isovalue, isoquad_cube, facet_vertex, isodual_info);
 
     map_isopoly_vert(isovert, isoquad_cube);
     t4 = clock();
-
-    std::vector<DUAL_ISOVERT> iso_vlist;
 
     full_split_dual_isovert
       (scalar_grid, isodual_table, isovalue,
@@ -603,7 +583,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
   if (isodual_param.flag_delete_isolated_vertices) {
     IJK::delete_unreferenced_vertices_two_lists
       (dimension, dual_isosurface.vertex_coord,
-       dual_isosurface.tri_vert, dual_isosurface.quad_vert);
+       dual_isosurface.tri_vert, dual_isosurface.quad_vert,
+       new_isovert_index, flag_keep);
   }
 
   t5 = clock();
@@ -613,6 +594,20 @@ void ISODUAL3D::dual_contouring_merge_sharp
   isodual_info.sharpiso.num_sharp_edges = isovert_info.num_sharp_edges;
   isodual_info.sharpiso.num_smooth_vertices = 
     isovert_info.num_smooth_vertices;
+
+  if (isodual_param.flag_store_isovert_info) {
+    if (isodual_param.flag_delete_isolated_vertices) {
+      std::vector<DUAL_ISOVERT> iso_vlist2;
+      delete_vertices(iso_vlist, new_isovert_index, flag_keep, iso_vlist2);
+
+      set_isovert_info(iso_vlist2, isovert.gcube_list, 
+                       isodual_info.sharpiso.vertex_info);
+    }
+    else {
+      set_isovert_info(iso_vlist, isovert.gcube_list, 
+                       isodual_info.sharpiso.vertex_info);
+    }
+  };
 
   // store times
   clock2seconds(t1-t0+t3-t2, isodual_info.time.position);
@@ -672,6 +667,10 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
   t3 = clock();
 
+  std::vector<DUAL_ISOVERT> iso_vlist;
+  std::vector<NUM_TYPE> new_isovert_index;
+  std::vector<bool> flag_keep;
+
   if (allow_multiple_iso_vertices) {
 
     bool flag_separate_opposite(true);
@@ -680,16 +679,12 @@ void ISODUAL3D::dual_contouring_merge_sharp
 
     std::vector<ISO_VERTEX_INDEX> isoquad_cube;
     std::vector<FACET_VERTEX_INDEX> facet_vertex;
-    std::vector<ISO_VERTEX_INDEX> iso_vlist_cube;
-    std::vector<FACET_VERTEX_INDEX> iso_vlist_patch;
 
     extract_dual_isopoly
       (scalar_grid, isovalue, isoquad_cube, facet_vertex, isodual_info);
 
     map_isopoly_vert(isovert, isoquad_cube);
     t4 = clock();
-
-    std::vector<DUAL_ISOVERT> iso_vlist;
 
     full_split_dual_isovert
       (scalar_grid, isodual_table, isovalue,
@@ -729,7 +724,8 @@ void ISODUAL3D::dual_contouring_merge_sharp
   if (isodual_param.flag_delete_isolated_vertices) {
     IJK::delete_unreferenced_vertices_two_lists
       (dimension, dual_isosurface.vertex_coord,
-       dual_isosurface.tri_vert, dual_isosurface.quad_vert);
+       dual_isosurface.tri_vert, dual_isosurface.quad_vert,
+       new_isovert_index, flag_keep);
   }
 
   t5 = clock();
@@ -739,6 +735,20 @@ void ISODUAL3D::dual_contouring_merge_sharp
   isodual_info.sharpiso.num_sharp_edges = isovert_info.num_sharp_edges;
   isodual_info.sharpiso.num_smooth_vertices = 
     isovert_info.num_smooth_vertices;
+
+  if (isodual_param.flag_store_isovert_info) {
+    if (isodual_param.flag_delete_isolated_vertices) {
+      std::vector<DUAL_ISOVERT> iso_vlist2;
+      delete_vertices(iso_vlist, new_isovert_index, flag_keep, iso_vlist2);
+
+      set_isovert_info(iso_vlist2, isovert.gcube_list, 
+                       isodual_info.sharpiso.vertex_info);
+    }
+    else {
+      set_isovert_info(iso_vlist, isovert.gcube_list, 
+                       isodual_info.sharpiso.vertex_info);
+    }
+  };
 
   // store times
   clock2seconds(t1-t0+t3-t2, isodual_info.time.position);

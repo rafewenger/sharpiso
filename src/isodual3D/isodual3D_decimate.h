@@ -43,8 +43,6 @@ namespace ISODUAL3D {
 
   typedef std::unordered_map<VERTEX_PAIR, NUM_TYPE, HASH_VERTEX_PAIR> 
     EDGE_HASH_TABLE;
-  typedef std::unordered_map<VERTEX_INDEX, NUM_TYPE>
-    VERTEX_HASH_TABLE;
 
   // **************************************************
   // Merge some isosurface vertices

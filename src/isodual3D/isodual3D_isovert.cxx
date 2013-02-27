@@ -58,6 +58,8 @@ void compute_isovert_positions (
 	IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX)
 	{
 		NUM_TYPE index = isovertData.sharp_ind_grid.Scalar(iv);
+    isovertData.gcube_list[index].flag_centroid_location = false;
+
 		if (index!=ISOVERT::NO_INDEX)
 		{
 			// this is an active cube
@@ -70,16 +72,16 @@ void compute_isovert_positions (
 					isovertData.gcube_list[index].isovert_coord,
 					eigenvalues, num_large_eigenvalues, svd_info);
 
-			//set num eigen
-			isovertData.gcube_list[index].num_eigen =  (unsigned char)num_large_eigenvalues;
-			//set the sharp vertex type to be *AVAILABLE*
-			if(num_large_eigenvalues > 1 && svd_info.location == LOC_SVD){
-				isovertData.gcube_list[index].flag=AVAILABLE_GCUBE;
-			}
-			else
-				isovertData.gcube_list[index].flag=SMOOTH_GCUBE;
+			// set number of eigenvalues.
+			isovertData.gcube_list[index].num_eigenvalues =
+        (unsigned char) num_large_eigenvalues;
+			// set the sharp vertex type to be *AVAILABLE*.
+			if(num_large_eigenvalues > 1 && svd_info.location == LOC_SVD)
+        { isovertData.gcube_list[index].flag = AVAILABLE_GCUBE; }
+			else 
+        { isovertData.gcube_list[index].flag = SMOOTH_GCUBE; }
 
-			// store distance
+			// store distance.
 			compute_linf_dist( scalar_grid, iv,
 					isovertData.gcube_list[index].isovert_coord,
 					isovertData.gcube_list[index].linf_dist);
@@ -109,6 +111,8 @@ void ISODUAL3D::recompute_isovert_positions (
 			compute_edgeI_centroid
         (scalar_grid, gradient_grid, isovalue, cube_index,
          isovert_param.use_sharp_edgeI, isovert.gcube_list[i].isovert_coord);
+
+      isovert.gcube_list[i].flag_centroid_location = true;
 		}
 	}
 
@@ -138,6 +142,9 @@ void ISODUAL3D::recompute_isovert_positions (
 			compute_edgeI_centroid
         (scalar_grid, edgeI_coord, edge_index, isovalue, cube_index,
          isovert.gcube_list[i].isovert_coord);
+
+
+      isovert.gcube_list[i].flag_centroid_location = true;
 		}
 	}
 
@@ -235,7 +242,8 @@ void compute_isovert_positions (
 					eigenvalues, num_large_eigenvalues, svd_info);
 
 			//set num eigen
-			isovertData.gcube_list[index].num_eigen =  (unsigned char)num_large_eigenvalues;
+			isovertData.gcube_list[index].num_eigenvalues =  
+        (unsigned char)num_large_eigenvalues;
 			//set the sharp vertex type to be *AVAILABLE*
 			if(num_large_eigenvalues > 1)
 				{
@@ -266,10 +274,14 @@ public:
 
 	bool operator () (int i,int j)
 	{
-		if ( gcube_list->at(i).num_eigen == gcube_list->at(j).num_eigen)
-		{ return ((gcube_list->at(i).linf_dist) < (gcube_list->at(j).linf_dist)); }
-		else
-		{ return ((gcube_list->at(i).num_eigen) > (gcube_list->at(j).num_eigen)); }
+		if (gcube_list->at(i).num_eigenvalues == 
+        gcube_list->at(j).num_eigenvalues) {
+      return ((gcube_list->at(i).linf_dist) < (gcube_list->at(j).linf_dist)); 
+    }
+		else {
+      return ((gcube_list->at(i).num_eigenvalues) > 
+              (gcube_list->at(j).num_eigenvalues)); 
+    }
 	}
 };
 
@@ -282,7 +294,7 @@ void ISODUAL3D::sort_gcube_list
 
 	for (int i=0;i<gcube_list.size();i++)
 	{
-		if (gcube_list[i].num_eigen > 1)
+		if (gcube_list[i].num_eigenvalues > 1)
 			sortd_ind2gcube_list.push_back(i);
 	}
 
@@ -840,11 +852,10 @@ void ISODUAL3D::count_vertices
 	isovert_info.num_smooth_vertices = 0;
 	for (VERTEX_INDEX i = 0; i < isovert.gcube_list.size(); i++) {
 		if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
-			if (isovert.gcube_list[i].num_eigen == 2)
-			{ isovert_info.num_sharp_edges++; }
-			else if (isovert.gcube_list[i].num_eigen == 3) {
+			if (isovert.gcube_list[i].num_eigenvalues == 2)
+        { isovert_info.num_sharp_edges++; }
+			else if (isovert.gcube_list[i].num_eigenvalues == 3)
 				{ isovert_info.num_sharp_corners++; }
-			}
 		}
 		else if (isovert.gcube_list[i].flag == SMOOTH_GCUBE) {
 			isovert_info.num_smooth_vertices++;

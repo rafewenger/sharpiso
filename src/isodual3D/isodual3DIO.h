@@ -399,6 +399,13 @@ namespace ISODUAL3D {
     (const INPUT_INFO & input_info, const IO_TIME & io_time, 
      const ISODUAL_TIME & isodual_time, const double total_elapsed_time);
 
+// **************************************************
+// WRITE ISOSURFACE VERTEX INFORMATION TO FILE
+// **************************************************
+
+  void write_isovert_info
+    (const OUTPUT_INFO & output_info,
+     const std::vector<DUAL_ISOVERT_INFO> & isovert_info);
 
 // **************************************************
 // USAGE/HELP MESSAGES

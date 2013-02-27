@@ -203,7 +203,6 @@ namespace ISODUAL3D {
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
    COORD_TYPE * sharp_coord,
-   std::vector< VERTEX_PAIR > & conflict_list,
    SHARPISO_INFO & sharp_info);
 
   /// Position dual isosurface vertices using gradients.
@@ -220,7 +219,6 @@ namespace ISODUAL3D {
    const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
    const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
    std::vector<COORD_TYPE> & coord,
-   std::vector< VERTEX_PAIR > & conflict_list,
    SHARPISO_INFO & sharp_info);
 
   // ********************************************************
@@ -293,7 +291,6 @@ namespace ISODUAL3D {
    const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
    const VERTEX_POSITION_METHOD position_method,
    COORD_TYPE * coord,
-   std::vector<VERTEX_PAIR> & conflict_list,
    SHARPISO_INFO & sharp_info);
 
   /// Position vertices using SVD on grid edge-isosurface intersections.
@@ -311,7 +308,6 @@ namespace ISODUAL3D {
    const std::vector<AMBIGUITY_TYPE> & iso_vlist_cube_ambig,
    const VERTEX_POSITION_METHOD position_method,
    std::vector<COORD_TYPE> & coord,
-   std::vector<VERTEX_PAIR> & conflict_list,
    SHARPISO_INFO & sharp_info);
 
 
@@ -392,49 +388,6 @@ namespace ISODUAL3D {
    std::vector<DUAL_ISOVERT> & iso_vlist,
    std::vector<VERTEX_INDEX> & isoquad_vert,
    SHARPISO_INFO & sharp_info);
-
-  // **************************************************
-  // Reposition routine
-  // **************************************************
-
-  /// Reposition to separate isosurface vertices
-  void reposition_dual_isovertices
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const SCALAR_TYPE isovalue,
-   const ISODUAL_PARAM & isodual_param,
-   const std::vector<ISO_VERTEX_INDEX> & vlist,
-   COORD_TYPE * isovert_coord,
-   SHARPISO_INFO & sharp_info);
-
-  /// Reposition to separate isosurface vertices.
-  /// Skip ambiguous cubes.
-  void reposition_dual_isovertices
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const SCALAR_TYPE isovalue,
-   const ISODUAL_PARAM & isodual_param,
-   const std::vector<ISO_VERTEX_INDEX> & vlist,
-   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
-   COORD_TYPE * isovert_coord,
-   SHARPISO_INFO & sharp_info);
-
-  // **************************************************
-  // Edge collapse routines
-  // **************************************************
-
-  /// Get edge collapses.
-  /// @param cube_conflict_list List of cube conflicts.
-  ///   cube_conflict_list[i].first conflicts with cube_conflict_list[i].second
-  /// @param[out] edge_list List of collapsed edges.
-  ///   Map edge_list[i].first to edge_list[i].second.
-  void get_edge_collapses
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-   const SCALAR_TYPE isovalue,
-   const std::vector<ISO_VERTEX_INDEX> & iso_vlist_cube,
-   const std::vector<FACET_VERTEX_INDEX> & iso_vlist_patch,
-   const std::vector<VERTEX_PAIR> & cube_conflict_list,
-   std::vector<VERTEX_PAIR> & edge_list);
 
   // **************************************************
   // Compute routines
