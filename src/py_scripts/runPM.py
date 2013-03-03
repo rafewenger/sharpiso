@@ -49,7 +49,7 @@ sp.call(tri)
 
 print 'triangulation done'
 
-findedge=['findedge','140',onameOFFTRI]
+findedge=['findsharp','140',onameOFFTRI]
 sp.call(findedge)
 #show=['meshview',onameOFF,onameLine]
 #sp.call(show)
