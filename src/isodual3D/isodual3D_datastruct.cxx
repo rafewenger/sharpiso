@@ -152,7 +152,8 @@ void ISODUAL_DATA::FreeAll()
 
 
 // Copy scalar grid
-void ISODUAL_DATA::CopyScalarGrid(const ISODUAL_SCALAR_GRID_BASE & scalar_grid2)
+void ISODUAL_DATA::CopyScalarGrid
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid2)
 {
   scalar_grid.Copy(scalar_grid2);
   is_scalar_grid_set = true;
@@ -168,7 +169,7 @@ void ISODUAL_DATA::CopyGradientGrid
 
 // Subsample scalar grid
 void ISODUAL_DATA::SubsampleScalarGrid
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid2, const int subsample_resolution)
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid2, const int subsample_resolution)
 {
   scalar_grid.Subsample(scalar_grid2, subsample_resolution);
   is_scalar_grid_set = true;
@@ -176,7 +177,8 @@ void ISODUAL_DATA::SubsampleScalarGrid
 
 // Supersample scalar grid
 void ISODUAL_DATA::SupersampleScalarGrid
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid2, const int supersample_resolution)
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid2, 
+ const int supersample_resolution)
 {
   scalar_grid.Supersample(scalar_grid2, supersample_resolution);
   is_scalar_grid_set = true;
@@ -194,7 +196,7 @@ void ISODUAL_DATA::SubsampleGradientGrid
 
 // Copy, subsample or supersample scalar grid.
 void ISODUAL_DATA::SetScalarGrid
-(const ISODUAL_SCALAR_GRID_BASE & full_scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & full_scalar_grid,
  const bool flag_subsample, const int subsample_resolution,
  const bool flag_supersample, const int supersample_resolution)
 {
@@ -221,7 +223,7 @@ void ISODUAL_DATA::SetScalarGrid
 
 // Copy, subsample or supersample scalar and gradient grids.
 void ISODUAL_DATA::SetGrids
-(const ISODUAL_SCALAR_GRID_BASE & full_scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & full_scalar_grid,
  const GRADIENT_GRID_BASE & full_gradient_grid,
  const bool flag_subsample, const int subsample_resolution,
  const bool flag_supersample, const int supersample_resolution)

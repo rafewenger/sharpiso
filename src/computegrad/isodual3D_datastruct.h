@@ -3,7 +3,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -52,10 +52,10 @@ namespace ISODUAL3D {
   typedef IJK::SCALAR_GRID<ISODUAL_GRID, SCALAR_TYPE> 
     ISODUAL_SCALAR_GRID;           ///< Marching Cubes scalar grid.
   typedef IJK::VECTOR_GRID_BASE
-  <ISODUAL_GRID, LENGTH_TYPE, GRADIENT_COORD_TYPE> 
+  <ISODUAL_GRID, GRADIENT_LENGTH_TYPE, GRADIENT_COORD_TYPE> 
     GRADIENT_GRID_BASE;            ///< isodual base gradient grid
   typedef IJK::VECTOR_GRID
-  <ISODUAL_GRID, LENGTH_TYPE, GRADIENT_COORD_TYPE> 
+  <ISODUAL_GRID, GRADIENT_LENGTH_TYPE, GRADIENT_COORD_TYPE> 
     GRADIENT_GRID;                 ///< isodual gradient grid
 
   // **************************************************

@@ -713,8 +713,8 @@ void ISODUAL3D::parse_command_line
 // Check input information/flags.
 bool ISODUAL3D::check_input
 (const INPUT_INFO & input_info,
-		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-		IJK::ERROR & error)
+ const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ IJK::ERROR & error)
 {
 	// Construct isosurface
 	if (input_info.isovalue.size() > 1 && input_info.use_stdout) {
@@ -737,7 +737,7 @@ bool ISODUAL3D::check_input
 // **************************************************
 
 void ISODUAL3D::read_nrrd_file
-(const char * input_filename, ISODUAL_SCALAR_GRID & scalar_grid,
+(const char * input_filename, SHARPISO_SCALAR_GRID & scalar_grid,
 		NRRD_INFO & nrrd_info)
 {
 	int dimension = 0;
@@ -839,7 +839,7 @@ void ISODUAL3D::read_nrrd_file
 }
 
 void ISODUAL3D::read_nrrd_file
-(const char * input_filename, ISODUAL_SCALAR_GRID & scalar_grid,
+(const char * input_filename, SHARPISO_SCALAR_GRID & scalar_grid,
 		NRRD_INFO & nrrd_info, IO_TIME & io_time)
 {
 	ELAPSED_TIME wall_time;
@@ -1116,12 +1116,12 @@ void ISODUAL3D::rescale_vertex_coord
 // **************************************************
 
 void ISODUAL3D::report_num_cubes
-(const ISODUAL_GRID & full_scalar_grid, const INPUT_INFO & input_info,
+(const SHARPISO_GRID & full_scalar_grid, const INPUT_INFO & input_info,
 		const ISODUAL_DATA & isodual_data)
 {
 	const int num_grid_cubes = full_scalar_grid.ComputeNumCubes();
 	const int num_cubes_in_isodual_data =
-			isodual_data.ScalarGrid().ComputeNumCubes();
+    isodual_data.ScalarGrid().ComputeNumCubes();
 
 	if (!input_info.use_stdout && !input_info.flag_silent) {
 
@@ -1923,7 +1923,7 @@ void ISODUAL3D::set_output_info
 }
 
 void ISODUAL3D::set_color_alternating
-(const ISODUAL_GRID & grid, const vector<VERTEX_INDEX> & cube_list,
+(const SHARPISO_GRID & grid, const vector<VERTEX_INDEX> & cube_list,
 		COLOR_TYPE * color)
 {
 	const int dimension = grid.Dimension();

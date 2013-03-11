@@ -108,7 +108,7 @@ void ISODUAL3D::dual_contouring
 // **************************************************
 
 void ISODUAL3D::dual_contouring
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
  const ISODUAL_PARAM & isodual_param,
  std::vector<VERTEX_INDEX> & isoquad_vert,
@@ -150,7 +150,7 @@ void ISODUAL3D::dual_contouring
 /// Dual contouring algorithm.
 /// Position isosurface vertices at cube centers.
 void ISODUAL3D::dual_contouring_cube_center
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
  std::vector<VERTEX_INDEX> & isoquad_vert,
  std::vector<COORD_TYPE> & vertex_coord,
@@ -189,7 +189,7 @@ void ISODUAL3D::dual_contouring_cube_center
 /// Dual contouring algorithm.
 /// Position isosurface vertices at centroid of isosurface-edge intersections.
 void ISODUAL3D::dual_contouring_centroid
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
  std::vector<VERTEX_INDEX> & isoquad_vert,
  std::vector<COORD_TYPE> & vertex_coord,
@@ -230,7 +230,7 @@ void ISODUAL3D::dual_contouring_centroid
 /// Position isosurface vertices at centroid of isosurface-edge intersections.
 /// Allow multiple isosurface vertices in a grid cube.
 void ISODUAL3D::dual_contouring_centroid_multiv
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
  const bool flag_separate_neg,
  std::vector<VERTEX_INDEX> & isoquad_vert,
@@ -296,7 +296,7 @@ void ISODUAL3D::dual_contouring_centroid_multiv
 //   and list of isosurface vertex coordinates.
 // Use gradients to place isosurface vertices on sharp features. 
 void ISODUAL3D::dual_contouring_sharp
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
  const ISODUAL_PARAM & isodual_param,
@@ -481,7 +481,7 @@ void ISODUAL3D::dual_contouring_sharp
 //   and list of isosurface vertex coordinates.
 // Use gradients to place isosurface vertices on sharp features. 
 void ISODUAL3D::dual_contouring_merge_sharp_from_grad
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
  const ISODUAL_PARAM & isodual_param,
@@ -545,7 +545,7 @@ void ISODUAL3D::dual_contouring_merge_sharp_from_grad
 // Use isosurface-edge intersections and normals (hermite data)
 //   to place isosurface vertices on sharp features. 
 void ISODUAL3D::dual_contouring_merge_sharp_from_hermite
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const std::vector<COORD_TYPE> & edgeI_coord,
  const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
  const SCALAR_TYPE isovalue,
@@ -605,7 +605,7 @@ void ISODUAL3D::dual_contouring_merge_sharp_from_hermite
 //   and list of isosurface vertex coordinates.
 // @pre isovert contains isovert locations.
 void ISODUAL3D::dual_contouring_merge_sharp
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
  const ISODUAL_PARAM & isodual_param,
  DUAL_ISOSURFACE & dual_isosurface,

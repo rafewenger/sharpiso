@@ -50,7 +50,7 @@ namespace ISODUAL3D {
 
   /// Return true if facet is ambiguous.
   bool is_grid_facet_ambiguous
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const VERTEX_INDEX facet_v0,
    const NUM_TYPE orth_dir,
    const SCALAR_TYPE isovalue);
@@ -62,7 +62,7 @@ namespace ISODUAL3D {
   ///        Note: When iv is on the upper-rightmost grid boundary,
   ///          the facet iv*DIM3+d may not actually be contained in the grid.
   AMBIGUITY_STATUS decide_ambiguous_facet
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const AMBIG_TABLE & ambig_table,
    const SCALAR_TYPE isovalue,
@@ -77,7 +77,7 @@ namespace ISODUAL3D {
   ///        Note: When iv is on the upper-rightmost grid boundary,
   ///          the facet iv*DIM3+d may not actually be contained in the grid.
   void propagate_sep
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const AMBIG_TABLE & ambig_table,
    std::vector<AMBIGUITY_TYPE> & facet_ambig_status);
 
@@ -90,7 +90,7 @@ namespace ISODUAL3D {
 
   /// Set ambiguity of cubes in cube_list[].
   void set_cube_ambiguity    
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const SCALAR_TYPE isovalue,
    const std::vector<ISO_VERTEX_INDEX> & cube_list,
