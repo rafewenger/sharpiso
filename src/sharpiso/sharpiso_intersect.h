@@ -4,7 +4,7 @@
 
 /*
  IJK: Isosurface Jeneration Code
- Copyright (C) 2012 Rephael Wenger
+ Copyright (C) 2012-2013 Rephael Wenger
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public License
@@ -36,12 +36,25 @@ namespace SHARPISO {
   (const SCALAR_TYPE s, const GRADIENT_COORD_TYPE g,
    const SCALAR_TYPE isovalue, SCALAR_TYPE & t);
 
+  /// Compute intersection of isosurface and grid edge using sharp formula.
+  /// Return vertex determining intersection.
   void intersect_isosurface_grid_edge_sharp3D
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
      const GRADIENT_GRID_BASE & gradient_grid,
      const SCALAR_TYPE isovalue, 
      const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
      VERTEX_INDEX & iv2, COORD_TYPE * coord);
+
+  /// Compute intersection of isosurface and grid edge and 
+  ///    normal at the intersection point using sharp formula.
+  void compute_isosurface_grid_edge_intersection
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
+   const GRADIENT_COORD_TYPE max_small_magnitude,
+   COORD_TYPE p[DIM3],
+   GRADIENT_COORD_TYPE normal[DIM3]);
 
 };
 

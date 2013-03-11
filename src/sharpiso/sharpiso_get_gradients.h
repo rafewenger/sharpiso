@@ -475,21 +475,6 @@ namespace SHARPISO {
    bool vertex_flag[]);
 
   // **************************************************
-  // COMPUTE GRID EDGE-ISOSURFACE INTERSECTION
-  // **************************************************
-
-  /// Compute intersection of isosurface and grid edge and 
-  ///    normal at the intersection point.
-  void compute_isosurface_grid_edge_intersection
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const SCALAR_TYPE isovalue,
-   const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
-   const GRADIENT_COORD_TYPE max_small_magnitude,
-   COORD_TYPE p[DIM3],
-   GRADIENT_COORD_TYPE normal[DIM3]);
-
-  // **************************************************
   // MAP GRAD_SELECTION_METHOD TO/FROM C++ string
   // **************************************************
 

@@ -46,7 +46,8 @@ namespace IJK {
   }
 
   /// Compute coordinates using linear interpolation.
-  /// @param PTYPE = Precision type to be used in calculations. Should be float of double.
+  /// @param PTYPE = Precision type to be used in calculations. 
+  ///                Should be float or double.
   template <class PTYPE, class DTYPE, class STYPE, class STYPE2,
             class CTYPE0, class CTYPE1, class CTYPE2>
   inline void linear_interpolate_coord

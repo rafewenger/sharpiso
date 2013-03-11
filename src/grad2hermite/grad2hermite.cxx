@@ -34,7 +34,7 @@
 
 #include "sharpiso_types.h"
 #include "sharpiso_grids.h"
-#include "sharpiso_get_gradients.h"
+#include "sharpiso_intersect.h"
 
 using namespace IJK;
 using namespace SHARPISO;
