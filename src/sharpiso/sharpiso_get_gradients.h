@@ -4,7 +4,7 @@
 
 /*
  IJK: Isosurface Jeneration Code
- Copyright (C) 2012 Rephael Wenger
+ Copyright (C) 2012-2013 Rephael Wenger
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public License
@@ -242,18 +242,6 @@ namespace SHARPISO {
    std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
    std::vector<SCALAR_TYPE> & scalar,
    NUM_TYPE & num_gradients);
-
-  /// Get gradients at edge intersection points determined by edge endpoints.
-  /// Use sharp formula for computing gradient at intersection.
-  void get_edgeI_sharp_gradients
-    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-     const GRADIENT_GRID_BASE & gradient_grid,
-     const VERTEX_INDEX cube_index,
-     const SCALAR_TYPE isovalue,
-     std::vector<COORD_TYPE> & point_coord,
-     std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
-     std::vector<SCALAR_TYPE> & scalar,
-     NUM_TYPE & num_gradients);
 
   /// Get gradients from list of edge-isosurface intersections.
   /// @param sharpiso_param Determines which gradients are selected.

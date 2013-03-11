@@ -38,6 +38,7 @@
 #include "sharpiso_types.h"
 #include "sharpiso_scalar.txx"
 #include "sharpiso_findIntersect.h"
+#include "sh_point_find.h"
 
 using namespace SHARPISO;
 using namespace IJK;
@@ -1455,29 +1456,11 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-clamp_far") {
       sharpiso_param.flag_clamp_far = true;
     }
-    else if (s == "-recompute_eigen2") {
-      sharpiso_param.flag_recompute_eigen2 = true;
-    }
-    else if (s == "-no_recompute_eigen2") {
-      sharpiso_param.flag_recompute_eigen2 = false;
-    }
-    else if (s == "-removeg") {
-      sharpiso_param.flag_remove_gradients = true;
-    }
-    else if (s == "-no_removeg") {
-      sharpiso_param.flag_remove_gradients = false;
-    }
     else if (s == "-dist2centroid") {
       sharpiso_param.flag_dist2centroid = true;
     }
     else if (s == "-dist2center") {
       sharpiso_param.flag_dist2centroid = false;
-    }
-    else if (s == "-centroid_eigen1") {
-      sharpiso_param.flag_centroid_eigen1 = true;
-    }
-    else if (s == "-no_centroid_eigen1") {
-      sharpiso_param.flag_centroid_eigen1 = false;
     }
     else if (s == "-no_Linf") {
       sharpiso_param.use_Linf_dist = false;

@@ -51,9 +51,11 @@ namespace ISODUAL3D {
     ISODUAL_SCALAR_GRID_WRAPPER;   ///< isodual scalar grid wrapper.
   typedef IJK::SCALAR_GRID<ISODUAL_GRID, SCALAR_TYPE> 
     ISODUAL_SCALAR_GRID;           ///< Marching Cubes scalar grid.
-  typedef IJK::VECTOR_GRID_BASE<ISODUAL_GRID, LENGTH_TYPE, GRADIENT_TYPE> 
+  typedef IJK::VECTOR_GRID_BASE
+  <ISODUAL_GRID, LENGTH_TYPE, GRADIENT_COORD_TYPE> 
     GRADIENT_GRID_BASE;            ///< isodual base gradient grid
-  typedef IJK::VECTOR_GRID<ISODUAL_GRID, LENGTH_TYPE, GRADIENT_TYPE> 
+  typedef IJK::VECTOR_GRID
+  <ISODUAL_GRID, LENGTH_TYPE, GRADIENT_COORD_TYPE> 
     GRADIENT_GRID;                 ///< isodual gradient grid
 
   // **************************************************

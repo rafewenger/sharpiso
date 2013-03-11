@@ -39,7 +39,8 @@ namespace ISODUAL3D {
 // SCALAR TYPES
 // **************************************************
 
-  typedef float GRADIENT_TYPE;   ///< Gradient coordinate type.
+// *** DEPRECATED ***
+//  typedef float GRADIENT_TYPE;   ///< Gradient coordinate type.
   typedef int LENGTH_TYPE;       ///< Vector length type.
   typedef int ISO_VERTEX_INDEX;  ///< Isosurface vertex index type.
   typedef int MERGE_INDEX;       ///< Merge index type.

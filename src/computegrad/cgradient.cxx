@@ -46,16 +46,16 @@ typedef IJK::BOOL_GRID<ISODUAL_GRID> BOOL_GRID;
 // local routines
 void compute_gradient_central_difference
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-		const VERTEX_INDEX iv1, GRADIENT_TYPE * gradient, const SCALAR_TYPE & min_gradient_mag);
+		const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient, const SCALAR_TYPE & min_gradient_mag);
 void compute_boundary_gradient
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-		const VERTEX_INDEX iv1, GRADIENT_TYPE * gradient);
+		const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient);
 void compute_cube_gradients
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
 		GRADIENT_GRID & gradient_grid, const INPUT_INFO & io_info);
 void compute_cube_grad
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-		const VERTEX_INDEX iv1, GRADIENT_TYPE * gradient,
+		const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient,
 		const SCALAR_TYPE & min_gradient_mag, const INPUT_INFO & io_info);
 void print_info (
 		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
@@ -66,20 +66,20 @@ void print_info (
 		out e);
 
 void compute_plane_point_dist (
-		const GRADIENT_TYPE * normal, const SCALAR_TYPE * pt_on_plane,
+		const GRADIENT_COORD_TYPE * normal, const SCALAR_TYPE * pt_on_plane,
 		const SCALAR_TYPE * far_point, SCALAR_TYPE & dist);
 
 SCALAR_TYPE zero_vector [3] = { 0.0, 0.0, 0.0};
 
 bool gradients_agree
 (const GRADIENT_GRID & vertex_gradient_grid,
-		const GRADIENT_TYPE * gradient1,
+		const GRADIENT_COORD_TYPE * gradient1,
 		const VERTEX_INDEX vert2,
 		const VERTEX_INDEX vert1,
 		const INPUT_INFO & io_info)
 {
 	SCALAR_TYPE mag1=0.0, mag2=0.0;
-	GRADIENT_TYPE   gradient2[DIM3]={0.0,0.0,0.0};
+	GRADIENT_COORD_TYPE   gradient2[DIM3]={0.0,0.0,0.0};
 	std::copy(vertex_gradient_grid.VectorPtrConst(vert2),
 			vertex_gradient_grid.VectorPtrConst(vert2)+DIM3,
 			&(gradient2[0]));
@@ -133,8 +133,8 @@ void compute_reliable_gradients_SBP_2
 	for (VERTEX_INDEX iv=0; iv < scalar_grid.NumVertices(); iv++)
 	{
 		int num_agree = 0;
-		GRADIENT_TYPE  grad1[DIM3]={0.0,0.0,0.0};
-		GRADIENT_TYPE  grad2[DIM3]={0.0,0.0,0.0};
+		GRADIENT_COORD_TYPE  grad1[DIM3]={0.0,0.0,0.0};
+		GRADIENT_COORD_TYPE  grad2[DIM3]={0.0,0.0,0.0};
 		std::copy(vertex_gradient_grid.VectorPtrConst(iv),
 				vertex_gradient_grid.VectorPtrConst(iv)+DIM3, grad1);
 		SCALAR_TYPE mag1;
@@ -201,8 +201,8 @@ void compute_reliable_gradients_SBP(
 		// set up a vector to keep track of the distances
 		vector <SCALAR_TYPE> vec_scalar_dists;
 
-		GRADIENT_TYPE  grad1[DIM3]={0.0,0.0,0.0}, grad1_normalized[DIM3]={0.0,0.0,0.0};
-		GRADIENT_TYPE  grad2[DIM3]={0.0,0.0,0.0};
+		GRADIENT_COORD_TYPE  grad1[DIM3]={0.0,0.0,0.0}, grad1_normalized[DIM3]={0.0,0.0,0.0};
+		GRADIENT_COORD_TYPE  grad2[DIM3]={0.0,0.0,0.0};
 		std::copy(vertex_gradient_grid.VectorPtrConst(iv),
 				vertex_gradient_grid.VectorPtrConst(iv)+DIM3, grad1);
 		SCALAR_TYPE mag1;
@@ -342,7 +342,7 @@ void compute_reliable_gradients_far
 	for (VERTEX_INDEX iv=0; iv < scalar_grid.NumVertices(); iv++)
 	{
 		numAgree=0;
-		GRADIENT_TYPE  gradient1[DIM3]={0.0,0.0,0.0}, gradient2[DIM3]={0.0,0.0,0.0};
+		GRADIENT_COORD_TYPE  gradient1[DIM3]={0.0,0.0,0.0}, gradient2[DIM3]={0.0,0.0,0.0};
 		SCALAR_TYPE mag;
 		std::copy(vertex_gradient_grid.VectorPtrConst(iv),
 				vertex_gradient_grid.VectorPtrConst(iv)+DIM3,
@@ -442,7 +442,7 @@ void compute_reliable_gradients
 	for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) {
 		if (!boundary_grid.Scalar(iv)) {
 			int numAgree=0;
-			GRADIENT_TYPE  gradient[DIM3]={0.0,0.0,0.0};
+			GRADIENT_COORD_TYPE  gradient[DIM3]={0.0,0.0,0.0};
 			SCALAR_TYPE mag,cube_grad_magnitude;
 
 			std::copy(vertex_gradient_grid.VectorPtrConst(iv),
@@ -460,7 +460,7 @@ void compute_reliable_gradients
 				for (int l=0;l<DIM3;l++){
 					gradient[l]=gradient[l]/mag;
 				}
-				GRADIENT_TYPE * cube_grad;
+				GRADIENT_COORD_TYPE * cube_grad;
 				VERTEX_INDEX cube_temp = iv-scalar_grid.CubeVertexIncrement(NUM_CUBE_VERTICES3D-1);
 
 				for (int k=0; k< NUM_CUBE_VERTICES3D; k++){
@@ -556,7 +556,7 @@ void compute_gradient_central_difference
 /// Compute central difference per vertex
 void compute_gradient_central_difference
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-		const VERTEX_INDEX iv1, GRADIENT_TYPE * gradient,
+		const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient,
 		const SCALAR_TYPE & min_gradient_mag)
 {
 	const int dimension = scalar_grid.Dimension();
@@ -575,7 +575,7 @@ void compute_gradient_central_difference
 
 void compute_boundary_gradient
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-		const VERTEX_INDEX iv1, GRADIENT_TYPE * gradient)
+		const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient)
 {
 	const int dimension = scalar_grid.Dimension();
 	GRID_COORD_TYPE coord[dimension];
@@ -621,7 +621,7 @@ void compute_cube_gradients
 /// Compute gradient per cube
 void compute_cube_grad(
 		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-		const VERTEX_INDEX iv1, GRADIENT_TYPE * gradient,
+		const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient,
 		const SCALAR_TYPE & min_gradient_mag,
 		const INPUT_INFO & io_info)
 {
@@ -672,7 +672,7 @@ void compute_cube_grad(
  *  find the distance of another point from this plane
  */
 void compute_plane_point_dist (
-		const GRADIENT_TYPE * normal,
+		const GRADIENT_COORD_TYPE * normal,
 		const SCALAR_TYPE * pt_on_plane,
 		const SCALAR_TYPE * far_point,
 		SCALAR_TYPE & dist
@@ -732,7 +732,7 @@ void print_info (
 		}
 		case GRADIENT:
 		{
-			GRADIENT_TYPE  grad1[DIM3]={0.0,0.0,0.0};
+			GRADIENT_COORD_TYPE  grad1[DIM3]={0.0,0.0,0.0};
 			std::copy(vertex_gradient_grid.VectorPtrConst(iv),
 					vertex_gradient_grid.VectorPtrConst(iv)+DIM3, grad1);
 			SCALAR_TYPE mag1;
