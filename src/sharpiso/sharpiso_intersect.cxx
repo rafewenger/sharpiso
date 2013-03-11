@@ -4,7 +4,7 @@
 
 /*
  IJK: Isosurface Jeneration Code
- Copyright (C) 2012 Rephael Wenger
+ Copyright (C) 2012-2013 Rephael Wenger
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public License
@@ -23,6 +23,8 @@
 
 #include "sharpiso_intersect.h"
 
+#include "ijkcoord.txx"
+
 namespace {
 
   using namespace SHARPISO;
@@ -35,8 +37,6 @@ namespace {
   (const SCALAR_TYPE s0, const SCALAR_TYPE s1,
    const GRADIENT_COORD_TYPE g0, const GRADIENT_COORD_TYPE g1,
    const COORD_TYPE t0, const COORD_TYPE t1);
-
-  void clamp01(COORD_TYPE & t);
 }
 
 // Compute intersection of edge and plane determined by gradient g, scalar s.
@@ -104,46 +104,19 @@ void SHARPISO::intersect_isosurface_grid_edge_sharp3D
 
   scalar_grid.ComputeCoord(iv0, coord);
   if (iv2 == iv0) {
-    clamp01(t0);
+    t0 = IJK::clamp01_coord(t0);
     coord[dir] += t0;
   }
   else {
-    clamp01(t1);
+    t1 = IJK::clamp01_coord(t1);
     coord[dir] += t1;
   }
-
 }
 
 
 namespace {
 
   using namespace SHARPISO;
-
-  /* OBSOLETE
-  // Compute intersection of edge and plane determined by gradient g, scalar s.
-  // Intersection point is v0+t*dir, 0 <= t <= 1.
-  // If plane does not intersect edge in a single point, then t < 0 or t > 1.
-  void compute_edge_intersection
-  (const SCALAR_TYPE s, const GRADIENT_COORD_TYPE g,
-   const SCALAR_TYPE isovalue, SCALAR_TYPE & t)
-  {
-      SCALAR_TYPE sdiff = isovalue - s;
-
-      if (sdiff > 0) {
-        if (g > sdiff) { t = sdiff/g; }
-        else if (g == sdiff) { t = 1; }
-        else if (g <= 0) { t = -1; }
-        else { t = 2; }
-      }
-      else if (sdiff < 0) {
-        if (g < sdiff) { t = sdiff/g; }
-        else if (g == sdiff) { t = 1; }
-        else if (g >= 0) { t = -1; }
-        else { t = 2; }
-      }
-      else { t = 0; }
-  }
-  */
 
   // Return true if t0 should be selected.
   // @pre 0 <= t0 <= 1 and 0 <= t1 <= 1.
@@ -172,13 +145,6 @@ namespace {
     }
 
     return(true);
-  }
-
-  // Clamp t to [0,1]
-  void clamp01(COORD_TYPE & t)
-  {
-    if (t < 0) { t = 0; }
-    else if (t > 1) { t = 1; }
   }
 
 }
