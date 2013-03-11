@@ -809,7 +809,7 @@ void SHARPISO::compute_edgeI_centroid
 {
 	if (use_sharp_edgeI) {
 		compute_edgeI_sharp_centroid
-		(scalar_grid, gradient_grid, isovalue, iv, coord);
+      (scalar_grid, gradient_grid, isovalue, iv, coord);
 	}
 	else {
 		compute_edgeI_centroid(scalar_grid, isovalue, iv, coord);
@@ -944,8 +944,8 @@ void SHARPISO::compute_edgeI_sharp_centroid
 			if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
 
 				intersect_isosurface_grid_edge_sharp3D
-				(scalar_grid, gradient_grid, isovalue,
-						iend0, iend1, edge_dir, iv2, coord2);
+          (scalar_grid, gradient_grid, isovalue,
+           iend0, iend1, edge_dir, iv2, coord2);
 
 				IJK::add_coord(dimension, vcoord, coord2, vcoord);
 

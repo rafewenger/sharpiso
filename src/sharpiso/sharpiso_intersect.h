@@ -24,10 +24,17 @@
 #ifndef _SHARPISO_INTERSECT_
 #define _SHARPISO_INTERSECT_
 
-#include "sharpiso_grids.h"
 #include "sharpiso_types.h"
+#include "sharpiso_grids.h"
 
 namespace SHARPISO {
+
+  /// Compute intersection of edge and plane determined by gradient g, scalar s.
+  /// Intersection point is v0+t*dir, 0 <= t <= 1.
+  /// If plane does not intersect edge in a single point, then t < 0 or t > 1.
+  void compute_edge_intersection
+  (const SCALAR_TYPE s, const GRADIENT_COORD_TYPE g,
+   const SCALAR_TYPE isovalue, SCALAR_TYPE & t);
 
   void intersect_isosurface_grid_edge_sharp3D
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 

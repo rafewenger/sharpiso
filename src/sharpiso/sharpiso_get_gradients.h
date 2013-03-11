@@ -218,9 +218,6 @@ namespace SHARPISO {
      NUM_TYPE & num_gradients);
 
   /// Get gradients of vertices which determine edge isosurface intersections.
-  /// @param zero_tolerance No division by numbers less than or equal 
-  ///        to zero_tolerance.
-  /// @pre zero_tolerance must be non-negative.
   void get_gradients_determining_edge_intersections
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,

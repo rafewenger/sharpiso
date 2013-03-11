@@ -22,6 +22,7 @@
 */
 
 #include "sharpiso_get_gradients.h"
+#include "sharpiso_intersect.h"
 
 #include "ijkcoord.txx"
 #include "ijkgrid.txx"
@@ -884,30 +885,6 @@ void SHARPISO::get_intersected_edge_endpoint_gradients
 
 namespace {
 
-  // Compute intersection of edge and plane determined by gradient g, scalar s.
-  // Intersection point is v0+t*dir, 0 <= t <= 1.
-  // If plane does not intersect edge in a single point, then t < 0 or t > 1.
-  void compute_edge_intersection
-  (const SCALAR_TYPE s, const GRADIENT_COORD_TYPE g,
-   const SCALAR_TYPE isovalue, SCALAR_TYPE & t)
-  {
-      SCALAR_TYPE sdiff = isovalue - s;
-
-      if (sdiff > 0) {
-        if (g > sdiff) { t = sdiff/g; }
-        else if (g == sdiff) { t = 1; }
-        else if (g <= 0) { t = -1; }
-        else { t = 2; }
-      }
-      else if (sdiff < 0) {
-        if (g < sdiff) { t = sdiff/g; }
-        else if (g == sdiff) { t = 1; }
-        else if (g >= 0) { t = -1; }
-        else { t = 2; }
-      }
-      else { t = 0; }
-  }
-
   // Return true if t0 should be selected.
   // @pre 0 <= t0 <= 1 and 0 <= t1 <= 1.
   bool select_t0
@@ -935,28 +912,6 @@ namespace {
     }
 
     return(true);
-  }
-
-
-  // Compute intersection of edge and plane determined by gradients at v0, v1.
-  // Intersection point is v0+t*dir, 0 <= t <= 1.
-  // If plane does not intersect edge in a single point, then t < 0 or t > 1.
-  void compute_edge_intersection
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const SCALAR_TYPE isovalue,
-   const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
-   SCALAR_TYPE & t0, SCALAR_TYPE & t1)
-  {
-      const SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
-      const SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
-
-      const GRADIENT_COORD_TYPE g0 = gradient_grid.Vector(iv0, dir);
-      const GRADIENT_COORD_TYPE g1 = gradient_grid.Vector(iv1, dir);
-
-      compute_edge_intersection(s0, g0, isovalue, t0);
-      compute_edge_intersection(s1, -g1, isovalue, t1);
-      t1 = 1-t1;
   }
 
   void flag_cube_gradients_determining_edge_intersections
@@ -1430,8 +1385,8 @@ void SHARPISO::get_vertex_determining_edge_intersection
   const GRADIENT_COORD_TYPE g1 = gradient_grid.Vector(iv1, dir);
   COORD_TYPE t0, t1;
 
-  compute_edge_intersection(s0, g0, isovalue, t0);
-  compute_edge_intersection(s1, -g1, isovalue, t1);
+  SHARPISO::compute_edge_intersection(s0, g0, isovalue, t0);
+  SHARPISO::compute_edge_intersection(s1, -g1, isovalue, t1);
   t1 = 1-t1;
 
   iv2 = iv0;  // default

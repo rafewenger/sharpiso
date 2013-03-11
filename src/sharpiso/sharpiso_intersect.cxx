@@ -39,6 +39,30 @@ namespace {
   void clamp01(COORD_TYPE & t);
 }
 
+// Compute intersection of edge and plane determined by gradient g, scalar s.
+// Intersection point is v0+t*dir, 0 <= t <= 1.
+// If plane does not intersect edge in a single point, then t < 0 or t > 1.
+void SHARPISO::compute_edge_intersection
+(const SCALAR_TYPE s, const GRADIENT_COORD_TYPE g,
+ const SCALAR_TYPE isovalue, SCALAR_TYPE & t)
+{
+  SCALAR_TYPE sdiff = isovalue - s;
+
+  if (sdiff > 0) {
+    if (g > sdiff) { t = sdiff/g; }
+    else if (g == sdiff) { t = 1; }
+    else if (g <= 0) { t = -1; }
+    else { t = 2; }
+  }
+  else if (sdiff < 0) {
+    if (g < sdiff) { t = sdiff/g; }
+    else if (g == sdiff) { t = 1; }
+    else if (g >= 0) { t = -1; }
+    else { t = 2; }
+  }
+  else { t = 0; }
+}
+
 
 void SHARPISO::intersect_isosurface_grid_edge_sharp3D
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
@@ -95,6 +119,7 @@ namespace {
 
   using namespace SHARPISO;
 
+  /* OBSOLETE
   // Compute intersection of edge and plane determined by gradient g, scalar s.
   // Intersection point is v0+t*dir, 0 <= t <= 1.
   // If plane does not intersect edge in a single point, then t < 0 or t > 1.
@@ -118,6 +143,7 @@ namespace {
       }
       else { t = 0; }
   }
+  */
 
   // Return true if t0 should be selected.
   // @pre 0 <= t0 <= 1 and 0 <= t1 <= 1.
