@@ -631,11 +631,6 @@ void output_svd_results
     print_coord3D(output, closest_point);
     output << endl;
 
-    /* OBSOLETE
-    compute_closest_point_to_cube_center_linf
-      (cube_coord, svd_info.ray_initial_point, svd_info.ray_direction,
-       closest_point);
-    */
     compute_closest_point_on_line_linf
       (svd_info.central_point, 
        svd_info.ray_initial_point, svd_info.ray_direction,
@@ -856,7 +851,6 @@ void output_edge_intersections
     for (int k = 0; k < scalar_grid.NumFacetVertices(); k++) {
       VERTEX_INDEX iv0 = scalar_grid.FacetVertex(cube_index, d, k);
       VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, d);
-      VERTEX_INDEX iv2;
 
       if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
 
@@ -872,9 +866,9 @@ void output_edge_intersections
 
         if (sharpiso_param.use_sharp_edgeI) {
 
-          intersect_isosurface_grid_edge_sharp3D
+          compute_isosurface_grid_edge_intersection
             (scalar_grid, gradient_grid, isovalue,
-             iv0, iv1, d, iv2, pcoord);
+             iv0, iv1, d, pcoord);
 
           output << " Intersection point: ";
           IJK::ijkgrid_output_coord(output, DIM3, pcoord);

@@ -37,13 +37,12 @@ namespace SHARPISO {
    const SCALAR_TYPE isovalue, SCALAR_TYPE & t);
 
   /// Compute intersection of isosurface and grid edge using sharp formula.
-  /// Return vertex determining intersection.
-  void intersect_isosurface_grid_edge_sharp3D
-    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-     const GRADIENT_GRID_BASE & gradient_grid,
-     const SCALAR_TYPE isovalue, 
-     const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
-     VERTEX_INDEX & iv2, COORD_TYPE * coord);
+  void compute_isosurface_grid_edge_intersection
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
+   COORD_TYPE p[DIM3]);
 
   /// Compute intersection of isosurface and grid edge and 
   ///    normal at the intersection point using sharp formula.

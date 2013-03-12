@@ -928,12 +928,9 @@ void SHARPISO::compute_edgeI_sharp_centroid
 	const int dimension = scalar_grid.Dimension();
 	GRID_COORD_TYPE grid_coord[dimension];
 	COORD_TYPE vcoord[dimension];
-	COORD_TYPE coord0[dimension];
-	COORD_TYPE coord1[dimension];
 	COORD_TYPE coord2[dimension];
-	VERTEX_INDEX iv2;
-
 	int num_intersected_edges = 0;
+
 	IJK::set_coord(dimension, 0.0, vcoord);
 
 	for (int edge_dir = 0; edge_dir < dimension; edge_dir++)
@@ -943,9 +940,9 @@ void SHARPISO::compute_edgeI_sharp_centroid
 
 			if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
 
-				intersect_isosurface_grid_edge_sharp3D
+				compute_isosurface_grid_edge_intersection
           (scalar_grid, gradient_grid, isovalue,
-           iend0, iend1, edge_dir, iv2, coord2);
+           iend0, iend1, edge_dir, coord2);
 
 				IJK::add_coord(dimension, vcoord, coord2, vcoord);
 

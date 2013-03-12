@@ -64,54 +64,64 @@ void SHARPISO::compute_edge_intersection
   else { t = 0; }
 }
 
-
-void SHARPISO::intersect_isosurface_grid_edge_sharp3D
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+// Compute intersection of isosurface and grid edge.
+void SHARPISO::compute_isosurface_grid_edge_intersection
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
- const SCALAR_TYPE isovalue, 
+ const SCALAR_TYPE isovalue,
  const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
- VERTEX_INDEX & iv2, COORD_TYPE * coord)
+ COORD_TYPE p[DIM3])
 {
   const SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
   const SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
   const GRADIENT_COORD_TYPE g0 = gradient_grid.Vector(iv0, dir);
   const GRADIENT_COORD_TYPE g1 = gradient_grid.Vector(iv1, dir);
   COORD_TYPE t0, t1;
+  COORD_TYPE coord0[DIM3], coord1[DIM3];
 
   compute_edge_intersection(s0, g0, isovalue, t0);
   compute_edge_intersection(s1, -g1, isovalue, t1);
   t1 = 1-t1;
 
-  iv2 = iv0;  // default
-
   if (s0 == isovalue) { 
-    scalar_grid.ComputeCoord(iv0, coord);
+    scalar_grid.ComputeCoord(iv0, p);
     return; 
   }
 
   if (s1 == isovalue) { 
-    iv2 = iv1; 
-    scalar_grid.ComputeCoord(iv1, coord);
+    scalar_grid.ComputeCoord(iv1, p);
     return;
   }
 
-  if (0 <= t1 && t1 <= 1) {
-    if (t0 < 0 || t0 > 1) { iv2 = iv1; }
+  scalar_grid.ComputeCoord(iv0, coord0);
+  scalar_grid.ComputeCoord(iv1, coord1);
+
+  if (0 <= t0 && t0 <= 1) {
+    if (0 <= t1 && t1 <= 1) {
+      if (select_t0(s0, s1, g0, g1, t0, t1)) {
+        IJK::linear_interpolate_coord(DIM3, 1-t0, coord0, coord1, p);
+      }
+      else {
+        IJK::linear_interpolate_coord(DIM3, 1-t1, coord0, coord1, p);
+      }
+    }
     else {
-      if (!select_t0(s0, s1, g0, g1, t0, t1))
-        { iv2 = iv1; }
+      // Use t0.
+      IJK::linear_interpolate_coord(DIM3, 1-t0, coord0, coord1, p);
+    }
+  }
+  else {
+    if (0 <= t1 && t1 <= 1) {
+      // Use t1.
+      IJK::linear_interpolate_coord(DIM3, 1-t1, coord0, coord1, p);
+    }
+    else {
+      // Use linear interpolation to compute intersection point.
+      IJK::linear_interpolate_coord<float>
+        (DIM3, s0, coord0, s1, coord1, isovalue, p);
     }
   }
 
-  scalar_grid.ComputeCoord(iv0, coord);
-  if (iv2 == iv0) {
-    t0 = IJK::clamp01_coord(t0);
-    coord[dir] += t0;
-  }
-  else {
-    t1 = IJK::clamp01_coord(t1);
-    coord[dir] += t1;
-  }
 }
 
 
@@ -145,7 +155,7 @@ void SHARPISO::compute_isosurface_grid_edge_intersection
   }
 
   if (s1 == isovalue) { 
-    scalar_grid.ComputeCoord(iv0, p);
+    scalar_grid.ComputeCoord(iv1, p);
     IJK::normalize_vector(DIM3, gradient_grid.VectorPtrConst(iv1), 
                           max_small_magnitude, normal);
     return;
@@ -157,19 +167,19 @@ void SHARPISO::compute_isosurface_grid_edge_intersection
   if (0 <= t0 && t0 <= 1) {
     if (0 <= t1 && t1 <= 1) {
       if (select_t0(s0, s1, g0, g1, t0, t1)) {
-        IJK::linear_interpolate_coord(DIM3, t0, coord0, coord1, p);
+        IJK::linear_interpolate_coord(DIM3, 1-t0, coord0, coord1, p);
         IJK::normalize_vector(DIM3, gradient_grid.VectorPtrConst(iv0), 
                               max_small_magnitude, normal);  
       }
       else {
-        IJK::linear_interpolate_coord(DIM3, t1, coord0, coord1, p);
+        IJK::linear_interpolate_coord(DIM3, 1-t1, coord0, coord1, p);
         IJK::normalize_vector(DIM3, gradient_grid.VectorPtrConst(iv1), 
                               max_small_magnitude, normal);
       }
     }
     else {
       // Use t0.
-      IJK::linear_interpolate_coord(DIM3, t0, coord0, coord1, p);
+      IJK::linear_interpolate_coord(DIM3, 1-t0, coord0, coord1, p);
       IJK::normalize_vector(DIM3, gradient_grid.VectorPtrConst(iv0), 
                             max_small_magnitude, normal);  
     }
@@ -177,7 +187,7 @@ void SHARPISO::compute_isosurface_grid_edge_intersection
   else {
     if (0 <= t1 && t1 <= 1) {
       // Use t1.
-      IJK::linear_interpolate_coord(DIM3, t1, coord0, coord1, p);
+      IJK::linear_interpolate_coord(DIM3, 1-t1, coord0, coord1, p);
       IJK::normalize_vector(DIM3, gradient_grid.VectorPtrConst(iv1), 
                             max_small_magnitude, normal);
     }
