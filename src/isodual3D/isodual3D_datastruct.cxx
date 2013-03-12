@@ -68,6 +68,8 @@ void ISODUAL_PARAM::Init()
   flag_split_non_manifold = false;
   flag_delete_isolated_vertices = true;
   flag_store_isovert_info = false;
+  flag_grad2hermite = false;
+  flag_grad2hermiteI = false;
 }
 
 /// Set type of interpolation
@@ -117,7 +119,8 @@ bool ISODUAL_PARAM::GradientsRequired() const
 {
   if (VertexPositionMethod() == GRADIENT_POSITIONING ||
       VertexPositionMethod() == EDGEI_INTERPOLATE ||
-      VertexPositionMethod() == EDGEI_GRADIENT)
+      VertexPositionMethod() == EDGEI_GRADIENT ||
+      flag_grad2hermite || flag_grad2hermiteI)
     { return(true); }
   else
     { return(false); }

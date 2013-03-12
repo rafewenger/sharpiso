@@ -165,6 +165,12 @@ namespace ISODUAL3D {
     /// If true, store isosurface vertex information.
     bool flag_store_isovert_info;
 
+    /// If true, convert gradient to hermite data.
+    bool flag_grad2hermite;
+
+    /// If true, convert gradient to hermite data using linear interpolation.
+    bool flag_grad2hermiteI;
+
   public:
     ISODUAL_PARAM() { Init(); };
     ~ISODUAL_PARAM() { Init(); };

@@ -32,6 +32,7 @@
 #include "isodual3D_decimate.h"
 #include "isodual3D_extract.h"
 #include "isodual3D_position.h"
+#include "sharpiso_intersect.h"
 
 
 using namespace IJK;
@@ -62,9 +63,34 @@ void ISODUAL3D::dual_contouring
   ISO_MERGE_DATA merge_data(dimension, axis_size);
 
   if (isodual_data.IsGradientGridSet() &&
-      isodual_data.VertexPositionMethod() == GRADIENT_POSITIONING
-      || isodual_data.VertexPositionMethod() == EDGEI_INTERPOLATE
-      || isodual_data.VertexPositionMethod() == EDGEI_GRADIENT) {
+      (isodual_data.flag_grad2hermite || isodual_data.flag_grad2hermiteI)) {
+    const GRADIENT_COORD_TYPE max_small_magnitude 
+      = isodual_data.max_small_magnitude;
+
+    std::vector<COORD_TYPE> edgeI_coord;
+    std::vector<GRADIENT_COORD_TYPE> edgeI_normal_coord;
+
+    if (isodual_data.flag_grad2hermiteI) {
+      compute_all_edgeI_linear_interpolate
+        (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
+         isovalue, max_small_magnitude, edgeI_coord, edgeI_normal_coord);
+    }
+    else {
+      compute_all_edgeI
+        (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
+         isovalue, max_small_magnitude, edgeI_coord, edgeI_normal_coord);
+    }
+
+    ISOVERT isovert;
+    dual_contouring_merge_sharp_from_hermite
+      (isodual_data.ScalarGrid(), edgeI_coord, edgeI_normal_coord,
+       isovalue, isodual_data, dual_isosurface, isovert,
+       isodual_info);
+  }
+  else if (isodual_data.IsGradientGridSet() &&
+      (isodual_data.VertexPositionMethod() == GRADIENT_POSITIONING
+       || isodual_data.VertexPositionMethod() == EDGEI_INTERPOLATE
+       || isodual_data.VertexPositionMethod() == EDGEI_GRADIENT)) {
 
     if (isodual_data.flag_merge_sharp) {
       ISOVERT isovert;

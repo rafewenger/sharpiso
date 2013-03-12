@@ -50,6 +50,7 @@ typedef enum {
   SUBSAMPLE_PARAM,
   GRADIENT_PARAM, NORMAL_PARAM, POSITION_PARAM, POS_PARAM, 
   TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
+  GRAD2HERMITE_PARAM, GRAD2HERMITE_INTERPOLATE_PARAM,
   MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, 
   MAX_MAG_PARAM, SNAP_DIST_PARAM, MAX_GRAD_DIST_PARAM,
   SHARP_EDGEI_PARAM, INTERPOLATE_EDGEI_PARAM,
@@ -79,6 +80,7 @@ typedef enum {
 	const char * parameter_string[] =
 	{ "-subsample",
     "-gradient", "-normal", "-position", "-pos", "-trimesh", "-uniform_trimesh",
+    "-grad2hermite", "-grad2hermiteI",
     "-max_eigen", "-max_dist", "-gradS_offset", "-max_mag", "-snap_dist",
     "-max_grad_dist",
     "-sharp_edgeI", "-interpolate_edgeI",
@@ -216,6 +218,17 @@ typedef enum {
     case UNIFORM_TRIMESH_PARAM:
       input_info.flag_convert_quad_to_tri = true;
       input_info.quad_tri_method = UNIFORM_TRI;
+      break;
+
+    case GRAD2HERMITE_PARAM:
+      input_info.flag_grad2hermite = true;
+      input_info.vertex_position_method = EDGEI_GRADIENT;
+      input_info.is_vertex_position_method_set = true;
+      break;
+
+    case GRAD2HERMITE_INTERPOLATE_PARAM:
+      input_info.vertex_position_method = EDGEI_INTERPOLATE;
+      input_info.flag_grad2hermiteI = true;
       break;
 
     case SHARP_EDGEI_PARAM:
@@ -415,7 +428,6 @@ typedef enum {
     case NORMAL_PARAM:
       input_info.normal_filename = value_string;
       input_info.vertex_position_method = EDGEI_INPUT_DATA;
-
       input_info.is_vertex_position_method_set = true;
       break;
 
@@ -1565,6 +1577,7 @@ namespace {
     cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
     cerr << "  [-normal {normal_off_filename}]" << endl;
     cerr << "  [-merge_sharp | -no_merge_sharp] [-merge_linf_th <D>]" << endl;
+    cerr << "  [-grad2hermite | -grad2hermiteI]" << endl;
     cerr << "  [-single_isov | -multi_isov | -split_non_manifold]" << endl;
     cerr << "  [-sep_pos | -sep_neg | -resolve_ambig]" << endl;
     cerr << "  [-max_eigen {max}]" << endl;
@@ -1680,7 +1693,10 @@ void ISODUAL3D::help(const char * command_path)
 	cout << "  -normal {normal_off_filename}: Read edge-isosurface intersections"
        << endl
        << "      and normals from OFF file normal_off_filename." << endl;
-  cout << "  -merge_sharp: Merge vertices near sharp edges/corners." << endl;
+  cout << "  -merge_sharp:   Merge vertices near sharp edges/corners." << endl;
+  cout << "  -grad2hermite:  Convert gradient to hermite data." << endl;
+  cout << "  -grad2hermiteI: Convert gradient to hermite data using linear interpolation." << endl;
+
 	cout << "  -single_isov: Each intersected cube generates a single isosurface vertex." << endl;
 	cout << "  -multi_isov:  An intersected cube may generate multiple isosurface vertices."  << endl;
 	cout << "  -split_non_manifold:  Split vertices to avoid non-manifold edges."
