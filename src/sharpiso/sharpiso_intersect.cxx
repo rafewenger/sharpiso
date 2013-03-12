@@ -26,13 +26,11 @@
 #include "ijkcoord.txx"
 #include "ijkinterpolate.txx"
 
+#include "ijkgrid_macros.h"
+
 namespace {
 
   using namespace SHARPISO;
-
-  void compute_edge_intersection
-  (const SCALAR_TYPE s, const GRADIENT_COORD_TYPE g,
-   const SCALAR_TYPE isovalue, SCALAR_TYPE & t);
 
   bool select_t0
   (const SCALAR_TYPE s0, const SCALAR_TYPE s1,
@@ -40,29 +38,78 @@ namespace {
    const COORD_TYPE t0, const COORD_TYPE t1);
 }
 
-// Compute intersection of edge and plane determined by gradient g, scalar s.
-// Intersection point is v0+t*dir, 0 <= t <= 1.
-// If plane does not intersect edge in a single point, then t < 0 or t > 1.
-void SHARPISO::compute_edge_intersection
-(const SCALAR_TYPE s, const GRADIENT_COORD_TYPE g,
- const SCALAR_TYPE isovalue, SCALAR_TYPE & t)
+// Compute intersections of isosurface and all grid edges.
+void SHARPISO::compute_all_edgeI
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const GRADIENT_COORD_TYPE max_small_magnitude,
+ std::vector<COORD_TYPE> & edgeI_coord,
+ std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord)
 {
-  SCALAR_TYPE sdiff = isovalue - s;
+  IJK_FOR_EACH_GRID_EDGE(iv0, edge_dir, scalar_grid, VERTEX_INDEX) {
 
-  if (sdiff > 0) {
-    if (g > sdiff) { t = sdiff/g; }
-    else if (g == sdiff) { t = 1; }
-    else if (g <= 0) { t = -1; }
-    else { t = 2; }
+    VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, edge_dir);
+    if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
+
+      NUM_TYPE num_coord = edgeI_coord.size();
+      edgeI_coord.resize(num_coord+DIM3);
+      edgeI_normal_coord.resize(num_coord+DIM3);
+
+      compute_isosurface_grid_edge_intersection
+        (scalar_grid, gradient_grid, isovalue,
+         iv0, iv1, edge_dir, max_small_magnitude, 
+         &(edgeI_coord.front())+num_coord,
+         &(edgeI_normal_coord.front())+num_coord);
+    }
   }
-  else if (sdiff < 0) {
-    if (g < sdiff) { t = sdiff/g; }
-    else if (g == sdiff) { t = 1; }
-    else if (g >= 0) { t = -1; }
-    else { t = 2; }
-  }
-  else { t = 0; }
 }
+
+
+// Compute intersections of isosurface and all grid edges 
+//   using linear interpolation.
+// Note: This is NOT the recommended method for computing intersections
+//   of isosurface and grid edges when gradient data is available.
+void SHARPISO::compute_all_edgeI_linear_interpolate
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const GRADIENT_COORD_TYPE max_small_magnitude,
+ std::vector<COORD_TYPE> & edgeI_coord,
+ std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord)
+{
+  COORD_TYPE coord0[DIM3], coord1[DIM3];
+  GRADIENT_COORD_TYPE normal[DIM3];
+
+  IJK_FOR_EACH_GRID_EDGE(iend0, edge_dir, scalar_grid, VERTEX_INDEX) {
+
+    VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0, edge_dir);
+    if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
+
+      NUM_TYPE num_coord = edgeI_coord.size();
+      edgeI_coord.resize(num_coord+DIM3);
+      edgeI_normal_coord.resize(num_coord+DIM3);
+
+      SCALAR_TYPE s0 = scalar_grid.Scalar(iend0);
+      SCALAR_TYPE s1 = scalar_grid.Scalar(iend1);
+
+      scalar_grid.ComputeCoord(iend0, coord0);
+      scalar_grid.ComputeCoord(iend1, coord1);
+
+      IJK::linear_interpolate_coord
+				(DIM3, s0, coord0, s1, coord1, isovalue, 
+         &(edgeI_coord.front())+num_coord);
+
+      IJK::linear_interpolate_coord
+				(DIM3, s0, gradient_grid.VectorPtrConst(iend0), 
+         s1, gradient_grid.VectorPtrConst(iend1), isovalue, normal);
+
+      IJK::normalize_vector(DIM3, normal, max_small_magnitude, 
+                            &(edgeI_normal_coord.front())+num_coord);
+    }
+  }
+}
+
 
 // Compute intersection of isosurface and grid edge.
 void SHARPISO::compute_isosurface_grid_edge_intersection
@@ -205,6 +252,30 @@ void SHARPISO::compute_isosurface_grid_edge_intersection
 
 }
 
+
+// Compute intersection of edge and plane determined by gradient g, scalar s.
+// Intersection point is v0+t*dir, 0 <= t <= 1.
+// If plane does not intersect edge in a single point, then t < 0 or t > 1.
+void SHARPISO::compute_edge_intersection
+(const SCALAR_TYPE s, const GRADIENT_COORD_TYPE g,
+ const SCALAR_TYPE isovalue, SCALAR_TYPE & t)
+{
+  SCALAR_TYPE sdiff = isovalue - s;
+
+  if (sdiff > 0) {
+    if (g > sdiff) { t = sdiff/g; }
+    else if (g == sdiff) { t = 1; }
+    else if (g <= 0) { t = -1; }
+    else { t = 2; }
+  }
+  else if (sdiff < 0) {
+    if (g < sdiff) { t = sdiff/g; }
+    else if (g == sdiff) { t = 1; }
+    else if (g >= 0) { t = -1; }
+    else { t = 2; }
+  }
+  else { t = 0; }
+}
 
 namespace {
 

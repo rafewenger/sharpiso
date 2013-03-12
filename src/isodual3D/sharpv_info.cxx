@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 
     parse_command_line(argc, argv, input_info);
 
-    ISODUAL_SCALAR_GRID full_scalar_grid;
+    SHARPISO_SCALAR_GRID full_scalar_grid;
     NRRD_INFO nrrd_info;
     read_nrrd_file
       (input_info.scalar_filename, full_scalar_grid,  nrrd_info, io_time);
