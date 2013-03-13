@@ -15,6 +15,7 @@
 #include "ijkgrid_macros.h"
 #include "ijkscalar_grid.txx"
 
+#include "isodual3D_types.h"
 #include "isodual3D_isovert.h"
 #include "isodual3D_position.h"
 
@@ -30,25 +31,23 @@ void compute_linf_dist
 		COORD_TYPE isovert_coord[DIM3],SCALAR_TYPE &linf_dist);
 /// Decide if two  cube-indices are connected
 bool are_connected (
-		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,const VERTEX_INDEX &cube_index1,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+    const VERTEX_INDEX &cube_index1,
 		const VERTEX_INDEX &cube_index2, const SCALAR_TYPE isovalue );
+
 bool is_angle_large(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const ISOVERT &isovertData, const VERTEX_INDEX iv,
 		const SCALAR_TYPE threshold, const VERTEX_INDEX v1,
 		const VERTEX_INDEX v2);
 
-/*
- * Traverse the *isovertData.sharp_ind_grid*
- * if index is not ISOVERT::NO_INDEX then compute the sharp vertex for the cube
- * set grid_cube_flag to be avaliable
- */
-void compute_isovert_positions (
-		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID_BASE & gradient_grid,
-		const SCALAR_TYPE isovalue,
-		const SHARP_ISOVERT_PARAM & isovert_param,
-		ISOVERT &isovertData)
+// Compute isosurface vertex positions.
+void compute_isovert_positions 
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ ISOVERT & isovertData)
 {
 	const SIGNED_COORD_TYPE grad_selection_cube_offset =
 			isovert_param.grad_selection_cube_offset;
@@ -60,7 +59,7 @@ void compute_isovert_positions (
 		NUM_TYPE index = isovertData.sharp_ind_grid.Scalar(iv);
     isovertData.gcube_list[index].flag_centroid_location = false;
 
-		if (index!=ISOVERT::NO_INDEX)
+		if (index != ISOVERT::NO_INDEX)
 		{
 			// this is an active cube
 			// compute the sharp vertex for this cube
@@ -69,8 +68,68 @@ void compute_isovert_positions (
 
 			svd_compute_sharp_vertex_for_cube
 			(scalar_grid, gradient_grid, iv, isovalue, isovert_param, cube_111,
+       isovertData.gcube_list[index].isovert_coord,
+       eigenvalues, num_large_eigenvalues, svd_info);
+
+			// set number of eigenvalues.
+			isovertData.gcube_list[index].num_eigenvalues =
+        (unsigned char) num_large_eigenvalues;
+			// set the sharp vertex type to be *AVAILABLE*.
+			if(num_large_eigenvalues > 1 && svd_info.location == LOC_SVD)
+        { isovertData.gcube_list[index].flag = AVAILABLE_GCUBE; }
+			else 
+        { isovertData.gcube_list[index].flag = SMOOTH_GCUBE; }
+
+			// store distance.
+			compute_linf_dist( scalar_grid, iv,
 					isovertData.gcube_list[index].isovert_coord,
-					eigenvalues, num_large_eigenvalues, svd_info);
+					isovertData.gcube_list[index].linf_dist);
+			// store boundary bits
+			scalar_grid.ComputeBoundaryCubeBits
+			(iv,isovertData.gcube_list[index].boundary_bits);
+		}
+	}
+}
+
+// Compute isosurface vertex positions using isosurface-edge intersections.
+void compute_isovert_positions_edgeI
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ const VERTEX_POSITION_METHOD vertex_position_method,
+ ISOVERT & isovertData)
+{
+	const SIGNED_COORD_TYPE grad_selection_cube_offset =
+			isovert_param.grad_selection_cube_offset;
+	OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+
+	SVD_INFO svd_info;
+	IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX)
+	{
+		NUM_TYPE index = isovertData.sharp_ind_grid.Scalar(iv);
+    isovertData.gcube_list[index].flag_centroid_location = false;
+
+		if (index != ISOVERT::NO_INDEX)
+		{
+			// this is an active cube
+			// compute the sharp vertex for this cube
+			EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
+			VERTEX_INDEX num_large_eigenvalues;
+
+      if (vertex_position_method == EDGEI_GRADIENT) {
+        svd_compute_sharp_vertex_edgeI_sharp_gradient
+          (scalar_grid, gradient_grid, iv, isovalue, isovert_param,
+           isovertData.gcube_list[index].isovert_coord,
+           eigenvalues, num_large_eigenvalues, svd_info);
+
+      }
+      else {
+        svd_compute_sharp_vertex_edgeI_interpolate_gradients
+          (scalar_grid, gradient_grid, iv, isovalue, isovert_param,
+           isovertData.gcube_list[index].isovert_coord,
+           eigenvalues, num_large_eigenvalues, svd_info);
+      }
 
 			// set number of eigenvalues.
 			isovertData.gcube_list[index].num_eigenvalues =
@@ -750,12 +809,13 @@ bool are_connected (
 	return false;
 }
 
-void ISODUAL3D::compute_dual_isovert(
-		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID_BASE & gradient_grid,
-		const SCALAR_TYPE isovalue,
-		const SHARP_ISOVERT_PARAM & isovert_param,
-		ISOVERT & isovertData)
+void ISODUAL3D::compute_dual_isovert
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ const VERTEX_POSITION_METHOD vertex_position_method,
+ ISOVERT & isovertData)
 {
 	IJK::PROCEDURE_ERROR error("compute_dual_isovert");
 
@@ -765,8 +825,15 @@ void ISODUAL3D::compute_dual_isovert(
 
 	create_active_cubes(scalar_grid, isovalue, isovertData);
 
-	compute_isovert_positions 
-    (scalar_grid, gradient_grid, isovalue, isovert_param, isovertData);
+  if (vertex_position_method == GRADIENT_POSITIONING) {
+    compute_isovert_positions 
+      (scalar_grid, gradient_grid, isovalue, isovert_param, isovertData);
+  }
+  else {
+    compute_isovert_positions_edgeI
+      (scalar_grid, gradient_grid, isovalue, isovert_param, 
+       vertex_position_method, isovertData);
+  }
 }
 
 void ISODUAL3D::select_sharp_isovert(
@@ -819,6 +886,23 @@ void compute_linf_dist(
 	}
 	linf_dist = max_dist;
 };
+
+// Get list of grid cubes from isovert.
+void ISODUAL3D::get_cube_list
+(const ISOVERT & isovert, std::vector<VERTEX_INDEX> & cube_list)
+{
+  const NUM_TYPE num_gcube = isovert.gcube_list.size();
+
+  cube_list.resize(num_gcube);
+  for (NUM_TYPE i = 0; i < num_gcube; i++) {
+    cube_list[i] = isovert.gcube_list[i].cube_index;
+  }
+}
+
+
+// **************************************************
+// ISOVERT member functions
+// **************************************************
 
 bool ISOVERT::isFlag(const int cube_index,  GRID_CUBE_FLAG _flag){
 	if (isActive(cube_index)){

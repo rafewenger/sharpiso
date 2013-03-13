@@ -118,8 +118,8 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 
 	get_gradients
 	(scalar_grid, gradient_grid, cube_index, isovalue,
-			sharpiso_param, cube_111, sharpiso_param.flag_sort_gradients,
-			point_coord, gradient_coord, scalar, num_gradients);
+   sharpiso_param, cube_111, sharpiso_param.flag_sort_gradients,
+   point_coord, gradient_coord, scalar, num_gradients);
 
 	svd_info.location = LOC_SVD;
 	svd_info.flag_conflict = false;

@@ -20,6 +20,7 @@ my $outfile0 = "temp0.off";
 my $min_diff_flag = 0;
 my $min_diff = 0.0;
 my $flag_info = 0;
+my $flag_sort = 0;
 
 my %data_flag;
 my $use_all_data = 0;
@@ -84,6 +85,11 @@ while (scalar(@proglist) > 0 &&
     $alloptions = 1;
     next;
   }
+
+  if ($new_option eq "-sort") { 
+    $flag_sort = 1; 
+    next;
+  };
 
   if ($new_option eq "-min_diff") {
     $min_diff_flag = 1;
@@ -375,8 +381,10 @@ sub compare_executables {
 
       $isoval = $isoval + $isoval_offset;
       run_isodual3D($prog0, $tfile, "$outfile0", \@option_listB0, $isoval);
+      if ($flag_sort) { system("ijkmesh sort $outfile0"); }
       foreach my $isodual (@proglist) {
         run_isodual3D($isodual, $tfile, "$outfile", \@option_listB, $isoval);
+        if ($flag_sort) { system("ijkmesh sort $outfile"); }
         diff_files("$outfile0", "$outfile");
       }
     }

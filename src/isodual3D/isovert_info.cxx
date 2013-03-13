@@ -238,6 +238,8 @@ void print_isovert_info
   const bool allow_multiple_iso_vertices =
     isodual_data.allow_multiple_iso_vertices;
   const bool flag_check_disk = isodual_data.flag_check_disk;
+  const VERTEX_POSITION_METHOD vertex_position_method
+    = isodual_data.vertex_position_method;
   const int dist2cube = 1;
   std::vector<VERTEX_INDEX> gcube_map;
   GRID_COORD_TYPE cube_coord[DIM3];
@@ -249,7 +251,6 @@ void print_isovert_info
   std::vector<ISO_VERTEX_INDEX> tri_vert2;
   std::vector<ISO_VERTEX_INDEX> quad_vert2;
   SHARPISO_EDGE_INDEX_GRID edge_index(DIM3, axis_size, DIM3);
-
 
   edge_index.SetAllCoord(ISOVERT::NO_INDEX);
   if (isodual_data.AreEdgeISet()) 
@@ -279,13 +280,13 @@ void print_isovert_info
     init_bin_grid(isodual_data.ScalarGrid(), bin_width, bin_grid);
 
     if (isodual_data.IsGradientGridSet() &&
-        isodual_data.VertexPositionMethod() == GRADIENT_POSITIONING
-        || isodual_data.VertexPositionMethod() == EDGEI_INTERPOLATE
-        || isodual_data.VertexPositionMethod() == EDGEI_GRADIENT) {
+        vertex_position_method == GRADIENT_POSITIONING
+        || vertex_position_method == EDGEI_INTERPOLATE
+        || vertex_position_method == EDGEI_GRADIENT) {
 
       compute_dual_isovert
         (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
-         isovalue, isodual_data, isovert);
+         isovalue, isodual_data, vertex_position_method, isovert);
 
       select_sharp_isovert
         (isodual_data.ScalarGrid(), isovalue, isodual_data, isovert);
@@ -667,10 +668,26 @@ void compute_eigenvalues
 
   if (isodual_data.IsGradientGridSet()) {
 
-    svd_compute_sharp_vertex_for_cube
-      (isodual_data.ScalarGrid(), isodual_data.GradientGrid(), cube_index, 
-       isovalue, isodual_data, cube_111, isovert_coord,
-       eigenvalues, num_large_eigenvalues, svd_info);
+    if (isodual_data.vertex_position_method == GRADIENT_POSITIONING) {
+
+      svd_compute_sharp_vertex_for_cube
+        (isodual_data.ScalarGrid(), isodual_data.GradientGrid(), cube_index, 
+         isovalue, isodual_data, cube_111, isovert_coord,
+         eigenvalues, num_large_eigenvalues, svd_info);
+    }
+    else if (isodual_data.vertex_position_method == EDGEI_GRADIENT) {
+      svd_compute_sharp_vertex_edgeI_sharp_gradient
+        (isodual_data.ScalarGrid(), isodual_data.GradientGrid(), cube_index, 
+         isovalue, isodual_data, isovert_coord,
+         eigenvalues, num_large_eigenvalues, svd_info);
+    }
+    else {
+      svd_compute_sharp_vertex_edgeI_interpolate_gradients
+        (isodual_data.ScalarGrid(), isodual_data.GradientGrid(), cube_index, 
+         isovalue, isodual_data, isovert_coord,
+         eigenvalues, num_large_eigenvalues, svd_info);
+    }
+
   }
   else if (isodual_data.AreEdgeISet()) {
     svd_compute_sharp_vertex_for_cube

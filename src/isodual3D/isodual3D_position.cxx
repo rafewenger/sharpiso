@@ -402,9 +402,9 @@ void ISODUAL3D::position_dual_isovertices_using_gradients
 // Position using isovert information
 // **************************************************
 
-// Position dual isosurface vertices using isovert information.
+// Position merged dual isosurface vertices using isovert information.
 // Allows multiple vertices in a grid cube.
-void ISODUAL3D::position_dual_isovertices_multi
+void ISODUAL3D::position_merged_dual_isovertices_multi
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
  const SCALAR_TYPE isovalue,
@@ -425,7 +425,6 @@ void ISODUAL3D::position_dual_isovertices_multi
     if (isovert.gcube_list[gcube_index].flag != SELECTED_GCUBE) {
 
       it = iso_vlist[i].table_index;
-
 
       if (isodual_table.NumIsoVertices(it) == 1) {
         if (isovert.gcube_list[gcube_index].flag == SMOOTH_GCUBE) {
@@ -449,6 +448,61 @@ void ISODUAL3D::position_dual_isovertices_multi
     else {
       IJK::copy_coord_3D(isovert.gcube_list[gcube_index].isovert_coord,
                          isov_coord+i*DIM3);
+    }
+  }
+
+}
+
+// Position merged dual isosurface vertices using isovert information.
+// Allows multiple vertices in a grid cube.
+void ISODUAL3D::position_merged_dual_isovertices_multi
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+ const SCALAR_TYPE isovalue,
+ const ISOVERT & isovert,
+ const std::vector<DUAL_ISOVERT> & iso_vlist,
+ std::vector<COORD_TYPE> & isov_coord)
+{
+  const int dimension = scalar_grid.Dimension();
+
+  isov_coord.resize(iso_vlist.size()*dimension);
+  position_merged_dual_isovertices_multi
+    (scalar_grid, isodual_table, isovalue, isovert,
+     iso_vlist, &(isov_coord.front()));
+}
+
+// Position dual isosurface vertices using isovert information.
+// Allows multiple vertices in a grid cube.
+void ISODUAL3D::position_dual_isovertices_multi
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+ const SCALAR_TYPE isovalue,
+ const ISOVERT & isovert,
+ const std::vector<DUAL_ISOVERT> & iso_vlist,
+ COORD_TYPE * isov_coord)
+{
+  const int dimension = scalar_grid.Dimension();
+  const int num_cube_vertices = scalar_grid.NumCubeVertices();
+  ISODUAL3D_CUBE_FACE_INFO cube(dimension);
+  IJKDUALTABLE::TABLE_INDEX it;
+
+  for (VERTEX_INDEX i = 0; i < iso_vlist.size(); i++) {
+
+    VERTEX_INDEX cube_index = iso_vlist[i].cube_index;
+    VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(cube_index);
+
+    it = iso_vlist[i].table_index;
+
+    if (isodual_table.NumIsoVertices(it) == 1) {
+      IJK::copy_coord_3D(isovert.gcube_list[gcube_index].isovert_coord,
+                         isov_coord+i*DIM3);
+    }
+    else {
+      FACET_VERTEX_INDEX ipatch= iso_vlist[i].patch_index;
+
+      compute_isosurface_grid_edge_centroid
+        (scalar_grid, isodual_table, isovalue, cube_index, ipatch,
+         it, cube, isov_coord+i*DIM3);
     }
   }
 
@@ -916,6 +970,91 @@ void ISODUAL3D::split_dual_isovert_ambig
     isoquad_vert[i] = first_cube_isov[k] + 
       isodual_table.IncidentIsoVertex(it, opposite_vertex);
 
+  }
+
+}
+
+// Split dual isosurface vertices.
+// @param isodual_table Dual isosurface lookup table.
+// Version using vector<DUAL_ISOVERT>.
+void ISODUAL3D::split_dual_isovert_ambig
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+ const SCALAR_TYPE isovalue,
+ const std::vector<ISO_VERTEX_INDEX> & cube_list,
+ const std::vector<AMBIGUITY_TYPE> & cube_ambig,
+ const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
+ const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
+ std::vector<DUAL_ISOVERT> & iso_vlist,
+ std::vector<VERTEX_INDEX> & isoquad_vert,
+ VERTEX_INDEX & num_split)
+{
+  const int dimension = scalar_grid.Dimension();
+  const NUM_TYPE num_cube_vertices = scalar_grid.NumCubeVertices();
+  const NUM_TYPE num_facet_vertices = scalar_grid.NumFacetVertices();
+  std::vector<FACET_VERTEX_INDEX> num_isov;
+  std::vector<ISO_VERTEX_INDEX> first_cube_isov;
+  std::vector<IJKDUALTABLE::TABLE_INDEX> cube_table_index;
+  num_isov.resize(cube_list.size());
+  first_cube_isov.resize(cube_list.size());
+  IJK::CUBE_FACE_INFO<int,NUM_TYPE,NUM_TYPE> cube(dimension);
+  IJK::PROCEDURE_ERROR error("split_dual_isovert_ambig");
+
+  if (cube_list.size() != cube_ambig.size()) {
+    error.AddMessage("Programming error. Mismatch between cube_list and cube_ambig sizes.");
+    error.AddMessage("  cube_list.size() = ", cube_list.size(), ".");
+    error.AddMessage("  cube_ambig.size() = ", cube_ambig.size(), ".");
+    throw error;
+  }
+
+  num_split = 0;
+
+  cube_table_index.resize(cube_list.size());
+  ISO_VERTEX_INDEX total_num_isov = 0;
+  for (ISO_VERTEX_INDEX i = 0; i < cube_list.size(); i++) {
+    IJKDUALTABLE::TABLE_INDEX it;
+    IJK::compute_isotable_index
+      (scalar_grid.ScalarPtrConst(), isovalue, cube_list[i],
+       scalar_grid.CubeVertexIncrement(), num_cube_vertices, it);
+
+    if (cube_ambig[i] == SEPARATE_POS) 
+      // Complement table entry.
+      { it = isodual_table.NumTableEntries() - it - 1; }
+    cube_table_index[i] = it;
+    num_isov[i] = isodual_table.NumIsoVertices(it);
+    total_num_isov += num_isov[i];
+
+    if (num_isov[i] > 1) { num_split++; }
+  }
+
+  iso_vlist.resize(total_num_isov);
+
+  ISO_VERTEX_INDEX k = 0;
+  for (ISO_VERTEX_INDEX i = 0; i < cube_list.size(); i++) {
+    first_cube_isov[i] = k;
+    for (FACET_VERTEX_INDEX j = 0; j < num_isov[i]; j++) {
+      iso_vlist[k+j].cube_index = cube_list[i];
+      iso_vlist[k+j].patch_index = j;
+      iso_vlist[k+j].table_index = cube_table_index[i];
+    }
+    k = k+num_isov[i];
+  }
+
+  isoquad_vert.resize(isoquad_cube.size());
+
+  for (ISO_VERTEX_INDEX i = 0; i < isoquad_cube.size(); i++) {
+    ISO_VERTEX_INDEX k = isoquad_cube[i];
+    IJKDUALTABLE::TABLE_INDEX it = cube_table_index[k];
+
+    // Compute index of facet vertex opposite to facet_vertex[i]
+    int facet_vertex_i = facet_vertex[i];
+    int ifacet = cube.FacetIndex(facet_vertex_i);
+    int j = facet_vertex_i - ifacet*num_facet_vertices;
+    int opposite_vertex = (num_facet_vertices-1) - j;
+    opposite_vertex += (ifacet*num_facet_vertices);
+
+    isoquad_vert[i] = first_cube_isov[k] + 
+      isodual_table.IncidentIsoVertex(it, opposite_vertex);
   }
 
 }

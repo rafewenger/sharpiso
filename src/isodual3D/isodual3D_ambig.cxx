@@ -4,7 +4,7 @@
 
 /*
 IJK: Isosurface Jeneration Kode
-Copyright (C) 2012 Rephael Wenger
+Copyright (C) 2012-2013 Rephael Wenger
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -286,6 +286,8 @@ void ISODUAL3D::set_cube_ambiguity
  const std::vector<AMBIGUITY_TYPE> & facet_ambig_status,
  std::vector<AMBIGUITY_TYPE> & cube_ambig)
 {
+  cube_ambig.resize(cube_list.size());
+
   for (int i = 0; i < cube_list.size(); i++) {
     bool flag_pos = 
       cube_has_facet_with_ambig_status
