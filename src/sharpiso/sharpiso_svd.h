@@ -88,6 +88,17 @@ void svd_calculate_sharpiso_vertex_using_lindstrom
 		COORD_TYPE * cubecenter,
 		COORD_TYPE * isoVertcoords);
 
+// Calculate the sharp iso vertex using SVD and lindstrom approach.
+// Input is isosurface-edge intersections.
+void svd_calculate_sharpiso_vertex_using_lindstrom(
+		const bool useLindstrom2,
+		const COORD_TYPE * edgeI_coords, 
+    const GRADIENT_COORD_TYPE * edgeI_normal_coord,
+		const NUM_TYPE num_intersections,
+		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
+		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
+		COORD_TYPE * cubecenter, COORD_TYPE * isoVertcoords);
+
 void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		const NUM_TYPE num_vert,
 		const EIGENVALUE_TYPE err_tolerance,

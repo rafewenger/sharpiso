@@ -38,6 +38,10 @@ namespace {
    const COORD_TYPE t0, const COORD_TYPE t1);
 }
 
+// *****************************************************************
+// INTERSECT ISOSURFACE AND GRID EDGES.
+// *****************************************************************
+
 // Compute intersections of isosurface and all grid edges.
 void SHARPISO::compute_all_edgeI
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -66,46 +70,37 @@ void SHARPISO::compute_all_edgeI
 }
 
 
-// Compute intersections of isosurface and all grid edges 
-//   using linear interpolation.
-// Note: This is NOT the recommended method for computing intersections
-//   of isosurface and grid edges when gradient data is available.
-void SHARPISO::compute_all_edgeI_linear_interpolate
+// Compute intersections of isosurface and cube edges.
+void SHARPISO::compute_cube_edgeI
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const GRADIENT_COORD_TYPE max_small_magnitude,
  std::vector<COORD_TYPE> & edgeI_coord,
  std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord)
 {
-  COORD_TYPE coord0[DIM3], coord1[DIM3];
-  GRADIENT_COORD_TYPE normal[DIM3];
+  edgeI_coord.clear();
+  edgeI_normal_coord.clear();
 
-  IJK_FOR_EACH_GRID_EDGE(iend0, edge_dir, scalar_grid, VERTEX_INDEX) {
+  for (NUM_TYPE edge_dir = 0; edge_dir < DIM3; edge_dir++) {
+    for (NUM_TYPE k = 0; k < NUM_CUBE_FACET_VERTICES3D; k++) {
+      VERTEX_INDEX iend0 = 
+        scalar_grid.FacetVertex(cube_index, edge_dir, k);
+      VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0, edge_dir);
 
-    VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0, edge_dir);
-    if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
+      if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
 
-      NUM_TYPE num_coord = edgeI_coord.size();
-      edgeI_coord.resize(num_coord+DIM3);
-      edgeI_normal_coord.resize(num_coord+DIM3);
+        NUM_TYPE num_coord = edgeI_coord.size();
+        edgeI_coord.resize(num_coord+DIM3);
+        edgeI_normal_coord.resize(num_coord+DIM3);
 
-      SCALAR_TYPE s0 = scalar_grid.Scalar(iend0);
-      SCALAR_TYPE s1 = scalar_grid.Scalar(iend1);
-
-      scalar_grid.ComputeCoord(iend0, coord0);
-      scalar_grid.ComputeCoord(iend1, coord1);
-
-      IJK::linear_interpolate_coord
-				(DIM3, s0, coord0, s1, coord1, isovalue, 
-         &(edgeI_coord.front())+num_coord);
-
-      IJK::linear_interpolate_coord
-				(DIM3, s0, gradient_grid.VectorPtrConst(iend0), 
-         s1, gradient_grid.VectorPtrConst(iend1), isovalue, normal);
-
-      IJK::normalize_vector(DIM3, normal, max_small_magnitude, 
-                            &(edgeI_normal_coord.front())+num_coord);
+        compute_isosurface_grid_edge_intersection
+          (scalar_grid, gradient_grid, isovalue,
+           iend0, iend1, edge_dir, max_small_magnitude, 
+           &(edgeI_coord.front())+num_coord,
+           &(edgeI_normal_coord.front())+num_coord);
+      }
     }
   }
 }
@@ -252,7 +247,6 @@ void SHARPISO::compute_isosurface_grid_edge_intersection
 
 }
 
-
 // Compute intersection of edge and plane determined by gradient g, scalar s.
 // Intersection point is v0+t*dir, 0 <= t <= 1.
 // If plane does not intersect edge in a single point, then t < 0 or t > 1.
@@ -276,6 +270,115 @@ void SHARPISO::compute_edge_intersection
   }
   else { t = 0; }
 }
+
+
+// *****************************************************************
+// INTERSECT ISOSURFACE AND GRID EDGES USING LINEAR INTERPOLATION
+// *****************************************************************
+
+// Compute intersections of isosurface and all grid edges 
+//   using linear interpolation.
+// Note: This is NOT the recommended method for computing intersections
+//   of isosurface and grid edges when gradient data is available.
+void SHARPISO::compute_all_edgeI_linear_interpolate
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const GRADIENT_COORD_TYPE max_small_magnitude,
+ std::vector<COORD_TYPE> & edgeI_coord,
+ std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord)
+{
+  IJK_FOR_EACH_GRID_EDGE(iend0, edge_dir, scalar_grid, VERTEX_INDEX) {
+
+    VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0, edge_dir);
+    if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
+
+      NUM_TYPE num_coord = edgeI_coord.size();
+      edgeI_coord.resize(num_coord+DIM3);
+      edgeI_normal_coord.resize(num_coord+DIM3);
+
+      compute_edgeI_linear_interpolate
+        (scalar_grid, gradient_grid, isovalue,
+         iend0, iend1, edge_dir, max_small_magnitude, 
+         &(edgeI_coord.front())+num_coord,
+         &(edgeI_normal_coord.front())+num_coord);
+    }
+  }
+}
+
+// Compute intersections of isosurface and cube edges
+//   using linear interpolation.
+// Note: This is NOT the recommended method for computing intersections
+//   of isosurface and grid edges when gradient data is available.
+void SHARPISO::compute_cube_edgeI_linear_interpolate
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const SCALAR_TYPE isovalue,
+ const GRADIENT_COORD_TYPE max_small_magnitude,
+ std::vector<COORD_TYPE> & edgeI_coord,
+ std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord)
+{
+  edgeI_coord.clear();
+  edgeI_normal_coord.clear();
+
+  for (NUM_TYPE edge_dir = 0; edge_dir < DIM3; edge_dir++) {
+    for (NUM_TYPE k = 0; k < NUM_CUBE_FACET_VERTICES3D; k++) {
+      VERTEX_INDEX iend0 = 
+        scalar_grid.FacetVertex(cube_index, edge_dir, k);
+      VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0, edge_dir);
+
+      if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
+
+        NUM_TYPE num_coord = edgeI_coord.size();
+        edgeI_coord.resize(num_coord+DIM3);
+        edgeI_normal_coord.resize(num_coord+DIM3);
+
+        compute_edgeI_linear_interpolate
+          (scalar_grid, gradient_grid, isovalue,
+           iend0, iend1, edge_dir, max_small_magnitude, 
+           &(edgeI_coord.front())+num_coord,
+           &(edgeI_normal_coord.front())+num_coord);
+      }
+    }
+  }
+}
+
+// Compute intersection of isosurface and grid edge
+//   using linear interpolation.
+// Note: This is NOT the recommended method for computing intersections
+//   of isosurface and grid edges when gradient data is available.
+void SHARPISO::compute_edgeI_linear_interpolate
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
+ const GRADIENT_COORD_TYPE max_small_magnitude,
+ COORD_TYPE p[DIM3],
+ GRADIENT_COORD_TYPE normal[DIM3])
+{
+  COORD_TYPE coord0[DIM3], coord1[DIM3];
+
+  SCALAR_TYPE s0 = scalar_grid.Scalar(iv0);
+  SCALAR_TYPE s1 = scalar_grid.Scalar(iv1);
+
+  scalar_grid.ComputeCoord(iv0, coord0);
+  scalar_grid.ComputeCoord(iv1, coord1);
+
+  IJK::linear_interpolate_coord
+    (DIM3, s0, coord0, s1, coord1, isovalue, p);
+
+  IJK::linear_interpolate_coord
+    (DIM3, s0, gradient_grid.VectorPtrConst(iv0), 
+     s1, gradient_grid.VectorPtrConst(iv1), isovalue, normal);
+
+  IJK::normalize_vector(DIM3, normal, max_small_magnitude, normal);
+}
+
+
+// *****************************************************************
+// LOCAL ROUTINES
+// *****************************************************************
 
 namespace {
 
@@ -311,3 +414,6 @@ namespace {
   }
 
 }
+
+
+

@@ -278,7 +278,7 @@ namespace SHARPISO {
    COORD_TYPE point[DIM3]);
 
   /// Clamp to unit cube (0,0,0) to (1,1,1).
-	void  clamp_point(const float offset, COORD_TYPE point[DIM3]);
+  void  clamp_point(const float offset, COORD_TYPE point[DIM3]);
 
   /// Postprocess isosurface vertex coordinates.
   /// Depending on flags in sharpiso_param, move far points,
@@ -407,7 +407,7 @@ namespace SHARPISO {
      const COORD_TYPE intersect[DIM3]);
 
     SVD_INFO() { Init(); };
-	};
+  };
   
   
 };

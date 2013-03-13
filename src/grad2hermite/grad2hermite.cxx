@@ -231,7 +231,7 @@ void parse_command_line(int argc, char **argv)
 
 void usage_msg()
 {
-  cerr << "Usage: grad2hermite {isovalue} {scalar nrrd file} [gradient nrrd file] [normals off filename]"
+  cerr << "Usage: grad2hermite [-interpolate] {isovalue} {scalar nrrd file} [gradient nrrd file] [normals off filename]"
        << endl;
 }
 

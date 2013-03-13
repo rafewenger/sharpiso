@@ -66,6 +66,7 @@ typedef enum {
 	USE_LINDSTROM_PARAM,
 	USE_LINDSTROM2_PARAM,
 	USE_LINDSTROM_FAST,
+  NO_LINDSTROM_PARAM,
 	SINGLE_ISOV_PARAM, MULTI_ISOV_PARAM,
   SPLIT_NON_MANIFOLD_PARAM,
 	SEP_NEG_PARAM, SEP_POS_PARAM, RESOLVE_AMBIG_PARAM,
@@ -91,7 +92,7 @@ typedef enum {
     "-check_triangle_angle", "-no_check_triangle_angle",
     "-dist2center", "-dist2centroid",
     "-Linf", "-no_Linf",
-    "-lindstrom",	"-lindstrom2","-lindstrom_fast",
+    "-lindstrom",	"-lindstrom2","-lindstrom_fast", "-no_lindstrom",
     "-single_isov", "-multi_isov", "-split_non_manifold",
     "-sep_neg", "-sep_pos", "-resolve_ambig", 
     "-check_disk", "-no_check_disk",
@@ -261,6 +262,12 @@ typedef enum {
     case USE_LINDSTROM_FAST:
       input_info.use_lindstrom = true;
       input_info.use_lindstrom_fast = true;
+      break;
+
+    case NO_LINDSTROM_PARAM:
+      input_info.use_lindstrom = false;
+      input_info.use_lindstrom2 = false;
+      input_info.use_lindstrom_fast = false;
       break;
 
     case SINGLE_ISOV_PARAM:
