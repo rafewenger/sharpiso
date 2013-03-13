@@ -395,17 +395,11 @@ namespace ISODUAL3D {
   };
 
   /// Sharpiso information.
-  class SHARPISO_INFO {
+  class SHARPISO_INFO:public ISOVERT_INFO {
 
   public:
-    int num_conflicts;
     int num_edge_collapses;
-    int num_merged_iso_vertices;
-    int num_sharp_corners;
-    int num_sharp_edges;
-    int num_smooth_vertices;
     int num_repositioned_vertices;
-    int num_Linf_iso_vertex_locations;
 
     // Ambiguity information.
     int num_cube_not_ambiguous;

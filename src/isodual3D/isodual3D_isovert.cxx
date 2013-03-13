@@ -47,7 +47,8 @@ void compute_isovert_positions
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
  const SHARP_ISOVERT_PARAM & isovert_param,
- ISOVERT & isovertData)
+ ISOVERT & isovertData,
+ ISOVERT_INFO & isovert_info)
 {
 	const SIGNED_COORD_TYPE grad_selection_cube_offset =
 			isovert_param.grad_selection_cube_offset;
@@ -70,6 +71,11 @@ void compute_isovert_positions
 			(scalar_grid, gradient_grid, iv, isovalue, isovert_param, cube_111,
        isovertData.gcube_list[index].isovert_coord,
        eigenvalues, num_large_eigenvalues, svd_info);
+
+      if (svd_info.flag_conflict) 
+        { isovert_info.num_conflicts++; }
+      else if (svd_info.flag_Linf_iso_vertex_location)
+        { isovert_info.num_Linf_iso_vertex_locations++; }
 
 			// set number of eigenvalues.
 			isovertData.gcube_list[index].num_eigenvalues =
@@ -98,7 +104,8 @@ void compute_isovert_positions_edgeI
  const SCALAR_TYPE isovalue,
  const SHARP_ISOVERT_PARAM & isovert_param,
  const VERTEX_POSITION_METHOD vertex_position_method,
- ISOVERT & isovertData)
+ ISOVERT & isovertData,
+ ISOVERT_INFO & isovert_info)
 {
 	const SIGNED_COORD_TYPE grad_selection_cube_offset =
 			isovert_param.grad_selection_cube_offset;
@@ -130,6 +137,11 @@ void compute_isovert_positions_edgeI
            isovertData.gcube_list[index].isovert_coord,
            eigenvalues, num_large_eigenvalues, svd_info);
       }
+
+      if (svd_info.flag_conflict) 
+        { isovert_info.num_conflicts++; }
+      else if (svd_info.flag_Linf_iso_vertex_location)
+        { isovert_info.num_Linf_iso_vertex_locations++; }
 
 			// set number of eigenvalues.
 			isovertData.gcube_list[index].num_eigenvalues =
@@ -815,7 +827,8 @@ void ISODUAL3D::compute_dual_isovert
  const SCALAR_TYPE isovalue,
  const SHARP_ISOVERT_PARAM & isovert_param,
  const VERTEX_POSITION_METHOD vertex_position_method,
- ISOVERT & isovertData)
+ ISOVERT & isovertData,
+ ISOVERT_INFO & isovert_info)
 {
 	IJK::PROCEDURE_ERROR error("compute_dual_isovert");
 
@@ -827,12 +840,13 @@ void ISODUAL3D::compute_dual_isovert
 
   if (vertex_position_method == GRADIENT_POSITIONING) {
     compute_isovert_positions 
-      (scalar_grid, gradient_grid, isovalue, isovert_param, isovertData);
+      (scalar_grid, gradient_grid, isovalue, isovert_param, 
+       isovertData, isovert_info);
   }
   else {
     compute_isovert_positions_edgeI
       (scalar_grid, gradient_grid, isovalue, isovert_param, 
-       vertex_position_method, isovertData);
+       vertex_position_method, isovertData, isovert_info);
   }
 }
 
@@ -887,6 +901,15 @@ void compute_linf_dist(
 	linf_dist = max_dist;
 };
 
+// Select all grid cubes which are not smooth.
+void ISODUAL3D::select_non_smooth(ISOVERT & isovert)
+{
+  for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
+    if (isovert.gcube_list[i].flag != SMOOTH_GCUBE) 
+      { isovert.gcube_list[i].flag = SELECTED_GCUBE; };
+  }
+}
+
 // Get list of grid cubes from isovert.
 void ISODUAL3D::get_cube_list
 (const ISOVERT & isovert, std::vector<VERTEX_INDEX> & cube_list)
@@ -920,6 +943,20 @@ bool ISOVERT::isActive(const int cube_index){
 		return true;
 	else
 		return false;
+}
+
+// **************************************************
+// ISOVERT_INFO member functions
+// **************************************************
+
+void ISOVERT_INFO::Clear()
+{
+  num_sharp_corners = 0;
+  num_sharp_edges = 0;
+  num_smooth_vertices = 0;
+  num_merged_iso_vertices = 0;
+  num_conflicts = 0;
+  num_Linf_iso_vertex_locations = 0;
 }
 
 // **************************************************

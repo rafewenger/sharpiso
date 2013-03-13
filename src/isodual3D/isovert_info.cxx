@@ -275,6 +275,7 @@ void print_isovert_info
     ISOVERT isovert;
     DUAL_ISOSURFACE dual_isosurface;
     ISODUAL_INFO isodual_info;
+    ISOVERT_INFO isovert_info;
 
     BIN_GRID<VERTEX_INDEX> bin_grid;
     init_bin_grid(isodual_data.ScalarGrid(), bin_width, bin_grid);
@@ -286,7 +287,8 @@ void print_isovert_info
 
       compute_dual_isovert
         (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
-         isovalue, isodual_data, vertex_position_method, isovert);
+         isovalue, isodual_data, vertex_position_method, 
+         isovert, isovert_info);
 
       select_sharp_isovert
         (isodual_data.ScalarGrid(), isovalue, isodual_data, isovert);

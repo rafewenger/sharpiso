@@ -82,7 +82,19 @@ public:
 	int num_sharp_corners;
 	int num_sharp_edges;
 	int num_smooth_vertices;
-	int num_vertex_collapses;
+  int num_merged_iso_vertices;
+  int num_conflicts;
+  int num_Linf_iso_vertex_locations;
+
+  void Clear();                          ///< Clear all values.
+
+  /// Constructor.
+  ISOVERT_INFO()
+  { Clear(); };
+
+  /// Set.
+  void Set(const ISOVERT_INFO & info)
+  { *this = info; }
 };
 
 
@@ -97,7 +109,8 @@ void compute_dual_isovert
    const SCALAR_TYPE isovalue,
    const SHARP_ISOVERT_PARAM & isovert_param,
    const VERTEX_POSITION_METHOD vertex_position_method,
-   ISOVERT & isovert);
+   ISOVERT & isovert,
+   ISOVERT_INFO & isovert_info);
 
 /// Compute dual isosurface vertices.
 void compute_dual_isovert
@@ -142,6 +155,9 @@ void set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
 /// Count number of smooth vertices.
 void count_vertices
 (const ISOVERT & isovert, ISOVERT_INFO & isovert_info);
+
+/// Select all grid cubes which are not smooth.
+void select_non_smooth(ISOVERT & isovert);
 
 /// Get list of grid cubes from isovert.
 void get_cube_list

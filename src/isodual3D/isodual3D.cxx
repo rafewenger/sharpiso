@@ -330,7 +330,7 @@ void ISODUAL3D::dual_contouring_sharp_from_grad
  ISODUAL_INFO & isodual_info)
 {
   ISOVERT_INFO isovert_info;
-  PROCEDURE_ERROR error("dual_contouring");
+  PROCEDURE_ERROR error("dual_contouring_sharp_from_grid");
 
   if (!gradient_grid.Check
       (scalar_grid, "gradient grid", "scalar grid", error))
@@ -345,7 +345,9 @@ void ISODUAL3D::dual_contouring_sharp_from_grad
     
   compute_dual_isovert
     (scalar_grid, gradient_grid, isovalue, isodual_param, 
-     isodual_param.vertex_position_method, isovert);
+     isodual_param.vertex_position_method, isovert, isovert_info);
+
+  select_non_smooth(isovert);
 
   t1 = clock();
 
@@ -378,6 +380,10 @@ void ISODUAL3D::dual_contouring_sharp_from_grad
   }
 
   t2 = clock();
+
+  // Set isodual_info
+  count_vertices(isovert, isovert_info);
+  isodual_info.sharpiso.Set(isovert_info);
 
   // store times
   float seconds;
@@ -417,12 +423,6 @@ void ISODUAL3D::dual_contouring_extract_isopoly
     (isovert.gcube_list, dual_isosurface.vertex_coord);
 
   t2 = clock();
-
-  // Set isodual_info
-  isodual_info.sharpiso.num_sharp_corners = isovert_info.num_sharp_corners;
-  isodual_info.sharpiso.num_sharp_edges = isovert_info.num_sharp_edges;
-  isodual_info.sharpiso.num_smooth_vertices = 
-    isovert_info.num_smooth_vertices;
 
   if (isodual_param.flag_store_isovert_info) {
     set_isovert_info(iso_vlist, isovert.gcube_list, 
@@ -481,12 +481,6 @@ void ISODUAL3D::dual_contouring_extract_isopoly_multi
      iso_vlist, dual_isosurface.vertex_coord);
 
   t2 = clock();
-
-  // Set isodual_info
-  isodual_info.sharpiso.num_sharp_corners = isovert_info.num_sharp_corners;
-  isodual_info.sharpiso.num_sharp_edges = isovert_info.num_sharp_edges;
-  isodual_info.sharpiso.num_smooth_vertices = 
-    isovert_info.num_smooth_vertices;
 
   if (isodual_param.flag_store_isovert_info) {
     set_isovert_info(iso_vlist, isovert.gcube_list, 
@@ -555,12 +549,6 @@ void ISODUAL3D::dual_contouring_extract_isopoly_multi
 
   t2 = clock();
 
-  // Set isodual_info
-  isodual_info.sharpiso.num_sharp_corners = isovert_info.num_sharp_corners;
-  isodual_info.sharpiso.num_sharp_edges = isovert_info.num_sharp_edges;
-  isodual_info.sharpiso.num_smooth_vertices = 
-    isovert_info.num_smooth_vertices;
-
   if (isodual_param.flag_store_isovert_info) {
     set_isovert_info(iso_vlist, isovert.gcube_list, 
                      isodual_info.sharpiso.vertex_info);
@@ -608,7 +596,7 @@ void ISODUAL3D::dual_contouring_merge_sharp_from_grad
     
   compute_dual_isovert
     (scalar_grid, gradient_grid, isovalue, isodual_param, 
-     isodual_param.vertex_position_method, isovert);
+     isodual_param.vertex_position_method, isovert, isovert_info);
 
   t1 = clock();
 

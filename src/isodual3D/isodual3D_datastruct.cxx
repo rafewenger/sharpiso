@@ -404,14 +404,19 @@ ISODUAL3D::ISODUAL_INFO::ISODUAL_INFO()
 
 void ISODUAL3D::SHARPISO_INFO::Clear()
 {
+  ISOVERT_INFO::Clear();
+
+  /* OBSOLETE
   num_conflicts = 0;
-  num_edge_collapses = 0;
   num_merged_iso_vertices = 0;
   num_sharp_corners = 0;
   num_sharp_edges = 0;
   num_smooth_vertices = 0;
-  num_repositioned_vertices = 0;
   num_Linf_iso_vertex_locations = 0;
+  */
+
+  num_edge_collapses = 0;
+  num_repositioned_vertices = 0;
 
   num_cube_not_ambiguous = 0;
   num_cube_separate_pos = 0;
