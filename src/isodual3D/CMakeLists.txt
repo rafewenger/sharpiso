@@ -38,8 +38,7 @@ SET(ISODUAL3D_SUB_LIST  isodual3DIO.cxx isodual3D.cxx
                         ijktable_ambig.cxx isodual3D_ambig.cxx
                         sharpiso_feature.cxx sharpiso_get_gradients.cxx
                         sharpiso_intersect.cxx
-                        sharpiso_svd.cxx sh_point_find.cxx 
-                        sh_point_datastruct.cxx sh_point_svdcal.cxx
+                        sharpiso_svd.cxx
                         sharpiso_findIntersect.cxx)
 
 ADD_EXECUTABLE(isodual3D isodual3D_main.cxx ${ISODUAL3D_SUB_LIST} )
