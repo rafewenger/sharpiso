@@ -21,7 +21,7 @@ namespace ISODUAL3D {
 // GRID CUBES INFORMATION
 // **************************************************
 
-typedef enum{
+typedef enum {
 	AVAILABLE_GCUBE,    ///< Cube is available.
 	SELECTED_GCUBE,     ///< Cube contains a sharp vertex.
 	COVERED_GCUBE,      ///< Cube is near a cube containing a sharp vertex.
@@ -46,6 +46,7 @@ public:
   bool flag_centroid_location;
 };
 
+typedef std::vector<GRID_CUBE> GRID_CUBE_ARRAY;
 
 // **************************************************
 // ISOSURFACE VERTEX DATA
@@ -202,6 +203,10 @@ void bin_grid_insert
 void sort_gcube_list
 (const std::vector<GRID_CUBE> & gcube_list,
  std::vector<NUM_TYPE> & sortd_ind2gcube_list);
+
+/// Store boundary bits for each cube in gcube_list.
+void store_boundary_bits
+(const SHARPISO_GRID & grid, GRID_CUBE_ARRAY & gcube_list);
 
 }
 
