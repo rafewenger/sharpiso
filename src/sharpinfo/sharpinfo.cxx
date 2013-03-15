@@ -472,10 +472,18 @@ void compute_iso_vertex_using_svd
 
     OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
 
-    svd_compute_sharp_vertex_for_cube
-      (scalar_grid, gradient_grid, cube_index, isovalue,
-       sharpiso_param, cube_111,
-       sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+    if (sharpiso_param.use_lindstrom) {
+      svd_compute_sharp_vertex_for_cube_lindstrom
+        (scalar_grid, gradient_grid, cube_index, isovalue,
+         sharpiso_param, cube_111,
+         sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+    }
+    else {
+      svd_compute_sharp_vertex_for_cube_lc_intersection
+        (scalar_grid, gradient_grid, cube_index, isovalue,
+         sharpiso_param, cube_111,
+         sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+    }
   }
 
 }
@@ -991,10 +999,19 @@ void output_cube_eigenvalues
 
   IJK_FOR_EACH_GRID_CUBE(icube, scalar_grid, VERTEX_INDEX) {
 
-    svd_compute_sharp_vertex_for_cube
-      (scalar_grid, gradient_grid, icube, isovalue,
-       sharpiso_param, cube_111,
-       sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+    if (sharpiso_param.use_lindstrom) {
+      svd_compute_sharp_vertex_for_cube_lindstrom
+        (scalar_grid, gradient_grid, icube, isovalue,
+         sharpiso_param, cube_111,
+         sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+    }
+    else {
+      svd_compute_sharp_vertex_for_cube_lc_intersection
+        (scalar_grid, gradient_grid, icube, isovalue,
+         sharpiso_param, cube_111,
+         sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+    }
+
     output_cube_coordinates(output, scalar_grid, icube);
 
     output << " Num eigen: " << num_large_eigenvalues

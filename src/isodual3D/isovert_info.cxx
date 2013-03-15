@@ -672,10 +672,18 @@ void compute_eigenvalues
 
     if (isodual_data.vertex_position_method == GRADIENT_POSITIONING) {
 
-      svd_compute_sharp_vertex_for_cube
-        (isodual_data.ScalarGrid(), isodual_data.GradientGrid(), cube_index, 
-         isovalue, isodual_data, cube_111, isovert_coord,
-         eigenvalues, num_large_eigenvalues, svd_info);
+      if (isodual_data.use_lindstrom) {
+        svd_compute_sharp_vertex_for_cube_lindstrom
+          (isodual_data.ScalarGrid(), isodual_data.GradientGrid(), cube_index, 
+           isovalue, isodual_data, cube_111, isovert_coord,
+           eigenvalues, num_large_eigenvalues, svd_info);
+      }
+      else {
+        svd_compute_sharp_vertex_for_cube_lc_intersection
+          (isodual_data.ScalarGrid(), isodual_data.GradientGrid(), cube_index, 
+           isovalue, isodual_data, cube_111, isovert_coord,
+           eigenvalues, num_large_eigenvalues, svd_info);
+      }
     }
     else if (isodual_data.vertex_position_method == EDGEI_GRADIENT) {
       svd_compute_sharp_vertex_edgeI_sharp_gradient
@@ -692,11 +700,11 @@ void compute_eigenvalues
 
   }
   else if (isodual_data.AreEdgeISet()) {
-    svd_compute_sharp_vertex_for_cube
+    svd_compute_sharp_vertex_for_cube_hermite
       (isodual_data.ScalarGrid(), 
        isodual_data.EdgeICoord(), isodual_data.EdgeINormalCoord(),
        edge_index, cube_index, 
-       isovalue, isodual_data, cube_111, isovert_coord,
+       isovalue, isodual_data, isovert_coord,
        eigenvalues, num_large_eigenvalues, svd_info);
   }
   else {

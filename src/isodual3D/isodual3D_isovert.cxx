@@ -91,26 +91,53 @@ void compute_isovert_positions
   const SIGNED_COORD_TYPE grad_selection_cube_offset =
     isovert_param.grad_selection_cube_offset;
   OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
-
   SVD_INFO svd_info;
-  IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX) {
-    NUM_TYPE index = isovert.sharp_ind_grid.Scalar(iv);
-    isovert.gcube_list[index].flag_centroid_location = false;
 
-    if (index != ISOVERT::NO_INDEX) {
-      // this is an active cube
-      // compute the sharp vertex for this cube
-      EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
-      NUM_TYPE num_large_eigenvalues;
+  if (isovert_param.use_lindstrom) {
 
-      svd_compute_sharp_vertex_for_cube
-        (scalar_grid, gradient_grid, iv, isovalue, isovert_param, cube_111,
-         isovert.gcube_list[index].isovert_coord,
-         eigenvalues, num_large_eigenvalues, svd_info);
+    IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX) {
+      NUM_TYPE index = isovert.sharp_ind_grid.Scalar(iv);
+      isovert.gcube_list[index].flag_centroid_location = false;
 
-      store_svd_info(scalar_grid, iv, index, num_large_eigenvalues,
-                     svd_info, isovert, isovert_info);
+      if (index != ISOVERT::NO_INDEX) {
+        // this is an active cube
+        // compute the sharp vertex for this cube
+        EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
+        NUM_TYPE num_large_eigenvalues;
+
+        svd_compute_sharp_vertex_for_cube_lindstrom
+          (scalar_grid, gradient_grid, iv, isovalue, isovert_param, cube_111,
+           isovert.gcube_list[index].isovert_coord,
+           eigenvalues, num_large_eigenvalues, svd_info);
+
+        store_svd_info(scalar_grid, iv, index, num_large_eigenvalues,
+                       svd_info, isovert, isovert_info);
+      }
     }
+
+  }
+  else {
+
+    IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX) {
+      NUM_TYPE index = isovert.sharp_ind_grid.Scalar(iv);
+      isovert.gcube_list[index].flag_centroid_location = false;
+
+      if (index != ISOVERT::NO_INDEX) {
+        // this is an active cube
+        // compute the sharp vertex for this cube
+        EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
+        NUM_TYPE num_large_eigenvalues;
+
+        svd_compute_sharp_vertex_for_cube_lc_intersection
+          (scalar_grid, gradient_grid, iv, isovalue, isovert_param, cube_111,
+           isovert.gcube_list[index].isovert_coord,
+           eigenvalues, num_large_eigenvalues, svd_info);
+
+        store_svd_info(scalar_grid, iv, index, num_large_eigenvalues,
+                       svd_info, isovert, isovert_info);
+      }
+    }
+
   }
 
   store_boundary_bits(scalar_grid, isovert.gcube_list);
@@ -128,8 +155,6 @@ void compute_isovert_positions_edgeI
 {
   const SIGNED_COORD_TYPE grad_selection_cube_offset =
     isovert_param.grad_selection_cube_offset;
-  OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
-
   SVD_INFO svd_info;
 
   if (vertex_position_method == EDGEI_GRADIENT) {
@@ -307,7 +332,6 @@ void compute_isovert_positions
 {
   const SIGNED_COORD_TYPE grad_selection_cube_offset =
     isovert_param.grad_selection_cube_offset;
-  OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
   SHARPISO_EDGE_INDEX_GRID edge_index
     (DIM3, scalar_grid.AxisSize(), DIM3);
   SVD_INFO svd_info;
@@ -322,9 +346,9 @@ void compute_isovert_positions
       EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
       VERTEX_INDEX num_large_eigenvalues;
 
-      svd_compute_sharp_vertex_for_cube
+      svd_compute_sharp_vertex_for_cube_hermite
         (scalar_grid, edgeI_coord, edgeI_normal_coord, edge_index,
-         iv, isovalue, isovert_param, cube_111,
+         iv, isovalue, isovert_param,
          isovert.gcube_list[index].isovert_coord,
          eigenvalues, num_large_eigenvalues, svd_info);
 

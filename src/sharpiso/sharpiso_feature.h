@@ -51,18 +51,6 @@ namespace SHARPISO {
   // **************************************************
   
   /// Compute sharp isosurface vertex using singular valued decomposition.
-  void svd_compute_sharp_vertex_for_cube
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const VERTEX_INDEX cube_index,
-   const SCALAR_TYPE isovalue,
-   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
-   const OFFSET_CUBE_111 & cube_111,
-   COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
-   NUM_TYPE & num_large_eigenvalues,
-   SVD_INFO & svd_info);
-
-  /// Compute sharp isosurface vertex using singular valued decomposition.
   /// Use Lindstrom's formula , this is the *fast* version which follows the
   /// garland heckbert approach of storing n'n
   void svd_compute_sharp_vertex_for_cube_lindstrom_fast
@@ -180,7 +168,7 @@ namespace SHARPISO {
   /// Compute sharp isosurface vertex using singular valued decomposition.
   /// Use input edge-isosurface intersections and normals
   ///   to position isosurface vertices on sharp features.
-  void svd_compute_sharp_vertex_for_cube
+  void svd_compute_sharp_vertex_for_cube_hermite
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const std::vector<COORD_TYPE> & edgeI_coord,
    const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
@@ -188,7 +176,6 @@ namespace SHARPISO {
    const VERTEX_INDEX cube_index,
    const SCALAR_TYPE isovalue,
    const SHARP_ISOVERT_PARAM & sharpiso_param,
-   const OFFSET_CUBE_111 & cube_111,
    COORD_TYPE sharp_coord[DIM3],
    EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
