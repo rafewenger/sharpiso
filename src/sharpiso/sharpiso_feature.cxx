@@ -64,7 +64,7 @@ void compute_central_point
 
 
 // **************************************************
-// SVD ROUTINES TO COMPUTE SHARP VERTEX/EDGE
+// COMPUTE SHARP VERTEX/EDGE USING SVD
 // **************************************************
 
 /// Compute sharp isosurface vertex using singular valued decomposition.
@@ -129,6 +129,203 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
       (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
        sharpiso_param, sharp_coord, svd_info);
 }
+
+// Compute sharp isosurface vertex using singular valued decomposition.
+// Use input edge-isosurface intersections and normals
+//   to position isosurface vertices on sharp features.
+void SHARPISO::svd_compute_sharp_vertex_for_cube_hermite
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const std::vector<COORD_TYPE> & edgeI_coord,
+ const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
+ const SHARPISO_EDGE_INDEX_GRID & edge_index,
+ const VERTEX_INDEX cube_index,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
+ COORD_TYPE sharp_coord[DIM3],
+ EIGENVALUE_TYPE eigenvalues[DIM3],
+ NUM_TYPE & num_large_eigenvalues,
+ SVD_INFO & svd_info)
+{
+  const EIGENVALUE_TYPE max_small_eigenvalue =
+    sharpiso_param.max_small_eigenvalue;
+  const COORD_TYPE max_dist = sharpiso_param.max_dist;
+  IJK::PROCEDURE_ERROR error("svd_compute_sharp_vertex_for_cube");
+
+  NUM_TYPE num_gradients = 0;
+  std::vector<COORD_TYPE> point_coord;
+  std::vector<GRADIENT_COORD_TYPE> gradient_coord;
+  std::vector<SCALAR_TYPE> scalar;
+
+  if (!sharpiso_param.use_lindstrom) {
+    error.AddMessage("Programming error.  Normal based computation only implemented with Lindstrom.");
+    throw error;
+  }
+
+  // Compute coord of the cube.
+  GRID_COORD_TYPE cube_coord[DIM3];
+  scalar_grid.ComputeCoord(cube_index, cube_coord);
+
+  get_gradients_from_list
+    (scalar_grid, edgeI_coord, edgeI_normal_coord, edge_index, 
+     cube_index, isovalue, sharpiso_param, 
+     point_coord, gradient_coord, scalar, num_gradients);
+
+  svd_info.location = LOC_SVD;
+  svd_info.flag_conflict = false;
+  svd_info.flag_Linf_iso_vertex_location = false;
+
+  // svd_calculate_sharpiso vertex using lindstrom
+  COORD_TYPE central_point[DIM3];
+  if (sharpiso_param.flag_dist2centroid) {
+    compute_edgeI_centroid
+      (scalar_grid, edgeI_coord, edge_index, isovalue, cube_index, 
+       central_point);
+  }
+  else {
+    scalar_grid.ComputeCubeCenterCoord(cube_index, central_point);
+  }
+  IJK::copy_coord(DIM3, central_point, svd_info.central_point);
+
+  // use the sharp version with the Garland-Heckbert way of storing normals
+  if (sharpiso_param.use_lindstrom_fast){
+
+    svd_calculate_sharpiso_vertex_using_lindstrom_fast
+      (num_gradients, max_small_eigenvalue, isovalue, &(scalar[0]), 
+       &(point_coord[0]), &(gradient_coord[0]), 
+       num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
+  }
+  else{
+
+    svd_calculate_sharpiso_vertex_using_lindstrom
+      (sharpiso_param.use_lindstrom2, &(point_coord[0]),
+       &(gradient_coord[0]), &(scalar[0]),
+       num_gradients, isovalue, max_small_eigenvalue,
+       num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
+  }
+
+  svd_info.cube_containing_coord = cube_index;
+
+  // *** PROBABLY should call postprocess_isovert_location HERE ***
+  if (!is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
+    process_far_point(scalar_grid, cube_index, cube_coord, isovalue,
+                      sharpiso_param, sharp_coord, svd_info);
+  }
+}
+
+
+// ********************************************************************
+// COMPUTE SHARP VERTEX/EDGE USING SVD & EDGE-ISOSURFACE INTERSECTIONS
+// ********************************************************************
+
+/// Compute sharp isosurface vertex using edge-isosurface intersections.
+/// Approximate gradients using linear interpolation on the edges.
+void SHARPISO::svd_compute_sharp_vertex_edgeI_interpolate_gradients
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
+ COORD_TYPE sharp_coord[DIM3], 
+ EIGENVALUE_TYPE eigenvalues[DIM3],
+ NUM_TYPE & num_large_eigenvalues,
+ SVD_INFO & svd_info)
+{
+  const GRADIENT_COORD_TYPE max_small_magnitude =
+    sharpiso_param.max_small_magnitude;
+  const EIGENVALUE_TYPE max_small_eigenvalue =
+    sharpiso_param.max_small_eigenvalue;
+  std::vector<COORD_TYPE> edgeI_coord;
+  std::vector<GRADIENT_COORD_TYPE> edgeI_normal_coord;
+  GRID_COORD_TYPE cube_coord[DIM3];
+
+  compute_cube_edgeI_linear_interpolate
+    (scalar_grid, gradient_grid, cube_index, isovalue,
+     max_small_magnitude, edgeI_coord, edgeI_normal_coord);
+
+  if (edgeI_coord.size() > 0) {
+    NUM_TYPE num_gradients = edgeI_coord.size()/DIM3;
+
+    COORD_TYPE central_point[DIM3];
+    compute_central_point
+      (scalar_grid, gradient_grid, isovalue, cube_index, 
+       sharpiso_param, central_point, svd_info);
+
+    svd_calculate_sharpiso_vertex_using_lindstrom
+      (sharpiso_param.use_lindstrom2, &(edgeI_coord[0]),
+       &(edgeI_normal_coord[0]), 
+       num_gradients, isovalue, max_small_eigenvalue,
+       num_large_eigenvalues, eigenvalues, central_point, 
+       sharp_coord);
+
+    svd_info.location = LOC_SVD;
+  }
+  else{
+    scalar_grid.ComputeCubeCenterCoord(cube_index, sharp_coord);
+    svd_info.location = CUBE_CENTER;
+  }
+
+  scalar_grid.ComputeCoord(cube_index, cube_coord);
+  postprocess_isovert_location
+    (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
+     sharpiso_param, sharp_coord, svd_info);
+}
+
+/// Compute sharp isosurface vertex using edge-isosurface intersections.
+/// Use sharp formula for computing gradient at intersection.
+void SHARPISO::svd_compute_sharp_vertex_edgeI_sharp_gradient
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const VERTEX_INDEX cube_index,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & sharpiso_param,
+ COORD_TYPE sharp_coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
+ NUM_TYPE & num_large_eigenvalues,
+ SVD_INFO & svd_info)
+{
+  const GRADIENT_COORD_TYPE max_small_magnitude =
+    sharpiso_param.max_small_magnitude;
+  const EIGENVALUE_TYPE max_small_eigenvalue =
+    sharpiso_param.max_small_eigenvalue;
+  GRID_COORD_TYPE cube_coord[DIM3];
+  std::vector<COORD_TYPE> edgeI_coord;
+  std::vector<GRADIENT_COORD_TYPE> edgeI_normal_coord;
+
+  compute_cube_edgeI
+    (scalar_grid, gradient_grid, cube_index, isovalue,
+     max_small_magnitude, edgeI_coord, edgeI_normal_coord);
+
+  if (edgeI_coord.size() > 0) {
+    NUM_TYPE num_gradients = edgeI_coord.size()/DIM3;
+
+    COORD_TYPE central_point[DIM3];
+    compute_central_point
+      (scalar_grid, gradient_grid, isovalue, cube_index, 
+       sharpiso_param, central_point, svd_info);
+
+    svd_calculate_sharpiso_vertex_using_lindstrom
+      (sharpiso_param.use_lindstrom2, &(edgeI_coord[0]),
+       &(edgeI_normal_coord[0]), 
+       num_gradients, isovalue, max_small_eigenvalue,
+       num_large_eigenvalues, eigenvalues, central_point, 
+       sharp_coord);
+
+    svd_info.location = LOC_SVD;
+  }
+  else{
+    scalar_grid.ComputeCubeCenterCoord(cube_index, sharp_coord);
+    svd_info.location = CUBE_CENTER;
+  }
+
+  scalar_grid.ComputeCoord(cube_index, cube_coord);
+  postprocess_isovert_location
+    (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
+     sharpiso_param, sharp_coord, svd_info);
+}
+
+
+// ************************************************************************
+// COMPUTE SHARP VERTEX/EDGE USING SVD & LINE-CUBE INTERSECTIONS
+// ************************************************************************
 
 /// Compute sharp isosurface vertex using singular valued decomposition.
 /// Use line-cube intersection to compute sharp isosurface vertex
@@ -315,112 +512,9 @@ void SHARPISO::compute_vertex_on_line
 
 }
 
-
-/// Compute sharp isosurface vertex using edge-isosurface intersections.
-/// Approximate gradients using linear interpolation on the edges.
-void SHARPISO::svd_compute_sharp_vertex_edgeI_interpolate_gradients
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX cube_index,
- const SCALAR_TYPE isovalue,
- const SHARP_ISOVERT_PARAM & sharpiso_param,
- COORD_TYPE sharp_coord[DIM3], 
- EIGENVALUE_TYPE eigenvalues[DIM3],
- NUM_TYPE & num_large_eigenvalues,
- SVD_INFO & svd_info)
-{
-  const GRADIENT_COORD_TYPE max_small_magnitude =
-    sharpiso_param.max_small_magnitude;
-  const EIGENVALUE_TYPE max_small_eigenvalue =
-    sharpiso_param.max_small_eigenvalue;
-  std::vector<COORD_TYPE> edgeI_coord;
-  std::vector<GRADIENT_COORD_TYPE> edgeI_normal_coord;
-  GRID_COORD_TYPE cube_coord[DIM3];
-
-  compute_cube_edgeI_linear_interpolate
-    (scalar_grid, gradient_grid, cube_index, isovalue,
-     max_small_magnitude, edgeI_coord, edgeI_normal_coord);
-
-  if (edgeI_coord.size() > 0) {
-    NUM_TYPE num_gradients = edgeI_coord.size()/DIM3;
-
-    COORD_TYPE central_point[DIM3];
-    compute_central_point
-      (scalar_grid, gradient_grid, isovalue, cube_index, 
-       sharpiso_param, central_point, svd_info);
-
-    svd_calculate_sharpiso_vertex_using_lindstrom
-      (sharpiso_param.use_lindstrom2, &(edgeI_coord[0]),
-       &(edgeI_normal_coord[0]), 
-       num_gradients, isovalue, max_small_eigenvalue,
-       num_large_eigenvalues, eigenvalues, central_point, 
-       sharp_coord);
-
-    svd_info.location = LOC_SVD;
-  }
-  else{
-    scalar_grid.ComputeCubeCenterCoord(cube_index, sharp_coord);
-    svd_info.location = CUBE_CENTER;
-  }
-
-  scalar_grid.ComputeCoord(cube_index, cube_coord);
-  postprocess_isovert_location
-    (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
-     sharpiso_param, sharp_coord, svd_info);
-}
-
-/// Compute sharp isosurface vertex using edge-isosurface intersections.
-/// Use sharp formula for computing gradient at intersection.
-void SHARPISO::svd_compute_sharp_vertex_edgeI_sharp_gradient
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX cube_index,
- const SCALAR_TYPE isovalue,
- const SHARP_ISOVERT_PARAM & sharpiso_param,
- COORD_TYPE sharp_coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
- NUM_TYPE & num_large_eigenvalues,
- SVD_INFO & svd_info)
-{
-  const GRADIENT_COORD_TYPE max_small_magnitude =
-    sharpiso_param.max_small_magnitude;
-  const EIGENVALUE_TYPE max_small_eigenvalue =
-    sharpiso_param.max_small_eigenvalue;
-  GRID_COORD_TYPE cube_coord[DIM3];
-  std::vector<COORD_TYPE> edgeI_coord;
-  std::vector<GRADIENT_COORD_TYPE> edgeI_normal_coord;
-
-  compute_cube_edgeI
-    (scalar_grid, gradient_grid, cube_index, isovalue,
-     max_small_magnitude, edgeI_coord, edgeI_normal_coord);
-
-  if (edgeI_coord.size() > 0) {
-    NUM_TYPE num_gradients = edgeI_coord.size()/DIM3;
-
-    COORD_TYPE central_point[DIM3];
-    compute_central_point
-      (scalar_grid, gradient_grid, isovalue, cube_index, 
-       sharpiso_param, central_point, svd_info);
-
-    svd_calculate_sharpiso_vertex_using_lindstrom
-      (sharpiso_param.use_lindstrom2, &(edgeI_coord[0]),
-       &(edgeI_normal_coord[0]), 
-       num_gradients, isovalue, max_small_eigenvalue,
-       num_large_eigenvalues, eigenvalues, central_point, 
-       sharp_coord);
-
-    svd_info.location = LOC_SVD;
-  }
-  else{
-    scalar_grid.ComputeCubeCenterCoord(cube_index, sharp_coord);
-    svd_info.location = CUBE_CENTER;
-  }
-
-  scalar_grid.ComputeCoord(cube_index, cube_coord);
-  postprocess_isovert_location
-    (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
-     sharpiso_param, sharp_coord, svd_info);
-}
-
+// ********************************************************************
+// COMPUTE SHARP ISOSURFACE VERTEX NEAR FACET
+// ********************************************************************
 
 /// Compute sharp isosurface vertex near facet
 ///    using singular valued decomposition.
@@ -531,89 +625,6 @@ void SHARPISO::svd_compute_sharp_vertex_near_facet
     (scalar_grid, gradient_grid, facet_v0, facet_orth_dir,
      isovalue, sharpiso_param, sharp_vertex_location,
      sharp_coord, line_direction, eigenvalues, num_large_eigenvalues);
-}
-
-
-// Compute sharp isosurface vertex using singular valued decomposition.
-// Use input edge-isosurface intersections and normals
-//   to position isosurface vertices on sharp features.
-void SHARPISO::svd_compute_sharp_vertex_for_cube_hermite
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const std::vector<COORD_TYPE> & edgeI_coord,
- const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
- const SHARPISO_EDGE_INDEX_GRID & edge_index,
- const VERTEX_INDEX cube_index,
- const SCALAR_TYPE isovalue,
- const SHARP_ISOVERT_PARAM & sharpiso_param,
- COORD_TYPE sharp_coord[DIM3],
- EIGENVALUE_TYPE eigenvalues[DIM3],
- NUM_TYPE & num_large_eigenvalues,
- SVD_INFO & svd_info)
-{
-  const EIGENVALUE_TYPE max_small_eigenvalue =
-    sharpiso_param.max_small_eigenvalue;
-  const COORD_TYPE max_dist = sharpiso_param.max_dist;
-  IJK::PROCEDURE_ERROR error("svd_compute_sharp_vertex_for_cube");
-
-  NUM_TYPE num_gradients = 0;
-  std::vector<COORD_TYPE> point_coord;
-  std::vector<GRADIENT_COORD_TYPE> gradient_coord;
-  std::vector<SCALAR_TYPE> scalar;
-
-  if (!sharpiso_param.use_lindstrom) {
-    error.AddMessage("Programming error.  Normal based computation only implemented with Lindstrom.");
-    throw error;
-  }
-
-  // Compute coord of the cube.
-  GRID_COORD_TYPE cube_coord[DIM3];
-  scalar_grid.ComputeCoord(cube_index, cube_coord);
-
-  get_gradients_from_list
-    (scalar_grid, edgeI_coord, edgeI_normal_coord, edge_index, 
-     cube_index, isovalue, sharpiso_param, 
-     point_coord, gradient_coord, scalar, num_gradients);
-
-  svd_info.location = LOC_SVD;
-  svd_info.flag_conflict = false;
-  svd_info.flag_Linf_iso_vertex_location = false;
-
-  // svd_calculate_sharpiso vertex using lindstrom
-  COORD_TYPE central_point[DIM3];
-  if (sharpiso_param.flag_dist2centroid) {
-    compute_edgeI_centroid
-      (scalar_grid, edgeI_coord, edge_index, isovalue, cube_index, 
-       central_point);
-  }
-  else {
-    scalar_grid.ComputeCubeCenterCoord(cube_index, central_point);
-  }
-  IJK::copy_coord(DIM3, central_point, svd_info.central_point);
-
-  /// use the sharp version with the garlnd heckbert way of storing normals
-    if (sharpiso_param.use_lindstrom_fast){
-
-      svd_calculate_sharpiso_vertex_using_lindstrom_fast
-        (num_gradients, max_small_eigenvalue, isovalue, &(scalar[0]), 
-         &(point_coord[0]), &(gradient_coord[0]), 
-         num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
-    }
-    else{
-
-      svd_calculate_sharpiso_vertex_using_lindstrom
-        (sharpiso_param.use_lindstrom2, &(point_coord[0]),
-         &(gradient_coord[0]), &(scalar[0]),
-         num_gradients, isovalue, max_small_eigenvalue,
-         num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
-    }
-
-    svd_info.cube_containing_coord = cube_index;
-
-    if (!is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
-      process_far_point(scalar_grid, cube_index, cube_coord, isovalue,
-                        sharpiso_param, sharp_coord, svd_info);
-    }
-
 }
 
 // **************************************************
