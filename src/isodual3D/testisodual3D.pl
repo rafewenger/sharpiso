@@ -11,7 +11,6 @@ my @input_options;
 my @input_options0;
 my $fastflag = 0;
 my $veryfastflag = 0;
-my $veryveryfastflag = 0;
 my $alloptions = 0;
 my $found_difference = 0;
 my $isoval_offset = 0;
@@ -42,12 +41,6 @@ while (scalar(@proglist) > 0 &&
 
   if ($new_option eq "-veryfast") { 
     $veryfastflag = 1; 
-    next;
-  };
-
-  if ($new_option eq "-veryveryfast") { 
-    $veryveryfastflag = 1; 
-    $veryfastflag = 1;
     next;
   };
 
@@ -147,14 +140,12 @@ if ((scalar keys %data_flag) == 0) {
 
 if ($use_all_data) {
 
-  if (!$veryveryfastflag) {
+  if (!$veryfastflag) {
     $testdata{cube_A20}{fname} = "cube3D.A20x.nrrd";
     $testdata{cube_A20}{isovalue} = [ 4.9, 5, 5.5 ];
 
     $testdata{cube_B20}{fname} = "cube3D.B20x.nrrd";
     $testdata{cube_B20}{isovalue} = [ 5, 5.5];
-
-
   }
 }
 
@@ -164,17 +155,14 @@ if ($use_all_data || defined($data_flag{cubes})) {
 
   if (!$veryfastflag) {
 
-    if (!$veryveryfastflag) {
+    $testdata{tcube110A}{fname} = "tcube110A.31x.nrrd";
+    $testdata{tcube110A}{isovalue} = [ 4.9, 5, 5.5 ];
 
-      $testdata{tcube110A}{fname} = "tcube110A.31x.nrrd";
-      $testdata{tcube110A}{isovalue} = [ 4.9, 5, 5.5 ];
+    $testdata{tcube111A}{fname} = "tcube111A.31x.nrrd";
+    $testdata{tcube111A}{isovalue} = [ 4.9, 5, 5.5 ];
 
-      $testdata{tcube111A}{fname} = "tcube111A.31x.nrrd";
-      $testdata{tcube111A}{isovalue} = [ 4.9, 5, 5.5 ];
-
-      $testdata{tcube211A}{fname} = "tcube211A.31x.nrrd";
-      $testdata{tcube211A}{isovalue} = [ 4.9, 5, 5.5 ];
-    }
+    $testdata{tcube211A}{fname} = "tcube211A.31x.nrrd";
+    $testdata{tcube211A}{isovalue} = [ 4.9, 5, 5.5 ];
   }
 }
 
@@ -192,24 +180,22 @@ if ($use_all_data || defined($data_flag{twocubes})) {
 
 if ($use_all_data || defined($data_flag{annulus})) {
 
-  if (!$veryveryfastflag) {
+  if (!$veryfastflag) {
 
-    if (!$veryfastflag) {
-      $testdata{annulus_A31}{fname} = "annulus3D.A31x.nrrd";
-      $testdata{annulus_A31}{isovalue} = [ 4, 4.5 ];
+    $testdata{annulus_A31}{fname} = "annulus3D.A31x.nrrd";
+    $testdata{annulus_A31}{isovalue} = [ 4, 4.5 ];
 
-      $testdata{annulus_B31}{fname} = "annulus3D.B31x.nrrd";
-      $testdata{annulus_B31}{isovalue} = [ 4, 4.1, 4.5 ];
+    $testdata{annulus_B31}{fname} = "annulus3D.B31x.nrrd";
+    $testdata{annulus_B31}{isovalue} = [ 4, 4.1, 4.5 ];
 
-      $testdata{annulus_C31}{fname} = "annulus3D.C31x.nrrd";
-      $testdata{annulus_C31}{isovalue} = [ 4, 4.5 ];
+    $testdata{annulus_C31}{fname} = "annulus3D.C31x.nrrd";
+    $testdata{annulus_C31}{isovalue} = [ 4, 4.5 ];
 
-      $testdata{annulus_D31}{fname} = "annulus3D.D31x.nrrd";
-      $testdata{annulus_D31}{isovalue} = [ 4, 4.5 ];
+    $testdata{annulus_D31}{fname} = "annulus3D.D31x.nrrd";
+    $testdata{annulus_D31}{isovalue} = [ 4, 4.5 ];
 
-      $testdata{annulus_E31}{fname} = "annulus3D.E31x.nrrd";
-      $testdata{annulus_E31}{isovalue} = [ 4, 4.5 ];
-    }
+    $testdata{annulus_E31}{fname} = "annulus3D.E31x.nrrd";
+    $testdata{annulus_E31}{isovalue} = [ 4, 4.5 ];
 
     $testdata{annulus_F31}{fname} = "annulus3D.F31x.nrrd";
     $testdata{annulus_F31}{isovalue} = [ 4, 4.5 ];
@@ -233,10 +219,15 @@ if ($use_all_data || defined($data_flag{flange})) {
 
     $testdata{flange_E61}{fname} = "flange3D.E61x.nrrd";
     $testdata{flange_E61}{isovalue} = [ 4, 4.5 ];
+
+    $testdata{flange_F61}{fname} = "flange3D.F61x.nrrd";
+    $testdata{flange_F61}{isovalue} = [ 4, 4.5, 8 ];
+  }
+  else {
+    $testdata{flange_F61}{fname} = "flange3D.F61x.nrrd";
+    $testdata{flange_F61}{isovalue} = [ 4.5, 8 ];
   }
 
-  $testdata{flange_F61}{fname} = "flange3D.F61x.nrrd";
-  $testdata{flange_F61}{isovalue} = [ 4, 4.5, 8 ];
 }
 
 if (defined($data_flag{hermite})) {

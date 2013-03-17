@@ -30,6 +30,8 @@
 
 #include "isodual3DIO.h"
 #include "sharpiso_get_gradients.h"
+
+#include "ijkgrid_nrrd.txx"
 #include "ijkIO.txx"
 #include "ijkmesh.txx"
 #include "ijkstring.txx"
@@ -757,104 +759,58 @@ bool ISODUAL3D::check_input
 
 void ISODUAL3D::read_nrrd_file
 (const char * input_filename, SHARPISO_SCALAR_GRID & scalar_grid,
-		NRRD_INFO & nrrd_info)
+ NRRD_INFO & nrrd_info)
 {
-	int dimension = 0;
-	Nrrd *nin;
+  IJK::PROCEDURE_ERROR error("read_nrrd_file");
 
-	// get scalar field data from nrrd file
-	nin = nrrdNew();
-	if (nrrdLoad(nin, input_filename, NULL)) {
+  IJK::GRID_NRRD_IN<int, int> nrrd_in;
+  IJK::NRRD_DATA<int,int> nrrd_header;
+
+  nrrd_in.ReadScalarGrid(input_filename, scalar_grid, nrrd_header, error);
+  if (nrrd_in.ReadFailed()) { 
 		char *err = biffGetDone(NRRD);
 		cerr << "Error reading: " << input_filename << endl;
 		cerr << "  Error: " << err << endl;
 		exit(35);
-	};
-	dimension = nin->dim;
+  }
 
-	if (dimension < 1) {
-		cerr << "Illegal dimension.  Dimension must be at least 1." << endl;
+	if (scalar_grid.Dimension() < 1) {
+		cerr << "Illegal scalar grid dimension.  Dimension must be at least 1." 
+         << endl;
 		exit(20);
 	};
 
-	IJK::ARRAY<AXIS_SIZE_TYPE> axis_size(dimension);
-	size_t size[NRRD_DIM_MAX];
-	double grid_spacing[NRRD_DIM_MAX];
-
-	nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
-	nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSpacing, grid_spacing);
-
-	nrrd_info.grid_spacing.clear();
-	for (int d = 0; d < dimension; d++) {
-		axis_size[d] = size[d];
-		nrrd_info.grid_spacing.push_back(grid_spacing[d]);
-	}
-
-	scalar_grid.SetSize(dimension, axis_size.PtrConst());
-	nrrd2scalar(nin, scalar_grid.ScalarPtr());
-
-	nrrdNuke(nin);
-
-	nrrd_info.dimension = dimension;
+  nrrd_info.dimension = scalar_grid.Dimension();
+  nrrd_header.GetSpacing(nrrd_info.grid_spacing);
 }
 
 void ISODUAL3D::read_nrrd_file
 (const char * input_filename, GRADIENT_GRID & gradient_grid,
-		NRRD_INFO & nrrd_info)
+ NRRD_INFO & nrrd_info)
 {
-	int nrrd_dimension = 0;
-	int dimension = 0;
-	Nrrd *nin;
+  IJK::PROCEDURE_ERROR error("read_nrrd_file");
 
-	// get scalar field data from nrrd file
-	nin = nrrdNew();
-	if (nrrdLoad(nin, input_filename, NULL)) {
-		char *err = biffGetDone(NRRD);
-		cerr << "Error reading: " << input_filename << endl;
-		cerr << "  Error: " << err << endl;
-		exit(35);
-	};
-	nrrd_dimension = nin->dim;
+  GRID_NRRD_IN<int,AXIS_SIZE_TYPE> nrrd_in_gradient;
+  NRRD_DATA<int,AXIS_SIZE_TYPE> nrrd_header;
 
-	if (nrrd_dimension < 2) {
-		cerr << "Illegal nrrd dimension for gradient nrrd file." << endl;
-		cerr << "  Dimension in nrrd file must be at least 2." << endl;
+  nrrd_in_gradient.ReadVectorGrid
+    (input_filename, gradient_grid, nrrd_header, error);
+  if (nrrd_in_gradient.ReadFailed()) { throw error; }
+
+	if (gradient_grid.Dimension() < 1) {
+		cerr << "Illegal gradient grid dimension.  Dimension must be at least 1." 
+         << endl;
 		exit(20);
 	};
 
-	dimension = nrrd_dimension-1;
+	nrrd_info.dimension = gradient_grid.Dimension();
 
-	IJK::ARRAY<AXIS_SIZE_TYPE> axis_size(dimension);
-	size_t size[NRRD_DIM_MAX];
-	double grid_spacing[NRRD_DIM_MAX];
+  std::vector<COORD_TYPE> grid_spacing;
+  nrrd_header.GetSpacing(grid_spacing);
 
-	nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
-	nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSpacing, grid_spacing);
-
-	if (size[0] != dimension) {
-		cerr << "Illegal gradient nrrd file." << endl;
-		cerr << "  Gradient nrrd file should have size[0] (gradient vector length)"
-				<< endl;
-		cerr << "     equal to (nrrd_dimension-1) (volume dimension)."
-				<< endl;
-		cerr << "  size[0] = " << size[0]
-		                               << ".  (nrrd_dimension-1) = " << nrrd_dimension-1 << "." << endl;
-		exit(25);
-	}
-
-	nrrd_info.grid_spacing.clear();
-	for (int d = 0; d < dimension; d++) {
-		axis_size[d] = size[d+1];
-		nrrd_info.grid_spacing.push_back(grid_spacing[d+1]);
-	}
-
-	int gradient_length = dimension;
-	gradient_grid.SetSize(dimension, axis_size.PtrConst(), gradient_length);
-	nrrd2scalar(nin, gradient_grid.VectorPtr());
-
-	nrrdNuke(nin);
-
-	nrrd_info.dimension = dimension;
+  nrrd_info.dimension = gradient_grid.Dimension();
+	for (int d = 0; d < gradient_grid.Dimension(); d++) 
+    { nrrd_info.grid_spacing.push_back(grid_spacing[d+1]); };
 }
 
 void ISODUAL3D::read_nrrd_file
@@ -1079,7 +1035,8 @@ void ISODUAL3D::rescale_vertex_coord
 	}
 
 	if (output_info.dimension != output_info.grid_spacing.size()) {
-		error.AddMessage("Size of grid spacing array does not equal volume dimension.");
+		error.AddMessage
+      ("Size of grid spacing array does not equal volume dimension.");
 		error.AddMessage("  Grid spacing array has ",
 				output_info.grid_spacing.size(), " elements.");
 		error.AddMessage("  Volume dimension = ", output_info.dimension, ".");
