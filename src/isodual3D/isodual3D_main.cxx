@@ -90,7 +90,8 @@ int main(int argc, char **argv)
 
       if (!full_gradient_grid.CompareSize(full_scalar_grid)) {
         error.AddMessage("Input error. Grid mismatch.");
-        error.AddMessage("  Dimension or axis sizes of gradient grid and scalar grid do not match.");
+        error.AddMessage
+          ("  Dimension or axis sizes of gradient grid and scalar grid do not match.");
         throw error;
       }
     }

@@ -780,8 +780,15 @@ void ISODUAL3D::read_nrrd_file
 		exit(20);
 	};
 
+  std::vector<COORD_TYPE> grid_spacing;
+  nrrd_header.GetSpacing(grid_spacing);
+
   nrrd_info.dimension = scalar_grid.Dimension();
-  nrrd_header.GetSpacing(nrrd_info.grid_spacing);
+	for (int d = 0; d < scalar_grid.Dimension(); d++) {
+    nrrd_info.grid_spacing.push_back(grid_spacing[d]); 
+    scalar_grid.SetSpacing(d, grid_spacing[d]);
+  };
+
 }
 
 void ISODUAL3D::read_nrrd_file
@@ -809,8 +816,10 @@ void ISODUAL3D::read_nrrd_file
   nrrd_header.GetSpacing(grid_spacing);
 
   nrrd_info.dimension = gradient_grid.Dimension();
-	for (int d = 0; d < gradient_grid.Dimension(); d++) 
-    { nrrd_info.grid_spacing.push_back(grid_spacing[d+1]); };
+	for (int d = 0; d < gradient_grid.Dimension(); d++) {
+    nrrd_info.grid_spacing.push_back(grid_spacing[d+1]); 
+    gradient_grid.SetSpacing(d, grid_spacing[d+1]);
+  };
 }
 
 void ISODUAL3D::read_nrrd_file

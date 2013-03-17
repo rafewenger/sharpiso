@@ -159,6 +159,7 @@ void ISODUAL_DATA::CopyScalarGrid
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid2)
 {
   scalar_grid.Copy(scalar_grid2);
+  scalar_grid.SetSpacing(scalar_grid2.SpacingPtrConst());
   is_scalar_grid_set = true;
 }
 
@@ -167,6 +168,7 @@ void ISODUAL_DATA::CopyGradientGrid
 (const GRADIENT_GRID_BASE & gradient_grid2)
 {
   gradient_grid.Copy(gradient_grid2);
+  gradient_grid.SetSpacing(gradient_grid2.SpacingPtrConst());
   is_gradient_grid_set = true;
 }
 
@@ -175,6 +177,7 @@ void ISODUAL_DATA::SubsampleScalarGrid
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid2, const int subsample_resolution)
 {
   scalar_grid.Subsample(scalar_grid2, subsample_resolution);
+  scalar_grid.SetSpacing(subsample_resolution, scalar_grid2.SpacingPtrConst());
   is_scalar_grid_set = true;
 }
 
@@ -184,7 +187,9 @@ void ISODUAL_DATA::SupersampleScalarGrid
  const int supersample_resolution)
 {
   scalar_grid.Supersample(scalar_grid2, supersample_resolution);
-  is_scalar_grid_set = true;
+  scalar_grid.SetSpacing(float(1.0/supersample_resolution),
+                         scalar_grid2.SpacingPtrConst());
+ is_scalar_grid_set = true;
 }
 
 /// Subsample gradient grid
@@ -194,6 +199,8 @@ void ISODUAL_DATA::SubsampleGradientGrid
 {
   gradient_grid.Subsample(gradient_grid2, subsample_resolution);
   gradient_grid.ScalarMultiply(subsample_resolution);
+  gradient_grid.SetSpacing(subsample_resolution,
+                           gradient_grid2.SpacingPtrConst());
   is_gradient_grid_set = true;
 }
 
@@ -221,7 +228,6 @@ void ISODUAL_DATA::SetScalarGrid
   else {
     CopyScalarGrid(full_scalar_grid);
   };
-
 }
 
 // Copy, subsample or supersample scalar and gradient grids.
