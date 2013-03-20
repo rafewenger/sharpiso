@@ -50,6 +50,9 @@ public:
 	float min_cos_of_angle;
 	bool draw;
 	int draw_vert;
+	// weighted cdiff parameters
+	bool flag_weighted_cdiff;
+	float weights[3];
 
 
 	OUTPUT_INFO	 out_info;    // generate some output_info
@@ -70,6 +73,8 @@ public:
 		min_num_agree = 4;
 		min_cos_of_angle = cos((param_angle*M_PI/180.0)); // 20 degrees=0.34906585, 30 degrees=0.523598776;
 		out_info.set_defaults();
+		flag_weighted_cdiff = false;
+		weights[0]=weights[1]=weights[2]=1.0;
 	}
 
 };
