@@ -30,6 +30,8 @@
 
 #include "isodual3DIO.h"
 #include "sharpiso_get_gradients.h"
+
+#include "ijkgrid_nrrd.txx"
 #include "ijkIO.txx"
 #include "ijkmesh.txx"
 #include "ijkstring.txx"
@@ -50,6 +52,7 @@ typedef enum {
   SUBSAMPLE_PARAM,
   GRADIENT_PARAM, NORMAL_PARAM, POSITION_PARAM, POS_PARAM, 
   TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
+  GRAD2HERMITE_PARAM, GRAD2HERMITE_INTERPOLATE_PARAM,
   MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, 
   MAX_MAG_PARAM, SNAP_DIST_PARAM, MAX_GRAD_DIST_PARAM,
   SHARP_EDGEI_PARAM, INTERPOLATE_EDGEI_PARAM,
@@ -65,6 +68,7 @@ typedef enum {
 	USE_LINDSTROM_PARAM,
 	USE_LINDSTROM2_PARAM,
 	USE_LINDSTROM_FAST,
+  NO_LINDSTROM_PARAM,
 	SINGLE_ISOV_PARAM, MULTI_ISOV_PARAM,
   SPLIT_NON_MANIFOLD_PARAM,
 	SEP_NEG_PARAM, SEP_POS_PARAM, RESOLVE_AMBIG_PARAM,
@@ -79,6 +83,7 @@ typedef enum {
 	const char * parameter_string[] =
 	{ "-subsample",
     "-gradient", "-normal", "-position", "-pos", "-trimesh", "-uniform_trimesh",
+    "-grad2hermite", "-grad2hermiteI",
     "-max_eigen", "-max_dist", "-gradS_offset", "-max_mag", "-snap_dist",
     "-max_grad_dist",
     "-sharp_edgeI", "-interpolate_edgeI",
@@ -89,7 +94,7 @@ typedef enum {
     "-check_triangle_angle", "-no_check_triangle_angle",
     "-dist2center", "-dist2centroid",
     "-Linf", "-no_Linf",
-    "-lindstrom",	"-lindstrom2","-lindstrom_fast",
+    "-lindstrom",	"-lindstrom2","-lindstrom_fast", "-no_lindstrom",
     "-single_isov", "-multi_isov", "-split_non_manifold",
     "-sep_neg", "-sep_pos", "-resolve_ambig", 
     "-check_disk", "-no_check_disk",
@@ -218,6 +223,17 @@ typedef enum {
       input_info.quad_tri_method = UNIFORM_TRI;
       break;
 
+    case GRAD2HERMITE_PARAM:
+      input_info.flag_grad2hermite = true;
+      input_info.vertex_position_method = EDGEI_GRADIENT;
+      input_info.is_vertex_position_method_set = true;
+      break;
+
+    case GRAD2HERMITE_INTERPOLATE_PARAM:
+      input_info.vertex_position_method = EDGEI_INTERPOLATE;
+      input_info.flag_grad2hermiteI = true;
+      break;
+
     case SHARP_EDGEI_PARAM:
       input_info.use_sharp_edgeI = true;
       input_info.is_use_sharp_edgeI_set = true;
@@ -248,6 +264,12 @@ typedef enum {
     case USE_LINDSTROM_FAST:
       input_info.use_lindstrom = true;
       input_info.use_lindstrom_fast = true;
+      break;
+
+    case NO_LINDSTROM_PARAM:
+      input_info.use_lindstrom = false;
+      input_info.use_lindstrom2 = false;
+      input_info.use_lindstrom_fast = false;
       break;
 
     case SINGLE_ISOV_PARAM:
@@ -415,7 +437,6 @@ typedef enum {
     case NORMAL_PARAM:
       input_info.normal_filename = value_string;
       input_info.vertex_position_method = EDGEI_INPUT_DATA;
-
       input_info.is_vertex_position_method_set = true;
       break;
 
@@ -713,8 +734,8 @@ void ISODUAL3D::parse_command_line
 // Check input information/flags.
 bool ISODUAL3D::check_input
 (const INPUT_INFO & input_info,
-		const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
-		IJK::ERROR & error)
+ const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ IJK::ERROR & error)
 {
 	// Construct isosurface
 	if (input_info.isovalue.size() > 1 && input_info.use_stdout) {
@@ -737,109 +758,72 @@ bool ISODUAL3D::check_input
 // **************************************************
 
 void ISODUAL3D::read_nrrd_file
-(const char * input_filename, ISODUAL_SCALAR_GRID & scalar_grid,
-		NRRD_INFO & nrrd_info)
+(const char * input_filename, SHARPISO_SCALAR_GRID & scalar_grid,
+ NRRD_INFO & nrrd_info)
 {
-	int dimension = 0;
-	Nrrd *nin;
+  IJK::PROCEDURE_ERROR error("read_nrrd_file");
 
-	// get scalar field data from nrrd file
-	nin = nrrdNew();
-	if (nrrdLoad(nin, input_filename, NULL)) {
+  IJK::GRID_NRRD_IN<int, int> nrrd_in;
+  IJK::NRRD_DATA<int,int> nrrd_header;
+
+  nrrd_in.ReadScalarGrid(input_filename, scalar_grid, nrrd_header, error);
+  if (nrrd_in.ReadFailed()) { 
 		char *err = biffGetDone(NRRD);
 		cerr << "Error reading: " << input_filename << endl;
 		cerr << "  Error: " << err << endl;
 		exit(35);
-	};
-	dimension = nin->dim;
+  }
 
-	if (dimension < 1) {
-		cerr << "Illegal dimension.  Dimension must be at least 1." << endl;
+	if (scalar_grid.Dimension() < 1) {
+		cerr << "Illegal scalar grid dimension.  Dimension must be at least 1." 
+         << endl;
 		exit(20);
 	};
 
-	IJK::ARRAY<AXIS_SIZE_TYPE> axis_size(dimension);
-	size_t size[NRRD_DIM_MAX];
-	double grid_spacing[NRRD_DIM_MAX];
+  std::vector<COORD_TYPE> grid_spacing;
+  nrrd_header.GetSpacing(grid_spacing);
 
-	nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
-	nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSpacing, grid_spacing);
+  nrrd_info.dimension = scalar_grid.Dimension();
+	for (int d = 0; d < scalar_grid.Dimension(); d++) {
+    nrrd_info.grid_spacing.push_back(grid_spacing[d]); 
+    scalar_grid.SetSpacing(d, grid_spacing[d]);
+  };
 
-	nrrd_info.grid_spacing.clear();
-	for (int d = 0; d < dimension; d++) {
-		axis_size[d] = size[d];
-		nrrd_info.grid_spacing.push_back(grid_spacing[d]);
-	}
-
-	scalar_grid.SetSize(dimension, axis_size.PtrConst());
-	nrrd2scalar(nin, scalar_grid.ScalarPtr());
-
-	nrrdNuke(nin);
-
-	nrrd_info.dimension = dimension;
 }
 
 void ISODUAL3D::read_nrrd_file
 (const char * input_filename, GRADIENT_GRID & gradient_grid,
-		NRRD_INFO & nrrd_info)
+ NRRD_INFO & nrrd_info)
 {
-	int nrrd_dimension = 0;
-	int dimension = 0;
-	Nrrd *nin;
+  IJK::PROCEDURE_ERROR error("read_nrrd_file");
 
-	// get scalar field data from nrrd file
-	nin = nrrdNew();
-	if (nrrdLoad(nin, input_filename, NULL)) {
-		char *err = biffGetDone(NRRD);
-		cerr << "Error reading: " << input_filename << endl;
-		cerr << "  Error: " << err << endl;
-		exit(35);
-	};
-	nrrd_dimension = nin->dim;
+  GRID_NRRD_IN<int,AXIS_SIZE_TYPE> nrrd_in_gradient;
+  NRRD_DATA<int,AXIS_SIZE_TYPE> nrrd_header;
 
-	if (nrrd_dimension < 2) {
-		cerr << "Illegal nrrd dimension for gradient nrrd file." << endl;
-		cerr << "  Dimension in nrrd file must be at least 2." << endl;
+  nrrd_in_gradient.ReadVectorGrid
+    (input_filename, gradient_grid, nrrd_header, error);
+  if (nrrd_in_gradient.ReadFailed()) { throw error; }
+
+	if (gradient_grid.Dimension() < 1) {
+		cerr << "Illegal gradient grid dimension.  Dimension must be at least 1." 
+         << endl;
 		exit(20);
 	};
 
-	dimension = nrrd_dimension-1;
+	nrrd_info.dimension = gradient_grid.Dimension();
 
-	IJK::ARRAY<AXIS_SIZE_TYPE> axis_size(dimension);
-	size_t size[NRRD_DIM_MAX];
-	double grid_spacing[NRRD_DIM_MAX];
+  std::vector<COORD_TYPE> grid_spacing;
+  nrrd_header.GetSpacing(grid_spacing);
 
-	nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
-	nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSpacing, grid_spacing);
-
-	if (size[0] != dimension) {
-		cerr << "Illegal gradient nrrd file." << endl;
-		cerr << "  Gradient nrrd file should have size[0] (gradient vector length)"
-				<< endl;
-		cerr << "     equal to (nrrd_dimension-1) (volume dimension)."
-				<< endl;
-		cerr << "  size[0] = " << size[0]
-		                               << ".  (nrrd_dimension-1) = " << nrrd_dimension-1 << "." << endl;
-		exit(25);
-	}
-
-	nrrd_info.grid_spacing.clear();
-	for (int d = 0; d < dimension; d++) {
-		axis_size[d] = size[d+1];
-		nrrd_info.grid_spacing.push_back(grid_spacing[d+1]);
-	}
-
-	int gradient_length = dimension;
-	gradient_grid.SetSize(dimension, axis_size.PtrConst(), gradient_length);
-	nrrd2scalar(nin, gradient_grid.VectorPtr());
-
-	nrrdNuke(nin);
-
-	nrrd_info.dimension = dimension;
+  nrrd_info.dimension = gradient_grid.Dimension();
+	for (int d = 0; d < gradient_grid.Dimension(); d++) {
+    nrrd_info.grid_spacing.push_back(grid_spacing[d+1]); 
+    gradient_grid.SetSpacing(d, grid_spacing[d+1]);
+  };
 }
 
 void ISODUAL3D::read_nrrd_file
-(const char * input_filename, ISODUAL_SCALAR_GRID & scalar_grid,
+(const char * input_filename, SHARPISO_SCALAR_GRID & scalar_grid,
 		NRRD_INFO & nrrd_info, IO_TIME & io_time)
 {
 	ELAPSED_TIME wall_time;
@@ -1060,7 +1044,8 @@ void ISODUAL3D::rescale_vertex_coord
 	}
 
 	if (output_info.dimension != output_info.grid_spacing.size()) {
-		error.AddMessage("Size of grid spacing array does not equal volume dimension.");
+		error.AddMessage
+      ("Size of grid spacing array does not equal volume dimension.");
 		error.AddMessage("  Grid spacing array has ",
 				output_info.grid_spacing.size(), " elements.");
 		error.AddMessage("  Volume dimension = ", output_info.dimension, ".");
@@ -1116,12 +1101,12 @@ void ISODUAL3D::rescale_vertex_coord
 // **************************************************
 
 void ISODUAL3D::report_num_cubes
-(const ISODUAL_GRID & full_scalar_grid, const INPUT_INFO & input_info,
+(const SHARPISO_GRID & full_scalar_grid, const INPUT_INFO & input_info,
 		const ISODUAL_DATA & isodual_data)
 {
 	const int num_grid_cubes = full_scalar_grid.ComputeNumCubes();
 	const int num_cubes_in_isodual_data =
-			isodual_data.ScalarGrid().ComputeNumCubes();
+    isodual_data.ScalarGrid().ComputeNumCubes();
 
 	if (!input_info.use_stdout && !input_info.flag_silent) {
 
@@ -1565,6 +1550,7 @@ namespace {
     cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
     cerr << "  [-normal {normal_off_filename}]" << endl;
     cerr << "  [-merge_sharp | -no_merge_sharp] [-merge_linf_th <D>]" << endl;
+    cerr << "  [-grad2hermite | -grad2hermiteI]" << endl;
     cerr << "  [-single_isov | -multi_isov | -split_non_manifold]" << endl;
     cerr << "  [-sep_pos | -sep_neg | -resolve_ambig]" << endl;
     cerr << "  [-max_eigen {max}]" << endl;
@@ -1680,7 +1666,10 @@ void ISODUAL3D::help(const char * command_path)
 	cout << "  -normal {normal_off_filename}: Read edge-isosurface intersections"
        << endl
        << "      and normals from OFF file normal_off_filename." << endl;
-  cout << "  -merge_sharp: Merge vertices near sharp edges/corners." << endl;
+  cout << "  -merge_sharp:   Merge vertices near sharp edges/corners." << endl;
+  cout << "  -grad2hermite:  Convert gradient to hermite data." << endl;
+  cout << "  -grad2hermiteI: Convert gradient to hermite data using linear interpolation." << endl;
+
 	cout << "  -single_isov: Each intersected cube generates a single isosurface vertex." << endl;
 	cout << "  -multi_isov:  An intersected cube may generate multiple isosurface vertices."  << endl;
 	cout << "  -split_non_manifold:  Split vertices to avoid non-manifold edges."
@@ -1923,7 +1912,7 @@ void ISODUAL3D::set_output_info
 }
 
 void ISODUAL3D::set_color_alternating
-(const ISODUAL_GRID & grid, const vector<VERTEX_INDEX> & cube_list,
+(const SHARPISO_GRID & grid, const vector<VERTEX_INDEX> & cube_list,
 		COLOR_TYPE * color)
 {
 	const int dimension = grid.Dimension();

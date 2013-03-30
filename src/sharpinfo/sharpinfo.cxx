@@ -4,7 +4,7 @@
 
 /*
  IJK: Isosurface Jeneration Kode
- Copyright (C) 2011,2012 Rephael Wenger
+ Copyright (C) 2011-2013 Rephael Wenger
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public License
@@ -38,6 +38,7 @@
 #include "sharpiso_types.h"
 #include "sharpiso_scalar.txx"
 #include "sharpiso_findIntersect.h"
+#include "sh_point_find.h"
 
 using namespace SHARPISO;
 using namespace IJK;
@@ -471,10 +472,18 @@ void compute_iso_vertex_using_svd
 
     OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
 
-    svd_compute_sharp_vertex_for_cube
-      (scalar_grid, gradient_grid, cube_index, isovalue,
-       sharpiso_param, cube_111,
-       sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+    if (sharpiso_param.use_lindstrom) {
+      svd_compute_sharp_vertex_for_cube_lindstrom
+        (scalar_grid, gradient_grid, cube_index, isovalue,
+         sharpiso_param, cube_111,
+         sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+    }
+    else {
+      svd_compute_sharp_vertex_for_cube_lc_intersection
+        (scalar_grid, gradient_grid, cube_index, isovalue,
+         sharpiso_param, cube_111,
+         sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+    }
   }
 
 }
@@ -630,11 +639,6 @@ void output_svd_results
     print_coord3D(output, closest_point);
     output << endl;
 
-    /* OBSOLETE
-    compute_closest_point_to_cube_center_linf
-      (cube_coord, svd_info.ray_initial_point, svd_info.ray_direction,
-       closest_point);
-    */
     compute_closest_point_on_line_linf
       (svd_info.central_point, 
        svd_info.ray_initial_point, svd_info.ray_direction,
@@ -855,7 +859,6 @@ void output_edge_intersections
     for (int k = 0; k < scalar_grid.NumFacetVertices(); k++) {
       VERTEX_INDEX iv0 = scalar_grid.FacetVertex(cube_index, d, k);
       VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, d);
-      VERTEX_INDEX iv2;
 
       if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
 
@@ -871,9 +874,9 @@ void output_edge_intersections
 
         if (sharpiso_param.use_sharp_edgeI) {
 
-          intersect_isosurface_grid_edge_sharp3D
+          compute_isosurface_grid_edge_intersection
             (scalar_grid, gradient_grid, isovalue,
-             iv0, iv1, d, iv2, pcoord);
+             iv0, iv1, d, pcoord);
 
           output << " Intersection point: ";
           IJK::ijkgrid_output_coord(output, DIM3, pcoord);
@@ -996,10 +999,19 @@ void output_cube_eigenvalues
 
   IJK_FOR_EACH_GRID_CUBE(icube, scalar_grid, VERTEX_INDEX) {
 
-    svd_compute_sharp_vertex_for_cube
-      (scalar_grid, gradient_grid, icube, isovalue,
-       sharpiso_param, cube_111,
-       sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+    if (sharpiso_param.use_lindstrom) {
+      svd_compute_sharp_vertex_for_cube_lindstrom
+        (scalar_grid, gradient_grid, icube, isovalue,
+         sharpiso_param, cube_111,
+         sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+    }
+    else {
+      svd_compute_sharp_vertex_for_cube_lc_intersection
+        (scalar_grid, gradient_grid, icube, isovalue,
+         sharpiso_param, cube_111,
+         sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+    }
+
     output_cube_coordinates(output, scalar_grid, icube);
 
     output << " Num eigen: " << num_large_eigenvalues
@@ -1455,29 +1467,11 @@ void parse_command_line(int argc, char **argv)
     else if (s == "-clamp_far") {
       sharpiso_param.flag_clamp_far = true;
     }
-    else if (s == "-recompute_eigen2") {
-      sharpiso_param.flag_recompute_eigen2 = true;
-    }
-    else if (s == "-no_recompute_eigen2") {
-      sharpiso_param.flag_recompute_eigen2 = false;
-    }
-    else if (s == "-removeg") {
-      sharpiso_param.flag_remove_gradients = true;
-    }
-    else if (s == "-no_removeg") {
-      sharpiso_param.flag_remove_gradients = false;
-    }
     else if (s == "-dist2centroid") {
       sharpiso_param.flag_dist2centroid = true;
     }
     else if (s == "-dist2center") {
       sharpiso_param.flag_dist2centroid = false;
-    }
-    else if (s == "-centroid_eigen1") {
-      sharpiso_param.flag_centroid_eigen1 = true;
-    }
-    else if (s == "-no_centroid_eigen1") {
-      sharpiso_param.flag_centroid_eigen1 = false;
     }
     else if (s == "-no_Linf") {
       sharpiso_param.use_Linf_dist = false;

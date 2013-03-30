@@ -21,7 +21,7 @@ namespace ISODUAL3D {
 // GRID CUBES INFORMATION
 // **************************************************
 
-typedef enum{
+typedef enum {
 	AVAILABLE_GCUBE,    ///< Cube is available.
 	SELECTED_GCUBE,     ///< Cube contains a sharp vertex.
 	COVERED_GCUBE,      ///< Cube is near a cube containing a sharp vertex.
@@ -46,6 +46,7 @@ public:
   bool flag_centroid_location;
 };
 
+typedef std::vector<GRID_CUBE> GRID_CUBE_ARRAY;
 
 // **************************************************
 // ISOSURFACE VERTEX DATA
@@ -63,9 +64,11 @@ public:
 	/// If cube is not active, then it is defined as NO_INDEX.
 	SHARPISO_INDEX_GRID sharp_ind_grid;
 
-	bool isActive(const int cube_index); /// check if the cube is active
-	bool isFlag(const int cube_indexm, GRID_CUBE_FLAG flag); /// compare flag of the cube
+  /// Return true if cube is active.
+	bool isActive(const int cube_index);
 
+  /// Return true if cube flag equals flag.
+	bool isFlag(const int cube_index, GRID_CUBE_FLAG flag); 
 };
 
 
@@ -80,7 +83,19 @@ public:
 	int num_sharp_corners;
 	int num_sharp_edges;
 	int num_smooth_vertices;
-	int num_vertex_collapses;
+  int num_merged_iso_vertices;
+  int num_conflicts;
+  int num_Linf_iso_vertex_locations;
+
+  void Clear();                          ///< Clear all values.
+
+  /// Constructor.
+  ISOVERT_INFO()
+  { Clear(); };
+
+  /// Set.
+  void Set(const ISOVERT_INFO & info)
+  { *this = info; }
 };
 
 
@@ -90,20 +105,22 @@ public:
 
 /// Compute dual isosurface vertices.
 void compute_dual_isovert
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID_BASE & gradient_grid,
-		const SCALAR_TYPE isovalue,
-		const SHARP_ISOVERT_PARAM & isovert_param,
-		ISOVERT &isovertData);
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & isovert_param,
+   const VERTEX_POSITION_METHOD vertex_position_method,
+   ISOVERT & isovert,
+   ISOVERT_INFO & isovert_info);
 
 /// Compute dual isosurface vertices.
-void compute_dual_isovert(
-		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-    const std::vector<COORD_TYPE> & edgeI_coord,
-    const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
-		const SCALAR_TYPE isovalue,
-		const SHARP_ISOVERT_PARAM & isovert_param,
-		ISOVERT &isovertData);
+void compute_dual_isovert
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const std::vector<COORD_TYPE> & edgeI_coord,
+   const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & isovert_param,
+   ISOVERT & isovert);
 
 /// Select sharp isosurface vertices.
 void select_sharp_isovert(
@@ -139,6 +156,13 @@ void set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
 /// Count number of smooth vertices.
 void count_vertices
 (const ISOVERT & isovert, ISOVERT_INFO & isovert_info);
+
+/// Select all grid cubes which are not smooth.
+void select_non_smooth(ISOVERT & isovert);
+
+/// Get list of grid cubes from isovert.
+void get_cube_list
+  (const ISOVERT & isovert, std::vector<VERTEX_INDEX> & cube_list);
 
 // **************************************************
 // SUBROUTINES
@@ -179,6 +203,10 @@ void bin_grid_insert
 void sort_gcube_list
 (const std::vector<GRID_CUBE> & gcube_list,
  std::vector<NUM_TYPE> & sortd_ind2gcube_list);
+
+/// Store boundary bits for each cube in gcube_list.
+void store_boundary_bits
+(const SHARPISO_GRID & grid, GRID_CUBE_ARRAY & gcube_list);
 
 }
 

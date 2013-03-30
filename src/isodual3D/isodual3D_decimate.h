@@ -50,7 +50,7 @@ namespace ISODUAL3D {
 
   /// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
   void merge_sharp_iso_vertices
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    ISOVERT & isovert, 
    const SHARP_ISOVERT_PARAM & sharp_isovert_param,
@@ -59,7 +59,7 @@ namespace ISODUAL3D {
 
   /// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
   void merge_sharp_iso_vertices
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
    ISOVERT & isovert, 
    const SHARP_ISOVERT_PARAM & sharp_isovert_param,
    std::vector<VERTEX_INDEX> & isoquad_cube,
@@ -68,7 +68,7 @@ namespace ISODUAL3D {
   /// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
   /// Allows multiple isosurface vertices per cube.
   void merge_sharp_iso_vertices_multi
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const SCALAR_TYPE isovalue,
    const std::vector<DUAL_ISOVERT> & iso_vlist,
@@ -80,7 +80,7 @@ namespace ISODUAL3D {
   /// Merge isosurface vertices in cubes adjacent to selected sharp cubes.
   /// Allows multiple isosurface vertices per cube.
   void merge_sharp_iso_vertices_multi
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const SCALAR_TYPE isovalue,
    const std::vector<DUAL_ISOVERT> & iso_vlist,

@@ -4,7 +4,7 @@
 
 /*
  IJK: Isosurface Jeneration Code
- Copyright (C) 2012 Rephael Wenger
+ Copyright (C) 2012-2013 Rephael Wenger
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public License
@@ -218,9 +218,6 @@ namespace SHARPISO {
      NUM_TYPE & num_gradients);
 
   /// Get gradients of vertices which determine edge isosurface intersections.
-  /// @param zero_tolerance No division by numbers less than or equal 
-  ///        to zero_tolerance.
-  /// @pre zero_tolerance must be non-negative.
   void get_gradients_determining_edge_intersections
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -242,18 +239,6 @@ namespace SHARPISO {
    std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
    std::vector<SCALAR_TYPE> & scalar,
    NUM_TYPE & num_gradients);
-
-  /// Get gradients at edge intersection points determined by edge endpoints.
-  /// Use sharp formula for computing gradient at intersection.
-  void get_edgeI_sharp_gradients
-    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-     const GRADIENT_GRID_BASE & gradient_grid,
-     const VERTEX_INDEX cube_index,
-     const SCALAR_TYPE isovalue,
-     std::vector<COORD_TYPE> & point_coord,
-     std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
-     std::vector<SCALAR_TYPE> & scalar,
-     NUM_TYPE & num_gradients);
 
   /// Get gradients from list of edge-isosurface intersections.
   /// @param sharpiso_param Determines which gradients are selected.
@@ -488,21 +473,6 @@ namespace SHARPISO {
    const SCALAR_TYPE isovalue,
    const std::vector<VERTEX_INDEX> & vertex_list,
    bool vertex_flag[]);
-
-  // **************************************************
-  // COMPUTE GRID EDGE-ISOSURFACE INTERSECTION
-  // **************************************************
-
-  /// Compute intersection of isosurface and grid edge and 
-  ///    normal at the intersection point.
-  void compute_isosurface_grid_edge_intersection
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const SCALAR_TYPE isovalue,
-   const VERTEX_INDEX iv0, const VERTEX_INDEX iv1, const int dir,
-   const GRADIENT_COORD_TYPE max_small_magnitude,
-   COORD_TYPE p[DIM3],
-   GRADIENT_COORD_TYPE normal[DIM3]);
 
   // **************************************************
   // MAP GRAD_SELECTION_METHOD TO/FROM C++ string

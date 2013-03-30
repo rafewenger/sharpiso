@@ -68,7 +68,7 @@ namespace {
 
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 void ISODUAL3D::merge_sharp_iso_vertices
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
  const SCALAR_TYPE isovalue,
  ISOVERT & isovert,
  const SHARP_ISOVERT_PARAM & sharp_isovert_param,
@@ -93,7 +93,7 @@ void ISODUAL3D::merge_sharp_iso_vertices
 
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 void ISODUAL3D::merge_sharp_iso_vertices
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
  ISOVERT & isovert, 
  const SHARP_ISOVERT_PARAM & sharp_isovert_param,
  std::vector<VERTEX_INDEX> & isoquad_cube,
@@ -110,7 +110,7 @@ void ISODUAL3D::merge_sharp_iso_vertices
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 // Allows multiple isosurface vertices per cube.
 void ISODUAL3D::merge_sharp_iso_vertices_multi
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
  const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
  const SCALAR_TYPE isovalue,
  const std::vector<DUAL_ISOVERT> & iso_vlist,
@@ -150,7 +150,7 @@ void ISODUAL3D::merge_sharp_iso_vertices_multi
 // Merge isosurface vertices in cubes adjacent to selected sharp cubes.
 // Allows multiple isosurface vertices per cube.
 void ISODUAL3D::merge_sharp_iso_vertices_multi
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid, 
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
  const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
  const SCALAR_TYPE isovalue,
  const std::vector<DUAL_ISOVERT> & iso_vlist,
@@ -346,14 +346,6 @@ namespace {
       VERTEX_INDEX gcube_index1 = gcube_map[gcube_index0];
       VERTEX_INDEX cube_index1 = isovert.gcube_list[gcube_index1].cube_index;
       VERTEX_HASH_TABLE::iterator cube1_iter = cube_hash.find(cube_index1);
-
-      // *** DEBUG ***
-      if (cube1_iter == cube_hash.end()) {
-        using namespace std;
-        cerr << "*** ERROR.  Cube index: " << cube_index1
-             << " is not in the hash table." << endl;
-        exit(1000);
-      }
       isov_index[i] = cube1_iter->second;
     }
   }

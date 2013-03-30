@@ -42,7 +42,7 @@ using namespace ISODUAL3D;
 ///   iso_simplices[numv_per_poly*ip+k] = 
 ///     cube containing k'th vertex of polytope ip.
 void ISODUAL3D::extract_dual_isopoly
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue, std::vector<ISO_VERTEX_INDEX> & iso_poly,
  ISODUAL_INFO & isodual_info)
 {
@@ -75,7 +75,7 @@ void ISODUAL3D::extract_dual_isopoly
 ///   iso_simplices[numv_per_poly*ip+k] = 
 ///     cube containing k'th vertex of polytope ip.
 void ISODUAL3D::extract_dual_isopoly
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue, std::vector<ISO_VERTEX_INDEX> & iso_poly,
  std::vector<FACET_VERTEX_INDEX> & facet_vertex,
  ISODUAL_INFO & isodual_info)
@@ -105,7 +105,7 @@ void ISODUAL3D::extract_dual_isopoly
 /// @param edge_list = List of edges. Polytopes are dual to edges.
 /// @pre Each edge is an internal grid edge.
 void ISODUAL3D::extract_dual_isopoly_from_list
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
  const std::vector<EDGE_INDEX> & edge_list,
  std::vector<ISO_VERTEX_INDEX> & iso_poly,

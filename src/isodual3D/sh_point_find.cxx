@@ -1,1 +1,0 @@
-../sharpiso/sh_point_find.cxx

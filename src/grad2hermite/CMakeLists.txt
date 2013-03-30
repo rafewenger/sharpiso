@@ -25,7 +25,7 @@ INCLUDE_DIRECTORIES("${IJK_DIR}/include")
 LINK_DIRECTORIES("${NRRD_LIBDIR}")
 LINK_LIBRARIES(expat NrrdIO z)
 
-ADD_EXECUTABLE(grad2hermite grad2hermite.cxx sharpiso_get_gradients.cxx)
+ADD_EXECUTABLE(grad2hermite grad2hermite.cxx sharpiso_intersect.cxx)
 
 SET(CMAKE_INSTALL_PREFIX ${IJK_DIR})
 INSTALL(TARGETS grad2hermite DESTINATION "bin/$ENV{OSTYPE}")

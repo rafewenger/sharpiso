@@ -53,6 +53,7 @@ public:
 	// weighted cdiff parameters
 	bool flag_weighted_cdiff;
 	float weights[3];
+	int num_vertices_mag_grt_zero;
 
 
 	OUTPUT_INFO	 out_info;    // generate some output_info
@@ -64,7 +65,7 @@ public:
 		flag_reliable_grad_far = false;
 		flag_reliable_scalar_prediction = false;
 		print_info = false;
-		min_gradient_mag = 0.001;
+		min_gradient_mag = 3;
 		param_angle=20;
 		draw = false;
 		reliable_grad_far_dist = 2;
@@ -75,6 +76,7 @@ public:
 		out_info.set_defaults();
 		flag_weighted_cdiff = false;
 		weights[0]=weights[1]=weights[2]=1.0;
+		num_vertices_mag_grt_zero=0;
 	}
 
 };

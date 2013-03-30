@@ -25,8 +25,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
-
-
+#include <time.h>
+#include <sys/time.h>
 #include "ijkNrrd.h"
 #include "ijkgrid_nrrd.txx"
 
@@ -57,6 +57,18 @@ void print_unreliable_grad_info
 // MAIN
 // **************************************************
 
+timespec diff(timespec start, timespec end)
+{
+	timespec temp;
+	if ((end.tv_nsec-start.tv_nsec)<0) {
+		temp.tv_sec = end.tv_sec-start.tv_sec-1;
+		temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
+	} else {
+		temp.tv_sec = end.tv_sec-start.tv_sec;
+		temp.tv_nsec = end.tv_nsec-start.tv_nsec;
+	}
+	return temp;
+}
 int main(int argc, char **argv)
 {
 	time_t start_time;
@@ -107,25 +119,40 @@ int main(int argc, char **argv)
 			}
 			OptChosen=true
 		}
-		*/
+		 */
 		if (input_info.flag_reliable_grad_far){
+			time_t begin,end;
+			time (&begin);
 			compute_reliable_gradients_far
 			(full_scalar_grid, vertex_gradient_grid, reliable_grid, input_info);
-			OptChosen=true;
+			OptChosen = true;
+			time (&end);
 			// print info
 			/*
 			cout <<"Total number of vertices "<<full_scalar_grid.NumVertices() << endl;
 			cout <<"Number of vertices with reliable grads " << input_info.out_info.num_reliable << endl;
 			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
 			cout <<"Number of boundary vertices "<<input_info.out_info.boundary_verts <<endl;
-			*/
-			cout <<"*****angle based prediction completed."<<endl;
+			 */
+			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
+			cout <<"time " <<difftime(end,begin) <<endl;
+			cout <<"*****angle based prediction completed. " <<endl;
 		}
-		 if (input_info.flag_reliable_scalar_prediction){
+		if (input_info.flag_reliable_scalar_prediction){
+			input_info.out_info.num_unreliable = 0;
+			time_t begin,end;
+			time (&begin);
 			compute_reliable_gradients_SBP
 			(full_scalar_grid, vertex_gradient_grid, reliable_grid, input_info);
 			OptChosen = true;
-			cout <<"*****scalar based prediction "<<endl;
+			time (&end);
+			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
+			cout <<"time " <<difftime(end,begin) << endl;
+			cout <<"*****scalar based prediction complete,\n num grad "
+					<< " whose mag is greater than "
+					<< input_info.min_gradient_mag
+					<<" is "<< input_info.num_vertices_mag_grt_zero <<
+					"  out of a total of "<<full_scalar_grid.NumVertices()<<endl;
 		}
 		if (!OptChosen)
 		{
@@ -316,10 +343,10 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info)
 
 		}
 		else if (string(argv[iarg])=="-scalar_pred_err"){
-					iarg++;
-					io_info.flag_reliable_scalar_prediction = true;
-					io_info.scalar_prediction_err = atof(argv[iarg]);
-				}
+			iarg++;
+			io_info.flag_reliable_scalar_prediction = true;
+			io_info.scalar_prediction_err = atof(argv[iarg]);
+		}
 		else
 		{
 			cout <<"Error in  "<< string(argv[iarg]) << endl;

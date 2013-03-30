@@ -3,7 +3,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -39,8 +39,6 @@ namespace ISODUAL3D {
 // SCALAR TYPES
 // **************************************************
 
-  typedef float GRADIENT_TYPE;   ///< Gradient coordinate type.
-  typedef int LENGTH_TYPE;       ///< Vector length type.
   typedef int ISO_VERTEX_INDEX;  ///< Isosurface vertex index type.
   typedef int MERGE_INDEX;       ///< Merge index type.
 

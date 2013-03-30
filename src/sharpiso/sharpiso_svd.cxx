@@ -238,6 +238,29 @@ void svd_calculate_sharpiso_vertex_using_lindstrom(
 
 }
 
+// Calculate the sharp iso vertex using SVD and lindstrom approach.
+// Input is isosurface-edge intersections.
+void svd_calculate_sharpiso_vertex_using_lindstrom(
+		const bool useLindstrom2,
+		const COORD_TYPE * edgeI_coords, 
+    const GRADIENT_COORD_TYPE * edgeI_normal_coord,
+		const NUM_TYPE num_intersections,
+		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
+		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
+		COORD_TYPE * cubecenter, COORD_TYPE * isoVertcoords)
+{
+  std::vector<SCALAR_TYPE> edgeI_scalar(num_intersections);
+
+  for (NUM_TYPE i = 0; i < num_intersections; i++) 
+    { edgeI_scalar[i] = isovalue; }
+
+  svd_calculate_sharpiso_vertex_using_lindstrom
+    (useLindstrom2, edgeI_coords, edgeI_normal_coord,
+     &(edgeI_scalar[0]), num_intersections, isovalue,
+     err_tolerance, num_singular_vals, singular_vals,
+     cubecenter, isoVertcoords);
+}
+
 // calculate the sharp iso vertex using SVD, but normalize the
 // gradients
 void svd_calculate_sharpiso_vertex_unit_normals(const COORD_TYPE * vert_coords,

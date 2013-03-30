@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011,2012 Rephael Wenger
+  Copyright (C) 2011-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 
     parse_command_line(argc, argv, input_info);
 
-    ISODUAL_SCALAR_GRID full_scalar_grid;
+    SHARPISO_SCALAR_GRID full_scalar_grid;
     NRRD_INFO nrrd_info;
     read_nrrd_file
       (input_info.scalar_filename, full_scalar_grid,  nrrd_info, io_time);
@@ -90,7 +90,8 @@ int main(int argc, char **argv)
 
       if (!full_gradient_grid.CompareSize(full_scalar_grid)) {
         error.AddMessage("Input error. Grid mismatch.");
-        error.AddMessage("  Dimension or axis sizes of gradient grid and scalar grid do not match.");
+        error.AddMessage
+          ("  Dimension or axis sizes of gradient grid and scalar grid do not match.");
         throw error;
       }
     }

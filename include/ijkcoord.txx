@@ -427,6 +427,19 @@ namespace IJK {
   /* \} */
 
   // **************************************************
+  // Clamp operator
+  // **************************************************
+
+  template <typename T>
+  T clamp01_coord(const T x)
+  {
+    if (x < 0) { return(0); }
+    else if (x > 1) { return(1); }
+
+    return(x);
+  }
+
+  // **************************************************
   // OLD DEPRECATED Comparison operators
   // **************************************************
 

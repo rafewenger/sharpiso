@@ -32,6 +32,7 @@
 #include "isodual3D_decimate.h"
 #include "isodual3D_extract.h"
 #include "isodual3D_position.h"
+#include "sharpiso_intersect.h"
 
 
 using namespace IJK;
@@ -40,7 +41,7 @@ using namespace std;
 
 
 // **************************************************
-// DUAL CONTOURING (HYPERCUBES)
+// DUAL CONTOURING
 // **************************************************
 
 /// Dual Contouring Algorithm.
@@ -50,6 +51,7 @@ void ISODUAL3D::dual_contouring
 {
   const int dimension = isodual_data.ScalarGrid().Dimension();
   const AXIS_SIZE_TYPE * axis_size = isodual_data.ScalarGrid().AxisSize();
+  ISOVERT isovert;
   PROCEDURE_ERROR error("dual_contouring");
 
   clock_t t_start = clock();
@@ -62,28 +64,50 @@ void ISODUAL3D::dual_contouring
   ISO_MERGE_DATA merge_data(dimension, axis_size);
 
   if (isodual_data.IsGradientGridSet() &&
-      isodual_data.VertexPositionMethod() == GRADIENT_POSITIONING
-      || isodual_data.VertexPositionMethod() == EDGEI_INTERPOLATE
-      || isodual_data.VertexPositionMethod() == EDGEI_GRADIENT) {
+      (isodual_data.flag_grad2hermite || isodual_data.flag_grad2hermiteI)) {
+    const GRADIENT_COORD_TYPE max_small_magnitude 
+      = isodual_data.max_small_magnitude;
+
+    std::vector<COORD_TYPE> edgeI_coord;
+    std::vector<GRADIENT_COORD_TYPE> edgeI_normal_coord;
+
+    if (isodual_data.flag_grad2hermiteI) {
+      compute_all_edgeI_linear_interpolate
+        (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
+         isovalue, max_small_magnitude, edgeI_coord, edgeI_normal_coord);
+    }
+    else {
+      compute_all_edgeI
+        (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
+         isovalue, max_small_magnitude, edgeI_coord, edgeI_normal_coord);
+    }
+
+    dual_contouring_merge_sharp_from_hermite
+      (isodual_data.ScalarGrid(), edgeI_coord, edgeI_normal_coord,
+       isovalue, isodual_data, dual_isosurface, isovert,
+       isodual_info);
+  }
+  else if (isodual_data.IsGradientGridSet() &&
+      (isodual_data.VertexPositionMethod() == GRADIENT_POSITIONING
+       || isodual_data.VertexPositionMethod() == EDGEI_INTERPOLATE
+       || isodual_data.VertexPositionMethod() == EDGEI_GRADIENT)) {
 
     if (isodual_data.flag_merge_sharp) {
-      ISOVERT isovert;
       dual_contouring_merge_sharp_from_grad
         (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
          isovalue, isodual_data, dual_isosurface, isovert,
          isodual_info);
     }
     else {
-      dual_contouring_sharp
+      dual_contouring_sharp_from_grad
         (isodual_data.ScalarGrid(), isodual_data.GradientGrid(),
          isovalue, isodual_data, dual_isosurface,
-         merge_data, isodual_info);
+         isovert, isodual_info);
     }
   }
   else if (isodual_data.AreEdgeISet() &&
            isodual_data.VertexPositionMethod() == EDGEI_INPUT_DATA) {
 
-    ISOVERT isovert;
     dual_contouring_merge_sharp_from_hermite
       (isodual_data.ScalarGrid(), 
        isodual_data.EdgeICoord(), isodual_data.EdgeINormalCoord(),
@@ -108,7 +132,7 @@ void ISODUAL3D::dual_contouring
 // **************************************************
 
 void ISODUAL3D::dual_contouring
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
  const ISODUAL_PARAM & isodual_param,
  std::vector<VERTEX_INDEX> & isoquad_vert,
@@ -150,7 +174,7 @@ void ISODUAL3D::dual_contouring
 /// Dual contouring algorithm.
 /// Position isosurface vertices at cube centers.
 void ISODUAL3D::dual_contouring_cube_center
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
  std::vector<VERTEX_INDEX> & isoquad_vert,
  std::vector<COORD_TYPE> & vertex_coord,
@@ -189,7 +213,7 @@ void ISODUAL3D::dual_contouring_cube_center
 /// Dual contouring algorithm.
 /// Position isosurface vertices at centroid of isosurface-edge intersections.
 void ISODUAL3D::dual_contouring_centroid
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
  std::vector<VERTEX_INDEX> & isoquad_vert,
  std::vector<COORD_TYPE> & vertex_coord,
@@ -230,7 +254,7 @@ void ISODUAL3D::dual_contouring_centroid
 /// Position isosurface vertices at centroid of isosurface-edge intersections.
 /// Allow multiple isosurface vertices in a grid cube.
 void ISODUAL3D::dual_contouring_centroid_multiv
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
  const bool flag_separate_neg,
  std::vector<VERTEX_INDEX> & isoquad_vert,
@@ -287,193 +311,260 @@ void ISODUAL3D::dual_contouring_centroid_multiv
   clock2seconds(t3-t0, isodual_info.time.total);
 }
 
+
 // **************************************************
 // DUAL CONTOURING USING SCALAR & GRADIENT DATA
 // **************************************************
 
-// Extract isosurface using Dual Contouring algorithm
+// Extract dual contouring isosurface.
 // Returns list of isosurface triangle and quad vertices
 //   and list of isosurface vertex coordinates.
 // Use gradients to place isosurface vertices on sharp features. 
-void ISODUAL3D::dual_contouring_sharp
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+void ISODUAL3D::dual_contouring_sharp_from_grad
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
  const ISODUAL_PARAM & isodual_param,
  DUAL_ISOSURFACE & dual_isosurface,
- MERGE_DATA & merge_data,
+ ISOVERT & isovert,
  ISODUAL_INFO & isodual_info)
 {
-  const int dimension = scalar_grid.Dimension();
-  const VERTEX_POSITION_METHOD vertex_position_method =
-    isodual_param.vertex_position_method;
-  const bool use_selected_gradients =
-    isodual_param.use_selected_gradients;
-  const bool use_only_cube_gradients =
-    isodual_param.use_only_cube_gradients;
-  const SIGNED_COORD_TYPE grad_selection_cube_offset =
-    isodual_param.grad_selection_cube_offset;
-  const bool allow_multiple_iso_vertices =
-    isodual_param.allow_multiple_iso_vertices;
-  const bool flag_separate_neg = isodual_param.flag_separate_neg;
-  const bool flag_resolve_ambiguous_facets =
-    isodual_param.flag_resolve_ambiguous_facets;
-  PROCEDURE_ERROR error("dual_contouring");
+  ISOVERT_INFO isovert_info;
+  PROCEDURE_ERROR error("dual_contouring_sharp_from_grid");
 
-  clock_t t0, t1, t2, t3;
-  t0 = clock();
+  if (!gradient_grid.Check
+      (scalar_grid, "gradient grid", "scalar grid", error))
+    { throw error; }
+
+  clock_t t0, t1, t2, t3, t4;
 
   dual_isosurface.Clear();
   isodual_info.time.Clear();
 
-  std::vector<ISO_VERTEX_INDEX> isoquad_vert2;
+  t0 = clock();
+    
+  compute_dual_isovert
+    (scalar_grid, gradient_grid, isovalue, isodual_param, 
+     isodual_param.vertex_position_method, isovert, isovert_info);
 
-  if (allow_multiple_iso_vertices) {
+  select_non_smooth(isovert);
 
-    bool flag_separate_opposite(true);
-    IJKDUALTABLE::ISODUAL_CUBE_TABLE 
-      isodual_table(dimension, flag_separate_neg, flag_separate_opposite);
+  t1 = clock();
 
-    std::vector<FACET_VERTEX_INDEX> facet_vertex;
-    extract_dual_isopoly
-      (scalar_grid, isovalue, isoquad_vert2, facet_vertex, isodual_info);
+  if (isodual_param.allow_multiple_iso_vertices) {
 
-    t1 = clock();
+    if (isodual_param.flag_resolve_ambiguous_facets) {
 
-    std::vector<ISO_VERTEX_INDEX> cube_list;
-    std::vector<ISO_VERTEX_INDEX> isoquad_cube;      
-    merge_identical(isoquad_vert2, cube_list, isoquad_cube, merge_data);
+      std::vector<VERTEX_INDEX> cube_list;
+      std::vector<AMBIGUITY_TYPE> cube_ambig;
 
-
-    if (flag_resolve_ambiguous_facets) {
-
-      std::vector<ISO_VERTEX_INDEX> iso_vlist_cube;
-      std::vector<FACET_VERTEX_INDEX> iso_vlist_patch;
-      std::vector<VERTEX_PAIR> edge_list;
-      std::vector<AMBIGUITY_TYPE> cube_ambig(cube_list.size());
-      std::vector<AMBIGUITY_TYPE> iso_vlist_cube_ambig;
-
+      get_cube_list(isovert, cube_list);
       set_cube_ambiguity(scalar_grid, gradient_grid, isovalue,
                          cube_list, isodual_param, cube_ambig);
-
       set_ambiguity_info(cube_ambig, isodual_info.sharpiso);
 
-      VERTEX_INDEX num_split;
-      split_dual_isovert_ambig
-        (scalar_grid, isodual_table, isovalue, 
-         cube_list, cube_ambig, isoquad_cube, facet_vertex, 
-         iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
-         dual_isosurface.quad_vert, num_split);
-      isodual_info.sharpiso.num_cube_multi_isov = num_split;
-      isodual_info.sharpiso.num_cube_single_isov = cube_list.size() - num_split;
-
-      t2 = clock();
-
-      if (vertex_position_method == GRADIENT_POSITIONING) {
-
-        position_dual_isovertices_using_gradients
-          (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
-           iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig,
-           dual_isosurface.vertex_coord, isodual_info.sharpiso);
-      }
-      else if (vertex_position_method == EDGEI_INTERPOLATE ||
-               vertex_position_method == EDGEI_GRADIENT) {
-
-        position_dual_isovertices_edgeI
-          (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
-           iso_vlist_cube, iso_vlist_patch, iso_vlist_cube_ambig, 
-           vertex_position_method, dual_isosurface.vertex_coord,
-           isodual_info.sharpiso);
-      }
-      else {
-        error.AddMessage("Programming error. Positioning method error.");
-        error.AddMessage
-          ("  Positioning does not allow resolving ambiguities in a cube.");
-        throw error;
-      }
-
+      dual_contouring_extract_isopoly_multi
+        (scalar_grid, isovalue, isodual_param, dual_isosurface, isovert,
+         cube_ambig, isodual_info, isovert_info);
     }
     else {
-      VERTEX_INDEX num_split;
-      std::vector<DUAL_ISOVERT> iso_vlist;
-      IJK::split_dual_isovert
-        (scalar_grid, isodual_table, isovalue, 
-         cube_list, isoquad_cube, facet_vertex,
-         iso_vlist, dual_isosurface.quad_vert, num_split);
-
-      isodual_info.sharpiso.num_cube_multi_isov = num_split;
-      isodual_info.sharpiso.num_cube_single_isov = cube_list.size() - num_split;
-
-      t2 = clock();
-
-      if (vertex_position_method == GRADIENT_POSITIONING) {
-
-        position_dual_isovertices_using_gradients_multi
-          (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
-           iso_vlist, dual_isosurface.vertex_coord, isodual_info.sharpiso);
-      }
-      else if (vertex_position_method == EDGEI_INTERPOLATE ||
-               vertex_position_method == EDGEI_GRADIENT) {
-
-        position_dual_isovertices_edgeI_multi
-          (scalar_grid, gradient_grid, isodual_table, isovalue, isodual_param,
-           iso_vlist, vertex_position_method,
-           dual_isosurface.vertex_coord, isodual_info.sharpiso);
-      }
-      else {
-        error.AddMessage("Programming error. Positioning method error.");
-        error.AddMessage
-          ("  Positioning does not allow multiple isosurface vertices in a cube.");
-        throw error;
-      }
-
+      dual_contouring_extract_isopoly_multi
+        (scalar_grid, isovalue, isodual_param, dual_isosurface, isovert,
+         isodual_info, isovert_info);
     }
-
   }
   else {
-
-
-    extract_dual_isopoly
-      (scalar_grid, isovalue, isoquad_vert2, isodual_info);
-    t1 = clock();
-
-    std::vector<ISO_VERTEX_INDEX> iso_vlist;
-    merge_identical(isoquad_vert2, iso_vlist, 
-                    dual_isosurface.quad_vert, merge_data);
-    t2 = clock();
-
-    if (vertex_position_method == GRADIENT_POSITIONING) {
-      position_dual_isovertices_using_gradients
-        (scalar_grid, gradient_grid, isovalue, isodual_param,
-         iso_vlist, dual_isosurface.vertex_coord, isodual_info.sharpiso);
-    }
-    else if (vertex_position_method == EDGEI_INTERPOLATE ||
-             vertex_position_method == EDGEI_GRADIENT) {
-
-      // Position using SVD on grid edge-isosurface intersections.
-      // Select endpoint gradient which determines edge-isosurface intersection.
-      position_dual_isovertices_edgeI
-        (scalar_grid, gradient_grid, isovalue, isodual_param, iso_vlist, 
-         vertex_position_method, dual_isosurface.vertex_coord,
-         isodual_info.sharpiso);
-    }
-    else {
-      // default
-      position_dual_isovertices_centroid
-        (scalar_grid, isovalue, iso_vlist, dual_isosurface.vertex_coord);
-    }
-
+    dual_contouring_extract_isopoly
+      (scalar_grid, isovalue, isodual_param, dual_isosurface, isovert,
+       isodual_info, isovert_info);
   }
 
-  t3 = clock();
+  t2 = clock();
+
+  // Set isodual_info
+  count_vertices(isovert, isovert_info);
+  isodual_info.sharpiso.Set(isovert_info);
 
   // store times
-  clock2seconds(t1-t0, isodual_info.time.extract);
-  clock2seconds(t2-t1, isodual_info.time.merge_identical);
-  clock2seconds(t3-t2, isodual_info.time.position);
-  clock2seconds(t3-t0, isodual_info.time.total);
+  float seconds;
+  clock2seconds(t1-t0, seconds);
+  isodual_info.time.position += seconds;
+  clock2seconds(t2-t0, isodual_info.time.total);
 }
 
+// Extract dual contouring isosurface.
+// Returns list of isosurface quad vertices
+//   and list of isosurface vertex coordinates.
+// @pre isovert contains isovert locations.
+void ISODUAL3D::dual_contouring_extract_isopoly
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const ISODUAL_PARAM & isodual_param,
+ DUAL_ISOSURFACE & dual_isosurface,
+ ISOVERT & isovert,
+ ISODUAL_INFO & isodual_info,
+ ISOVERT_INFO & isovert_info)
+{
+  const int dimension = scalar_grid.Dimension();
+  clock_t t0, t1, t2;
+
+  t0 = clock();
+
+  std::vector<DUAL_ISOVERT> iso_vlist;
+
+  extract_dual_isopoly(scalar_grid, isovalue, 
+                       dual_isosurface.quad_vert, isodual_info);
+
+  map_isopoly_vert(isovert, dual_isosurface.quad_vert);
+
+  t1 = clock();
+
+  copy_isovert_positions
+    (isovert.gcube_list, dual_isosurface.vertex_coord);
+
+  t2 = clock();
+
+  if (isodual_param.flag_store_isovert_info) {
+    set_isovert_info(iso_vlist, isovert.gcube_list, 
+                     isodual_info.sharpiso.vertex_info);
+  };
+
+  // store times
+  float seconds;
+  clock2seconds(t1-t0, isodual_info.time.extract);
+  clock2seconds(t2-t1, seconds);
+  isodual_info.time.position += seconds;
+}
+
+// Extract dual contouring isosurface.
+// Returns list of isosurface quad vertices
+//   and list of isosurface vertex coordinates.
+// @pre isovert contains isovert locations.
+void ISODUAL3D::dual_contouring_extract_isopoly_multi
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const ISODUAL_PARAM & isodual_param,
+ DUAL_ISOSURFACE & dual_isosurface,
+ ISOVERT & isovert,
+ ISODUAL_INFO & isodual_info,
+ ISOVERT_INFO & isovert_info)
+{
+  const int dimension = scalar_grid.Dimension();
+  const bool flag_separate_neg = isodual_param.flag_separate_neg;
+  clock_t t0, t1, t2;
+
+  t0 = clock();
+
+  std::vector<DUAL_ISOVERT> iso_vlist;
+
+  bool flag_separate_opposite(true);
+  IJKDUALTABLE::ISODUAL_CUBE_TABLE 
+    isodual_table(dimension, flag_separate_neg, flag_separate_opposite);
+
+  std::vector<VERTEX_INDEX> isoquad_cube;
+  std::vector<FACET_VERTEX_INDEX> facet_vertex;
+
+  extract_dual_isopoly
+    (scalar_grid, isovalue, isoquad_cube, facet_vertex, isodual_info);
+
+  map_isopoly_vert(isovert, isoquad_cube);
+
+  full_split_dual_isovert
+    (scalar_grid, isodual_table, isovalue,
+     isovert, isoquad_cube, facet_vertex, isodual_param,
+     iso_vlist, dual_isosurface.quad_vert, isodual_info.sharpiso);
+
+  t1 = clock();
+
+  position_dual_isovertices_multi
+    (scalar_grid, isodual_table, isovalue, isovert,
+     iso_vlist, dual_isosurface.vertex_coord);
+
+  t2 = clock();
+
+  if (isodual_param.flag_store_isovert_info) {
+    set_isovert_info(iso_vlist, isovert.gcube_list, 
+                     isodual_info.sharpiso.vertex_info);
+  };
+
+  // store times
+  float seconds;
+  clock2seconds(t1-t0, isodual_info.time.extract);
+  clock2seconds(t2-t1, seconds);
+  isodual_info.time.position += seconds;
+}
+
+
+// Extract dual contouring isosurface.
+// Returns list of isosurface quad vertices
+//   and list of isosurface vertex coordinates.
+// Resolve ambiguous facets.
+// @pre isovert contains isovert locations.
+void ISODUAL3D::dual_contouring_extract_isopoly_multi
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const ISODUAL_PARAM & isodual_param,
+ DUAL_ISOSURFACE & dual_isosurface,
+ ISOVERT & isovert,
+ const std::vector<AMBIGUITY_TYPE> & cube_ambig,
+ ISODUAL_INFO & isodual_info,
+ ISOVERT_INFO & isovert_info)
+{
+  const int dimension = scalar_grid.Dimension();
+  const bool flag_separate_neg = isodual_param.flag_separate_neg;
+  clock_t t0, t1, t2;
+
+  t0 = clock();
+
+  std::vector<DUAL_ISOVERT> iso_vlist;
+
+  bool flag_separate_opposite(true);
+  IJKDUALTABLE::ISODUAL_CUBE_TABLE 
+    isodual_table(dimension, flag_separate_neg, flag_separate_opposite);
+
+  std::vector<VERTEX_INDEX> isoquad_cube;
+  std::vector<FACET_VERTEX_INDEX> facet_vertex;
+  std::vector<VERTEX_INDEX> cube_list;
+
+  extract_dual_isopoly
+    (scalar_grid, isovalue, isoquad_cube, facet_vertex, isodual_info);
+
+  map_isopoly_vert(isovert, isoquad_cube);
+
+  get_cube_list(isovert, cube_list);
+
+  VERTEX_INDEX num_split;
+  split_dual_isovert_ambig
+    (scalar_grid, isodual_table, isovalue, 
+     cube_list, cube_ambig, isoquad_cube, facet_vertex, 
+     iso_vlist, dual_isosurface.quad_vert, num_split);
+  isodual_info.sharpiso.num_cube_multi_isov = num_split;
+  isodual_info.sharpiso.num_cube_single_isov = cube_list.size() - num_split;
+
+  t1 = clock();
+
+  position_dual_isovertices_multi
+    (scalar_grid, isodual_table, isovalue, isovert,
+     iso_vlist, dual_isosurface.vertex_coord);
+
+  t2 = clock();
+
+  if (isodual_param.flag_store_isovert_info) {
+    set_isovert_info(iso_vlist, isovert.gcube_list, 
+                     isodual_info.sharpiso.vertex_info);
+  };
+
+  // store times
+  float seconds;
+  clock2seconds(t1-t0, isodual_info.time.extract);
+  clock2seconds(t2-t1, seconds);
+  isodual_info.time.position += seconds;
+}
+
+
+// **************************************************
+// MERGE SHARP
+// **************************************************
 
 // Extract dual contouring isosurface by merging grid cubes
 //   around sharp vertices.
@@ -481,7 +572,7 @@ void ISODUAL3D::dual_contouring_sharp
 //   and list of isosurface vertex coordinates.
 // Use gradients to place isosurface vertices on sharp features. 
 void ISODUAL3D::dual_contouring_merge_sharp_from_grad
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
  const ISODUAL_PARAM & isodual_param,
@@ -504,7 +595,8 @@ void ISODUAL3D::dual_contouring_merge_sharp_from_grad
   t0 = clock();
     
   compute_dual_isovert
-    (scalar_grid, gradient_grid, isovalue, isodual_param, isovert);
+    (scalar_grid, gradient_grid, isovalue, isodual_param, 
+     isodual_param.vertex_position_method, isovert, isovert_info);
 
   t1 = clock();
 
@@ -512,11 +604,10 @@ void ISODUAL3D::dual_contouring_merge_sharp_from_grad
 
   t2 = clock();
 
-	if (isodual_param.flag_recompute_isovert)
-	{
-		recompute_isovert_positions
+  if (isodual_param.flag_recompute_isovert) {
+    recompute_isovert_positions
       (scalar_grid, gradient_grid, isovalue, isodual_param, isovert);
-	}
+  }
 
   count_vertices(isovert, isovert_info);
 
@@ -545,7 +636,7 @@ void ISODUAL3D::dual_contouring_merge_sharp_from_grad
 // Use isosurface-edge intersections and normals (hermite data)
 //   to place isosurface vertices on sharp features. 
 void ISODUAL3D::dual_contouring_merge_sharp_from_hermite
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const std::vector<COORD_TYPE> & edgeI_coord,
  const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
  const SCALAR_TYPE isovalue,
@@ -574,11 +665,10 @@ void ISODUAL3D::dual_contouring_merge_sharp_from_hermite
 
   t2 = clock();
 
-	if (isodual_param.flag_recompute_isovert)
-	{
-		recompute_isovert_positions
+  if (isodual_param.flag_recompute_isovert) {
+    recompute_isovert_positions
       (scalar_grid, edgeI_coord, isovalue, isodual_param, isovert);
-	}
+  }
 
   count_vertices(isovert, isovert_info);
 
@@ -605,7 +695,7 @@ void ISODUAL3D::dual_contouring_merge_sharp_from_hermite
 //   and list of isosurface vertex coordinates.
 // @pre isovert contains isovert locations.
 void ISODUAL3D::dual_contouring_merge_sharp
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
  const ISODUAL_PARAM & isodual_param,
  DUAL_ISOSURFACE & dual_isosurface,
@@ -653,7 +743,7 @@ void ISODUAL3D::dual_contouring_merge_sharp
     IJK::get_non_degenerate_quad_btlr
       (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
 
-    position_dual_isovertices_multi
+    position_merged_dual_isovertices_multi
       (scalar_grid, isodual_table, isovalue, isovert,
        iso_vlist, dual_isosurface.vertex_coord);
   }
@@ -711,4 +801,5 @@ void ISODUAL3D::dual_contouring_merge_sharp
   clock2seconds(t2-t1, seconds);
   isodual_info.time.merge_sharp += seconds;
 }
+
 

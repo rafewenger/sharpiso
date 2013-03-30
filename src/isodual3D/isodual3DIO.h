@@ -3,7 +3,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -230,7 +230,7 @@ namespace ISODUAL3D {
   /// Check input information in input_info
   bool check_input
     (const INPUT_INFO & input_info, 
-     const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+     const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
      IJK::ERROR & error);
 
   /// Set input_info defaults.
@@ -246,12 +246,12 @@ namespace ISODUAL3D {
 
   /// Read a nearly raw raster data (nrrd) file.
   void read_nrrd_file
-    (const char * input_filename, ISODUAL_SCALAR_GRID & scalar_grid, 
+    (const char * input_filename, SHARPISO_SCALAR_GRID & scalar_grid, 
      NRRD_INFO & nrrd_info, IO_TIME & io_time);
 
   /// Read a nearly raw raster data (nrrd) file.
   void read_nrrd_file
-    (const char * input_filename, ISODUAL_SCALAR_GRID & scalar_grid, 
+    (const char * input_filename, SHARPISO_SCALAR_GRID & scalar_grid, 
      NRRD_INFO & nrrd_info);
 
   /// Read a nearly raw raster gradient data (nrrd) file.
@@ -359,7 +359,7 @@ namespace ISODUAL3D {
 
   /// Set simplices in alternating cubes to have different colors.
   void set_color_alternating
-    (const ISODUAL_GRID & grid, const std::vector<VERTEX_INDEX> & cube_list, 
+    (const SHARPISO_GRID & grid, const std::vector<VERTEX_INDEX> & cube_list, 
      COLOR_TYPE * color);
 
 // **************************************************
@@ -376,7 +376,7 @@ namespace ISODUAL3D {
 
   /// Report number of grid cubes (and number of subsampled grid cubes.)
   void report_num_cubes
-    (const ISODUAL_GRID & full_grid, const INPUT_INFO & input_info, 
+    (const SHARPISO_GRID & full_grid, const INPUT_INFO & input_info, 
      const ISODUAL_DATA & isodual_data);
 
   /// Report isodual parameters.

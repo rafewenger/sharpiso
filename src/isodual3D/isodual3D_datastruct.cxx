@@ -68,6 +68,8 @@ void ISODUAL_PARAM::Init()
   flag_split_non_manifold = false;
   flag_delete_isolated_vertices = true;
   flag_store_isovert_info = false;
+  flag_grad2hermite = false;
+  flag_grad2hermiteI = false;
 }
 
 /// Set type of interpolation
@@ -117,7 +119,8 @@ bool ISODUAL_PARAM::GradientsRequired() const
 {
   if (VertexPositionMethod() == GRADIENT_POSITIONING ||
       VertexPositionMethod() == EDGEI_INTERPOLATE ||
-      VertexPositionMethod() == EDGEI_GRADIENT)
+      VertexPositionMethod() == EDGEI_GRADIENT ||
+      flag_grad2hermite || flag_grad2hermiteI)
     { return(true); }
   else
     { return(false); }
@@ -152,9 +155,11 @@ void ISODUAL_DATA::FreeAll()
 
 
 // Copy scalar grid
-void ISODUAL_DATA::CopyScalarGrid(const ISODUAL_SCALAR_GRID_BASE & scalar_grid2)
+void ISODUAL_DATA::CopyScalarGrid
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid2)
 {
   scalar_grid.Copy(scalar_grid2);
+  scalar_grid.SetSpacing(scalar_grid2.SpacingPtrConst());
   is_scalar_grid_set = true;
 }
 
@@ -163,23 +168,28 @@ void ISODUAL_DATA::CopyGradientGrid
 (const GRADIENT_GRID_BASE & gradient_grid2)
 {
   gradient_grid.Copy(gradient_grid2);
+  gradient_grid.SetSpacing(gradient_grid2.SpacingPtrConst());
   is_gradient_grid_set = true;
 }
 
 // Subsample scalar grid
 void ISODUAL_DATA::SubsampleScalarGrid
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid2, const int subsample_resolution)
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid2, const int subsample_resolution)
 {
   scalar_grid.Subsample(scalar_grid2, subsample_resolution);
+  scalar_grid.SetSpacing(subsample_resolution, scalar_grid2.SpacingPtrConst());
   is_scalar_grid_set = true;
 }
 
 // Supersample scalar grid
 void ISODUAL_DATA::SupersampleScalarGrid
-(const ISODUAL_SCALAR_GRID_BASE & scalar_grid2, const int supersample_resolution)
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid2, 
+ const int supersample_resolution)
 {
   scalar_grid.Supersample(scalar_grid2, supersample_resolution);
-  is_scalar_grid_set = true;
+  scalar_grid.SetSpacing(float(1.0/supersample_resolution),
+                         scalar_grid2.SpacingPtrConst());
+ is_scalar_grid_set = true;
 }
 
 /// Subsample gradient grid
@@ -189,12 +199,14 @@ void ISODUAL_DATA::SubsampleGradientGrid
 {
   gradient_grid.Subsample(gradient_grid2, subsample_resolution);
   gradient_grid.ScalarMultiply(subsample_resolution);
+  gradient_grid.SetSpacing(subsample_resolution,
+                           gradient_grid2.SpacingPtrConst());
   is_gradient_grid_set = true;
 }
 
 // Copy, subsample or supersample scalar grid.
 void ISODUAL_DATA::SetScalarGrid
-(const ISODUAL_SCALAR_GRID_BASE & full_scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & full_scalar_grid,
  const bool flag_subsample, const int subsample_resolution,
  const bool flag_supersample, const int supersample_resolution)
 {
@@ -216,12 +228,11 @@ void ISODUAL_DATA::SetScalarGrid
   else {
     CopyScalarGrid(full_scalar_grid);
   };
-
 }
 
 // Copy, subsample or supersample scalar and gradient grids.
 void ISODUAL_DATA::SetGrids
-(const ISODUAL_SCALAR_GRID_BASE & full_scalar_grid,
+(const SHARPISO_SCALAR_GRID_BASE & full_scalar_grid,
  const GRADIENT_GRID_BASE & full_gradient_grid,
  const bool flag_subsample, const int subsample_resolution,
  const bool flag_supersample, const int supersample_resolution)
@@ -399,14 +410,19 @@ ISODUAL3D::ISODUAL_INFO::ISODUAL_INFO()
 
 void ISODUAL3D::SHARPISO_INFO::Clear()
 {
+  ISOVERT_INFO::Clear();
+
+  /* OBSOLETE
   num_conflicts = 0;
-  num_edge_collapses = 0;
   num_merged_iso_vertices = 0;
   num_sharp_corners = 0;
   num_sharp_edges = 0;
   num_smooth_vertices = 0;
-  num_repositioned_vertices = 0;
   num_Linf_iso_vertex_locations = 0;
+  */
+
+  num_edge_collapses = 0;
+  num_repositioned_vertices = 0;
 
   num_cube_not_ambiguous = 0;
   num_cube_separate_pos = 0;

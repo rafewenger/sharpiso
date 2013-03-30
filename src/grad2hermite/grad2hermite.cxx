@@ -34,7 +34,7 @@
 
 #include "sharpiso_types.h"
 #include "sharpiso_grids.h"
-#include "sharpiso_get_gradients.h"
+#include "sharpiso_intersect.h"
 
 using namespace IJK;
 using namespace SHARPISO;
@@ -46,14 +46,7 @@ char * gradient_filename(NULL);
 char * normals_filename(NULL);
 SCALAR_TYPE isovalue;
 GRADIENT_COORD_TYPE max_small_magnitude(0.0001);
-
-// Computation routine.
-void compute_edgeI
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const SCALAR_TYPE isovalue,
- std::vector<COORD_TYPE> & edgeI_coord,
- std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord);
+bool flag_interpolate(false);
 
 // I/O routine.
 void write_off_file
@@ -112,8 +105,16 @@ int main(int argc, char **argv)
         throw error;
     }
 
-    compute_edgeI(scalar_grid, gradient_grid, isovalue, 
-                  edgeI_coord, edgeI_normal_coord);
+    if (flag_interpolate) {
+      compute_all_edgeI_linear_interpolate
+        (scalar_grid, gradient_grid, isovalue, max_small_magnitude,
+         edgeI_coord, edgeI_normal_coord);
+    }
+    else {
+      compute_all_edgeI
+        (scalar_grid, gradient_grid, isovalue, max_small_magnitude,
+         edgeI_coord, edgeI_normal_coord);
+    }
 
     write_off_file(normals_filename, edgeI_coord, edgeI_normal_coord);
   }
@@ -130,39 +131,6 @@ int main(int argc, char **argv)
     exit(50);
   };
 
-}
-
-
-// **************************************************
-// COMPUTE GRID EDGE-ISOSURFACE INTERSECTIONS
-// **************************************************
-
-void compute_edgeI
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const SCALAR_TYPE isovalue,
- std::vector<COORD_TYPE> & edgeI_coord,
- std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord)
-{
-  COORD_TYPE p[DIM3];
-  GRADIENT_COORD_TYPE normal[DIM3];
-
-  IJK_FOR_EACH_GRID_EDGE(iv0, edge_dir, scalar_grid, VERTEX_INDEX) {
-
-    VERTEX_INDEX iv1 = scalar_grid.NextVertex(iv0, edge_dir);
-    if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
-
-      NUM_TYPE num_coord = edgeI_coord.size();
-      edgeI_coord.resize(num_coord+DIM3);
-      edgeI_normal_coord.resize(num_coord+DIM3);
-
-      compute_isosurface_grid_edge_intersection
-        (scalar_grid, gradient_grid, isovalue,
-         iv0, iv1, edge_dir, max_small_magnitude, 
-         &(edgeI_coord.front())+num_coord,
-         &(edgeI_normal_coord.front())+num_coord);
-    }
-  }
 }
 
 
@@ -219,6 +187,27 @@ void parse_command_line(int argc, char **argv)
 {
   int iarg = 1;
 
+	while (iarg < argc) {
+
+    if (argv[iarg][0] == '-') {
+
+      string s = argv[iarg];
+
+      if (s == "-interpolate") {
+        flag_interpolate = true;
+      }
+      else {
+        cerr << "Illegal option: " << s << endl;
+        usage_error();
+      }
+    }
+    else {
+      break;
+    }
+
+    iarg++;
+  }
+
   if (argc < (iarg+2) || (iarg+4) < argc) 
     { usage_error(); };
 
@@ -242,7 +231,7 @@ void parse_command_line(int argc, char **argv)
 
 void usage_msg()
 {
-  cerr << "Usage: grad2hermite {isovalue} {scalar nrrd file} [gradient nrrd file] [normals off filename]"
+  cerr << "Usage: grad2hermite [-interpolate] {isovalue} {scalar nrrd file} [gradient nrrd file] [normals off filename]"
        << endl;
 }
 

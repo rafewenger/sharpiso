@@ -49,14 +49,6 @@ namespace ISODUAL3D {
   class MULTIRES_GRID;
 
   // **************************************************
-  // GRID DATA STRUCTURES
-  // **************************************************
-
-  typedef SHARPISO_GRID ISODUAL_GRID;
-  typedef SHARPISO_SCALAR_GRID_BASE ISODUAL_SCALAR_GRID_BASE;
-  typedef SHARPISO_SCALAR_GRID ISODUAL_SCALAR_GRID;
-
-  // **************************************************
   // DATA STRUCTURES: ARRAY, HASH TABLE
   // **************************************************
 
@@ -173,6 +165,12 @@ namespace ISODUAL3D {
     /// If true, store isosurface vertex information.
     bool flag_store_isovert_info;
 
+    /// If true, convert gradient to hermite data.
+    bool flag_grad2hermite;
+
+    /// If true, convert gradient to hermite data using linear interpolation.
+    bool flag_grad2hermiteI;
+
   public:
     ISODUAL_PARAM() { Init(); };
     ~ISODUAL_PARAM() { Init(); };
@@ -213,7 +211,7 @@ namespace ISODUAL3D {
   class ISODUAL_DATA:public ISODUAL_PARAM {
 
   protected:
-    ISODUAL_SCALAR_GRID scalar_grid;   ///< Regular grid of scalar values.
+    SHARPISO_SCALAR_GRID scalar_grid;  ///< Regular grid of scalar values.
     GRADIENT_GRID gradient_grid;       ///< Regular grid of vertex gradients.
 
     /// Coordinate of edge-isosurface intersections
@@ -237,31 +235,31 @@ namespace ISODUAL3D {
 
     // Set functions
     void CopyScalarGrid             /// Copy scalar_grid to ISODUAL_DATA
-      (const ISODUAL_SCALAR_GRID_BASE & scalar_grid2);
+      (const SHARPISO_SCALAR_GRID_BASE & scalar_grid2);
     void CopyGradientGrid             /// Copy gradient_grid to ISODUAL_DATA
       (const GRADIENT_GRID_BASE & gradient_grid2);
     void SubsampleScalarGrid        /// Subsample scalar_grid.
-      (const ISODUAL_SCALAR_GRID_BASE & scalar_grid2, 
+      (const SHARPISO_SCALAR_GRID_BASE & scalar_grid2, 
        const int subsample_resolution);
     void SubsampleGradientGrid
       (const GRADIENT_GRID_BASE & gradient_grid2, 
        const int subsample_resolution);
 
     void SupersampleScalarGrid      /// Supersample scalar_grid.
-      (const ISODUAL_SCALAR_GRID_BASE & scalar_grid2, 
+      (const SHARPISO_SCALAR_GRID_BASE & scalar_grid2, 
        const int supersample_resolution);
 
     /// Copy, subsample or supersample scalar grid.
     /// Precondition: flag_subsample and flag_supersample are not both true.
     void SetScalarGrid
-      (const ISODUAL_SCALAR_GRID_BASE & full_scalar_grid, 
+      (const SHARPISO_SCALAR_GRID_BASE & full_scalar_grid, 
        const bool flag_subsample, const int subsample_resolution,
        const bool flag_supersample, const int supersample_resolution);
 
     /// Copy, subsample or supersample scalar and gradient grids.
     /// Precondition: flag_subsample and flag_supersample are not both true.
     void SetGrids
-      (const ISODUAL_SCALAR_GRID_BASE & full_scalar_grid,
+      (const SHARPISO_SCALAR_GRID_BASE & full_scalar_grid,
        const GRADIENT_GRID_BASE & full_gradient_grid,
        const bool flag_subsample, const int subsample_resolution,
        const bool flag_supersample, const int supersample_resolution);
@@ -280,11 +278,16 @@ namespace ISODUAL3D {
     bool AreEdgeISet() const         
       { return(are_edgeI_set); };
 
-    const ISODUAL_SCALAR_GRID_BASE & ScalarGrid() const ///< Return scalar_grid.
+    /// Return scalar_grid.
+    const SHARPISO_SCALAR_GRID_BASE & ScalarGrid() const
       { return(scalar_grid); };
-    const GRADIENT_GRID_BASE & GradientGrid() const     ///< Return gradient_grid.
+
+    /// Return gradient_grid.
+    const GRADIENT_GRID_BASE & GradientGrid() const     
       { return(gradient_grid); };
-    const std::vector<COORD_TYPE> & EdgeICoord() const  ///< Return edgeI coordinates.
+
+    /// Return edgeI coordinates.
+    const std::vector<COORD_TYPE> & EdgeICoord() const
       { return(edgeI_coord); }
 
     /// Return edgeI normal coordinates.
@@ -392,17 +395,11 @@ namespace ISODUAL3D {
   };
 
   /// Sharpiso information.
-  class SHARPISO_INFO {
+  class SHARPISO_INFO:public ISOVERT_INFO {
 
   public:
-    int num_conflicts;
     int num_edge_collapses;
-    int num_merged_iso_vertices;
-    int num_sharp_corners;
-    int num_sharp_edges;
-    int num_smooth_vertices;
     int num_repositioned_vertices;
-    int num_Linf_iso_vertex_locations;
 
     // Ambiguity information.
     int num_cube_not_ambiguous;

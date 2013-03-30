@@ -3,7 +3,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2006,2007,2009,2012 Rephael Wenger
+  Copyright (C) 2006-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -59,7 +59,7 @@ namespace ISODUAL3D {
   /// @param merge_data = Data structure for merging edges.
   /// Requires memory of size(MERGE_INDEX) for each grid edge.
   void dual_contouring
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const SCALAR_TYPE isovalue,
    const ISODUAL_PARAM & isodual_param,
    std::vector<VERTEX_INDEX> & isoquad_vert,
@@ -71,7 +71,7 @@ namespace ISODUAL3D {
   /// @param merge_data = Data structure for merging edges.
   /// Requires memory of size(MERGE_INDEX) for each grid edge.
   void dual_contouring_cube_center
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const SCALAR_TYPE isovalue,
    std::vector<VERTEX_INDEX> & isoquad_vert,
    std::vector<COORD_TYPE> & vertex_coord,
@@ -81,7 +81,7 @@ namespace ISODUAL3D {
   /// Dual contouring algorithm.
   /// Position isosurface vertices at centroid of isosurface-edge intersections.
   void dual_contouring_centroid
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const SCALAR_TYPE isovalue,
    std::vector<VERTEX_INDEX> & isoquad_vert,
    std::vector<COORD_TYPE> & vertex_coord,
@@ -92,7 +92,7 @@ namespace ISODUAL3D {
   /// Position isosurface vertices at centroid of isosurface-edge intersections.
   /// Allow multiple isosurface vertices in a grid cube.
   void dual_contouring_centroid_multiv
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const SCALAR_TYPE isovalue,
    const bool flag_separate_neg,
    std::vector<VERTEX_INDEX> & isoquad_vert,
@@ -105,17 +105,69 @@ namespace ISODUAL3D {
   // DUAL CONTOURING USING SCALAR & GRADIENT DATA
   // **************************************************
 
-  /// Dual Contouring algorithm for sharp isosurface features.
-  /// Return list of isosurface triangle and quad vertices
+  /// Extract dual contouring isosurface.
+  /// Returns list of isosurface triangle and quad vertices
   ///   and list of isosurface vertex coordinates.
-  void dual_contouring_sharp
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+  /// Use gradients to place isosurface vertices on sharp features. 
+  void dual_contouring_sharp_from_grad
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const SCALAR_TYPE isovalue,
    const ISODUAL_PARAM & isodual_param,
    DUAL_ISOSURFACE & dual_isosurface,
-   MERGE_DATA & merge_data,
+   ISOVERT & isovert,
    ISODUAL_INFO & isodual_info);
+
+  /// Extract dual contouring isosurface.
+  /// Returns list of isosurface quad vertices
+  ///   and list of isosurface vertex coordinates.
+  /// @pre isovert contains isovert locations.
+  void dual_contouring_extract_isopoly
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   DUAL_ISOSURFACE & dual_isosurface,
+   ISOVERT & isovert,
+   ISODUAL_INFO & isodual_info,
+   ISOVERT_INFO & isovert_info);
+
+  /// Extract dual contouring isosurface.
+  /// Allow multiple isosurface vertices in a grid cube.
+  /// Returns list of isosurface quad vertices
+  ///   and list of isosurface vertex coordinates.
+  /// @param cube_ambig[]  cube_ambig[i] indicates how ambiguities
+  ///        should be handled for i'th cube in isovert.gcube_list[i].
+  /// @pre isovert contains isovert locations.
+  void dual_contouring_extract_isopoly_multi
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   DUAL_ISOSURFACE & dual_isosurface,
+   ISOVERT & isovert,
+   ISODUAL_INFO & isodual_info,
+   ISOVERT_INFO & isovert_info);
+
+  /// Extract dual contouring isosurface.
+  /// Allow multiple isosurface vertices in a grid cube.
+  /// Resolve ambiguous facets.
+  /// Returns list of isosurface quad vertices
+  ///   and list of isosurface vertex coordinates.
+  /// @param cube_ambig[]  cube_ambig[i] indicates how ambiguities
+  ///        should be handled for i'th cube in isovert.gcube_list[i].
+  /// @pre isovert contains isovert locations.
+  void dual_contouring_extract_isopoly_multi
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const ISODUAL_PARAM & isodual_param,
+   DUAL_ISOSURFACE & dual_isosurface,
+   ISOVERT & isovert,
+   const std::vector<AMBIGUITY_TYPE> & cube_ambig,
+   ISODUAL_INFO & isodual_info,
+   ISOVERT_INFO & isovert_info);
+
+  // **************************************************
+  // MERGE SHARP
+  // **************************************************
 
   /// Extract dual contouring isosurface by merging grid cubes
   ///   around sharp vertices.
@@ -125,7 +177,7 @@ namespace ISODUAL3D {
   ///   and list of isosurface vertex coordinates.
   /// Use gradients to place isosurface vertices on sharp features. 
   void dual_contouring_merge_sharp_from_grad
-    (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
      const GRADIENT_GRID_BASE & gradient_grid,
      const SCALAR_TYPE isovalue,
      const ISODUAL_PARAM & isodual_param,
@@ -140,7 +192,7 @@ namespace ISODUAL3D {
   /// Use input edge-isosurface intersections and normals (hermite data)
   ///   to position isosurface vertices on sharp features.
   void dual_contouring_merge_sharp_from_hermite
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const std::vector<COORD_TYPE> & edgeI_coord,
    const std::vector<GRADIENT_COORD_TYPE> & edgeI_normal_coord,
    const SCALAR_TYPE isovalue,
@@ -155,14 +207,13 @@ namespace ISODUAL3D {
   ///   and list of isosurface vertex coordinates.
   /// @pre isovert contains isovert locations.
   void dual_contouring_merge_sharp
-  (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const SCALAR_TYPE isovalue,
    const ISODUAL_PARAM & isodual_param,
    DUAL_ISOSURFACE & dual_isosurface,
    ISOVERT & isovert,
    ISODUAL_INFO & isodual_info,
    ISOVERT_INFO & isovert_info);
-
 }
 
 #endif

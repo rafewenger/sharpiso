@@ -46,10 +46,14 @@ namespace SHARPISO {
   // **************************************************
 
   typedef IJK::GRID_PLUS<NUM_TYPE, AXIS_SIZE_TYPE, VERTEX_INDEX, NUM_TYPE>
-    SHARPISO_GRID;                  ///< Regular grid.
+    GRID_PLUS;                      ///< Regular grid.
+  typedef IJK::GRID_SPACING<COORD_TYPE, GRID_PLUS>
+    SHARPISO_GRID;                  ///< Grid and spacing information.
   typedef IJK::GRID_NEIGHBORS
     <NUM_TYPE, AXIS_SIZE_TYPE, VERTEX_INDEX, INDEX_DIFF_TYPE, NUM_TYPE>
-    SHARPISO_GRID_NEIGHBORS;        ///< Grid with neighbor data.
+    GRID_NEIGHBORS;                 ///< Grid with neighbor data.
+  typedef IJK::GRID_SPACING<COORD_TYPE, GRID_NEIGHBORS>
+    SHARPISO_GRID_NEIGHBORS;        ///< Grid with neighbor and spacing info.
 
   typedef IJK::SCALAR_GRID_BASE<SHARPISO_GRID, SCALAR_TYPE>
     SHARPISO_SCALAR_GRID_BASE;              ///< sharpiso base scalar grid.
