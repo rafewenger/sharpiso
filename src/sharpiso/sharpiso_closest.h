@@ -1,9 +1,10 @@
-// FindIntersect.h
-// Find intersection of a ray and a cube.
+/// \file sharpiso_closest.h
+/// Compute closest point to a given point.
+/// Version v0.1.1
 
 
-#ifndef _SHARPISO_FINDINTERSECT_
-#define _SHARPISO_FINDINTERSECT_
+#ifndef _SHARPISO_CLOSEST_
+#define _SHARPISO_CLOSEST_
 
 #include "sharpiso_types.h"
 

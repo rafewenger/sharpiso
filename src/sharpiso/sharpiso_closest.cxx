@@ -1,19 +1,21 @@
-//FindIntersect.cxx
-//
+/// \file sharpiso_closest.cxx
+/// Compute closest point to a given point.
+/// Version v0.1.1
+
 
 #include <iostream>
 #include <cmath>
 #include <limits>
 
-#include "sharpiso_findIntersect.h"
 #include "ijkcoord.txx"
 #include "ijkgrid.txx"
 #include "ijkinterpolate.txx"
 #include "sharpiso_linear_alg.txx"
 
+#include "sharpiso_closest.h"
+
 using namespace std;
 using namespace SHARPISO;
-
 
 ///  Compute the closest point to point p on a given line.
 void SHARPISO::compute_closest_point_on_line
