@@ -5,16 +5,11 @@
 #ifndef _SHARPISO_FINDINTERSECT_
 #define _SHARPISO_FINDINTERSECT_
 
-#include<iostream>
-#include <Eigen/Dense>
 #include "sharpiso_types.h"
-#include "sharpiso_eigen.h"
+
 
 namespace SHARPISO {
   
-  const float THRESHOLD_CLAMP = 0.001; // clamp threshold
-  const float EPSILON = 0.0001;
-
   /// Compute the closest point to point p on a given line.
   void compute_closest_point_on_line
   (const COORD_TYPE point[DIM3],

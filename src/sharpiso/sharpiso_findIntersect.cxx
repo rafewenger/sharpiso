@@ -15,17 +15,6 @@ using namespace std;
 using namespace SHARPISO;
 
 
-// HELPER FUNCTIONS:
-// Findmax direction
-int findmax(const float dir[]);
-
-
-
-// FindIntersect  ,
-// accepts as inputs  a point p[], a direction dir[].It returns a boolean which is TRUE
-// if the Ray intersects the cube. It returns FALSE if the ray does not intersect the cube.
-// If the bool is true , intersect[] returns the MID-point of intersection of the ray and the cube.
-
 ///  Compute the closest point to point p on a given line.
 void SHARPISO::compute_closest_point_on_line
 (const COORD_TYPE point[DIM3],
@@ -157,7 +146,8 @@ void SHARPISO::compute_closest_point_on_line_linf
   COORD_TYPE new_dist;
   for (int i=0; i<6; i++) {
     if (istTrue[i]) {
-      compute_linf_point(line_origin, line_direction_normalized, t[i], point_on_line);
+      compute_linf_point
+        (line_origin, line_direction_normalized, t[i], point_on_line);
       compute_linf_dist(point, point_on_line, new_dist); 
       if (!is_dist_set || (new_dist < dist)) {
         dist = new_dist;
@@ -189,23 +179,6 @@ void SHARPISO::compute_closest_point_to_cube_center_linf
 }
 
 
-
-// HELPER FUNCTIONS:
-// find the max direction
-int findmax(const COORD_TYPE dir[])
-{
-  int ind=0;
-  COORD_TYPE max = abs(dir[ind]);
-  for (int j=0;j<3;j++)
-  {
-    if (abs(dir[j]) >= max)
-    {
-      max = abs(dir[j]);
-      ind = j;
-    }
-  }
-  return ind;
-}
 
 // **************************************************
 // INTERSECT LINE AND SQUARE CYLINDER
