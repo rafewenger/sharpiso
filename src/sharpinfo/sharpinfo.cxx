@@ -37,8 +37,7 @@
 #include "sharpiso_eigen.h"
 #include "sharpiso_types.h"
 #include "sharpiso_scalar.txx"
-#include "sharpiso_findIntersect.h"
-#include "sh_point_find.h"
+#include "sharpiso_closest.h"
 
 using namespace SHARPISO;
 using namespace IJK;
@@ -262,9 +261,16 @@ int main(int argc, char **argv)
         (sharpiso_param.grad_selection_cube_offset);
 
       if (flag_edge_intersect_sharp) {
-        get_edgeI_sharp_gradients
+        compute_cube_edgeI
           (scalar_grid, gradient_grid, cube_index, isovalue,
-           point_coord, gradient_coord, scalar, num_gradients);
+           max_small_mag, point_coord, gradient_coord);
+        num_gradients = point_coord.size()/DIM3;
+
+        for (int i = 0; i < num_gradients; i++)
+          { scalar.push_back(isovalue); }
+
+        // *** DEBUG ***
+        cerr << "Passed compute_cube_edgeI" << endl;
       }
       else {
         get_gradients
