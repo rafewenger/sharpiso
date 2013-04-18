@@ -39,7 +39,7 @@ SET(ISODUAL3D_SUB_LIST  isodual3DIO.cxx isodual3D.cxx
                         sharpiso_feature.cxx sharpiso_get_gradients.cxx
                         sharpiso_intersect.cxx
                         sharpiso_svd.cxx
-                        sharpiso_findIntersect.cxx)
+                        sharpiso_closest.cxx)
 
 ADD_EXECUTABLE(isodual3D isodual3D_main.cxx ${ISODUAL3D_SUB_LIST} )
 

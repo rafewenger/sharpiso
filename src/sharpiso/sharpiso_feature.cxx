@@ -23,9 +23,9 @@
 
 
 #include "sharpiso_feature.h"
-#include "sharpiso_svd.h"
+#include "sharpiso_closest.h"
 #include "sharpiso_intersect.h"
-#include "sharpiso_findIntersect.h"
+#include "sharpiso_svd.h"
 
 #include "ijkcoord.txx"
 #include "ijkgrid.txx"

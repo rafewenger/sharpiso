@@ -1,44 +1,15 @@
-// FindIntersect.h
-// Find intersection of a ray and a cube.
+/// \file sharpiso_closest.h
+/// Compute closest point to a given point.
+/// Version v0.1.1
 
 
-#ifndef _SHARPISO_FINDINTERSECT_
-#define _SHARPISO_FINDINTERSECT_
+#ifndef _SHARPISO_CLOSEST_
+#define _SHARPISO_CLOSEST_
 
-#include<iostream>
-#include <Eigen/Dense>
 #include "sharpiso_types.h"
-#include "sharpiso_eigen.h"
+
 
 namespace SHARPISO {
-  
-  const float THRESHOLD_CLAMP = 0.001; // clamp threshold
-  const float EPSILON = 0.0001;
-  
-  /// Compute the midpoint of the intersection of the ray and the cube.
-  /// Return true if the ray intersects the cube
-  bool calculate_point_intersect
-  (const COORD_TYPE * point, const COORD_TYPE *dir, COORD_TYPE *intersect);
-  
-  /// Separate version which translate back and forth
-  ///   to find the intersection with the unit cube.
-  bool calculate_point_intersect
-  (const GRID_COORD_TYPE cube_coord[], const COORD_TYPE *p,
-   const COORD_TYPE *dir, COORD_TYPE *intersect);
-  
-  // Calculate the intersection with an enlarged cube.
-  bool calculate_point_intersect_complex
-  (const GRID_COORD_TYPE cube_coord[], const COORD_TYPE *original_pt,
-   const COORD_TYPE *dir, const float th,  COORD_TYPE *intersect);
-  
-  
-  // Check if the ray intersects the cube (No intersection calculated)
-  bool calculate_point_intersect_complex
-  (const GRID_COORD_TYPE cube_coord[],
-   const COORD_TYPE *original_pt,
-   const COORD_TYPE *dir,
-   const float th
-   );
   
   /// Compute the closest point to point p on a given line.
   void compute_closest_point_on_line
