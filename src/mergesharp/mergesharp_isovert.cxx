@@ -113,10 +113,11 @@ void compute_isovert_positions
 
     IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX) {
       NUM_TYPE index = isovert.sharp_ind_grid.Scalar(iv);
-      isovert.gcube_list[index].flag_centroid_location = false;
 
       if (index != ISOVERT::NO_INDEX) {
         // this is an active cube
+        isovert.gcube_list[index].flag_centroid_location = false;
+
         // compute the sharp vertex for this cube
         EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
         NUM_TYPE num_large_eigenvalues;
@@ -136,10 +137,11 @@ void compute_isovert_positions
 
     IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX) {
       NUM_TYPE index = isovert.sharp_ind_grid.Scalar(iv);
-      isovert.gcube_list[index].flag_centroid_location = false;
 
       if (index != ISOVERT::NO_INDEX) {
         // this is an active cube
+        isovert.gcube_list[index].flag_centroid_location = false;
+
         // compute the sharp vertex for this cube
         EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
         NUM_TYPE num_large_eigenvalues;
@@ -177,10 +179,11 @@ void compute_isovert_positions_edgeI
 
     IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX) {
       NUM_TYPE index = isovert.sharp_ind_grid.Scalar(iv);
-      isovert.gcube_list[index].flag_centroid_location = false;
 
       if (index != ISOVERT::NO_INDEX) {
         // this is an active cube
+        isovert.gcube_list[index].flag_centroid_location = false;
+
         // compute the sharp vertex for this cube
         EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
         NUM_TYPE num_large_eigenvalues;
@@ -202,10 +205,11 @@ void compute_isovert_positions_edgeI
 
     IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX) {
       NUM_TYPE index = isovert.sharp_ind_grid.Scalar(iv);
-      isovert.gcube_list[index].flag_centroid_location = false;
 
       if (index != ISOVERT::NO_INDEX) {
         // this is an active cube
+        isovert.gcube_list[index].flag_centroid_location = false;
+
         // compute the sharp vertex for this cube
         EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
         NUM_TYPE num_large_eigenvalues;

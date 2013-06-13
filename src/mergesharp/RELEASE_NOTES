@@ -1,0 +1,8 @@
+
+mergesharp:
+
+version 0.1.0: Original release.
+version 0.1.1: Corrected programming error in mergesharp_isovert.cxx
+               (function compute_isovert_positions.)
+               Error caused segmentation fault when isosurface had no elements.
+

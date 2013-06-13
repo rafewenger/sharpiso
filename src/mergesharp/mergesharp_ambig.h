@@ -2,7 +2,6 @@
 /// Routines for handling ambiguous configurations.
 
 /*
-  IJK: Isosurface Jeneration Kode
   Copyright (C) 2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or

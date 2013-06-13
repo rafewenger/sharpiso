@@ -3,7 +3,6 @@
 /// Version 0.0.1
 
 /*
-  IJK: Isosurface Jeneration Kode
   Copyright (C) 2011-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or

@@ -60,8 +60,6 @@ void MERGESHARP_PARAM::Init()
   flag_convert_quad_to_tri = false;
   use_only_cube_gradients = false;
   use_selected_gradients = true;
-  grad_selection_cube_offset = 0;
-  max_small_eigenvalue = 0.1;
   allow_multiple_iso_vertices = true;
   flag_resolve_ambiguous_facets = true;
   flag_separate_neg = true;

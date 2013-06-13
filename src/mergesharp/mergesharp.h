@@ -2,7 +2,6 @@
 /// Generate isosurface in arbitrary dimensions
 
 /*
-  IJK: Isosurface Jeneration Kode
   Copyright (C) 2006-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or

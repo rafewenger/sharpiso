@@ -2,7 +2,6 @@
 /// IO classes and routines for mergesharp.
 
 /*
-  IJK: Isosurface Jeneration Kode
   Copyright (C) 2011-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
@@ -34,15 +33,15 @@
 
 namespace MERGESHARP {
 
-// **************************************************
-// TYPE DEFINITIONS
-// **************************************************
+  // **************************************************
+  // TYPE DEFINITIONS
+  // **************************************************
 
   typedef float COLOR_TYPE;           /// Color type.
 
-// **************************************************
-// NRRD INFORMATION
-// **************************************************
+  // **************************************************
+  // NRRD INFORMATION
+  // **************************************************
 
   /// NRRD information.
   class NRRD_INFO {
@@ -57,16 +56,18 @@ namespace MERGESHARP {
 
     void Clear();
   };
-		       
-// **************************************************
-// OUTPUT_FORMAT
-// **************************************************
+           
+  // **************************************************
+  // OUTPUT_FORMAT
+  // **************************************************
 
-  typedef enum { OFF, IV } OUTPUT_FORMAT;   ///< Output format.
+  ///  Output format.
+  typedef enum { OFF, IV } OUTPUT_FORMAT;
 
-// **************************************************
-// IO INFORMATION
-// **************************************************
+  // **************************************************
+  // IO INFORMATION
+  // **************************************************
+
   /// IO information
   class IO_INFO:public MERGESHARP_PARAM {
 
@@ -107,9 +108,9 @@ namespace MERGESHARP {
   };
 
 
-// **************************************************
-// INPUT INFORMATION
-// **************************************************
+  // **************************************************
+  // INPUT INFORMATION
+  // **************************************************
 
   /// Input information
   class INPUT_INFO:public IO_INFO {
@@ -135,9 +136,9 @@ namespace MERGESHARP {
     ~INPUT_INFO() { Clear(); };
   };
 
-// **************************************************
-// OUTPUT INFORMATION
-// **************************************************
+  // **************************************************
+  // OUTPUT INFORMATION
+  // **************************************************
 
   /// Output information.
   class OUTPUT_INFO:public IO_INFO {
@@ -165,9 +166,9 @@ namespace MERGESHARP {
     NUM_TYPE NumVerticesPerIsopoly() const;
   };
 
-// **************************************************
-// TIMING FUNCTIONS/CLASSES
-// **************************************************
+  // **************************************************
+  // TIMING FUNCTIONS/CLASSES
+  // **************************************************
 
   /// Elapsed CPU time.
   class ELAPSED_CPU_TIME {
@@ -208,9 +209,9 @@ namespace MERGESHARP {
     double write_time;      ///< Wall time to write output.
   };
 
-// **************************************************
-// PARSE COMMAND LINE
-// **************************************************
+  // **************************************************
+  // PARSE COMMAND LINE
+  // **************************************************
 
   /// Parse the next option in the command line.
   /// Return false if no next option or parse fails.
@@ -229,9 +230,9 @@ namespace MERGESHARP {
 
   /// Check input information in input_info
   bool check_input
-    (const INPUT_INFO & input_info, 
-     const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-     IJK::ERROR & error);
+  (const INPUT_INFO & input_info, 
+   const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   IJK::ERROR & error);
 
   /// Set input_info defaults.
   void set_input_info_defaults(INPUT_INFO & input_info);
@@ -240,35 +241,35 @@ namespace MERGESHARP {
   void check_input_info(const INPUT_INFO & input_info);
 
 
-// **************************************************
-// READ NEARLY RAW RASTER DATA (nrrd) FILE
-// **************************************************
+  // **************************************************
+  // READ NEARLY RAW RASTER DATA (nrrd) FILE
+  // **************************************************
 
   /// Read a nearly raw raster data (nrrd) file.
   void read_nrrd_file
-    (const char * input_filename, SHARPISO_SCALAR_GRID & scalar_grid, 
-     NRRD_INFO & nrrd_info, IO_TIME & io_time);
+  (const char * input_filename, SHARPISO_SCALAR_GRID & scalar_grid, 
+   NRRD_INFO & nrrd_info, IO_TIME & io_time);
 
   /// Read a nearly raw raster data (nrrd) file.
   void read_nrrd_file
-    (const char * input_filename, SHARPISO_SCALAR_GRID & scalar_grid, 
-     NRRD_INFO & nrrd_info);
+  (const char * input_filename, SHARPISO_SCALAR_GRID & scalar_grid, 
+   NRRD_INFO & nrrd_info);
 
   /// Read a nearly raw raster gradient data (nrrd) file.
   void read_nrrd_file
-    (const char * input_filename, GRADIENT_GRID & gradient_grid, 
-     NRRD_INFO & nrrd_info);
+  (const char * input_filename, GRADIENT_GRID & gradient_grid, 
+   NRRD_INFO & nrrd_info);
 
-// **************************************************
-// READ OFF FILE
-// **************************************************
+  // **************************************************
+  // READ OFF FILE
+  // **************************************************
 
   /// Read OFF file.
   void read_off_file
-    (const char * input_filename,
-     std::vector<COORD_TYPE> & coord, 
-     std::vector<GRADIENT_COORD_TYPE> & normal, 
-     std::vector<int> & simplex_vert);
+  (const char * input_filename,
+   std::vector<COORD_TYPE> & coord, 
+   std::vector<GRADIENT_COORD_TYPE> & normal, 
+   std::vector<int> & simplex_vert);
 
 
   /// Read OFF file.  Ignore simplex vert.
@@ -276,34 +277,34 @@ namespace MERGESHARP {
   (const char * input_filename,
    std::vector<COORD_TYPE> & coord, std::vector<GRADIENT_COORD_TYPE> & normal);
 
-// **************************************************
-// OUTPUT ISOSURFACE
-// **************************************************
+  // **************************************************
+  // OUTPUT ISOSURFACE
+  // **************************************************
 
   /// Output dual isosurface.
   void output_dual_isosurface
-    (const OUTPUT_INFO & output_info, const MERGESHARP_DATA & mergesharp_data,
-     const DUAL_ISOSURFACE & dual_isosurface,
-     const MERGESHARP_INFO & mergesharp_info, IO_TIME & io_time);
+  (const OUTPUT_INFO & output_info, const MERGESHARP_DATA & mergesharp_data,
+   const DUAL_ISOSURFACE & dual_isosurface,
+   const MERGESHARP_INFO & mergesharp_info, IO_TIME & io_time);
 
-// **************************************************
-// RESCALE ROUTINES
-// **************************************************
+  // **************************************************
+  // RESCALE ROUTINES
+  // **************************************************
 
   /// Rescale subsampled/supersampled vertex coordinates.
   /// Also rescale to reflect grid spacing.
   void rescale_vertex_coord
-    (const OUTPUT_INFO & output_info, std::vector<COORD_TYPE> & vertex_coord);
+  (const OUTPUT_INFO & output_info, std::vector<COORD_TYPE> & vertex_coord);
 
   /// Rescale vertex coordinates by grow and shrink factor and by grid_spacing.
   /// Precondition: grid_spacing.size() equals vertex dimension.
   void rescale_vertex_coord
-    (const int grow_factor, const int shrink_factor,
-     const COORD_ARRAY & grid_spacing, COORD_ARRAY & vertex_coord);
+  (const int grow_factor, const int shrink_factor,
+   const COORD_ARRAY & grid_spacing, COORD_ARRAY & vertex_coord);
 
-// **************************************************
-// WRITE_DUAL_MESH
-// **************************************************
+  // **************************************************
+  // WRITE_DUAL_MESH
+  // **************************************************
 
   /// Write dual mesh.
   /// @param output_info Output information.
@@ -338,79 +339,79 @@ namespace MERGESHARP {
    const bool flag_reorder_quad_vertices,
    IO_TIME & io_time);
 
-// **************************************************
-// SET ROUTINES
-// **************************************************
+  // **************************************************
+  // SET ROUTINES
+  // **************************************************
 
   /// Set mergesharp_data based on input_info.
   /// Precondition: Scalar field in mergesharp_data must be set before
   ///   this routines is called.
   void set_mergesharp_data
-    (const INPUT_INFO & input_info, MERGESHARP_DATA & mergesharp_data, 
-     MERGESHARP_TIME & mergesharp_time);
+  (const INPUT_INFO & input_info, MERGESHARP_DATA & mergesharp_data, 
+   MERGESHARP_TIME & mergesharp_time);
 
   /// Copy nrrd_info into input_info.
   void set_input_info
-    (const NRRD_INFO & nrrd_info, INPUT_INFO & input_info);
+  (const NRRD_INFO & nrrd_info, INPUT_INFO & input_info);
 
   /// Set output_info based on isotable, input_info and isovalue index i.
   void set_output_info
-    (const INPUT_INFO & input_info, 
-     const int i, OUTPUT_INFO & output_info);
+  (const INPUT_INFO & input_info, 
+   const int i, OUTPUT_INFO & output_info);
 
   /// Set simplices in alternating cubes to have different colors.
   void set_color_alternating
-    (const SHARPISO_GRID & grid, const std::vector<VERTEX_INDEX> & cube_list, 
-     COLOR_TYPE * color);
+  (const SHARPISO_GRID & grid, const std::vector<VERTEX_INDEX> & cube_list, 
+   COLOR_TYPE * color);
 
-// **************************************************
-// CONSTRUCT FILENAME
-// **************************************************
+  // **************************************************
+  // CONSTRUCT FILENAME
+  // **************************************************
 
   /// Construct gradient filename from scalar filename.
   void construct_gradient_filename
   (const char * scalar_filename, std::string & gradient_filename);
 
-// **************************************************
-// REPORT SCALAR FIELD OR ISOSURFACE INFORMATION
-// **************************************************
+  // **************************************************
+  // REPORT SCALAR FIELD OR ISOSURFACE INFORMATION
+  // **************************************************
 
   /// Report number of grid cubes (and number of subsampled grid cubes.)
   void report_num_cubes
-    (const SHARPISO_GRID & full_grid, const INPUT_INFO & input_info, 
-     const MERGESHARP_DATA & mergesharp_data);
+  (const SHARPISO_GRID & full_grid, const INPUT_INFO & input_info, 
+   const MERGESHARP_DATA & mergesharp_data);
 
   /// Report mergesharp parameters.
   void report_mergesharp_param(const MERGESHARP_PARAM & mergesharp_param);
 
   void report_iso_info3D
-    (const OUTPUT_INFO & output_info, const MERGESHARP_DATA & mergesharp_data,
-     const DUAL_ISOSURFACE & dual_isosurface,
-     const MERGESHARP_INFO & mergesharp_info);
+  (const OUTPUT_INFO & output_info, const MERGESHARP_DATA & mergesharp_data,
+   const DUAL_ISOSURFACE & dual_isosurface,
+   const MERGESHARP_INFO & mergesharp_info);
 
-// **************************************************
-// REPORT TIMING INFORMATION
-// **************************************************
+  // **************************************************
+  // REPORT TIMING INFORMATION
+  // **************************************************
 
   void report_mergesharp_time
-    (const INPUT_INFO & input_info, const MERGESHARP_TIME & mergesharp_time, 
-     const char * mesh_type_string);
+  (const INPUT_INFO & input_info, const MERGESHARP_TIME & mergesharp_time, 
+   const char * mesh_type_string);
 
   void report_time
-    (const INPUT_INFO & input_info, const IO_TIME & io_time, 
-     const MERGESHARP_TIME & mergesharp_time, const double total_elapsed_time);
+  (const INPUT_INFO & input_info, const IO_TIME & io_time, 
+   const MERGESHARP_TIME & mergesharp_time, const double total_elapsed_time);
 
-// **************************************************
-// WRITE ISOSURFACE VERTEX INFORMATION TO FILE
-// **************************************************
+  // **************************************************
+  // WRITE ISOSURFACE VERTEX INFORMATION TO FILE
+  // **************************************************
 
   void write_isovert_info
-    (const OUTPUT_INFO & output_info,
-     const std::vector<DUAL_ISOVERT_INFO> & isovert_info);
+  (const OUTPUT_INFO & output_info,
+   const std::vector<DUAL_ISOVERT_INFO> & isovert_info);
 
-// **************************************************
-// USAGE/HELP MESSAGES
-// **************************************************
+  // **************************************************
+  // USAGE/HELP MESSAGES
+  // **************************************************
 
   void usage_error(const char * command_name);
   void help(const char * command_name);

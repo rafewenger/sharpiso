@@ -1,9 +1,8 @@
 /// \file mergesharp.cxx
 /// generate isosurface using dual contouring algorithm
-/// Version 0.1.0
+/// Version 0.1.1
 
 /*
-  IJK: Isosurface Jeneration Kode
   Copyright (C) 2011-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or

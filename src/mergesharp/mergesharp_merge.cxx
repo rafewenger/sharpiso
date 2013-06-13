@@ -1,8 +1,7 @@
-/// \file mergesharp_decimate.cxx
-/// Decimate dual isosurface.
+/// \file mergesharp_merge.cxx
+/// Merge cubes containing sharp vertices.
 
 /*
-  IJK: Isosurface Jeneration Kode
   Copyright (C) 2012-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
@@ -972,4 +971,3 @@ void search_cycle
     }
   }
 }
-

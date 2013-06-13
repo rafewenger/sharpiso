@@ -2,7 +2,6 @@
 /// Subroutines for extracting dual isosurface mesh
 
 /*
-  IJK: Isosurface Jeneration Kode
   Copyright (C) 2011 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
