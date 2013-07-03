@@ -556,6 +556,10 @@ namespace IJK {
     template <typename SCALE_TYPE, typename STYPE2>
     void SetSpacing(const SCALE_TYPE c, const STYPE2 * spacing2);
 
+    /// Set spacing[d] to grid2.Spacing(d).
+    template <typename STYPE2, typename GRID_TYPE2>
+    void SetSpacing(const GRID_SPACING<STYPE2, GRID_TYPE2> & grid2);
+
     template <typename DTYPE2, typename ATYPE2>
     void SetSize       /// Set dimensions and axis size.
     (const DTYPE2 dimension, const ATYPE2 * axis_size);
@@ -572,6 +576,11 @@ namespace IJK {
     /// Get const pointer to spacing.
     const STYPE * SpacingPtrConst() const
     { return(spacing); }
+
+    /// Compute scaled coord.
+    template <typename VTYPE2, typename CTYPE>
+    void ComputeScaledCoord
+    (const VTYPE2 iv, CTYPE * coord) const;
   };
 
   // **************************************************
@@ -838,7 +847,6 @@ namespace IJK {
   template <typename VTYPE, typename DTYPE, typename ATYPE, typename GTYPE>
   void compute_coord(const VTYPE iv, const DTYPE dimension,
                      const ATYPE * axis_size, GTYPE * coord)
-    // compute coordinates of grid vertex iv
   {
     VTYPE k = iv;
     for (DTYPE d = 0; d < dimension; d++) {
@@ -847,7 +855,30 @@ namespace IJK {
     };
   }
 
-  /// Return index of vertex with specified coord
+  /// Return coordinate of vertex \a iv.
+  /// @param iv = Vertex index.
+  /// @param dimension  Dimension of grid.
+  /// @param axis_size[]
+  ///    <em>axis_size[d]</em> = Number of vertices along axis \a d.
+  /// @param scale[]
+  ///    <em>scale[d]</em> = Scale along axis \a d.
+  /// @param[out] scaled_coord[] 
+  ///    <em>scaled_coord[k]</em> = \a k'th coordinate of vertex \a iv.
+  /// @pre \li axis_size[d] > 0 for all \a d = 0,..., \a dimension-1.
+  /// @pre \li scale[d] > 0 for all \a d = 0,..., \a dimension-1.
+  /// @pre \li Array coord[] is pre-allocated to size at least \a dimension.
+  template <typename VTYPE, typename DTYPE, typename ATYPE, 
+            typename STYPE, typename CTYPE>
+  void compute_scaled_coord
+  (const VTYPE iv, const DTYPE dimension, const ATYPE * axis_size, 
+   const STYPE * scale, CTYPE * scaled_coord)
+  {
+    compute_coord(iv, dimension, axis_size, scaled_coord);
+    for (DTYPE d = 0; d < dimension; d++)
+      { scaled_coord[d] *= scale[d]; }
+  }
+
+  /// Return index of vertex with specified coord.
   template <typename VTYPE, typename GTYPE, typename DTYPE, typename ATYPE>
   VTYPE compute_vertex_index
   (const GTYPE * coord, const DTYPE dimension, const ATYPE * axis_size)
@@ -4635,8 +4666,6 @@ namespace IJK {
   GRID_SPACING(const GRID_SPACING<STYPE, GRID_TYPE> & grid2):
     GRID_TYPE(grid2)
   {
-    typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
-
     InitLocal();
     SetSpacing(grid2.SpacingPtrConst());
   }
@@ -4647,7 +4676,6 @@ namespace IJK {
   {
     spacing = NULL;
     CreateLocal();
-
     SetAllSpacing(1);
   }
 
@@ -4703,6 +4731,15 @@ namespace IJK {
       { SetSpacing(d, c*spacing2[d]); }
   }
 
+  /// Set spacing[d] to grid2.Spacing(d).
+  template <typename STYPE, typename GRID_TYPE>
+  template <typename STYPE2, typename GRID_TYPE2>
+  void GRID_SPACING<STYPE, GRID_TYPE>::
+  SetSpacing(const GRID_SPACING<STYPE2, GRID_TYPE2> & grid2)
+  {
+    SetSpacing(grid2.SpacingPtrConst());
+  }
+
   template <typename STYPE, typename GRID_TYPE>
   template <typename DTYPE2, typename ATYPE2>
   void GRID_SPACING<STYPE, GRID_TYPE>::SetSize
@@ -4711,6 +4748,7 @@ namespace IJK {
     FreeLocal();
     GRID_TYPE::SetSize(dimension, axis_size);
     CreateLocal();
+    SetAllSpacing(1);
   }
 
   template <typename STYPE, typename GRID_TYPE>
@@ -4720,6 +4758,15 @@ namespace IJK {
   (const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2)
   {
     SetSize(grid2.Dimension(), grid2.AxisSize());
+  }
+
+  template <typename STYPE, typename GRID_TYPE>
+  template <typename VTYPE2, typename CTYPE>
+  void GRID_SPACING<STYPE, GRID_TYPE>::
+  ComputeScaledCoord(const VTYPE2 iv, CTYPE * coord) const
+  {
+    compute_scaled_coord
+      (iv, this->Dimension(), this->AxisSize(), SpacingPtrConst(), coord);
   }
 
   /// Destructor.

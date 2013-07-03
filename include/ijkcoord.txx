@@ -118,6 +118,21 @@ namespace IJK {
       { coord1[d] = s*coord0[d]; };
   }
 
+  /// Scale each \a coord0[d] by \a scale[d].
+  /// @param dimension = Coordinate dimension (= number of coordinates.)
+  /// @param coord0 = Input coordinates.
+  /// @param scale = Scale factors.
+  /// @param[out] coord1 = Output coordinate equal 
+  ///    to (\a scale[d] * \a coord0[]).
+  template <typename DTYPE, typename STYPE, typename CTYPE0, typename CTYPE1>
+  inline void scale_coord
+  (const DTYPE dimension, const STYPE scale[], const CTYPE0 coord0[],
+   CTYPE1 coord1[])
+  {
+    for (DTYPE d = 0; d < dimension; d++)
+      { coord1[d] = scale[d]*coord0[d]; };
+  }
+
   /// Add \a s * \a coord0[] to \a coord1[]).
   /// @param dimension = Coordinate dimension (= number of coordinates.)
   /// @param coord0 = Input coordinates.
