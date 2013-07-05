@@ -182,7 +182,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_hermite
        central_point);
   }
   else {
-    scalar_grid.ComputeCubeCenterCoord(cube_index, central_point);
+    scalar_grid.ComputeCubeCenterScaledCoord(cube_index, central_point);
   }
   IJK::copy_coord(DIM3, central_point, svd_info.central_point);
 

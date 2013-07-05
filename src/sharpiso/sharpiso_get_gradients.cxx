@@ -51,7 +51,7 @@ namespace {
   {
     NUM_TYPE ic = point_coord.size();
     point_coord.resize(ic+DIM3);
-    gradient_grid.ComputeCoord(iv, &(point_coord[ic]));
+    gradient_grid.ComputeScaledCoord(iv, &(point_coord[ic]));
 
     gradient_coord.resize(ic+DIM3);
     std::copy(gradient_grid.VectorPtrConst(iv),
@@ -344,7 +344,7 @@ void SHARPISO::get_selected_vertex_gradients
       VERTEX_INDEX iv = vertex_list[i];
       NUM_TYPE ic = point_coord.size();
       point_coord.resize(ic+DIM3);
-      gradient_grid.ComputeCoord(iv, &(point_coord[ic]));
+      gradient_grid.ComputeScaledCoord(iv, &(point_coord[ic]));
 
       gradient_coord.resize(ic+DIM3);
       std::copy(gradient_grid.VectorPtrConst(iv),
@@ -399,7 +399,7 @@ void SHARPISO::get_vertex_gradients
   for (NUM_TYPE i = 0; i < num_vertices; i++) {
 
     VERTEX_INDEX iv = vertex_list[i];
-    gradient_grid.ComputeCoord(iv, point_coord+i*DIM3);
+    gradient_grid.ComputeScaledCoord(iv, point_coord+i*DIM3);
 
     std::copy(gradient_grid.VectorPtrConst(iv),
               gradient_grid.VectorPtrConst(iv)+DIM3,

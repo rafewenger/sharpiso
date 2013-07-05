@@ -51,17 +51,10 @@ void MERGESHARP::position_dual_isovertices_cube_center
  const std::vector<ISO_VERTEX_INDEX> & vlist, COORD_TYPE * coord)
 {
   const int dimension = grid.Dimension();
-  GRID_COORD_TYPE grid_coord[dimension];
-  COORD_TYPE unit_cube_center[dimension];
-  IJK::PROCEDURE_ERROR error("position_dual_isovertices_center");
-
-  IJK::set_coord(dimension, 0.5, unit_cube_center);
 
   for (VERTEX_INDEX i = 0; i < vlist.size(); i++) {
     VERTEX_INDEX iv = vlist[i];
-
-    grid.ComputeCoord(iv, grid_coord);
-    IJK::add_coord(dimension, grid_coord, unit_cube_center, coord+i*dimension);
+    grid.ComputeCubeCenterScaledCoord(iv, coord+i*dimension);
   }
 }
 
@@ -583,8 +576,8 @@ void MERGESHARP::compute_isosurface_grid_edge_centroid
 
       if (is_end0_positive != is_end1_positive) {
 
-        scalar_grid.ComputeCoord(iend0, coord0);
-        scalar_grid.ComputeCoord(iend1, coord1);
+        scalar_grid.ComputeScaledCoord(iend0, coord0);
+        scalar_grid.ComputeScaledCoord(iend1, coord1);
 
         IJK::linear_interpolate_coord
           (dimension, s0, coord0, s1, coord1, isovalue, coord2);
@@ -600,9 +593,7 @@ void MERGESHARP::compute_isosurface_grid_edge_centroid
         (dimension, 1.0/num_intersected_edges, vcoord, vcoord);
     }
     else {
-      scalar_grid.ComputeCoord(iv, vcoord);
-      for (int d = 0; d < dimension; d++)
-      { vcoord[iv] += 0.5; };
+      scalar_grid.ComputeCubeCenterScaledCoord(iv, vcoord);
     }
 
     IJK::copy_coord(dimension, vcoord, coord);
@@ -636,8 +627,8 @@ void MERGESHARP::compute_isosurface_grid_edge_centroid
         SCALAR_TYPE s0 = scalar_grid.Scalar(iend0);
         SCALAR_TYPE s1 = scalar_grid.Scalar(iend1);
 
-        scalar_grid.ComputeCoord(iend0, coord0);
-        scalar_grid.ComputeCoord(iend1, coord1);
+        scalar_grid.ComputeScaledCoord(iend0, coord0);
+        scalar_grid.ComputeScaledCoord(iend1, coord1);
 
         IJK::linear_interpolate_coord
           (DIM3, s0, coord0, s1, coord1, isovalue, coord2);
@@ -654,7 +645,7 @@ void MERGESHARP::compute_isosurface_grid_edge_centroid
       (1.0/num_intersected_edges, vcoord, coord);
   }
   else {
-    scalar_grid.ComputeCubeCenterCoord(icube, coord);
+    scalar_grid.ComputeCubeCenterScaledCoord(icube, coord);
   }
 
 }
