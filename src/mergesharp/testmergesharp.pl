@@ -20,9 +20,13 @@ my $min_diff_flag = 0;
 my $min_diff = 0.0;
 my $flag_info = 0;
 my $flag_sort = 0;
+my $random_flag = 0;
+my $random_seed = 0;
+my $bzero_flag = 0;
 
 my %data_flag;
 my $use_all_data = 0;
+
 
 # mergesharp arguments which take an input value/string.
 my @mergesharp_options = ( "-subsample",  "-position", "-round", 
@@ -114,6 +118,17 @@ while (scalar(@proglist) > 0 &&
 
   if ($new_option eq "-info") {
     $flag_info = 1;
+  }
+
+  if ($new_option eq "-random") {
+    $random_flag = 1;
+    $random_seed = shift(@proglist);
+    next;
+  }
+
+  if ($new_option eq "-bzero") {
+    $bzero_flag = 1;
+    next;
   }
 
   push(@input_options, $new_option);
@@ -238,11 +253,26 @@ if (defined($data_flag{hermite})) {
 }
 
 
+# test data parameters for -random
+my %random_test;
+
+$random_test{seed} = $random_seed;
+$random_test{isovalue} = 4;
+$random_test{axis_size} = 20;
+$random_test{num_random} = 10;
+$random_test{nrrd_filename} = "rtest.nrrd";
+
+
 my $prog0 = shift(@proglist);
 
 if (scalar(@proglist) == 0) {
 
-  run_mergesharp_count_sharp_edges(@input_options);
+  if ($random_flag) {
+    run_mergesharp_on_random(@input_options);
+  }
+  else {
+    run_mergesharp_count_sharp_edges(@input_options);
+  }
 }
 else {
 
@@ -289,6 +319,42 @@ sub run_mergesharp_count_sharp_edges {
 
       count_sharp_edges("$outfile0");
     }
+  }
+
+}
+
+# run mergesharp on random sharp data
+# count sharp edges and check manifold conditions.
+sub run_mergesharp_on_random {
+
+  my @option_list = ("-trimesh", "@_");
+
+  my $num_random = $random_test{num_random};
+  my $isoval = $random_test{isovalue} + $isoval_offset;
+  my $nrrd_filename = $random_test{nrrd_filename};
+  my $axis_size = $random_test{axis_size};
+  my $randompos_seed = $random_test{seed};
+  my $randomdir_seed = $randompos_seed+10000;
+
+  for (my $i = 0; $i < $num_random; $i++) {
+
+    my $command_line =
+      "ijkgenscalar -grad -dim 3 -asize $axis_size -randompos $randompos_seed -randomdir $randomdir_seed -n 5 -field cube -dir \"1 1 1\" -side_dir \"1 0 0\" -s";
+    if ($bzero_flag) {
+      $command_line = $command_line . " -bzero";
+    }
+    $command_line = $command_line . " $nrrd_filename";
+    print "$command_line\n";
+
+    system("$command_line") == 0 ||
+      die "Program ijkgenscalar abnormally terminated.\n";
+
+    run_mergesharp
+      ($prog0, $nrrd_filename, "$outfile0", \@option_list, $isoval);
+    count_sharp_edges("$outfile0");
+
+    $randompos_seed++;
+    $randomdir_seed++;
   }
 
 }
