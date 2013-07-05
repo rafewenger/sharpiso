@@ -41,8 +41,7 @@ namespace SHARPISO {
   // **************************************************
   // C++ CLASSES
   // **************************************************
-  
-  class OFFSET_CUBE_111;
+
   class SHARP_ISOVERT_PARAM;
   class SVD_INFO;
   

@@ -202,7 +202,6 @@ namespace {
     const NUM_TYPE num_gcube = isovert.gcube_list.size();
     VERTEX_INDEX cube_index, neighbor_index;
     SHARPISO_GRID_NEIGHBORS gridn;
-    GRID_COORD_TYPE cube_coord[DIM3];
 
     // Set size of grid neighbors grid.
     gridn.SetSize(isovert.sharp_ind_grid);

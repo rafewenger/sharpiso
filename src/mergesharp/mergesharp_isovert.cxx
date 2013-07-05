@@ -761,9 +761,6 @@ void process_edge(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
                   const SCALAR_TYPE isovalue,
                   bool &is_intersect)
 {
-  COORD_TYPE coord1[DIM3];
-  scalar_grid.ComputeCoord(v0,coord1);
-  scalar_grid.ComputeCoord(v1,coord1);
   is_intersect = is_gt_min_le_max(scalar_grid, v0, v1, isovalue);
 }
 

@@ -91,7 +91,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 
   // Compute coord of the cube.
   GRID_COORD_TYPE cube_coord[DIM3];
-  scalar_grid.ComputeCoord(cube_index, cube_coord);
+  scalar_grid.ComputeScaledCoord(cube_index, cube_coord);
 
   get_gradients
     (scalar_grid, gradient_grid, cube_index, isovalue,
@@ -163,7 +163,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_hermite
 
   // Compute coord of the cube.
   GRID_COORD_TYPE cube_coord[DIM3];
-  scalar_grid.ComputeCoord(cube_index, cube_coord);
+  scalar_grid.ComputeScaledCoord(cube_index, cube_coord);
 
   get_gradients_from_list
     (scalar_grid, edgeI_coord, edgeI_normal_coord, edge_index, 
@@ -260,11 +260,11 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_interpolate_gradients
     svd_info.location = LOC_SVD;
   }
   else{
-    scalar_grid.ComputeCubeCenterCoord(cube_index, sharp_coord);
+    scalar_grid.ComputeCubeCenterScaledCoord(cube_index, sharp_coord);
     svd_info.location = CUBE_CENTER;
   }
 
-  scalar_grid.ComputeCoord(cube_index, cube_coord);
+  scalar_grid.ComputeScaledCoord(cube_index, cube_coord);
   postprocess_isovert_location
     (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
      sharpiso_param, sharp_coord, svd_info);
@@ -312,11 +312,11 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_sharp_gradient
     svd_info.location = LOC_SVD;
   }
   else{
-    scalar_grid.ComputeCubeCenterCoord(cube_index, sharp_coord);
+    scalar_grid.ComputeCubeCenterScaledCoord(cube_index, sharp_coord);
     svd_info.location = CUBE_CENTER;
   }
 
-  scalar_grid.ComputeCoord(cube_index, cube_coord);
+  scalar_grid.ComputeScaledCoord(cube_index, cube_coord);
   postprocess_isovert_location
     (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
      sharpiso_param, sharp_coord, svd_info);
@@ -375,7 +375,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
 
   // Compute coord of the cube.
   GRID_COORD_TYPE cube_coord[DIM3];
-  scalar_grid.ComputeCoord(cube_index, cube_coord);
+  scalar_grid.ComputeScaledCoord(cube_index, cube_coord);
 
   get_gradients
     (scalar_grid, gradient_grid, cube_index, isovalue,
@@ -489,7 +489,7 @@ void SHARPISO::compute_vertex_on_line
                        sharp_coord, conflicting_cube)) {
 
       if (sharpiso_param.use_Linf_dist) {
-        scalar_grid.ComputeCoord(conflicting_cube, conflicting_cube_coord);
+        scalar_grid.ComputeScaledCoord(conflicting_cube, conflicting_cube_coord);
 
         diff_coord(cube_coord, conflicting_cube_coord, num_diff, icoord);
         if (num_diff == 1 &&
@@ -564,7 +564,7 @@ void SHARPISO::svd_compute_sharp_vertex_near_facet
 
   if (num_large_eigenvalues > 1) {
 
-    scalar_grid.ComputeCoord(facet_v0, v0_coord);
+    scalar_grid.ComputeScaledCoord(facet_v0, v0_coord);
 
     if (num_large_eigenvalues == 3) {
 
@@ -656,7 +656,7 @@ void SHARPISO::subgrid_compute_sharp_vertex_in_cube
      point_coord, gradient_coord, scalar, num_gradients);
 
   IJK::ARRAY<GRID_COORD_TYPE> cube_coord(DIM3);
-  scalar_grid.ComputeCoord(cube_index, cube_coord.Ptr());
+  scalar_grid.ComputeScaledCoord(cube_index, cube_coord.Ptr());
 
   subgrid_calculate_iso_vertex_in_cube
     (point_coord, gradient_coord, scalar,
@@ -786,8 +786,8 @@ void SHARPISO::compute_edgeI_centroid
         SCALAR_TYPE s0 = scalar_grid.Scalar(iend0);
         SCALAR_TYPE s1 = scalar_grid.Scalar(iend1);
 
-        scalar_grid.ComputeCoord(iend0, coord0);
-        scalar_grid.ComputeCoord(iend1, coord1);
+        scalar_grid.ComputeScaledCoord(iend0, coord0);
+        scalar_grid.ComputeScaledCoord(iend1, coord1);
 
         IJK::linear_interpolate_coord
           (dimension, s0, coord0, s1, coord1, isovalue, coord2);
@@ -803,9 +803,7 @@ void SHARPISO::compute_edgeI_centroid
       (dimension, 1.0/num_intersected_edges, vcoord, vcoord);
   }
   else {
-    scalar_grid.ComputeCoord(iv, vcoord);
-    for (int d = 0; d < dimension; d++)
-      { vcoord[d] += 0.5; };
+    scalar_grid.ComputeCubeCenterScaledCoord(iv, vcoord);
   }
 
   IJK::copy_coord(dimension, vcoord, coord);
@@ -854,9 +852,7 @@ void SHARPISO::compute_edgeI_centroid
       (dimension, 1.0/num_intersected_edges, vcoord, vcoord);
   }
   else {
-    scalar_grid.ComputeCoord(cube_index, vcoord);
-    for (int d = 0; d < dimension; d++)
-      { vcoord[d] += 0.5; };
+    scalar_grid.ComputeCubeCenterScaledCoord(cube_index, vcoord);
   }
 
   IJK::copy_coord(dimension, vcoord, coord);
@@ -900,9 +896,7 @@ void SHARPISO::compute_edgeI_sharp_centroid
       (dimension, 1.0/num_intersected_edges, vcoord, vcoord);
   }
   else {
-    scalar_grid.ComputeCoord(iv, vcoord);
-    for (int d = 0; d < dimension; d++)
-      { vcoord[d] += 0.5; };
+    scalar_grid.ComputeCubeCenterScaledCoord(iv, vcoord);
   }
 
   IJK::copy_coord(dimension, vcoord, coord);
@@ -1189,7 +1183,7 @@ void compute_central_point
        sharpiso_param.use_sharp_edgeI, central_point);
   }
   else {
-    scalar_grid.ComputeCubeCenterCoord(cube_index, central_point);
+    scalar_grid.ComputeCubeCenterScaledCoord(cube_index, central_point);
   }
   IJK::copy_coord(DIM3, central_point, svd_info.central_point);
 }

@@ -204,7 +204,6 @@ void construct_isosurface
     rescale_vertex_coord(grow_factor, shrink_factor, input_info.grid_spacing,
                          dual_isosurface.vertex_coord);
 
-
     if (mergesharp_data.flag_convert_quad_to_tri) {
 
       VERTEX_INDEX_ARRAY quad_vert(dual_isosurface.quad_vert);
