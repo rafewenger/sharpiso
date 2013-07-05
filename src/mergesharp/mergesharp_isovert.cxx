@@ -921,7 +921,7 @@ namespace {
   {
     SCALAR_TYPE squareDist=0.0;
     COORD_TYPE cc[DIM3];
-    scalar_grid.ComputeCubeCenterCoord(iv,cc);
+    scalar_grid.ComputeCubeCenterScaledCoord(iv,cc);
     SCALAR_TYPE temp_d   = 0.0;
     SCALAR_TYPE max_dist = -1.0;
 
