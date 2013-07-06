@@ -2070,8 +2070,8 @@ void SHARPISO::GET_GRADIENTS_PARAM::Init()
   use_gradients_determining_edge_intersections = false;
   allow_duplicates = false;
   flag_sort_gradients = false;
-  grad_selection_cube_offset = 0;
-  max_small_magnitude = 0.0;
+  grad_selection_cube_offset = 1;
+  max_small_magnitude = 0.001;
   zero_tolerance = 0.0000001;
   max_grad_dist = 1;
 }

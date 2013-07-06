@@ -24,6 +24,8 @@
 #ifndef _IJKGRID_NRRD_
 #define _IJKGRID_NRRD_
 
+#include <string>
+
 #include "ijk.txx"
 #include "ijkNrrd.h"
 
@@ -73,6 +75,12 @@ namespace IJK {
     (const Nrrd * from_data);
     void CopyComments                 ///< Copy comments.
     (const Nrrd * from_data);
+
+    /// Add key and value.
+    void AddKeyValue(const char * key, const char * value_string);
+    void AddKeyValue(const char * key, const std::string & value_string);
+    void AddKeyValue
+    (const std::string & key, const std::string & value_string);
 
     /// Return true if dimension and axis sizes match.
     template <typename DTYPE2, typename ATYPE2>
@@ -536,12 +544,12 @@ namespace IJK {
     DTYPE dimension = this->Dimension();
     if (dimension < 1) { return; }
 
-    IJK::ARRAY<double> nrrd_spacing(dimension);
+    IJK::ARRAY<double> nrrd_spacing(dimension, 1);
     nrrdAxisInfoGet_nva
       (this->DataPtrConst(), nrrdAxisInfoSpacing, nrrd_spacing.Ptr());
 
     grid_spacing.resize(dimension);
-    for (DTYPE d = 0; d < dimension; d++) 
+    for (DTYPE d = 0; d < dimension; d++)
       { grid_spacing[d] = nrrd_spacing[d]; }
   }
 
@@ -584,6 +592,31 @@ namespace IJK {
   CopyComments(const Nrrd * from_data)
   {
     copy_nrrd_comments(from_data, this->data);
+  }
+
+  /// Add key and value.
+  template <typename DTYPE, typename ATYPE>
+  void NRRD_DATA<DTYPE,ATYPE>::
+  AddKeyValue(const char * key, const char * value_string)
+  {
+    nrrdKeyValueAdd(this->DataPtr(), key, value_string);
+  }
+
+  /// Add key and value.
+  template <typename DTYPE, typename ATYPE>
+  void NRRD_DATA<DTYPE,ATYPE>::
+  AddKeyValue(const char * key, const std::string & value_string)
+  {
+    AddKeyValue(key, value_string.c_str());
+  }
+
+  /// Add key and value.
+  template <typename DTYPE, typename ATYPE>
+  void NRRD_DATA<DTYPE,ATYPE>::
+  AddKeyValue
+  (const std::string & key, const std::string & value_string)
+  {
+    AddKeyValue(key.c_str(), value_string.c_str());
   }
 
   /// Return true if dimension and axis sizes match.

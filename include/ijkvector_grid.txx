@@ -85,9 +85,9 @@ namespace IJK {
     void Set               ///< Set value of vertex \a iv, coord \a ic, to \a s.
     (const VITYPE2 iv, const LTYPE2 ic, const VCTYPE s)
     { vec[iv*vector_length+ic] = s; };
-    template <typename VITYPE2>
+    template <typename VITYPE2, typename VCTYPE2>
     void Set               ///< Set vector value of vector at \a iv to \a v[].
-    (const VITYPE2 iv, const VCTYPE * v);
+    (const VITYPE2 iv, const VCTYPE2 * v);
     template <typename VCTYPE2>
     void SetAllCoord(const VCTYPE2 s); ///< Set all vector coord values to \a s.
     template <typename VCTYPE2>
@@ -285,9 +285,9 @@ namespace IJK {
 
   /// Set vector value to v
   template <typename GRID_CLASS, typename LTYPE, typename VCTYPE>
-  template <typename VITYPE2>
+  template <typename VITYPE2, typename VCTYPE2>
   void VECTOR_GRID_BASE<GRID_CLASS,LTYPE,VCTYPE>::
-  Set(const VITYPE2 iv, const VCTYPE * v)
+  Set(const VITYPE2 iv, const VCTYPE2 * v)
   {
     VCTYPE * vec_iv = vec+iv*VectorLength();
     for (LTYPE ic = 0; ic < VectorLength(); ic++)

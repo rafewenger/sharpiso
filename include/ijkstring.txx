@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011-2012 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -91,6 +91,20 @@ namespace IJK {
       { return(false); }
     else
       { return(true); }
+  }
+
+  // **************************************************
+  // Convert numeric value to string
+  // **************************************************
+
+  /// Convert value to string
+  template <typename T>
+  bool val2string(const T x, std::string & s_out)
+  {
+    std::ostringstream s_stream;
+
+    s_stream << x;
+    s_out = s_stream.str();
   }
 
   // **************************************************
