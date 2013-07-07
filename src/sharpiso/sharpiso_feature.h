@@ -171,7 +171,7 @@ namespace SHARPISO {
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
-   const GRID_COORD_TYPE cube_coord[DIM3],
+   const COORD_TYPE scaled_cube_coord[DIM3],
    const SCALAR_TYPE isovalue,
    const SHARP_ISOVERT_PARAM & sharpiso_param,
    const COORD_TYPE line_origin[DIM3],
@@ -260,7 +260,7 @@ namespace SHARPISO {
 
   /// Clamp to cube cube_coord[]
   void  clamp_point
-  (const float offset,  const GRID_COORD_TYPE cube_coord[DIM3], 
+  (const COORD_TYPE offset,  const COORD_TYPE cube_coord[DIM3], 
    COORD_TYPE point[DIM3]);
 
   /// Clamp to unit cube (0,0,0) to (1,1,1).
@@ -273,7 +273,7 @@ namespace SHARPISO {
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
-   const GRID_COORD_TYPE cube_coord[DIM3],
+   const COORD_TYPE cube_coord[DIM3],
    const SCALAR_TYPE isovalue,
    const SHARP_ISOVERT_PARAM & sharpiso_param,
    COORD_TYPE iso_coord[DIM3],
@@ -284,7 +284,7 @@ namespace SHARPISO {
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
-   const GRID_COORD_TYPE cube_coord[DIM3],
+   const COORD_TYPE cube_coord[DIM3],
    const SCALAR_TYPE isovalue,
    const SHARP_ISOVERT_PARAM & sharpiso_param,
    COORD_TYPE iso_coord[DIM3],
@@ -293,7 +293,7 @@ namespace SHARPISO {
   void process_far_point
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
      const VERTEX_INDEX cube_index,
-     const GRID_COORD_TYPE cube_coord[DIM3],
+     const COORD_TYPE cube_coord[DIM3],
      const SCALAR_TYPE isovalue,
      const SHARP_ISOVERT_PARAM & sharpiso_param,
      COORD_TYPE iso_coord[DIM3],

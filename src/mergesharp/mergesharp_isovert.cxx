@@ -917,7 +917,7 @@ namespace {
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const VERTEX_INDEX iv,
    COORD_TYPE isovert_coord[DIM3],
-   SCALAR_TYPE &linf_dist)
+   SCALAR_TYPE & linf_dist)
   {
     SCALAR_TYPE squareDist=0.0;
     COORD_TYPE cc[DIM3];
@@ -926,7 +926,7 @@ namespace {
     SCALAR_TYPE max_dist = -1.0;
 
     for (int d=0; d<DIM3; d++) {
-      temp_d = abs(isovert_coord[d]-cc[d]);
+      temp_d = abs(isovert_coord[d]-cc[d])/scalar_grid.Spacing(d);
       if (temp_d > max_dist)
         { max_dist=temp_d; }
     }
