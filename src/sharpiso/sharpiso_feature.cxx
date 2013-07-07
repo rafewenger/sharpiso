@@ -35,12 +35,9 @@
 // Local functions.
 bool is_dist_to_cube_le
 (const COORD_TYPE coord[DIM3], const COORD_TYPE cube_coord[DIM3],
- const COORD_TYPE max_dist);
-bool is_dist_to_cube_le
-(const COORD_TYPE coord[DIM3], const COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE spacing[DIM3], const COORD_TYPE max_dist);
 void snap_to_cube
-(const COORD_TYPE cube_coord[DIM3],
+(const COORD_TYPE cube_coord[DIM3], const COORD_TYPE spacing[DIM3],
  const COORD_TYPE snap_dist, COORD_TYPE coord[DIM3]);
 bool check_conflict
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -209,7 +206,8 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_hermite
   svd_info.cube_containing_coord = cube_index;
 
   // *** PROBABLY should call postprocess_isovert_location HERE ***
-  if (!is_dist_to_cube_le(sharp_coord, cube_coord, max_dist)) {
+  if (!is_dist_to_cube_le(sharp_coord, cube_coord, 
+                          scalar_grid.SpacingPtrConst(), max_dist)) {
     process_far_point(scalar_grid, cube_index, cube_coord, isovalue,
                       sharpiso_param, sharp_coord, svd_info);
   }
@@ -468,7 +466,8 @@ void SHARPISO::compute_vertex_on_line
  COORD_TYPE sharp_coord[DIM3],
  SVD_INFO & svd_info)
 {
-  const SIGNED_COORD_TYPE max_dist = sharpiso_param.max_dist;
+  const COORD_TYPE max_dist = sharpiso_param.max_dist;
+  const COORD_TYPE snap_dist = sharpiso_param.snap_dist;
   const GRADIENT_COORD_TYPE zero_tolerance = sharpiso_param.zero_tolerance;
   VERTEX_INDEX conflicting_cube;
   static GRID_COORD_TYPE cube_coord[DIM3];
@@ -488,9 +487,11 @@ void SHARPISO::compute_vertex_on_line
   compute_closest_point_on_line
     (central_point, line_origin, line_direction, zero_tolerance, sharp_coord);
 
-  if (is_dist_to_cube_le(sharp_coord, scaled_cube_coord, max_dist)) {
+  if (is_dist_to_cube_le(sharp_coord, scaled_cube_coord, 
+                         scalar_grid.SpacingPtrConst(), max_dist)) {
 
-    snap_to_cube(scaled_cube_coord, sharpiso_param.snap_dist, sharp_coord);
+    snap_to_cube(scaled_cube_coord, scalar_grid.SpacingPtrConst(), snap_dist, 
+                 sharp_coord);
     if (check_conflict(scalar_grid, isovalue, scaled_cube_coord,
                        sharp_coord, conflicting_cube)) {
 
@@ -505,7 +506,8 @@ void SHARPISO::compute_vertex_on_line
           compute_closest_point_on_line_linf
             (central_point, line_origin, line_direction, zero_tolerance, Linf_coord);
 
-          snap_to_cube(scaled_cube_coord, sharpiso_param.snap_dist, Linf_coord);
+          snap_to_cube(scaled_cube_coord, scalar_grid.SpacingPtrConst(), 
+                       snap_dist, Linf_coord);
           if (!check_conflict(scalar_grid, isovalue, scaled_cube_coord, Linf_coord)) {
             // No conflict.  Use Linf coord.
             IJK::copy_coord_3D(Linf_coord, sharp_coord);
@@ -932,35 +934,22 @@ void SHARPISO::subgrid_calculate_iso_vertex_in_cube
 // ROUTINES TO MOVE POINTS
 // **************************************************
 
-// Clamp to cube cube_coord[]
 void SHARPISO::clamp_point
-(const COORD_TYPE cube_offset,
- const COORD_TYPE cube_coord[DIM3],
+(const COORD_TYPE cube_coord[DIM3],
+ const COORD_TYPE spacing[DIM3],
+ const COORD_TYPE cube_offset,
  COORD_TYPE point[DIM3])
 {
-  for (int i=0; i<DIM3; i++) {
-    float p = point[i] - cube_coord[i];
-    if (p < (-cube_offset))
-      { point[i] = cube_coord[i] - cube_offset; }
-
-    /// *** INCORRECT IF SPACING IS NOT 1 ***
-    if (p > 1+cube_offset)
-      { point[i]=  cube_coord[i] + 1.0 + cube_offset; }
+  for (int d=0; d<DIM3; d++) {
+    const COORD_TYPE scaled_offset = cube_offset*spacing[d];
+    if (point[d]+scaled_offset < cube_coord[d]) 
+      { point[d] = cube_coord[d]-scaled_offset; }
+    COORD_TYPE max_coord = cube_coord[d]+scaled_offset+spacing[d];
+    if (point[d] > max_coord)
+      { point[d] = max_coord; }
   }
 }
 
-// Clamp to unit cube (0,0,0) to (1,1,1).
-void SHARPISO::clamp_point
-(const float cube_offset,
- COORD_TYPE point[DIM3])
-{
-  for (int i=0; i<DIM3; i++) {
-    if (point[i]< (-cube_offset))
-      { point[i] = -cube_offset; }
-    if (point[i] > 1.0 + cube_offset)
-      { point[i]=  1.0 + cube_offset; }
-  }
-}
 
 void SHARPISO::postprocess_isovert_location
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -973,6 +962,7 @@ void SHARPISO::postprocess_isovert_location
  SVD_INFO & svd_info)
 {
   const COORD_TYPE max_dist = sharpiso_param.max_dist;
+  const COORD_TYPE snap_dist = sharpiso_param.snap_dist;
 
   svd_info.cube_containing_coord = cube_index;
   if (is_dist_to_cube_le
@@ -981,7 +971,8 @@ void SHARPISO::postprocess_isovert_location
     if (!sharpiso_param.flag_allow_conflict) {
       bool flag_conflict;
       VERTEX_INDEX conflicting_cube;
-      snap_to_cube(cube_coord, sharpiso_param.snap_dist, iso_coord);
+      snap_to_cube(cube_coord, scalar_grid.SpacingPtrConst(), snap_dist, 
+                   iso_coord);
       flag_conflict =
         check_conflict(scalar_grid, isovalue, cube_coord, iso_coord,
                        conflicting_cube);
@@ -1019,7 +1010,7 @@ void SHARPISO::process_conflict
 
     if (sharpiso_param.flag_clamp_conflict) {
       // Clamp point to the cube.
-      clamp_point(0, cube_coord, iso_coord);
+      clamp_point(cube_coord, scalar_grid.SpacingPtrConst(), 0, iso_coord);
     }
     else {
       // Use the centroid.
@@ -1040,10 +1031,11 @@ void SHARPISO::process_far_point
  COORD_TYPE iso_coord[DIM3],
  SVD_INFO & svd_info)
 {
+  const COORD_TYPE max_dist = sharpiso_param.max_dist;
 
   if (sharpiso_param.flag_clamp_far) {
     // Clamp point to cube + max_dist.
-    clamp_point(sharpiso_param.max_dist, cube_coord, iso_coord);
+    clamp_point(cube_coord, scalar_grid.SpacingPtrConst(), max_dist, iso_coord);
   }
   else {
     // Use the centroid.
@@ -1056,19 +1048,6 @@ void SHARPISO::process_far_point
 // **************************************************
 // MISC ROUTINES
 // **************************************************
-
-/// Return true if (Linf) distance from coord to cube is at most
-bool is_dist_to_cube_le
-(const COORD_TYPE coord[DIM3], const COORD_TYPE cube_coord[DIM3],
- const COORD_TYPE max_dist)
-{
-  for (int d=0; d<DIM3; d++) {
-    if (coord[d]+max_dist < cube_coord[d]) { return(false); }
-    if (coord[d] > cube_coord[d]+1+max_dist) { return(false); }
-  }
-
-  return(true);
-}
 
 /// Return true if scaled distance from coord to cube is at most
 bool is_dist_to_cube_le
@@ -1158,19 +1137,20 @@ void get_all_cubes_containing_point
 
 }
 
-// *** INCORRECT IF SPACING IS NOT 1 ***
 // Snap coordinate to cube.
 void snap_to_cube
-(const COORD_TYPE cube_coord[DIM3],
+(const COORD_TYPE cube_coord[DIM3], const COORD_TYPE spacing[DIM3],
  const COORD_TYPE snap_dist, COORD_TYPE coord[DIM3])
 {
   for (int d = 0; d < DIM3; d++) {
+    COORD_TYPE scaled_snap_dist = snap_dist*spacing[d];
+
     if (coord[d] < cube_coord[d]) {
       if (coord[d] + snap_dist >= cube_coord[d])
         { coord[d] = cube_coord[d]; }
     }
     else {
-      COORD_TYPE right_coord = cube_coord[d]+1;
+      COORD_TYPE right_coord = cube_coord[d]+spacing[d];
       if (coord[d] > right_coord) {
         if (coord[d] <= right_coord+snap_dist)
           { coord[d] = right_coord; }
@@ -1218,16 +1198,16 @@ void compute_central_point
 // Check for conflict
 // **************************************************
 
-// **** INCORRECT IF SPACING NOT 1 ****
 /// Return true if cube contains point.
 bool cube_contains_point
 (const COORD_TYPE cube_coord[DIM3],
- const COORD_TYPE point_coord[DIM3])
+ const COORD_TYPE point_coord[DIM3],
+ const COORD_TYPE spacing[DIM3])
 {
   for (int d = 0; d < DIM3; d++) {
     if (point_coord[d] < cube_coord[d])
       { return(false); }
-    if (point_coord[d] > cube_coord[d]+1)
+    if (point_coord[d] > cube_coord[d]+spacing[d])
       { return(false); }
   }
 
@@ -1244,7 +1224,8 @@ bool check_conflict
  const COORD_TYPE point_coord[DIM3],
  VERTEX_INDEX & conflicting_cube)
 {
-  if (cube_contains_point(cube_coord, point_coord)) {
+  if (cube_contains_point(cube_coord, point_coord, 
+                          scalar_grid.SpacingPtrConst())) {
     // Point is in cube.  No conflict.
     return(false);
   }

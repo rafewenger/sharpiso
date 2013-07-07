@@ -258,13 +258,17 @@ namespace SHARPISO {
   // ROUTINES TO MOVE POINTS
   // **************************************************
 
-  /// Clamp to cube cube_coord[]
-  void  clamp_point
-  (const COORD_TYPE offset,  const COORD_TYPE cube_coord[DIM3], 
-   COORD_TYPE point[DIM3]);
-
-  /// Clamp to unit cube (0,0,0) to (1,1,1).
-  void  clamp_point(const float offset, COORD_TYPE point[DIM3]);
+  /// Clamp to cube with lower coordinates cube_coord[].
+  /// @param cube_coord[] Lower coordinates of cube.
+  /// @param spacing[] Spacing along the grid axis.
+  /// @param cube_offset Offset scale. 
+  ///   Cube is enlarged by cube_offset*spacing[d] in direction d.
+  /// @param point[] Clamp point.
+  void clamp_point
+    (const COORD_TYPE cube_coord[DIM3],
+     const COORD_TYPE spacing[DIM3],
+     const COORD_TYPE cube_offset,
+     COORD_TYPE point[DIM3]);
 
   /// Postprocess isosurface vertex coordinates.
   /// Depending on flags in sharpiso_param, move far points,
