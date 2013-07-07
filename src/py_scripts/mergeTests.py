@@ -27,10 +27,9 @@ mergesharpTests=[]
 
 ######################################################################
 #test1
-mergesharp = ['./mergesharp', '-no_merge_sharp','-position','gradEC','-trimesh' ,'-dist2centroid','-allow_conflict',\
-            '-multi_isov','-max_dist','5','-clamp_far','-sharp_edgeI','-lindstrom_fast']
+mergesharp = ['./mergesharp', '-trimesh']
 mergesharpTests.append(mergesharp)
-
+'''
 #test2
 mergesharp = ['./mergesharp', '-no_merge_sharp','-position','gradEC','-trimesh' ,'-dist2centroid','-allow_conflict',\
             '-multi_isov','-max_dist','0','-clamp_far','-sharp_edgeI','-lindstrom_fast']
@@ -46,7 +45,7 @@ mergesharpTests.append(mergesharp)
 mergesharp = ['./isodual3D', '-merge_sharp','-position','gradEC','-trimesh' ,'-dist2centroid','-allow_conflict',\
             '-multi_isov','-sharp_edgeI','-lindstrom_fast']
 mergesharpTests.append(mergesharp)
-
+'''
 #######################################################################
                         
 findsharp = ['findsharp','140']
