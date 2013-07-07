@@ -12,7 +12,7 @@ standard_args = ['ijkgenscalar2', '-grad', '-dim', '3', '-asize', '100']
 cgradient = ['cgradient']
 
 
-center_opts = ['50.0 50.0 50.0']
+center_opts = ['50.0 50.0 50.0','50.6 53.1 49.7']
 
 dir_opts = ['1 0 0','1 1 0','1 1 1', '2 2 5 ','2 5 7','1 1 4','1 1 7' ]
 dir_names = ['100','110','111', '225','257','114','117']
@@ -53,7 +53,7 @@ for cen in center_opts:
                 temp_args_dir_fixed.append(sid)
                 fname_nrrd_name = type+ '-dir-' +dir_names[dirNum]+"-sd-"+side_dir_names[side_dir]+"-"+str(n)+".nrrd"
                 temp_args_dir_fixed.append(fname_nrrd_name)
-                print >> datainfo, fname_nrrd_name, " center ",cen, ' radius ', dir
+                print >> datainfo, fname_nrrd_name, " center ",cen, ' dir ', dir
                 print >>fname, fname_nrrd_name
 		print temp_args_dir_fixed
                 proc.call(temp_args_dir_fixed)
