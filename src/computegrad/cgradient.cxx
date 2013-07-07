@@ -47,9 +47,18 @@ typedef IJK::BOOL_GRID<ISODUAL_GRID> BOOL_GRID;
 void compute_gradient_central_difference
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
 		const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient, const SCALAR_TYPE & min_gradient_mag);
+
+void compute_gradient_weighted_central_difference
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+		const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient,
+		const SCALAR_TYPE & min_gradient_mag,
+		const float * weights);
+
 void compute_boundary_gradient
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
 		const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient);
+
+
 void compute_cube_gradients
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
 		GRADIENT_GRID & gradient_grid, const INPUT_INFO & io_info);
@@ -197,6 +206,14 @@ void compute_reliable_gradients_SBP(
 
 	for (VERTEX_INDEX iv=0; iv < scalar_grid.NumVertices(); iv++)
 	{
+		/*
+		if (iv == int(scalar_grid.NumVertices()*0.25))
+			cout <<"25% vertices done"<< endl;
+		if (iv == int(scalar_grid.NumVertices()*0.50))
+			cout <<"50% vertices done"<< endl;
+		if (iv == int(scalar_grid.NumVertices()*0.75))
+			cout <<"75% vertices done"<< endl;
+		*/
 		int num_agree = 0;
 		// set up a vector to keep track of the distances
 		vector <SCALAR_TYPE> vec_scalar_dists;
@@ -207,8 +224,10 @@ void compute_reliable_gradients_SBP(
 				vertex_gradient_grid.VectorPtrConst(iv)+DIM3, grad1);
 		SCALAR_TYPE mag1;
 		IJK::compute_magnitude_3D(grad1, mag1);
+
 		if (mag1 > io_info.min_gradient_mag)
 		{
+			io_info.num_vertices_mag_grt_zero++;
 			// find the normalized gradient
 			IJK::normalize_vector(DIM3, grad1, io_info.min_gradient_mag, grad1_normalized);
 			// point on the plane
@@ -219,6 +238,7 @@ void compute_reliable_gradients_SBP(
 			scalar_grid.GetVertexNeighbors(iv, io_info.scalar_prediction_dist, near_vertices);
 
 			if(io_info.draw && iv==io_info.draw_vert){
+				// plot neighbor vertices
 				cout <<"point "<< coord_iv[0] <<" "<<coord_iv[1]<<" "<<coord_iv[2]<<
 						" 1 1 0"<<endl;
 			}
@@ -235,13 +255,16 @@ void compute_reliable_gradients_SBP(
 			// Number of vertices which are close to the gradient plane through the vertex iv
 			VERTEX_INDEX close_vertices = 0;
 			VERTEX_INDEX correct_prediction = 0;
-			for (unsigned int nv_ind = 0; nv_ind < near_vertices.size(); nv_ind++)
+
+			bool flag_correct = true;
+			for ( int nv_ind = 0; nv_ind < near_vertices.size(); nv_ind++)
 			{
 				// compute distance from plane
 				COORD_TYPE coord_nv[DIM3]={0.0,0.0,0.0};
 				scalar_grid.ComputeCoord(near_vertices[nv_ind], coord_nv);
 				SCALAR_TYPE dist_to_plane = 0.0;
 				compute_plane_point_dist (grad1_normalized, coord_iv, coord_nv, dist_to_plane);
+
 				if(io_info.print_info && iv==io_info.print_info_vertex){
 					cout <<"near vert "<< near_vertices[nv_ind] <<" coord (" << coord_nv[0] <<","<<coord_nv[1]<<","<<coord_nv[2]<<") ";
 					cout <<"Distance to plane: "<< dist_to_plane <<endl;
@@ -253,19 +276,28 @@ void compute_reliable_gradients_SBP(
 				if (abs (dist_to_plane) < 0.5){
 					close_vertices++;
 
-
 					// compute the distance between prediction and observed scalar value
 					SCALAR_TYPE err_distance = 0.0;
 					compute_signed_distance_to_gfield_plane
 					(grad1, coord_iv, scalar_grid.Scalar(iv),
 							coord_nv, scalar_grid.Scalar(near_vertices[nv_ind]), err_distance);
-					// keep track of the error distances
-					vec_scalar_dists.push_back (abs(err_distance));
 
+					// DEBUG
+
+					// keep track of the error distances
+					//vec_scalar_dists.push_back (abs(err_distance));
+					float abs_err = abs(err_distance);
+					if (abs_err > io_info.scalar_prediction_err)
+					{
+						flag_correct = false;
+						break;
+					}
+					/*
 					if(io_info.print_info && iv==io_info.print_info_vertex){
 						cout <<"\n within threshold error in scalar pred is "<<
 								err_distance<<"\n\n";
 					}
+
 					// Compare to error distance (set to .15)
 					if (abs (err_distance) < io_info.scalar_prediction_err)
 					{
@@ -282,17 +314,19 @@ void compute_reliable_gradients_SBP(
 									" 1 0 0"<<endl;
 						}
 					}
+					*/
 				}
+				/*
 				else{
 					if(io_info.draw && iv==io_info.draw_vert){
-						cout <<"point "<< coord_nv[0] <<" "<<coord_nv[1]<<" "<<coord_nv[2]<<
-								" 1 0 1"<<endl;
+						//cout <<"point "<< coord_nv[0] <<" "<<coord_nv[1]<<" "<<coord_nv[2];
+								//cout <<" 0 1 1"<<endl;
 					}
 				}
+				*/
 			}
 
-			sort(vec_scalar_dists.begin(), vec_scalar_dists.end());
-
+			/*
 			if(io_info.print_info && iv==io_info.print_info_vertex)
 			{
 				cout << "io_info.scalar_prediction_err: "<<io_info.scalar_prediction_err<<endl;
@@ -303,11 +337,21 @@ void compute_reliable_gradients_SBP(
 				cout <<"smallest scalar distance is "<< vec_scalar_dists[0]<<" largest "
 						<< vec_scalar_dists[vec_scalar_dists.size()-1]<<endl;
 			}
-			if (vec_scalar_dists[vec_scalar_dists.size()-1] > io_info.scalar_prediction_err){
+			*/
+			// debug
+			/*
+			float max_element = 	*std::max_element(vec_scalar_dists.begin(), vec_scalar_dists.end());
+			if (max_element > io_info.scalar_prediction_err){
 				if(io_info.print_info && iv==io_info.print_info_vertex){
 					cout <<"Not Reliable" <<endl;
 				}
 				reliable_grid.Set(iv,false);
+				io_info.out_info.num_unreliable++;
+			}
+			*/
+			if (!flag_correct){
+				reliable_grid.Set(iv,false);
+				io_info.out_info.num_unreliable++;
 			}
 		}
 
@@ -341,6 +385,12 @@ void compute_reliable_gradients_far
 	}
 	for (VERTEX_INDEX iv=0; iv < scalar_grid.NumVertices(); iv++)
 	{
+		if (iv == int(scalar_grid.NumVertices()*0.25))
+			cout <<"25% vertices done"<< endl;
+		if (iv == int(scalar_grid.NumVertices()*0.50))
+			cout <<"50% vertices done"<< endl;
+		if (iv == int(scalar_grid.NumVertices()*0.75))
+			cout <<"75% vertices done"<< endl;
 		numAgree=0;
 		GRADIENT_COORD_TYPE  gradient1[DIM3]={0.0,0.0,0.0}, gradient2[DIM3]={0.0,0.0,0.0};
 		SCALAR_TYPE mag;
@@ -530,6 +580,11 @@ void compute_reliable_gradients
 	}
 }
 
+
+
+/*
+ * compute the central differnce
+ */
 void compute_gradient_central_difference
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
 		GRADIENT_GRID & gradient_grid, const INPUT_INFO & io_info)
@@ -542,17 +597,47 @@ void compute_gradient_central_difference
 	boundary_grid.SetSize(scalar_grid);
 	compute_boundary_grid(boundary_grid);
 
+	if (io_info.flag_weighted_cdiff)
+		cout <<"Weighted central differnce being used.\n";
+
 	for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) {
 		if (boundary_grid.Scalar(iv)) {
 			compute_boundary_gradient(scalar_grid, iv, gradient_grid.VectorPtr(iv));
 		}
 		else {
-			compute_gradient_central_difference
-			(scalar_grid, iv, gradient_grid.VectorPtr(iv), io_info.min_gradient_mag);
+			if (io_info.flag_weighted_cdiff)
+			{
+				compute_gradient_weighted_central_difference
+				(scalar_grid, iv, gradient_grid.VectorPtr(iv), io_info.min_gradient_mag, io_info.weights);
+			}
+			else
+				compute_gradient_central_difference
+				(scalar_grid, iv, gradient_grid.VectorPtr(iv), io_info.min_gradient_mag);
+
 		}
 	}
 }
 
+/// Compute central difference per vertex
+void compute_gradient_weighted_central_difference
+(const ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+		const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient,
+		const SCALAR_TYPE & min_gradient_mag,
+		const float * weights)
+{
+	const int dimension = scalar_grid.Dimension();
+	for (int d = 0; d < dimension; d++) {
+		VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
+		VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
+		gradient[d] = ((scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0))/(2*weights[d]));
+	}
+	// set min gradient to )
+	SCALAR_TYPE mag=0.0;
+	IJK::compute_magnitude_3D(gradient, mag);
+	if (mag < min_gradient_mag ) {
+		IJK::copy_coord_3D(zero_vector, gradient);
+	}
+}
 /// Compute central difference per vertex
 void compute_gradient_central_difference
 (const ISODUAL_SCALAR_GRID_BASE & scalar_grid,

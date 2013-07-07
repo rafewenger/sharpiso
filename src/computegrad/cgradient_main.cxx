@@ -25,8 +25,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
-
-
+#include <time.h>
+#include <sys/time.h>
 #include "ijkNrrd.h"
 #include "ijkgrid_nrrd.txx"
 
@@ -57,6 +57,18 @@ void print_unreliable_grad_info
 // MAIN
 // **************************************************
 
+timespec diff(timespec start, timespec end)
+{
+	timespec temp;
+	if ((end.tv_nsec-start.tv_nsec)<0) {
+		temp.tv_sec = end.tv_sec-start.tv_sec-1;
+		temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
+	} else {
+		temp.tv_sec = end.tv_sec-start.tv_sec;
+		temp.tv_nsec = end.tv_nsec-start.tv_nsec;
+	}
+	return temp;
+}
 int main(int argc, char **argv)
 {
 	time_t start_time;
@@ -107,32 +119,40 @@ int main(int argc, char **argv)
 			}
 			OptChosen=true
 		}
-		*/
+		 */
 		if (input_info.flag_reliable_grad_far){
+			time_t begin,end;
+			time (&begin);
 			compute_reliable_gradients_far
 			(full_scalar_grid, vertex_gradient_grid, reliable_grid, input_info);
-			OptChosen=true;
+			OptChosen = true;
+			time (&end);
 			// print info
 			/*
 			cout <<"Total number of vertices "<<full_scalar_grid.NumVertices() << endl;
 			cout <<"Number of vertices with reliable grads " << input_info.out_info.num_reliable << endl;
 			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
 			cout <<"Number of boundary vertices "<<input_info.out_info.boundary_verts <<endl;
-			*/
-			cout <<" angle based prediction"<<endl;
+			 */
+			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
+			cout <<"time " <<difftime(end,begin) <<endl;
+			cout <<"*****angle based prediction completed. " <<endl;
 		}
-		 if (input_info.flag_reliable_scalar_prediction){
+		if (input_info.flag_reliable_scalar_prediction){
+			input_info.out_info.num_unreliable = 0;
+			time_t begin,end;
+			time (&begin);
 			compute_reliable_gradients_SBP
 			(full_scalar_grid, vertex_gradient_grid, reliable_grid, input_info);
-			OptChosen=true;
-			cout <<" scalar based prediction "<<endl;
-			/*
-			// print info
-			cout <<"Total number of vertices "<<full_scalar_grid.NumVertices() << endl;
-			cout <<"Number of vertices with reliable grads " << input_info.out_info.num_reliable << endl;
+			OptChosen = true;
+			time (&end);
 			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
-			cout <<"Number of boundary vertices "<<input_info.out_info.boundary_verts <<endl;
-			*/
+			cout <<"time " <<difftime(end,begin) << endl;
+			cout <<"*****scalar based prediction complete,\n num grad "
+					<< " whose mag is greater than "
+					<< input_info.min_gradient_mag
+					<<" is "<< input_info.num_vertices_mag_grt_zero <<
+					"  out of a total of "<<full_scalar_grid.NumVertices()<<endl;
 		}
 		if (!OptChosen)
 		{
@@ -148,7 +168,7 @@ int main(int argc, char **argv)
 				num_unreliable++;
 			}
 		}
-		cout <<"Number of unreliable is: " << num_unreliable <<endl;
+		cout << "Number of unreliable is: " << num_unreliable <<endl;
 
 		if (flag_gzip) {
 			write_vector_grid_nrrd_gzip(gradient_filename, vertex_gradient_grid);
@@ -220,17 +240,26 @@ void output_param (INPUT_INFO & io_info){
 		}
 		if (io_info.flag_reliable_grad_far)
 		{
-			cout <<"reliable grad far"<<endl;
-			cout <<"reliable_grad_dist : "<< io_info.reliable_grad_far_dist <<endl;
+			cout << "Reliable grad far"<<endl;
+			cout << "reliable_grad_dist : "<< io_info.reliable_grad_far_dist <<endl;
 			cout << "min cos angle    " << (acos(io_info.min_cos_of_angle)*180.0)/M_PI << endl;
 			cout << "min num agree    " << io_info.min_num_agree << endl;
 			cout << "min_gradient_mag " << io_info.min_gradient_mag << endl;
+			cout <<"\n";
 		}
 		if (io_info.flag_reliable_scalar_prediction)
 		{
-			cout <<"scalar based prediction"<<endl;
+			cout <<"Scalar based prediction"<<endl;
 			cout <<"scalar error tolerance: "<<io_info.scalar_prediction_err<<endl;
 			cout <<"scalar error distance to neighbors: "<<io_info.scalar_prediction_dist<<endl;
+		}
+		if (io_info.flag_weighted_cdiff){
+			cout <<"Computing weighted central difference " << endl;
+			cout <<"-weights "<<io_info.weights[0]<<" "<<io_info.weights[1]<<" "<<io_info.weights[2]<<endl;
+		}
+		else
+		{
+			cout <<"Computing without weighted cdiff."<<endl;
 		}
 	}
 }
@@ -302,13 +331,27 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info)
 			io_info.flag_reliable_scalar_prediction = true;
 			io_info.scalar_prediction_dist = atoi(argv[iarg]);
 		}
+		else if (string(argv[iarg])=="-weighted_cdiff")
+		{
+
+			io_info.flag_weighted_cdiff = true;
+			for (int d=0; d<3 ; d++){
+				iarg++;
+				io_info.weights[d] = atof(argv[iarg]);
+
+			}
+
+		}
 		else if (string(argv[iarg])=="-scalar_pred_err"){
-					iarg++;
-					io_info.flag_reliable_scalar_prediction = true;
-					io_info.scalar_prediction_err = atof(argv[iarg]);
-				}
+			iarg++;
+			io_info.flag_reliable_scalar_prediction = true;
+			io_info.scalar_prediction_err = atof(argv[iarg]);
+		}
 		else
-		{ usage_error(); }
+		{
+			cout <<"Error in  "<< string(argv[iarg]) << endl;
+			usage_error();
+		}
 		iarg++;
 	}
 
@@ -331,7 +374,9 @@ void usage_msg()
 	cerr << "\t\t-min_num_agree: default set to 4" <<endl;
 	cerr << "\t\t-reliable_grad_far_dist: <how far to look, e.x 2>" <<endl;
 	cerr << "\t\t-reliable_scalar_pred_dist: <how far to look, e.x 2>" <<endl;
-	cerr << "\t\t-scalar_pred_err: <threhold for error prediction default 0.15>" <<endl;
+	cerr << "\t\t\t plot the neighbors selected by using -draw_vert"<<endl;
+	cerr << "\t\t-weighted_cdiff : provide spacings for the 3 directions ex 0.5 0.5 0.5"<<endl;
+	cerr << "\t\t-scalar_pred_err: <threhold for error in prediction default 0.15>" <<endl;
 }
 
 void usage_error()
