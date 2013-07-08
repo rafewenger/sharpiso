@@ -75,7 +75,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const SHARP_ISOVERT_PARAM & sharpiso_param,
- const OFFSET_CUBE_111 & cube_111,
+ const OFFSET_VOXEL & voxel,
  COORD_TYPE sharp_coord[DIM3],
  EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
@@ -95,7 +95,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 
   get_gradients
     (scalar_grid, gradient_grid, cube_index, isovalue,
-     sharpiso_param, cube_111, sharpiso_param.flag_sort_gradients,
+     sharpiso_param, voxel, sharpiso_param.flag_sort_gradients,
      point_coord, gradient_coord, scalar, num_gradients);
 
   svd_info.location = LOC_SVD;
@@ -358,7 +358,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const SHARP_ISOVERT_PARAM & sharpiso_param,
- const OFFSET_CUBE_111 & cube_111,
+ const OFFSET_VOXEL & voxel,
  COORD_TYPE sharp_coord[DIM3],
  EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
@@ -380,7 +380,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lc_intersection
 
   get_gradients
     (scalar_grid, gradient_grid, cube_index, isovalue,
-     sharpiso_param, cube_111, sharpiso_param.flag_sort_gradients,
+     sharpiso_param, voxel, sharpiso_param.flag_sort_gradients,
      point_coord, gradient_coord, scalar, num_gradients);
 
   svd_info.location = LOC_SVD;
@@ -648,7 +648,7 @@ void SHARPISO::subgrid_compute_sharp_vertex_in_cube
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const GET_GRADIENTS_PARAM & get_gradients_param,
- const OFFSET_CUBE_111 & cube_111,
+ const OFFSET_VOXEL & offset_voxel,
  const NUM_TYPE subgrid_axis_size,
  COORD_TYPE sharp_coord[DIM3],
  SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error)
@@ -660,7 +660,7 @@ void SHARPISO::subgrid_compute_sharp_vertex_in_cube
 
   get_gradients
     (scalar_grid, gradient_grid, cube_index, isovalue,
-     get_gradients_param, cube_111, false,
+     get_gradients_param, offset_voxel, false,
      point_coord, gradient_coord, scalar, num_gradients);
 
   IJK::ARRAY<GRID_COORD_TYPE> cube_coord(DIM3);

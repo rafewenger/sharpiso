@@ -138,7 +138,7 @@ namespace {
    const GRID_COORD_TYPE * cube_coord,
    const GRADIENT_COORD_TYPE max_small_mag_squared,
    const SCALAR_TYPE isovalue,
-   const OFFSET_CUBE_111 & cube_111,
+   const OFFSET_VOXEL & voxel,
    std::vector<COORD_TYPE> & point_coord,
    std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
    std::vector<SCALAR_TYPE> & scalar,
@@ -148,24 +148,24 @@ namespace {
 
     // static so not reallocated at each call
     static GRID_COORD_TYPE vertex_coord[DIM3];
-    static GRID_COORD_TYPE coord[DIM3];
+    static SIGNED_COORD_TYPE coord[DIM3];
 
     GRADIENT_COORD_TYPE magnitude_squared =
       gradient_grid.ComputeMagnitudeSquared(iv);
 
     if (magnitude_squared > max_small_mag_squared) {
 
-      gradient_grid.ComputeCoord(iv, vertex_coord);
-      // Add (1,1,1) since cube_111 has origin near (1,1,1)
-      // Ensures that coord[] is not negative.
-      for (DTYPE d = 0; d < DIM3; d++)
-        { coord[d] = (vertex_coord[d]+1) - cube_coord[d]; }
+      gradient_grid.ComputeScaledCoord(iv, vertex_coord);
+      for (DTYPE d = 0; d < DIM3; d++) {
+        coord[d] = vertex_coord[d] - cube_coord[d] + 
+          voxel.OffsetFactor()*scalar_grid.Spacing(d); 
+      }
       const GRADIENT_COORD_TYPE * vertex_gradient_coord =
         gradient_grid.VectorPtrConst(iv);
       SCALAR_TYPE s = scalar_grid.Scalar(iv);
 
       if (iso_intersects_cube
-          (cube_111, coord, vertex_gradient_coord, s, isovalue)) {
+          (voxel, coord, vertex_gradient_coord, s, isovalue)) {
         add_gradient(scalar_grid, gradient_grid, iv,
                      point_coord, gradient_coord, scalar, num_gradients);
       }
@@ -196,7 +196,7 @@ namespace {
    const VERTEX_INDEX cube_index,
    const SCALAR_TYPE isovalue,
    const GET_GRADIENTS_PARAM & sharpiso_param,
-   const OFFSET_CUBE_111 & cube_111,
+   const OFFSET_VOXEL & voxel,
    const int num_vertices,
    VERTEX_INDEX vertex_list[],
    NUM_TYPE & num_selected)
@@ -221,7 +221,7 @@ namespace {
       scalar_grid.ComputeCoord(cube_index, cube_coord);
 
       deselect_vertices_based_on_isoplanes
-        (scalar_grid, gradient_grid, cube_coord, cube_111,
+        (scalar_grid, gradient_grid, cube_coord, voxel,
          isovalue, vertex_list, num_vertices, vertex_flag.Ptr());
     }
 
@@ -238,13 +238,13 @@ namespace {
    const VERTEX_INDEX cube_index,
    const SCALAR_TYPE isovalue,
    const GET_GRADIENTS_PARAM & sharpiso_param,
-   const OFFSET_CUBE_111 & cube_111,
+   const OFFSET_VOXEL & voxel,
    std::vector<VERTEX_INDEX> & vertex_list)
   {
     int num_selected;
 
     get_selected_vertices
-      (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param, cube_111, 
+      (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param, voxel,
        vertex_list.size(), &(vertex_list[0]), num_selected);
     vertex_list.resize(num_selected);
   }
@@ -282,7 +282,7 @@ namespace {
    const VERTEX_INDEX cube_index,
    const SCALAR_TYPE isovalue,
    const GET_GRADIENTS_PARAM & sharpiso_param,
-   const OFFSET_CUBE_111 & cube_111,
+   const OFFSET_VOXEL & voxel,
    VERTEX_INDEX cube_vertex_list[NUM_CUBE_VERTICES3D],
    NUM_TYPE & num_selected)
   {
@@ -318,7 +318,7 @@ namespace {
 
     get_selected_vertices
       (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
-       cube_111, num_vertices, cube_vertex_list, num_selected);
+       voxel, num_vertices, cube_vertex_list, num_selected);
   }
 
 }
@@ -464,6 +464,7 @@ void SHARPISO::get_cube_gradients
   }
 }
 
+
 /// Get gradients.
 /// @param sharpiso_param Determines which gradients are selected.
 /// @param flag_sort_gradients If true, sort gradients.  
@@ -474,7 +475,7 @@ void SHARPISO::get_gradients
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
  const GET_GRADIENTS_PARAM & sharpiso_param,
- const OFFSET_CUBE_111 & cube_111,
+ const OFFSET_VOXEL & voxel,
  const bool flag_sort_gradients,
  std::vector<COORD_TYPE> & point_coord,
  std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
@@ -489,7 +490,7 @@ void SHARPISO::get_gradients
 
     get_cube_vertices_with_selected_gradients
       (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
-       cube_111, cube_vertex_list, num_gradients);
+       voxel, cube_vertex_list, num_gradients);
 
     if (flag_sort_gradients) {
       sort_vertices_by_isoplane_dist2cc
@@ -532,7 +533,7 @@ void SHARPISO::get_gradients
 
     get_selected_vertices
       (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
-       cube_111, vertex_list);
+       voxel, vertex_list);
 
     if (flag_sort_gradients) {
       sort_vertices_by_isoplane_dist2cc
@@ -673,7 +674,7 @@ void SHARPISO::get_selected_cube_neighbor_gradients
  std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
  std::vector<SCALAR_TYPE> & scalar,
  NUM_TYPE & num_gradients,
- const OFFSET_CUBE_111 & cube_111)
+ const OFFSET_VOXEL & voxel)
 {
   typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;
 
@@ -689,11 +690,11 @@ void SHARPISO::get_selected_cube_neighbor_gradients
   // Initialize num_gradients
   num_gradients = 0;
 
-  scalar_grid.ComputeCoord(cube_index, cube_coord.Ptr());
+  scalar_grid.ComputeScaledCoord(cube_index, cube_coord.Ptr());
 
   select_cube_gradients_based_on_isoplanes
     (scalar_grid, gradient_grid, cube_index, max_small_mag, isovalue,
-     point_coord, gradient_coord, scalar, num_gradients, cube_111);
+     point_coord, gradient_coord, scalar, num_gradients, voxel);
 
   for (DTYPE d = 0; d < DIM3; d++) {
 
@@ -705,7 +706,7 @@ void SHARPISO::get_selected_cube_neighbor_gradients
 
         add_selected_gradient
           (scalar_grid, gradient_grid, iv0, cube_coord.PtrConst(),
-           max_small_mag_squared, isovalue, cube_111,
+           max_small_mag_squared, isovalue, voxel,
            point_coord, gradient_coord, scalar, num_gradients);
       }
 
@@ -719,7 +720,7 @@ void SHARPISO::get_selected_cube_neighbor_gradients
 
         add_selected_gradient
           (scalar_grid, gradient_grid, iv2, cube_coord.PtrConst(),
-           max_small_mag_squared, isovalue, cube_111,
+           max_small_mag_squared, isovalue, voxel,
            point_coord, gradient_coord, scalar, num_gradients);
       }
 
@@ -1891,7 +1892,7 @@ void SHARPISO::select_cube_gradients_based_on_isoplanes
  std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
  std::vector<SCALAR_TYPE> & scalar,
  NUM_TYPE & num_gradients,
- const OFFSET_CUBE_111 & cube_111)
+ const OFFSET_VOXEL & voxel)
 {
   const GRADIENT_COORD_TYPE max_small_mag_squared =
     max_small_mag * max_small_mag;
@@ -1907,7 +1908,7 @@ void SHARPISO::select_cube_gradients_based_on_isoplanes
     VERTEX_INDEX iv = scalar_grid.CubeVertex(cube_index, k);
     add_selected_gradient
       (scalar_grid, gradient_grid, iv, cube_coord.PtrConst(),
-       max_small_mag_squared, isovalue, cube_111,
+       max_small_mag_squared, isovalue, voxel,
        point_coord, gradient_coord, scalar, num_gradients);
   }
 
@@ -1954,6 +1955,7 @@ void SHARPISO::deselect_vertices_with_small_gradients
   }
 }
 
+
 /// Set to false vertex_flag[i] for any vertex_list[i] 
 ///   determining an isoplane which does not intersect the cube.
 /// @pre Array vertex_flag[] is preallocated with size 
@@ -1961,7 +1963,7 @@ void SHARPISO::deselect_vertices_with_small_gradients
 void SHARPISO::deselect_vertices_based_on_isoplanes
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid, 
- const GRID_COORD_TYPE * cube_coord, const OFFSET_CUBE_111 & cube_111,
+ const GRID_COORD_TYPE * cube_coord, const OFFSET_VOXEL & voxel,
  const SCALAR_TYPE isovalue,
  const VERTEX_INDEX * vertex_list, const NUM_TYPE num_vertices,
  bool vertex_flag[])
@@ -1979,16 +1981,16 @@ void SHARPISO::deselect_vertices_based_on_isoplanes
       VERTEX_INDEX iv = vertex_list[i];
 
       gradient_grid.ComputeCoord(iv, vertex_coord);
-      // Add (1,1,1) since cube_111 has origin near (1,1,1)
-      // Ensures that coord[] is not negative.
-      for (DTYPE d = 0; d < DIM3; d++)
-        { coord[d] = (vertex_coord[d]+1) - cube_coord[d]; }
+      for (DTYPE d = 0; d < DIM3; d++) {
+        coord[d] = vertex_coord[d] - cube_coord[d] + 
+          voxel.OffsetFactor()*scalar_grid.Spacing(d); 
+      }
       const GRADIENT_COORD_TYPE * vertex_gradient_coord =
         gradient_grid.VectorPtrConst(iv);
       SCALAR_TYPE s = scalar_grid.Scalar(iv);
 
       if (!iso_intersects_cube
-          (cube_111, coord, vertex_gradient_coord, s, isovalue)) 
+          (voxel, coord, vertex_gradient_coord, s, isovalue)) 
         { vertex_flag[i] = false; }
     }
   }
@@ -2001,7 +2003,7 @@ void SHARPISO::deselect_vertices_based_on_isoplanes
 void SHARPISO::deselect_vertices_based_on_isoplanes
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid, 
- const GRID_COORD_TYPE * cube_coord, const OFFSET_CUBE_111 & cube_111,
+ const GRID_COORD_TYPE * cube_coord, const OFFSET_VOXEL & voxel,
  const SCALAR_TYPE isovalue,
  const std::vector<VERTEX_INDEX> & vertex_list,
  bool vertex_flag[])
@@ -2011,46 +2013,91 @@ void SHARPISO::deselect_vertices_based_on_isoplanes
   if (num_vertices > 0) {
 
     deselect_vertices_based_on_isoplanes
-      (scalar_grid, gradient_grid, cube_coord, cube_111, isovalue,
+      (scalar_grid, gradient_grid, cube_coord, voxel, isovalue,
        &(vertex_list.front()), num_vertices, vertex_flag);
   }
 }
 
 // **************************************************
-// OFFSET_CUBE_111
+// VOXEL
 // **************************************************
 
-SHARPISO::OFFSET_CUBE_111::OFFSET_CUBE_111
-(const SIGNED_COORD_TYPE offset)
+SHARPISO::VOXEL::VOXEL()
 {
-  SetOffset(offset);
-}
+  COORD_TYPE min_coord[DIM3], max_coord[DIM3];
 
-void SHARPISO::OFFSET_CUBE_111::SetOffset(const SIGNED_COORD_TYPE offset)
-{
-  IJK::PROCEDURE_ERROR error("OFFSET_CUBE_111::SetOffset");
+  IJK::CUBE_INFO<int,NUM_TYPE>::SetDimension(DIM3);
+  InitLocal();
+  SetMaxVertexIndex();
 
-  this->offset = 0;
-
-  if (offset > 1) {
-    error.AddMessage
-      ("Programming error.  Offset must be less than or equal to 1.");
-    error.AddMessage("  offset = ", offset, ".");
-    throw error;
+  for (int d = 0; d < DIM3; d++) {
+    min_coord[d] = 0;
+    max_coord[d] = 1;
   }
 
-  if (offset <= -1) {
-    error.AddMessage
-      ("Programming error.  Offset must be greater than -1.");
-    error.AddMessage("  offset = ", offset, ".");
-    throw error;
+  SetVertexCoord(min_coord, max_coord);
+}
+
+SHARPISO::VOXEL::~VOXEL()
+{
+  FreeLocal();
+}
+
+void SHARPISO::VOXEL::InitLocal()
+{
+  vertex_coord = new COORD_TYPE[DIM3*this->NumVertices()];
+}
+
+void SHARPISO::VOXEL::FreeLocal()
+{
+  if (vertex_coord != NULL) 
+    { delete [] vertex_coord; }
+
+  vertex_coord = NULL;
+}
+
+void SHARPISO::VOXEL::SetMaxVertexIndex()
+{
+  if (this->NumVertices() > 0) 
+    { max_vertex_index = this->NumVertices()-1; }
+  else
+    { max_vertex_index = 0; }
+}
+
+// Set voxel vertex coordinates.
+void SHARPISO::VOXEL::SetVertexCoord             
+(const COORD_TYPE min_coord[DIM3], const COORD_TYPE max_coord[DIM3])
+{
+  for (long j = 0; j < this->NumVertices(); j++) {
+    long j0 = j;
+    for (int d = 0; d < DIM3; d++) {
+      int iend = j0 % 2;
+      if (iend == 0) 
+        { vertex_coord[j*dimension+d] = min_coord[d]; }
+      else
+        { vertex_coord[j*dimension+d] = max_coord[d]; }
+        j0 = j0/2;
+    }
+  }
+}
+
+/// Set coordinates of OFFSET_VOXEL
+void SHARPISO::OFFSET_VOXEL::SetVertexCoord
+(const COORD_TYPE spacing[DIM3], const COORD_TYPE offset_factor)
+{
+  COORD_TYPE min_coord[DIM3];
+  COORD_TYPE max_coord[DIM3];
+
+  this->offset_factor = offset_factor;
+
+  for (int d = 0; d < DIM3; d++) {
+    min_coord[d] = 0;
+    max_coord[d] = spacing[d]*(1 + 2*offset_factor);
   }
 
-  IJK::ARRAY<COORD_TYPE> v0_coord(this->Dimension(), 1-offset);
-  SHARPISO_CUBE::SetVertexCoord(v0_coord.Ptr(), 1+2*offset);
-
-  this->offset = offset;
+  VOXEL::SetVertexCoord(min_coord, max_coord);
 }
+
 
 // **************************************************
 // GET_GRADIENTS_PARAM

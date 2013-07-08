@@ -106,8 +106,11 @@ void compute_isovert_positions
 {
   const SIGNED_COORD_TYPE grad_selection_cube_offset =
     isovert_param.grad_selection_cube_offset;
-  OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+  OFFSET_VOXEL voxel;
   SVD_INFO svd_info;
+
+  voxel.SetVertexCoord
+    (scalar_grid.SpacingPtrConst(), grad_selection_cube_offset);
 
   if (isovert_param.use_lindstrom) {
 
@@ -123,7 +126,7 @@ void compute_isovert_positions
         NUM_TYPE num_large_eigenvalues;
 
         svd_compute_sharp_vertex_for_cube_lindstrom
-          (scalar_grid, gradient_grid, iv, isovalue, isovert_param, cube_111,
+          (scalar_grid, gradient_grid, iv, isovalue, isovert_param, voxel,
            isovert.gcube_list[index].isovert_coord,
            eigenvalues, num_large_eigenvalues, svd_info);
 
@@ -147,7 +150,7 @@ void compute_isovert_positions
         NUM_TYPE num_large_eigenvalues;
 
         svd_compute_sharp_vertex_for_cube_lc_intersection
-          (scalar_grid, gradient_grid, iv, isovalue, isovert_param, cube_111,
+          (scalar_grid, gradient_grid, iv, isovalue, isovert_param, voxel,
            isovert.gcube_list[index].isovert_coord,
            eigenvalues, num_large_eigenvalues, svd_info);
 

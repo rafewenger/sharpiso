@@ -56,9 +56,10 @@ namespace SHARPISO {
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
    const SCALAR_TYPE isovalue,
-   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
-   const OFFSET_CUBE_111 & cube_111,
-   COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
+   const SHARP_ISOVERT_PARAM & sharpiso_param,
+   const OFFSET_VOXEL & voxel,
+   COORD_TYPE sharp_coord[DIM3],
+   EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
 
@@ -159,7 +160,7 @@ namespace SHARPISO {
    const VERTEX_INDEX cube_index,
    const SCALAR_TYPE isovalue,
    const SHARP_ISOVERT_PARAM & sharpiso_param,
-   const OFFSET_CUBE_111 & cube_111,
+   const OFFSET_VOXEL & voxel,
    COORD_TYPE sharp_coord[DIM3],
    EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
@@ -192,7 +193,7 @@ namespace SHARPISO {
    const VERTEX_INDEX cube_index,
    const SCALAR_TYPE isovalue,
    const GET_GRADIENTS_PARAM & get_gradients_param,
-   const OFFSET_CUBE_111 & cube_111,
+   const OFFSET_VOXEL & offset_voxel,
    const NUM_TYPE subgrid_axis_size,
    COORD_TYPE sharp_coord[DIM3],
    SCALAR_TYPE & scalar_stdev, SCALAR_TYPE & max_abs_scalar_error);
