@@ -201,9 +201,10 @@ void construct_isosurface
     if (input_info.flag_supersample)
       { shrink_factor = input_info.supersample_resolution; }
 
+    /* SPACING NOW CHANGED WHEN ISO COORDINATES ARE COMPUTED
     rescale_vertex_coord(grow_factor, shrink_factor, input_info.grid_spacing,
                          dual_isosurface.vertex_coord);
-
+    */
 
     if (mergesharp_data.flag_convert_quad_to_tri) {
 

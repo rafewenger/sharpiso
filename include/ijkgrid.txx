@@ -581,6 +581,11 @@ namespace IJK {
     template <typename VTYPE2, typename CTYPE>
     void ComputeScaledCoord
     (const VTYPE2 iv, CTYPE * coord) const;
+
+    /// Compute scaled coordinates of cube center.
+    template <typename VTYPE2, typename CTYPE>
+    void ComputeCubeCenterScaledCoord
+    (const VTYPE2 iv, CTYPE * coord) const;
   };
 
   // **************************************************
@@ -4767,6 +4772,18 @@ namespace IJK {
   {
     compute_scaled_coord
       (iv, this->Dimension(), this->AxisSize(), SpacingPtrConst(), coord);
+  }
+
+  template <typename STYPE, typename GRID_TYPE>
+  template <typename VTYPE2, typename CTYPE>
+  void GRID_SPACING<STYPE, GRID_TYPE>::
+  ComputeCubeCenterScaledCoord(const VTYPE2 iv, CTYPE * coord) const
+  {
+    typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
+
+    ComputeScaledCoord(iv, coord);
+    for (DTYPE d = 0; d < this->Dimension(); d++) 
+      { coord[d] += Spacing(d)/2.0; }
   }
 
   /// Destructor.

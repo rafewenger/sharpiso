@@ -106,8 +106,11 @@ void compute_isovert_positions
 {
   const SIGNED_COORD_TYPE grad_selection_cube_offset =
     isovert_param.grad_selection_cube_offset;
-  OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+  OFFSET_VOXEL voxel;
   SVD_INFO svd_info;
+
+  voxel.SetVertexCoord
+    (scalar_grid.SpacingPtrConst(), grad_selection_cube_offset);
 
   if (isovert_param.use_lindstrom) {
 
@@ -123,7 +126,7 @@ void compute_isovert_positions
         NUM_TYPE num_large_eigenvalues;
 
         svd_compute_sharp_vertex_for_cube_lindstrom
-          (scalar_grid, gradient_grid, iv, isovalue, isovert_param, cube_111,
+          (scalar_grid, gradient_grid, iv, isovalue, isovert_param, voxel,
            isovert.gcube_list[index].isovert_coord,
            eigenvalues, num_large_eigenvalues, svd_info);
 
@@ -147,7 +150,7 @@ void compute_isovert_positions
         NUM_TYPE num_large_eigenvalues;
 
         svd_compute_sharp_vertex_for_cube_lc_intersection
-          (scalar_grid, gradient_grid, iv, isovalue, isovert_param, cube_111,
+          (scalar_grid, gradient_grid, iv, isovalue, isovert_param, voxel,
            isovert.gcube_list[index].isovert_coord,
            eigenvalues, num_large_eigenvalues, svd_info);
 
@@ -761,9 +764,6 @@ void process_edge(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
                   const SCALAR_TYPE isovalue,
                   bool &is_intersect)
 {
-  COORD_TYPE coord1[DIM3];
-  scalar_grid.ComputeCoord(v0,coord1);
-  scalar_grid.ComputeCoord(v1,coord1);
   is_intersect = is_gt_min_le_max(scalar_grid, v0, v1, isovalue);
 }
 
@@ -920,16 +920,16 @@ namespace {
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const VERTEX_INDEX iv,
    COORD_TYPE isovert_coord[DIM3],
-   SCALAR_TYPE &linf_dist)
+   SCALAR_TYPE & linf_dist)
   {
     SCALAR_TYPE squareDist=0.0;
     COORD_TYPE cc[DIM3];
-    scalar_grid.ComputeCubeCenterCoord(iv,cc);
+    scalar_grid.ComputeCubeCenterScaledCoord(iv,cc);
     SCALAR_TYPE temp_d   = 0.0;
     SCALAR_TYPE max_dist = -1.0;
 
     for (int d=0; d<DIM3; d++) {
-      temp_d = abs(isovert_coord[d]-cc[d]);
+      temp_d = abs(isovert_coord[d]-cc[d])/scalar_grid.Spacing(d);
       if (temp_d > max_dist)
         { max_dist=temp_d; }
     }

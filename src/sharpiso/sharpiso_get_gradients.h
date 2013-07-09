@@ -41,8 +41,8 @@ namespace SHARPISO {
   // **************************************************
   // C++ CLASSES
   // **************************************************
-  
-  class OFFSET_CUBE_111;
+
+  class OFFSET_VOXEL;
   class GET_GRADIENTS_PARAM;
   
   // **************************************************
@@ -124,24 +124,9 @@ namespace SHARPISO {
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
    const SCALAR_TYPE isovalue,
-   const GET_GRADIENTS_PARAM & get_gradients_param,
-   const OFFSET_CUBE_111 & cube_111,
-   const bool flag_sort,
-   std::vector<COORD_TYPE> & point_coord,
-   std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
-   std::vector<SCALAR_TYPE> & scalar,
-   NUM_TYPE & num_gradients);
-  
-  /// Get gradients.
-  /// Gradients are sorted in increasing distance from cube center.
-  /// @param sharpiso_param Determines which gradients are selected.
-  void get_gradients_sort
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const VERTEX_INDEX cube_index,
-   const SCALAR_TYPE isovalue,
    const GET_GRADIENTS_PARAM & sharpiso_param,
-   const OFFSET_CUBE_111 & cube_111,
+   const OFFSET_VOXEL & voxel,
+   const bool flag_sort_gradients,
    std::vector<COORD_TYPE> & point_coord,
    std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
    std::vector<SCALAR_TYPE> & scalar,
@@ -186,15 +171,15 @@ namespace SHARPISO {
    std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
    std::vector<SCALAR_TYPE> & scalar,
    NUM_TYPE & num_gradients);
-  
+
   /// Get selected gradients at cube and neighboring cube vertices.
   /// Selected gradient have magnitudes at least max_small_grad.
   /// Isosurfaces from selected neighboring gradients must intersect cube.
   /// @param cube_index Index of the lowest/leftmost cube vertex.
   ///      0 <= cube_index < number of grid vertices and
   ///      the vertex with index cube_index is not on the right/top of grid.
-  /// @param cube_111 Cube with origin at (1-offset,1-offset,1-offset).
-  ///      Data structure for processing cube-isosurface intersections.
+  /// @param voxel Voxel with dimensions spacing[d]*(1+2*offset_factor).
+  ///      Data structure for processing voxel-isosurface intersections.
   void get_selected_cube_neighbor_gradients
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -204,7 +189,7 @@ namespace SHARPISO {
    std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
    std::vector<SCALAR_TYPE> & scalar,
    NUM_TYPE & num_gradients,
-   const OFFSET_CUBE_111 & cube_111);
+   const OFFSET_VOXEL & voxel);
 
   /// Get gradients at endpoints of grid edges which intersect the isosurface.
   void get_intersected_edge_endpoint_gradients
@@ -419,18 +404,19 @@ namespace SHARPISO {
 
   /// Select gradients at cube vertices.
   /// Select large gradients which give a level set intersecting the cube.
-  /// @param cube_111 Cube with origin at (1-offset,1-offset,1-offset).
+  /// @param voxel Voxel with dimensions spacing[d]*(1+2*offset_factor).
+  ///      Data structure for processing voxel-isosurface intersections.
   void select_cube_gradients_based_on_isoplanes
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
    const VERTEX_INDEX cube_index,
-   const GRADIENT_COORD_TYPE max_small_grad,
+   const GRADIENT_COORD_TYPE max_small_mag,
    const SCALAR_TYPE isovalue,
    std::vector<COORD_TYPE> & point_coord,
    std::vector<GRADIENT_COORD_TYPE> & gradient_coord,
    std::vector<SCALAR_TYPE> & scalar,
    NUM_TYPE & num_gradients,
-   const OFFSET_CUBE_111 & cube_111);
+   const OFFSET_VOXEL & voxel);
 
   /// Set vertex_flag[i] to false for any vertex_list[i] 
   ///   with small gradient magnitude.
@@ -458,9 +444,9 @@ namespace SHARPISO {
   void deselect_vertices_based_on_isoplanes
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid, 
-   const GRID_COORD_TYPE * cube_coord, const OFFSET_CUBE_111 & cube_111,
+   const GRID_COORD_TYPE * cube_coord, const OFFSET_VOXEL & voxel,
    const SCALAR_TYPE isovalue,
-   const VERTEX_INDEX vertex_list[], const NUM_TYPE num_vertices,
+   const VERTEX_INDEX * vertex_list, const NUM_TYPE num_vertices,
    bool vertex_flag[]);
 
   /// Set to false vertex_flag[i] for any vertex_list[i] 
@@ -469,7 +455,7 @@ namespace SHARPISO {
   void deselect_vertices_based_on_isoplanes
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid, 
-   const GRID_COORD_TYPE * cube_coord, const OFFSET_CUBE_111 & cube_111,
+   const GRID_COORD_TYPE * cube_coord, const OFFSET_VOXEL & voxel,
    const SCALAR_TYPE isovalue,
    const std::vector<VERTEX_INDEX> & vertex_list,
    bool vertex_flag[]);
@@ -527,35 +513,97 @@ namespace SHARPISO {
   };
 
   // **************************************************
-  // OFFSET_CUBE_111
+  // VOXEL
   // **************************************************
   
-  /// Cube with origin at (1-offset,1-offset,1-offset)
-  ///   and edge length (1+2*offset).
-  class OFFSET_CUBE_111:public SHARPISO_CUBE {
+  /// 3D grid voxel.
+  class VOXEL : public IJK::CUBE_INFO<int,NUM_TYPE> {
+
+  public:
+    typedef SHARPISO::COORD_TYPE COORD_TYPE;
     
   protected:
-    COORD_TYPE offset;
-    
+    /// vertex_coord[dimension*k+j] = 
+    ///   j'th coordinate of k'th vertex of voxel
+    COORD_TYPE * vertex_coord;
+
+    /// max_vertex_index.  Stored for faster processing.
+    NUM_TYPE max_vertex_index;
+
+    void InitLocal();
+    void FreeLocal();
+
+    void SetMaxVertexIndex();       ///< Set max vertex index.
+
   public:
-    OFFSET_CUBE_111(const SIGNED_COORD_TYPE offset);
-    
+
+    VOXEL();
+    ~VOXEL();
+
     // get functions
-    
-    COORD_TYPE Offset() const       ///< Cube edge offset.
-    { return(offset); }
-    
-    // set functions
-    
-    /// Set cube edge offset.
-    void SetOffset(const SIGNED_COORD_TYPE offset);
-    
-    /// Undefine SetVertexCoord
-    template <typename CTYPE2, typename LTYPE2>
-    void SetVertexCoord             ///< Set cube vertex coordinates.
-    (const CTYPE2 * vertex0_coord, const LTYPE2 edge_length);
+
+    NUM_TYPE MaxVertexIndex() const    ///< Maximum cube vertex index.
+    { return(max_vertex_index); }
+
+    NUM_TYPE OppositeVertex            ///< Index of vertex opposite iv
+    (const NUM_TYPE iv) const
+    { return(MaxVertexIndex()-iv); }
+
+    /// Return pointer to vertex coordinates
+    const COORD_TYPE * VertexCoord() const
+    { return(vertex_coord); }
+
+    /// Return pointer to coordinates of k'th cube vertex
+    const COORD_TYPE * VertexCoord(const NUM_TYPE k) const
+    { return(vertex_coord+this->Dimension()*k); }
+
+    /// Return j'th coordinate of k'th vertex
+    const COORD_TYPE VertexCoord         
+    (const NUM_TYPE k, const NUM_TYPE j) const
+    { return(vertex_coord[this->Dimension()*k+j]); }
+
+    /// Return pointer to coordinates of endpoint 0 of diagonal k.
+    /// Cube corner k is endpoint 0 of diagonal k.
+    /// Note: Each diagonal is listed twice pointing in opposite directions.
+    const COORD_TYPE * DiagonalEnd0Coord(const NUM_TYPE k) const
+    { return(vertex_coord+this->Dimension()*k); }
+
+    /// Return pointer to coordinates of endpoint 1 of diagonal k.
+    /// Corner opposite cube corner k is endpoint 1 of diagonal k.
+    /// Note: Each diagonal is listed twice pointing in opposite directions.
+    const COORD_TYPE * DiagonalEnd1Coord(const NUM_TYPE k) const
+    { return(vertex_coord+this->Dimension()*OppositeVertex(k)); }
+
+
+    // set routines
+
+    /// Redefine SetVertexCoord().
+    void SetVertexCoord             ///< Set voxel vertex coordinates.
+    (const COORD_TYPE min_coord[DIM3], const COORD_TYPE max_coord[DIM3]);
+
+    /// Undefine SetDimension().
+    void SetDimension(const int dimension);
   };
-  
+
+  /// 3D grid voxel and offset.
+  class OFFSET_VOXEL : public VOXEL {
+
+  protected:
+    SIGNED_COORD_TYPE offset_factor;
+
+  public:
+    OFFSET_VOXEL() {};
+
+    /// Return offset factor.
+    SIGNED_COORD_TYPE OffsetFactor() const
+    { return(offset_factor); }
+
+    /// Set coordinates of voxel plus offset.
+    void SetVertexCoord
+    (const COORD_TYPE spacing[DIM3], 
+     const SIGNED_COORD_TYPE offset_factor);
+  };
+
 };
 
 #endif
