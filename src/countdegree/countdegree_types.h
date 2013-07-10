@@ -1,4 +1,4 @@
-// findEdgeCount types 
+// countdegree types 
 #ifndef _FINDEDGECOUNT_TYPES_
 #define _FINDEDGECOUNT_TYPES_
 
