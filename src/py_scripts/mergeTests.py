@@ -49,8 +49,8 @@ mergesharpTests.append(mergesharp)
 #######################################################################
                         
 findsharp = ['findsharp','140']
-countdegree =['countdegree', '-fp']
-meshconv =['meshconv']
+countdegree =['countdegree', '-fshort']
+
 
 
 '''
