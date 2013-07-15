@@ -934,6 +934,14 @@ namespace {
         { max_dist=temp_d; }
     }
     linf_dist = max_dist;
+
+    // *** DEBUG ***
+    using namespace std;
+    if (iv == 5036) {
+      cerr << "Cube coord: ";
+      IJK::ijkgrid_output_coord(cerr, DIM3, cc);
+      cerr << "  linf: " << linf_dist << endl;
+    }
   }
 
   // Return true if two  cube-indices are connected

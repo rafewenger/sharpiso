@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # file to generate the data files 
 import subprocess as sp
 
