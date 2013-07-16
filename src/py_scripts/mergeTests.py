@@ -14,7 +14,7 @@ isoval_opts =['3.0','3.8','3.23','3.5','3.9']
 #set up location of file locations
 fread = open ('./file-names.txt','r') # contains the names of the files on which the test is run
 fcountdegree= open ('./edge-count.txt','w') # stores the edge count values
-ftestdetails = open ('./test-details.txt','w') # stores deatails of the test runs
+ftestdetails = open ('./test-details.txt','w') # stores details of the test runs
 
 
 
