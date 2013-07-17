@@ -9,8 +9,7 @@ import os
 #configurations
 
 #setup isovalues
-isoval_base = 3.0
-isoval_offset = [0.0, 0.23,0.5,0.8,0.9]
+isoval_opts =['3.0','3.8','3.23','3.5','3.9']
 
 #set up location of file locations
 fread = open ('./file-names.txt','r') # contains the names of the files on which the test is run
@@ -62,9 +61,8 @@ def test(n,iso):
         fname_with_nrrd = f.split("/")[len(f.split("/"))-1]
         fname = fname_with_nrrd.split(".")[0]
         fgradnoisename = fname+".grad.nrrd"
-        for j in isoval_offset:
+        for i in isoval_opts:
                 #iso_temp = isodual3D[:]
-                i = j+isoval_base;
                 iso_temp = iso[:]        
                 test_details = str(n)+","+fname+","+str(i)
                 n = n+1
@@ -74,11 +72,11 @@ def test(n,iso):
                 iso_temp.append('-s')
                 #iso_temp.append('-gradient')
                 #iso_temp.append(fgradnoisename)
-                iso_temp.append(str(i))
+                iso_temp.append(i)
                 iso_temp.append(f.strip())
                 print >>ftestdetails,test_details
 		
-                procced = proc.check_call(iso_temp)
+		procced = proc.check_call(iso_temp)
                 
                 if procced==0:
                     if procced == 0:
