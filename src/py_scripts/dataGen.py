@@ -7,8 +7,8 @@ OUTPUT
 '''
 import subprocess as proc
 
-#standard arguments to ijkgenscalar2
-standard_args = ['ijkgenscalar2', '-grad', '-dim', '3', '-asize', '100']
+#standard arguments to ijkgenscalar
+standard_args = ['ijkgenscalar', '-grad', '-dim', '3', '-asize', '100']
 cgradient = ['cgradient']
 
 
@@ -43,7 +43,7 @@ for cen in center_opts:
         temp_args_center_fixed.append('-dir')
         temp_args_center_fixed.append(dir)
         temp_args_center_fixed.append('-translate')
-	temp_args_center_fixed.append('7 8 9')  
+        temp_args_center_fixed.append('7 8 9')  
         side_dir=0
         for sid in side_dir_opts:
             if dir != sid :
@@ -55,7 +55,7 @@ for cen in center_opts:
                 temp_args_dir_fixed.append(fname_nrrd_name)
                 print >> datainfo, fname_nrrd_name, " center ",cen, ' dir ', dir
                 print >>fname, fname_nrrd_name
-		print temp_args_dir_fixed
+                print temp_args_dir_fixed
                 proc.call(temp_args_dir_fixed)
                 
                 side_dir = side_dir + 1

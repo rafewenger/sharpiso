@@ -1,6 +1,4 @@
-// *************************************
-// Compute the degrees of each edges
-// **************************************
+
 #include <iostream>
 #include "countdegree.h"
 using namespace std;

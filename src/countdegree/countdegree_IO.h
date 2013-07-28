@@ -1,4 +1,4 @@
-// print statements and other help routines for findEdgeCount 
+
 #ifndef _FINDEDGECOUNT_IO_
 #define _FINDEDGECOUNT_IO_
 #include "countdegree_types.h"

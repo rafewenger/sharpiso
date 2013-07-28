@@ -9,14 +9,30 @@ import os
 #configurations
 
 #setup isovalues
-isoval_opts =['3.0','3.8','3.23','3.5','3.9']
+isoval_base = 4.0
+isoval_offset = [0.0, 0.23,0.5,0.8,0.9]
 
 #set up location of file locations
 fread = open ('./file-names.txt','r') # contains the names of the files on which the test is run
 fcountdegree= open ('./edge-count.txt','w') # stores the edge count values
-ftestdetails = open ('./test-details.txt','w') # stores deatails of the test runs
+ftestdetails = open ('./test-details.txt','w') # stores details of the test runs
 
 
+##############################
+## Parse arguments
+##############################
+
+for i in range(1, len(sys.argv)-1):
+  if (sys.argv[i] == "-cube"):
+    isoval_base = 8.0
+  elif (sys.argv[i] == "-annulus"):
+    isoval_base = 4.0
+  elif (sys.argv[i] == "-frustrum"):
+    isoval_base = 0.0
+  elif (sys.argv[i] == "-wedge"):
+    isoval_base = 0.0
+  else:
+    isoval_bae = 4.0
 
 ############
 ## mergeSharp  runs 
@@ -49,8 +65,8 @@ mergesharpTests.append(mergesharp)
 #######################################################################
                         
 findsharp = ['findsharp','140']
-countdegree =['countdegree', '-fp']
-meshconv =['meshconv']
+countdegree =['countdegree', '-fshort']
+
 
 
 '''
@@ -61,8 +77,9 @@ def test(n,iso):
         fname_with_nrrd = f.split("/")[len(f.split("/"))-1]
         fname = fname_with_nrrd.split(".")[0]
         fgradnoisename = fname+".grad.nrrd"
-        for i in isoval_opts:
+        for j in isoval_offset:
                 #iso_temp = isodual3D[:]
+                i = j+isoval_base;
                 iso_temp = iso[:]        
                 test_details = str(n)+","+fname+","+str(i)
                 n = n+1
@@ -72,11 +89,11 @@ def test(n,iso):
                 iso_temp.append('-s')
                 #iso_temp.append('-gradient')
                 #iso_temp.append(fgradnoisename)
-                iso_temp.append(i)
+                iso_temp.append(str(i))
                 iso_temp.append(f.strip())
                 print >>ftestdetails,test_details
 		
-		procced = proc.check_call(iso_temp)
+                procced = proc.check_call(iso_temp)
                 
                 if procced==0:
                     if procced == 0:

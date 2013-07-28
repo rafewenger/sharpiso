@@ -1,6 +1,4 @@
-// *************************************
-// Compute the degrees of each edges
-// **************************************
+
 #ifndef _FINDEDGECOUNT_
 #define _FINDEDGECOUNT_
 #include "countdegree_types.h"
