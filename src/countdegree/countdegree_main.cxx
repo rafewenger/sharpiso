@@ -1,4 +1,4 @@
-// Test ijkIO.txx
+// Count degree 
 
 #include <cstdlib>
 #include <cmath>
@@ -20,6 +20,7 @@ int num_vertices(0);
 int num_edges(0);
 bool  flag_op_to_file = false;
 bool flag_print_edges = false;
+
 // miscellaneous routines
 void usage_error();
 void parse_command_line(int argc, char **argv);
@@ -49,7 +50,7 @@ int main(int argc, char **argv)
 
 		// count the degrees of the different edge points
 		count_edge_degrees
-		(dimension, vertex_coord, num_vertices, edge_endpoint, num_edges, vert_degree);
+			(dimension, vertex_coord, num_vertices, edge_endpoint, num_edges, vert_degree);
 
 		if ( !flag_op_to_file){
 			// output the edge information
@@ -63,7 +64,7 @@ int main(int argc, char **argv)
 		// print the edges degrees for analysis
 		if (flag_print_edges)
 			print_edge_info
-			(num_vertices, vertex_coord,  vert_degree);
+				(num_vertices, vertex_coord,  vert_degree);
 
 	}
 	catch (ERROR & error) {
@@ -103,7 +104,7 @@ void usage_error()
 
 void parse_command_line(int argc, char **argv)
 {
-	if (argc == 1)  {usage_error();}
+	if (argc==1)  {usage_error();}
 	int iarg=1;
 	while (iarg<argc && argv[iarg][0]=='-')
 	{

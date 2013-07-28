@@ -18,8 +18,7 @@ int cntMoreThan3(0);
 extern int real_degree_3_verts;
 extern int real_degree_1_verts;
 
-void output_edges
-(const int dim, 
+void output_edges(const int dim, 
 		const COORD_TYPE * coord,
 		const int numv,
 		const VERTEX_INDEX * edge_vert,
@@ -39,11 +38,12 @@ void output_edges
 }
 
 
-void print_edge_info(int numv, const COORD_TYPE * coord, vector <int> vert_degree)
+void print_edge_info(
+int numv, const COORD_TYPE * coord, vector <int> vert_degree)
 {
 	// header
 	cout <<"\n"<<setw(4)<<"vert"<<setw(28)<<"position"<<setw(5)<<"dg1"<<setw(5)
-										  <<"dg3"<<setw(5)<<"dg>3"<<endl;
+		<<"dg3"<<setw(5)<<"dg>3"<<endl;
 	float crd[3]={0.0};
 
 	for (int i=0;i<numv;i++)
@@ -62,8 +62,7 @@ void print_edge_info(int numv, const COORD_TYPE * coord, vector <int> vert_degre
 	}
 }
 
-void output_vert_degree
-( const int numv, vector <int> &vert_degree, const string &fname)
+void output_vert_degree( const int numv, vector <int> &vert_degree, const string &fname)
 {
 	vector <int> deg_one;
 	vector <int> deg_two;
@@ -99,12 +98,11 @@ void output_vert_degree
 	cout << "Vertices with degree > 3            [" << cntMoreThan3 <<"]" << endl;
 	cout << "Vertices with degree 1 or 3 or more [" << cnt1 + cnt3 + cntMoreThan3 << "]" << endl;
 	cout << "Total number of non 0 vertices      [" << cnt1+cnt2+cnt3+cntMoreThan3 << "]"
-			<< endl;
+		<< endl;
 	cout <<"Total number of vertices            ["<<numv<<"]" << endl;
 }
 
-void output_vert_degree_2_file 
-(const int numv, vector <int> &vert_degree)
+void output_vert_degree_2_file (const int numv, vector <int> &vert_degree)
 {
 
 	vector <int> deg_one;
@@ -133,16 +131,15 @@ void output_vert_degree_2_file
 	}
 
 	cout << cnt0 <<" " <<  cnt1 << " "
-			<< cnt2 <<" " << cnt3 <<" "
-			<< cntMoreThan3 <<" "
-			<< cnt1 + cnt3 + cntMoreThan3<<" "
-			<< cnt1+cnt2+cnt3+cntMoreThan3<<" "
-			<< numv<<endl;
+		<< cnt2 <<" " << cnt3 <<" "
+		<< cntMoreThan3 <<" "
+		<< cnt1 + cnt3 + cntMoreThan3<<" "
+		<< cnt1+cnt2+cnt3+cntMoreThan3<<" "
+		<< numv << endl;
 }
 
 
-void output_short_info
-(const int numv, vector <int> &vert_degree, const string &fname )
+void output_short_info(const int numv, vector <int> &vert_degree, const string &fname )
 {
 
 	vector <int> deg_one;

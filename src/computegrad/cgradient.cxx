@@ -201,8 +201,12 @@ void compute_reliable_gradients_SBP(
 {
 	using namespace SHARPISO;
 	//compute the gradients using central difference
+	time_t begin,end;
+	time (&begin);
 	compute_gradient_central_difference
 	(scalar_grid, vertex_gradient_grid, io_info);
+	time (&end);
+	cout <<"cdiff SCALAR time " <<difftime(end,begin) <<endl;
 
 	for (VERTEX_INDEX iv=0; iv < scalar_grid.NumVertices(); iv++)
 	{
@@ -213,7 +217,7 @@ void compute_reliable_gradients_SBP(
 			cout <<"50% vertices done"<< endl;
 		if (iv == int(scalar_grid.NumVertices()*0.75))
 			cout <<"75% vertices done"<< endl;
-		*/
+		 */
 		int num_agree = 0;
 		// set up a vector to keep track of the distances
 		vector <SCALAR_TYPE> vec_scalar_dists;
@@ -236,7 +240,7 @@ void compute_reliable_gradients_SBP(
 			// find neighbor vertices
 			vector <VERTEX_INDEX> near_vertices;
 			scalar_grid.GetVertexNeighbors(iv, io_info.scalar_prediction_dist, near_vertices);
-
+			/*
 			if(io_info.draw && iv==io_info.draw_vert){
 				// plot neighbor vertices
 				cout <<"point "<< coord_iv[0] <<" "<<coord_iv[1]<<" "<<coord_iv[2]<<
@@ -248,7 +252,7 @@ void compute_reliable_gradients_SBP(
 				cout <<"num of neighbors: " << near_vertices.size() << endl;
 			}
 
-
+			 */
 			// for all the neighboring points find the distance of points to plane
 			// nv_ind = near_vertex_index
 
@@ -286,12 +290,28 @@ void compute_reliable_gradients_SBP(
 
 					// keep track of the error distances
 					//vec_scalar_dists.push_back (abs(err_distance));
+
 					float abs_err = abs(err_distance);
 					if (abs_err > io_info.scalar_prediction_err)
 					{
 						flag_correct = false;
+						/*
+						if(io_info.draw && iv==io_info.draw_vert){
+							//cout <<"point "<< coord_nv[0] <<" "<<coord_nv[1]<<" "<<coord_nv[2];
+							//cout <<" 1 0 0"<<endl;
+						}
+						 */
 						break;
 					}
+					/*
+					else
+					{
+						if(io_info.draw && iv==io_info.draw_vert){
+							//cout <<"point "<< coord_nv[0] <<" "<<coord_nv[1]<<" "<<coord_nv[2];
+							//cout <<" 0 1 0"<<endl;
+						}
+					}
+					 */
 					/*
 					if(io_info.print_info && iv==io_info.print_info_vertex){
 						cout <<"\n within threshold error in scalar pred is "<<
@@ -314,7 +334,7 @@ void compute_reliable_gradients_SBP(
 									" 1 0 0"<<endl;
 						}
 					}
-					*/
+					 */
 				}
 				/*
 				else{
@@ -323,7 +343,7 @@ void compute_reliable_gradients_SBP(
 								//cout <<" 0 1 1"<<endl;
 					}
 				}
-				*/
+				 */
 			}
 
 			/*
@@ -337,7 +357,7 @@ void compute_reliable_gradients_SBP(
 				cout <<"smallest scalar distance is "<< vec_scalar_dists[0]<<" largest "
 						<< vec_scalar_dists[vec_scalar_dists.size()-1]<<endl;
 			}
-			*/
+			 */
 			// debug
 			/*
 			float max_element = 	*std::max_element(vec_scalar_dists.begin(), vec_scalar_dists.end());
@@ -348,11 +368,12 @@ void compute_reliable_gradients_SBP(
 				reliable_grid.Set(iv,false);
 				io_info.out_info.num_unreliable++;
 			}
-			*/
+			 */
 			if (!flag_correct){
 				reliable_grid.Set(iv,false);
 				io_info.out_info.num_unreliable++;
 			}
+
 		}
 
 	}
@@ -371,8 +392,12 @@ void compute_reliable_gradients_far
 {
 	using namespace SHARPISO;
 	//Compute the vertex gradients using central difference
+	time_t begin,end;
+	time (&begin);
 	compute_gradient_central_difference
 	(scalar_grid, vertex_gradient_grid, io_info);
+	time (&end);
+	cout <<"cdiff time " <<difftime(end,begin) <<endl;
 	int numAgree = 0;
 	// DEBUG
 	if(io_info.print_info)
