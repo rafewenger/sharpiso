@@ -483,7 +483,6 @@ typedef enum {
       input_info.linf_dist_thresh_merge_sharp = 
         get_option_float(option_string, value_string);
       input_info.flag_merge_sharp = true;
-      cout <<"  debug  " << input_info.linf_dist_thresh_merge_sharp <<endl;
       break;
 
     case ROUND_PARAM:

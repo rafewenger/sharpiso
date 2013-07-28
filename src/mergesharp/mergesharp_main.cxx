@@ -31,7 +31,7 @@
 
 using namespace IJK;
 using namespace MERGESHARP;
-//ubuntu test 
+
 using namespace std;
 
 // local subroutines
