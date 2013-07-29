@@ -23,6 +23,7 @@ my $flag_sort = 0;
 my $random_flag = 0;
 my $random_seed = 0;
 my $bzero_flag = 0;
+my $axis_size = 20;      # axis size for random test
 
 my %data_flag;
 my $use_all_data = 0;
@@ -123,6 +124,11 @@ while (scalar(@proglist) > 0 &&
   if ($new_option eq "-random") {
     $random_flag = 1;
     $random_seed = shift(@proglist);
+    next;
+  }
+
+  if ($new_option eq "-axis_size") {
+    $axis_size = shift(@proglist);
     next;
   }
 
@@ -258,7 +264,7 @@ my %random_test;
 
 $random_test{seed} = $random_seed;
 $random_test{isovalue} = 4;
-$random_test{axis_size} = 20;
+$random_test{axis_size} = $axis_size;
 $random_test{num_random} = 10;
 $random_test{nrrd_filename} = "rtest.nrrd";
 
@@ -485,15 +491,15 @@ sub count_sharp_edges {
   my $count_filename = $output_filename;
   $count_filename =~ s/.off/.count/;
 
-  my $command_line = "findedge 140 $output_filename";
+  my $command_line = "findsharp 140 $output_filename";
   # print "$command_line\n";
   system("$command_line >& /dev/null") == 0 ||
-    die "Program findedge abnormally terminated.\n";
+    die "Program findsharp abnormally terminated.\n";
 
-  $command_line = "findEdgeCount $line_filename > $count_filename";
+  $command_line = "countdegree $line_filename > $count_filename";
   # print "$command_line\n";
   system("$command_line") == 0 ||
-    die "Program findedge abnormally terminated.\n";
+    die "Program countdegree abnormally terminated.\n";
 
   system("fgrep \"degree 1 or 3\" $count_filename");
 

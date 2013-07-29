@@ -1363,10 +1363,6 @@ void MERGESHARP::report_iso_info3D
                  << endl;
           }
 
-          if (output_info.flag_check_disk) {
-            cout << "  # of merges blocked by non-disk isosurface patches: "
-                 << mergesharp_info.sharpiso.num_non_disk_isopatches << endl;
-          }
         }
       }
 
