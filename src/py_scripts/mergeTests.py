@@ -32,7 +32,7 @@ for i in range(1, len(sys.argv)-1):
   elif (sys.argv[i] == "-wedge"):
     isoval_base = 0.0
   else:
-    isoval_bae = 4.0
+    isoval_base = 4.0
 
 ############
 ## mergeSharp  runs 
