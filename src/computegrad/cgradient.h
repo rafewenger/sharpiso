@@ -44,6 +44,20 @@ void compute_reliable_gradients_far
  IJK::BOOL_GRID<ISODUAL3D::ISODUAL_GRID> &reliable_grid,
  INPUT_INFO & io_info);
 
+
+
+/*
+ * Compute reliable gradients far, computes the central difference on all grid vertex.
+ * if the gradient matches its grid neighbors then it is reliable
+ * for far we look at 2 vertices one vertex over A-*-B
+ */
+void compute_reliable_gradients_far_debug_version
+(const ISODUAL3D::ISODUAL_SCALAR_GRID_BASE & scalar_grid,
+ ISODUAL3D::GRADIENT_GRID & gradient_grid,
+ IJK::BOOL_GRID<ISODUAL3D::ISODUAL_GRID> &reliable_grid,
+ INPUT_INFO & io_info);
+
+
 /*
  * Compute reliable gradients based on how good the gradients predict the scalars around it.
  * SBP stands for scalar based prediction.

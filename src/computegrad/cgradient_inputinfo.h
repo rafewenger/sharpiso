@@ -22,11 +22,13 @@ public:
 	unsigned int num_reliable; // total number of reliable vertices
 	unsigned long int num_unreliable; // total number of un-reliable vertices
 	unsigned  int boundary_verts;
+	unsigned int grad_mag_zero;
 	std::vector<unsigned int> un_reliable_grads_vert_info;
 	void set_defaults(){
 		num_reliable=0;
 		num_unreliable=0;
 		boundary_verts=0;
+		grad_mag_zero=0;
 	}
 };
 class INPUT_INFO {
@@ -35,10 +37,13 @@ public:
 	bool flag_reliable_grad;  // reliable grad
 	bool print_info;          // print info of the vertex
 	bool flag_print_grad_loc;      // prints the location of the unreliable grads
-	bool flag_reliable_grad_far; // compare the cdiff gradient with immediate neighbors or
-								 // neighbors at a certain distance
+
+	//Compare the cdiff gradient with immediate neighbors or
+	//neighbors at a certain distance
+	bool flag_reliable_grad_far;
+
 	bool flag_reliable_scalar_prediction; // check how good the gradient predicts the scalar
-										// of the neighborhood grid vertices
+	// of the neighborhood grid vertices
 	int scalar_prediction_dist;
 	float scalar_prediction_err;
 
@@ -65,7 +70,7 @@ public:
 		flag_reliable_grad_far = false;
 		flag_reliable_scalar_prediction = false;
 		print_info = false;
-		min_gradient_mag = 3;
+		min_gradient_mag = 0;
 		param_angle=20;
 		draw = false;
 		reliable_grad_far_dist = 2;

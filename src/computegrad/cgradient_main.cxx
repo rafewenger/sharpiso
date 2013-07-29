@@ -53,9 +53,6 @@ void output_param (INPUT_INFO & io_info);
 void print_unreliable_grad_info
 (const ISODUAL3D::ISODUAL_SCALAR_GRID_BASE & scalar_grid, const INPUT_INFO & input_info);
 
-// **************************************************
-// MAIN
-// **************************************************
 
 timespec diff(timespec start, timespec end)
 {
@@ -69,6 +66,11 @@ timespec diff(timespec start, timespec end)
 	}
 	return temp;
 }
+
+
+
+// Main program
+
 int main(int argc, char **argv)
 {
 	time_t start_time;
@@ -80,7 +82,7 @@ int main(int argc, char **argv)
 	try {
 
 		std::set_new_handler(memory_exhaustion);
-
+		//parse input
 		parse_command_line(argc, argv, input_info);
 		output_param(input_info);
 
@@ -104,55 +106,55 @@ int main(int argc, char **argv)
 			(full_scalar_grid, vertex_gradient_grid, input_info);
 			OptChosen = true;
 		}
-		/*
-		if (input_info.flag_reliable_grad){
-			compute_reliable_gradients
-			(full_scalar_grid, vertex_gradient_grid, input_info);
-			// print info
-			cout <<"Total number of vertices "<<full_scalar_grid.NumVertices() << endl;
-			cout <<"Number of vertices with reliable grads " << input_info.out_info.num_reliable << endl;
-			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
-			cout <<"Number of boundary vertices "<<input_info.out_info.boundary_verts <<endl;
-			//
-			if (input_info.flag_print_grad_loc){
-				print_unreliable_grad_info (full_scalar_grid, input_info);
-			}
-			OptChosen=true
-		}
-		 */
-		if (input_info.flag_reliable_grad_far){
+
+		//check neighboring gradients
+		//angle based
+		if (input_info.flag_reliable_grad_far)
+		{
+			cerr << "perform angle based reliability test.\n"
+					<< "\tparameters \n\t[reliable_grad_far_dist] " << input_info.reliable_grad_far_dist
+					<< "\t[min_num_agree] "<<input_info.min_num_agree
+					<< "\t[min_cos_of_angle] "<<(acos(input_info.min_cos_of_angle)*180.0)/M_PI<<endl;
+
 			time_t begin,end;
 			time (&begin);
+
 			compute_reliable_gradients_far
 			(full_scalar_grid, vertex_gradient_grid, reliable_grid, input_info);
 			OptChosen = true;
 			time (&end);
-			// print info
-			/*
-			cout <<"Total number of vertices "<<full_scalar_grid.NumVertices() << endl;
-			cout <<"Number of vertices with reliable grads " << input_info.out_info.num_reliable << endl;
-			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
-			cout <<"Number of boundary vertices "<<input_info.out_info.boundary_verts <<endl;
-			 */
-			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
-			cout <<"time " <<difftime(end,begin) <<endl;
-			cout <<"*****angle based prediction completed. " <<endl;
+
+			cout << "num unreliable [" << input_info.out_info.num_unreliable
+					<< "]\t num reliable [" << input_info.out_info.num_reliable
+					<<"]\t grad mag 0 ["<<input_info.out_info.grad_mag_zero
+					<< "]\t total [" << full_scalar_grid.NumVertices() << "]"
+					<< endl;
+			//cout <<"time " <<difftime(end,begin) <<endl;
 		}
-		if (input_info.flag_reliable_scalar_prediction){
+
+
+
+		if (input_info.flag_reliable_scalar_prediction)
+		{
 			input_info.out_info.num_unreliable = 0;
 			time_t begin,end;
 			time (&begin);
+
 			compute_reliable_gradients_SBP
 			(full_scalar_grid, vertex_gradient_grid, reliable_grid, input_info);
 			OptChosen = true;
 			time (&end);
+
+			cout <<"\tparameters\n\t[scalar_prediction_dist] "<<input_info.scalar_prediction_dist
+					<<"\t[scalar_prediction_err] "<<input_info.scalar_prediction_err
+					<<endl;
 			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
 			cout <<"time " <<difftime(end,begin) << endl;
-			cout <<"*****scalar based prediction complete,\n num grad "
+/*			cout <<"*****scalar based prediction complete,\n num grad "
 					<< " whose mag is greater than "
 					<< input_info.min_gradient_mag
 					<<" is "<< input_info.num_vertices_mag_grt_zero <<
-					"  out of a total of "<<full_scalar_grid.NumVertices()<<endl;
+					"  out of a total of "<<full_scalar_grid.NumVertices()<<endl;*/
 		}
 		if (!OptChosen)
 		{
@@ -162,7 +164,8 @@ int main(int argc, char **argv)
 		// set the correct gradients
 		// set gradients
 		int num_unreliable = 0;
-		for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++){
+		for (VERTEX_INDEX iv = 0; iv < full_scalar_grid.NumVertices(); iv++)
+		{
 			if (!reliable_grid.Scalar(iv)){
 				vertex_gradient_grid.Set(iv, zero_vector);
 				num_unreliable++;
@@ -170,7 +173,8 @@ int main(int argc, char **argv)
 		}
 		cout << "Number of unreliable is: " << num_unreliable <<endl;
 
-		if (flag_gzip) {
+		if (flag_gzip)
+		{
 			write_vector_grid_nrrd_gzip(gradient_filename, vertex_gradient_grid);
 		}
 		else {
@@ -178,7 +182,8 @@ int main(int argc, char **argv)
 			cerr << "file "<< gradient_filename << " created."<<endl;
 		}
 
-		if (report_time_flag) {
+		if (report_time_flag)
+		{
 
 			time_t end_time;
 			time(&end_time);
@@ -317,10 +322,12 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info)
 		{
 			io_info.flag_print_grad_loc = true;
 		}
+
 		else if (string (argv[iarg])== "-reliable_grad_far")
 		{
 			io_info.flag_reliable_grad_far = true;
 		}
+
 		else if (string(argv[iarg])=="-reliable_grad_far_dist"){
 			iarg++;
 			io_info.flag_reliable_grad_far = true;
@@ -372,8 +379,8 @@ void usage_msg()
 	cerr << "\t\t-print_grad_loc : prints the location of all the vertices with unreliable grads" <<endl;
 	cerr << "\t\t-angle : angle" <<endl;
 	cerr << "\t\t-min_num_agree: default set to 4" <<endl;
-	cerr << "\t\t-reliable_grad_far_dist: <how far to look, e.x 2>" <<endl;
-	cerr << "\t\t-reliable_scalar_pred_dist: <how far to look, e.x 2>" <<endl;
+	cerr << "\t\t-reliable_grad_far_dist: <how far to look, e.g. 2>" <<endl;
+	cerr << "\t\t-reliable_scalar_pred_dist: <how far to look, e.g. 2>" <<endl;
 	cerr << "\t\t\t plot the neighbors selected by using -draw_vert"<<endl;
 	cerr << "\t\t-weighted_cdiff : provide spacings for the 3 directions ex 0.5 0.5 0.5"<<endl;
 	cerr << "\t\t-scalar_pred_err: <threhold for error in prediction default 0.15>" <<endl;
