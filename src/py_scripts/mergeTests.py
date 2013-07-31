@@ -16,13 +16,15 @@ isoval_offset = [0.0, 0.23,0.5,0.8,0.9]
 fread = open ('./file-names.txt','r') # contains the names of the files on which the test is run
 fcountdegree= open ('./edge-count.txt','w') # stores the edge count values
 ftestdetails = open ('./test-details.txt','w') # stores details of the test runs
+fnull = open('/dev/null','w') # null file
 
 
 ##############################
 ## Parse arguments
 ##############################
 
-for i in range(1, len(sys.argv)-1):
+isoval_base = 4.0
+for i in range(1, len(sys.argv)):
   if (sys.argv[i] == "-cube"):
     isoval_base = 8.0
   elif (sys.argv[i] == "-annulus"):
@@ -31,8 +33,6 @@ for i in range(1, len(sys.argv)-1):
     isoval_base = 0.0
   elif (sys.argv[i] == "-wedge"):
     isoval_base = 0.0
-  else:
-    isoval_base = 4.0
 
 ############
 ## mergeSharp  runs 
@@ -92,14 +92,16 @@ def test(n,iso):
                 iso_temp.append(str(i))
                 iso_temp.append(f.strip())
                 print >>ftestdetails,test_details
-		
+
+                print iso_temp
+                
                 procced = proc.check_call(iso_temp)
                 
                 if procced==0:
                     if procced == 0:
                         findsharpTemp = findsharp[:]
-                        findsharpTemp.append("out.off")
-                        procced = proc.check_call(findsharpTemp)
+                        findsharpTemp.append("out.off");
+                        procced = proc.check_call(findsharpTemp,stdout=fnull)
                         if procced ==0:
                             countdegreeTemp = countdegree[:]
                             countdegreeTemp.append("out.line")
