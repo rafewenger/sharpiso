@@ -72,6 +72,7 @@ namespace {
     SPLIT_NON_MANIFOLD_PARAM,
     SEP_NEG_PARAM, SEP_POS_PARAM, RESOLVE_AMBIG_PARAM,
     CHECK_DISK_PARAM, NO_CHECK_DISK_PARAM,
+    MANIFOLD_PARAM,
     ROUND_PARAM, NO_ROUND_PARAM,
     KEEPV_PARAM,
     MINC_PARAM, MAXC_PARAM,
@@ -97,6 +98,7 @@ namespace {
       "-single_isov", "-multi_isov", "-split_non_manifold",
       "-sep_neg", "-sep_pos", "-resolve_ambig", 
       "-check_disk", "-no_check_disk",
+      "-manifold",
       "-round", "-no_round",
       "-keepv",
       "-minc", "-maxc",
@@ -366,6 +368,12 @@ namespace {
 
     case NO_CHECK_DISK_PARAM:
       input_info.flag_check_disk = false;
+      break;
+
+    case MANIFOLD_PARAM:
+      input_info.allow_multiple_iso_vertices = true;
+      input_info.flag_split_non_manifold = true;
+      input_info.flag_check_disk = true;
       break;
 
     case OFF_PARAM:
@@ -1548,13 +1556,15 @@ namespace {
     cerr << "  [-normal {normal_off_filename}]" << endl;
     cerr << "  [-merge_sharp | -no_merge_sharp] [-merge_linf_th <D>]" << endl;
     cerr << "  [-grad2hermite | -grad2hermiteI]" << endl;
-    cerr << "  [-single_isov | -multi_isov | -split_non_manifold]" << endl;
-    cerr << "  [-sep_pos | -sep_neg | -resolve_ambig]" << endl;
+    cerr << "  [-manifold]" << endl;
     cerr << "  [-max_eigen {max}]" << endl;
     cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}] [-snap_dist {D}]" << endl;
     cerr << "  [-max_grad_dist {D}]" << endl;
     cerr << "  [-sharp_edgeI | -interpolate_edgeI]" << endl;
     cerr << "  [-lindstrom]" << endl;
+    cerr << "  [-single_isov | -multi_isov | -split_non_manifold]" << endl;
+    cerr << "  [-sep_pos | -sep_neg | -resolve_ambig]" << endl;
+    cerr << "  [-check_disk | -no_check_disk]" << endl;
     cerr << "  [-allow_conflict |-clamp_conflict | -centroid_conflict]"\
          << endl;
     cerr << "  [-clamp_far] [-centroid_far]" << endl;
@@ -1562,7 +1572,6 @@ namespace {
     cerr << "  [-check_triangle_angle | -no_check_triangle_angle]"<<endl;
     cerr << "  [-Linf | -no_Linf]" << endl;
     cerr << "  [-dist2center | -dist2centroid]" << endl;
-    cerr << "  [-check_disk | -no_check_disk]" << endl;
     cerr << "  [-no_round | -round <n>]" << endl;
     cerr << "  [-keepv]" << endl;
     cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
@@ -1666,7 +1675,9 @@ void MERGESHARP::help(const char * command_path)
   cout << "  -merge_sharp:   Merge vertices near sharp edges/corners." << endl;
   cout << "  -grad2hermite:  Convert gradient to hermite data." << endl;
   cout << "  -grad2hermiteI: Convert gradient to hermite data using linear interpolation." << endl;
-
+  cout << "  -manifold:      Output is the embedding of a manifold." << endl
+       << "     Equivalent to \"-check_disk -split_non_manifold\"." << endl
+       << "     Note: The manifold may be self intersecting." << endl;
   cout << "  -single_isov: Each intersected cube generates a single isosurface vertex." << endl;
   cout << "  -multi_isov:  An intersected cube may generate multiple isosurface vertices."  << endl;
   cout << "  -split_non_manifold:  Split vertices to avoid non-manifold edges."
