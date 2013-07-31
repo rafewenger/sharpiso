@@ -81,7 +81,6 @@ namespace IJK {
     /// Set scalar values of vertices in subsampled grid to s.
     void SetSubsample(const ATYPE scale, const STYPE s);
 
-
     /// Set scalar values of vertices in region to \a s.
     template <typename GTYPE>
     void SetRegion(const IJK::BOX<GTYPE> & box,
@@ -174,8 +173,10 @@ namespace IJK {
     /// Copy scalar grid
     template <typename GTYPE>
     void Copy(const GTYPE & scalar_grid);
-    SCALAR_GRID_ALLOC(const SCALAR_GRID_BASE_CLASS & scalar_grid2) ///< Copy SCALAR_GRID
+
+    SCALAR_GRID_ALLOC(const SCALAR_GRID_BASE_CLASS & scalar_grid2) 
     { Copy(scalar_grid2); }
+
     const SCALAR_GRID_ALLOC & operator =                ///< Copy SCALAR_GRID
     (const SCALAR_GRID_BASE_CLASS & right);
 
@@ -183,15 +184,21 @@ namespace IJK {
     template <typename DTYPE2, typename ATYPE2>
     void SetSize     ///< Set dimensions and axis sizes.
     (const DTYPE2 dimension, const ATYPE2 * axis_size);
-    template <typename DTYPE2, typename ATYPE2, typename VTYPE2, typename NTYPE2>
+    template <typename DTYPE2, typename ATYPE2, typename VTYPE2, 
+              typename NTYPE2>
     void SetSize       ///< Set dimensions and axis size.
     (const GRID<DTYPE2,ATYPE2,VTYPE2,NTYPE2> & grid2);
 
 
-    /// Subsample \a scalar_grid2. Resizes current grid.
+    /// Uniformly subsample \a scalar_grid2. Resizes current grid.
     template <typename GTYPE, typename PTYPE>
     void Subsample
     (const GTYPE & scalar_grid2, const PTYPE subsample_period);
+
+    /// Non-uniformly subsample \a scalar_grid2. Resizes current grid.
+    template <typename GTYPE, typename PTYPE>
+    void Subsample
+    (const GTYPE & scalar_grid2, const PTYPE * subsample_period);
 
     /// Supersample \a scalar_grid2.  Resizes current grid.
     template <typename GTYPE, typename PTYPE>
@@ -1275,10 +1282,13 @@ namespace IJK {
     }
   }
 
+  /// Non-uniformly subsample grid.
+  /// @param subsample_period[] subsample_period[d] is subsample period
+  ///          along axis d.
   template <typename BASE_CLASS>
   template <typename GCLASS, typename PTYPE>
   void SCALAR_GRID_ALLOC<BASE_CLASS>::Subsample
-  (const GCLASS & scalar_grid, const PTYPE subsample_period)
+  (const GCLASS & scalar_grid, const PTYPE * subsample_period)
   {
     const DTYPE dimension = scalar_grid.Dimension();
     IJK::ARRAY<VTYPE> axis_increment(dimension);
@@ -1288,7 +1298,7 @@ namespace IJK {
 
     for (DTYPE d = 0; d < dimension; d++) {
       subsampled_axis_size[d] =
-        compute_subsample_size(scalar_grid.AxisSize(d), subsample_period);
+        compute_subsample_size(scalar_grid.AxisSize(d), subsample_period[d]);
     }
 
     SetSize(dimension, subsampled_axis_size.PtrConst());
@@ -1308,13 +1318,13 @@ namespace IJK {
 
       DTYPE d = 0;
       while (d+1 < dimension &&
-             (vprimary[d] + subsample_period*axis_increment[d] >=
+             (vprimary[d] + (subsample_period[d])*axis_increment[d] >=
               vprimary[d+1] + axis_increment[d+1])) {
         d++;
       }
 
       // go to next subspace of dimension d
-      vprimary[d] = vprimary[d] + subsample_period*axis_increment[d];
+      vprimary[d] = vprimary[d] + (subsample_period[d])*axis_increment[d];
 
       for (DTYPE d2 = 0; d2 < d; d2++)
         { vprimary[d2] = vprimary[d]; };
@@ -1328,6 +1338,18 @@ namespace IJK {
       throw error;
     }
 
+  }
+
+  /// Uniformly subsample grid.
+  template <typename BASE_CLASS>
+  template <typename GCLASS, typename PTYPE>
+  void SCALAR_GRID_ALLOC<BASE_CLASS>::Subsample
+  (const GCLASS & scalar_grid, const PTYPE subsample_period)
+  {
+    const DTYPE dimension = scalar_grid.Dimension();
+    IJK::ARRAY<PTYPE> period(dimension, subsample_period);
+
+    this->Subsample(scalar_grid, period.PtrConst());
   }
 
 

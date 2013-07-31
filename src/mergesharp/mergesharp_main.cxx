@@ -27,6 +27,7 @@
 #include "mergesharp.h"
 
 #include "ijkmesh.txx"
+#include "ijkmesh_cpp11.txx"
 #include "ijkmesh_geom.txx"
 
 using namespace IJK;
@@ -209,21 +210,25 @@ void construct_isosurface
     if (mergesharp_data.flag_convert_quad_to_tri) {
 
       VERTEX_INDEX_ARRAY quad_vert(dual_isosurface.quad_vert);
+      VERTEX_INDEX_ARRAY quad_vert2;
       DUAL_ISOSURFACE isosurface_tri_mesh;
       isosurface_tri_mesh.vertex_coord = dual_isosurface.vertex_coord;
       isosurface_tri_mesh.tri_vert = dual_isosurface.tri_vert;
 
       IJK::reorder_quad_vertices(quad_vert);
 
+      triangulate_quad_sharing_multiple_edges
+        (quad_vert, isosurface_tri_mesh.tri_vert, quad_vert2);
+
       if (mergesharp_data.quad_tri_method == SPLIT_MAX_ANGLE) {
 
         // *** CREATE create_dual_tri IN mergesharp.cxx ***
         triangulate_quad_split_max_angle
-          (DIM3, isosurface_tri_mesh.vertex_coord, quad_vert,
+          (DIM3, isosurface_tri_mesh.vertex_coord, quad_vert2,
            mergesharp_data.max_small_magnitude, isosurface_tri_mesh.tri_vert);
       }
       else {
-        triangulate_quad(quad_vert, isosurface_tri_mesh.tri_vert);
+        triangulate_quad(quad_vert2, isosurface_tri_mesh.tri_vert);
       }
 
       output_dual_isosurface

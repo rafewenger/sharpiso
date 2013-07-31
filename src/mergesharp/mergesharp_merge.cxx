@@ -31,7 +31,6 @@
 #include "mergesharp_merge.h"
 #include "mergesharp_extract.h"
 
-
 // forward declarations
 namespace {
 
@@ -581,7 +580,7 @@ bool MERGESHARP::is_isopatch_disk3D
 
   for (EDGE_HASH_TABLE::const_iterator edge_iter = edge_hash.begin();
        edge_iter != edge_hash.end(); edge_iter++) {
-    if (edge_iter->second > 2) { 
+    if (edge_iter->second > 2) {
       return(false); 
     }
   }
@@ -755,6 +754,7 @@ void MERGESHARP::extract_dual_isopatch_incident_on
   extract_dual_quad_isopatch_incident_on
     (scalar_grid, isovalue, isovert, cube_index0, gcube_map, dist2cube,
      isoquad_cube, facet_vertex);
+
   map_cube_list(isovert, gcube_map, isoquad_cube);
   IJK::get_non_degenerate_quad_btlr(isoquad_cube, tri_vert, quad_vert);
 }

@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2012, 2008 Rephael Wenger
+  Copyright (C) 2008-2013 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -342,6 +342,39 @@ namespace IJK {
   typename std::vector<T>::size_type count_ge(const std::vector<T> & v)
   {
     return(count_ge<X>(v, v.size()));
+  }
+
+  // **************************************************
+  // PUSH MULTIPLE ELEMENTS ON A C++ VECTOR
+  // **************************************************
+
+  /// Push two elements on a C++ vector.
+  template <typename T>
+  inline void push_back(const T & a0, const T & a1, std::vector<T> & v)
+  {
+    v.push_back(a0);
+    v.push_back(a1);
+  }
+
+  /// Push three elements on a C++ vector.
+  template <typename T>
+  inline void push_back
+  (const T & a0, const T & a1, const T & a2, std::vector<T> & v)
+  {
+    v.push_back(a0);
+    v.push_back(a1);
+    v.push_back(a2);
+  }
+
+  /// Push four elements on a C++ vector.
+  template <typename T>
+  inline void push_back
+  (const T & a0, const T & a1, const T & a2, const T & a3, std::vector<T> & v)
+  {
+    v.push_back(a0);
+    v.push_back(a1);
+    v.push_back(a2);
+    v.push_back(a3);
   }
 
   // **************************************************

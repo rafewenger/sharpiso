@@ -800,5 +800,3 @@ void MERGESHARP::dual_contouring_merge_sharp
   clock2seconds(t2-t1, seconds);
   mergesharp_info.time.merge_sharp += seconds;
 }
-
-

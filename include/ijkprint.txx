@@ -37,21 +37,81 @@
 namespace IJK {
 
 
+  /// Print values in list.  No parentheses.
+  template <typename ETYPE, typename NTYPE>
+  void print_list_values
+  (std::ostream & out, const ETYPE * list, const NTYPE length,
+   const char separator)
+  {
+    for (NTYPE i = 0; i < length; i++) {
+      if (i > 0) { out << separator; };
+      out << list[i];
+    }
+  }
+
+  /// Print list with left and right delimiters.
+  template <typename ETYPE, typename NTYPE>
+  void print_list(std::ostream & out, const ETYPE * list, const NTYPE length,
+                  const char separator,
+                  const char left_delim, const char right_delim)
+  {
+    out << left_delim;
+    print_list_values(out, list, length, separator);
+    out << right_delim;
+  }
+
+  /// Print list enclosed in parentheses.
+  template <typename ETYPE, typename NTYPE>
+  void print_list(std::ostream & out, const ETYPE * list, const NTYPE length,
+                  const char separator)
+  {
+    print_list(out, list, length, separator, '(', ')');
+  }
+
+  /// Print list separated by commas and enclosed in parentheses.
   template <typename ETYPE, typename NTYPE>
   void print_list(std::ostream & out, const ETYPE * list, const NTYPE length)
   {
-    out << "(";
-    for (NTYPE i = 0; i < length; i++) {
-      if (i > 0) { out << ","; };
-      out << list[i];
-    }
-    out << ")";
+    print_list(out, list, length, ',');
   }
 
+  /// Print list separated by commas and enclosed in parentheses.
+  /// C++ STL vector format for list[].
   template <typename ETYPE>
   void print_list(std::ostream & out, const std::vector<ETYPE> & list)
   {
     print_list(out, IJK::vector2pointer(list), list.size());
+  }
+
+  /// Print list of tuples.
+  template <typename ETYPE, typename N0TYPE, typename N1TYPE>
+  void print_list_of_tuples
+  (std::ostream & out, const ETYPE * list, 
+   const N0TYPE tuple_size, const N1TYPE num_tuples,
+   const char separator0=',', const char separator1=' ',
+   const char left_delim='(', const char right_delim=')')
+  {
+    for (N1TYPE i = 0; i < num_tuples; i++) {
+      N1TYPE k = i*tuple_size;
+      print_list
+        (out, list+k, tuple_size, separator0, left_delim, right_delim);
+      if (i+1 < num_tuples)
+        { out << separator1; }
+    }
+  }
+
+  /// Print list of tuples.
+  template <typename ETYPE, typename NTYPE>
+  void print_list_of_tuples
+  (std::ostream & out, const std::vector<ETYPE> & list, 
+   const NTYPE tuple_size)
+  {
+    typedef typename std::vector<ETYPE>::size_type SIZE_TYPE;
+
+    if (list.size() <= 0) { return; }
+
+    SIZE_TYPE num_tuples = list.size()/tuple_size;
+    print_list_of_tuples(out, &(list[0]), tuple_size, num_tuples);
   }
 
   template <typename CTYPE>
@@ -87,6 +147,22 @@ namespace IJK {
     grid.ComputeCoord(iv, coord);
     print_list(out, coord, dimension);
     out << s;
+  }
+
+  template <typename GTYPE>
+  void print_grid_size(std::ostream & out, const GTYPE & grid, const char * s)
+  {
+    if (grid.Dimension() < 1) 
+      { out << "Grid dimension: " << grid.Dimension(); }
+    else {
+      out << "Grid ";
+      for (int d = 0; d < grid.Dimension(); d++) {
+        out << grid.AxisSize(d);
+        if (d+1 < grid.Dimension()) 
+          { out << "x"; }
+      };
+    }
+    out << s; 
   }
 
   inline void print_time(std::ostream & out, const char * s, 

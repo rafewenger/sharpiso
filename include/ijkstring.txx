@@ -28,7 +28,6 @@
 #include <vector>
 
 
-/// ijk templates for manipulating strings.
 namespace IJK {
 
 
@@ -97,14 +96,61 @@ namespace IJK {
   // Convert numeric value to string
   // **************************************************
 
-  /// Convert value to string
+  /// Convert value to string.
+  /// Return false if error in converting to string.
   template <typename T>
   bool val2string(const T x, std::string & s_out)
   {
     std::ostringstream s_stream;
 
     s_stream << x;
+
+    if (s_stream.bad()) { 
+      s_out.clear();
+      return(false); 
+    }
+
     s_out = s_stream.str();
+    return(true);
+  }
+
+  /// Convert array to string.
+  /// Return false if error in converting to string.
+  template <typename T, typename I>
+  bool array2string
+  (const T x[], const I length, const char * separator, std::string & s_out)
+  {
+    std::ostringstream s_stream;
+
+    if (length <= 0) { return(true); };
+
+    s_stream << x[0];
+    if (s_stream.bad()) { 
+      s_out.clear();
+      return(false); 
+    };
+    
+    for (I i = 1; i < length; i++) {
+      s_stream << separator << x[i];
+      if (s_stream.bad()) {
+        s_out.clear();
+        return(false); 
+      }
+    }
+
+    s_out = s_stream.str();
+    return(true);
+  }
+
+  /// Convert C++ vector to string.
+  /// Return false if error in converting to string.
+  template <typename T, typename I>
+  bool vector2string
+  (const std::vector<T> & x, const char * separator, std::string & s_out)
+  {
+    if (x.size() <= 0) { return(true); };
+
+    return(array2string(&(x.front()), x.size(), separator, s_out));
   }
 
   // **************************************************
