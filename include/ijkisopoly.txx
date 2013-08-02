@@ -117,36 +117,6 @@ namespace IJK {
     };
   }
 
-  /// *** DEPRECATED ***
-  /// Compute isosurface table index for list of cubes.
-  template <typename GRID_TYPE, typename ISODUAL_TABLE,
-            typename SCALAR_TYPE, typename CTYPE, 
-            typename ITYPE, typename NTYPE>
-  void compute_cube_isotable_index
-  (const GRID_TYPE & scalar_grid, const ISODUAL_TABLE & isodual_table,
-   const SCALAR_TYPE isovalue, const std::vector<CTYPE> & cube_list,
-   std::vector<ITYPE> & cube_table_index,
-   std::vector<NTYPE> & num_isov)
-  {
-    typedef typename GRID_TYPE::NUMBER_TYPE NUMBER_TYPE;
- 
-    const NUMBER_TYPE num_cubes = cube_list.size();
-    const NUMBER_TYPE num_cube_vertices = scalar_grid.NumCubeVertices();
-
-    cube_table_index.resize(num_cubes);
-    num_isov.resize(num_cubes);
-
-    for (NUMBER_TYPE i = 0; i < cube_list.size(); i++) {
-      ITYPE it;
-      compute_isotable_index
-        (scalar_grid.ScalarPtrConst(), isovalue, cube_list[i],
-         scalar_grid.CubeVertexIncrement(), num_cube_vertices, it);
-
-      cube_table_index[i] = it;
-      num_isov[i] = isodual_table.NumIsoVertices(it);
-    }
-  }
-
   /// Compute isosurface table index for list of cubes.
   template <typename GRID_TYPE, typename ISODUAL_TABLE,
             typename SCALAR_TYPE, typename CTYPE, typename CDATA_TYPE>
@@ -630,38 +600,6 @@ namespace IJK {
   // SPLIT SUBROUTINES
   // **************************************************
 
-  /// *** DEPRECATED ***
-  /// Construct list of dual isosurface vertices from cube list.
-  template <typename CTYPE, typename ITYPE, typename NTYPE,
-            typename ISOV_TYPE, typename FTYPE>
-  void construct_dual_isovert_list
-  (const std::vector<CTYPE> & cube_list, 
-   const std::vector<ITYPE> & cube_table_index,
-   const std::vector<NTYPE> & num_isov,
-   std::vector<ISOV_TYPE> & iso_vlist,
-   std::vector<FTYPE> & first_cube_isov)
-  {
-    typedef typename std::vector<CTYPE>::size_type SIZE_TYPE;
-
-    const SIZE_TYPE num_cubes = cube_list.size();
-    const SIZE_TYPE total_num_isov = 
-      std::accumulate(num_isov.begin(), num_isov.end(), 0);
-
-    first_cube_isov.resize(num_cubes);
-    iso_vlist.resize(total_num_isov);
-
-    SIZE_TYPE k = 0;
-    for (SIZE_TYPE i = 0; i < num_cubes; i++) {
-      first_cube_isov[i] = k;
-      for (NTYPE j = 0; j < num_isov[i]; j++) {
-        iso_vlist[k+j].cube_index = cube_list[i];
-        iso_vlist[k+j].patch_index = j;
-        iso_vlist[k+j].table_index = cube_table_index[i];
-      }
-      k = k+num_isov[i];
-    }
-  }
-
   /// Construct list of dual isosurface vertices from cube_list and cube_data.
   template <typename ISODUAL_TABLE, typename CTYPE,
             typename CDATA_TYPE, typename ISOV_TYPE>
@@ -696,42 +634,6 @@ namespace IJK {
         iso_vlist[k+j].table_index = table_index;
       }
       k = k+num_isov;
-    }
-  }
-
-
-  /// *** DEPRECATED ***
-  /// Set isosurface polytope vertices.
-  template <typename ISODUAL_TABLE, typename CINDEX_TYPE, 
-            typename FACETV_TYPE, typename TABLE_INDEX, 
-            typename ISOV_INDEX_TYPE0, typename ISOV_INDEX_TYPE1>
-  void set_dual_isopoly_vertices
-  (const ISODUAL_TABLE & isodual_table,
-   const std::vector<CINDEX_TYPE> & isopoly_cube, 
-   const std::vector<FACETV_TYPE> & facet_vertex,
-   const std::vector<TABLE_INDEX> & cube_table_index,
-   const std::vector<ISOV_INDEX_TYPE0> & first_cube_isov,
-   std::vector<ISOV_INDEX_TYPE1> & isopoly)
-  {
-    const int dimension = isodual_table.Dimension();
-    IJK::CUBE_FACE_INFO<int,int,int> cube(dimension);
-    const int num_facet_vertices = cube.NumFacetVertices();
-
-    isopoly.resize(isopoly_cube.size());
-
-    for (ISOV_INDEX_TYPE0 i = 0; i < isopoly_cube.size(); i++) {
-      ISOV_INDEX_TYPE0 k = isopoly_cube[i];
-      TABLE_INDEX it = cube_table_index[k];
-
-      // Compute index of facet vertex opposite to facet_vertex[i]
-      int facet_vertex_i = facet_vertex[i];
-      int ifacet = cube.FacetIndex(facet_vertex_i);
-      int j = facet_vertex_i - ifacet*num_facet_vertices;
-      int opposite_vertex = (num_facet_vertices-1) - j;
-      opposite_vertex += (ifacet*num_facet_vertices);
-
-      isopoly[i] = first_cube_isov[k] + 
-        isodual_table.IncidentIsoVertex(it, opposite_vertex);
     }
   }
 
