@@ -90,8 +90,11 @@ void compute_isovert_positions
 {
   const SIGNED_COORD_TYPE grad_selection_cube_offset =
     isovert_param.grad_selection_cube_offset;
-  OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+  OFFSET_VOXEL cube_111;
+  COORD_TYPE spacing_111[DIM3] = { 1, 1, 1};
   SVD_INFO svd_info;
+
+  cube_111.SetVertexCoord(spacing_111, grad_selection_cube_offset);
 
   if (isovert_param.use_lindstrom) {
 
