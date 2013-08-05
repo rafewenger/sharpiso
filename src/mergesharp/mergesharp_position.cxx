@@ -821,56 +821,6 @@ void MERGESHARP::split_dual_isovert_ambig
 }
 
 // Split dual isosurface vertices.
-// Don't split isosurface vertices in cubes merged with other cubes.
-// @param isodual_table Dual isosurface lookup table.
-void MERGESHARP::split_dual_isovert
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
- const SCALAR_TYPE isovalue,
- const ISOVERT & isovert,
- const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
- const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
- const MERGESHARP_PARAM & mergesharp_param,
- std::vector<DUAL_ISOVERT> & iso_vlist,
- std::vector<VERTEX_INDEX> & isoquad_vert,
- SHARPISO_INFO & sharp_info)
-{
-  const int dimension = isodual_table.Dimension();
-  const NUM_TYPE num_gcube = isovert.gcube_list.size();
-  std::vector<ISO_VERTEX_INDEX> cube_list(num_gcube);
-  std::vector<bool> no_split(num_gcube,true);
-
-  for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
-    cube_list[i] = isovert.gcube_list[i].cube_index;
-    if (isovert.gcube_list[i].flag == SMOOTH_GCUBE ||
-        isovert.gcube_list[i].flag == UNAVAILABLE_GCUBE ||
-        isovert.gcube_list[i].flag == NON_DISK_GCUBE)
-      { no_split[i] = false; }
-  }
-
-  int num_split;
-  if (mergesharp_param.flag_split_non_manifold) {
-    IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO ambig_info(dimension);
-    int num_non_manifold_split;
-
-    IJK::split_dual_isovert_manifold
-      (scalar_grid, isodual_table, ambig_info, isovalue, 
-       cube_list, no_split, isoquad_cube, facet_vertex,
-       iso_vlist, isoquad_vert, num_split, num_non_manifold_split);
-    sharp_info.num_non_manifold_split = num_non_manifold_split;
-  }
-  else {
-    IJK::split_dual_isovert
-      (scalar_grid, isodual_table, isovalue, cube_list, no_split, 
-       isoquad_cube, facet_vertex,
-       iso_vlist, isoquad_vert, num_split);
-  }
-  sharp_info.num_cube_multi_isov = num_split;
-  sharp_info.num_cube_single_isov = num_gcube - num_split;
-}
-
-
-// Split dual isosurface vertices.
 // Split all isosurface vertices as determined by the lookup table
 //   of the non-manifold edges (if flag_split_non_manifold is true.)
 // @param isodual_table Dual isosurface lookup table.
@@ -882,9 +832,9 @@ void MERGESHARP::full_split_dual_isovert
  const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
  const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
  const MERGESHARP_PARAM & mergesharp_param,
+ std::vector<IJKDUALTABLE::TABLE_INDEX> & table_index,
  std::vector<DUAL_ISOVERT> & iso_vlist,
  std::vector<VERTEX_INDEX> & isoquad_vert,
- std::vector<CUBE_ISOVERT_DATA> & cube_isovert_data,
  SHARPISO_INFO & sharp_info)
 {
   const int dimension = isodual_table.Dimension();
@@ -902,16 +852,18 @@ void MERGESHARP::full_split_dual_isovert
 
     IJK::split_dual_isovert_manifold
       (scalar_grid, isodual_table, ambig_info, isovalue, 
-       cube_list, isoquad_cube, facet_vertex,
-       iso_vlist, isoquad_vert, cube_isovert_data,
+       cube_list, isoquad_cube, facet_vertex, table_index,
+       iso_vlist, isoquad_vert,
        num_split, num_non_manifold_split);
     sharp_info.num_non_manifold_split = num_non_manifold_split;
   }
   else {
+    compute_cube_isotable_index
+      (scalar_grid, isodual_table, isovalue, cube_list, table_index);
+
     IJK::split_dual_isovert
-      (scalar_grid, isodual_table, isovalue, cube_list,
-       isoquad_cube, facet_vertex, iso_vlist, isoquad_vert, 
-       cube_isovert_data, num_split);
+      (isodual_table, cube_list, table_index, isoquad_cube, facet_vertex,
+       iso_vlist, isoquad_vert, num_split);
   }
   sharp_info.num_cube_multi_isov = num_split;
   sharp_info.num_cube_single_isov = num_gcube - num_split;
@@ -933,12 +885,11 @@ void MERGESHARP::full_split_dual_isovert
  std::vector<VERTEX_INDEX> & isoquad_vert,
  SHARPISO_INFO & sharp_info)
 {
-  std::vector<CUBE_ISOVERT_DATA> cube_isovert_data;
+  std::vector<IJKDUALTABLE::TABLE_INDEX> table_index;
 
   full_split_dual_isovert
-    (scalar_grid, isodual_table,isovalue, isovert, 
-     isoquad_cube, facet_vertex,
-     mergesharp_param, iso_vlist, isoquad_vert, cube_isovert_data, sharp_info);
+    (scalar_grid, isodual_table,isovalue, isovert, isoquad_cube, facet_vertex,
+     mergesharp_param, table_index, iso_vlist, isoquad_vert, sharp_info);
 }
 
 

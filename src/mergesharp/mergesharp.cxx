@@ -26,6 +26,9 @@
 #include "ijkmesh.txx"
 #include "ijktime.txx"
 
+#include "ijkdualtable.h"
+#include "ijkdualtable_ambig.h"
+
 #include "mergesharp.h"
 #include "mergesharp_ambig.h"
 #include "mergesharp_merge.h"
@@ -704,6 +707,7 @@ void MERGESHARP::dual_contouring_merge_sharp
 {
   const int dimension = scalar_grid.Dimension();
   const bool flag_separate_neg = mergesharp_param.flag_separate_neg;
+  const bool flag_split_non_manifold = mergesharp_param.flag_split_non_manifold;
   const bool allow_multiple_iso_vertices =
     mergesharp_param.allow_multiple_iso_vertices;
   std::vector<VERTEX_INDEX> quad_vert;
@@ -716,6 +720,13 @@ void MERGESHARP::dual_contouring_merge_sharp
   std::vector<bool> flag_keep;
 
   if (allow_multiple_iso_vertices) {
+
+    const NUM_TYPE num_gcube = isovert.gcube_list.size();
+    std::vector<IJKDUALTABLE::TABLE_INDEX> table_index(num_gcube);
+    std::vector<ISO_VERTEX_INDEX> cube_list(num_gcube);
+
+    for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) 
+      { cube_list[i] = isovert.gcube_list[i].cube_index; }
 
     bool flag_separate_opposite(true);
     IJKDUALTABLE::ISODUAL_CUBE_TABLE 
@@ -730,10 +741,27 @@ void MERGESHARP::dual_contouring_merge_sharp
     map_isopoly_vert(isovert, isoquad_cube);
     t1 = clock();
 
-    full_split_dual_isovert
-      (scalar_grid, isodual_table, isovalue,
-       isovert, isoquad_cube, facet_vertex, mergesharp_param,
-       iso_vlist, quad_vert, mergesharp_info.sharpiso);
+    compute_cube_isotable_index
+      (scalar_grid, isodual_table, isovalue, cube_list, table_index);
+
+    if (flag_split_non_manifold) {
+      IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO ambig_info(dimension);
+      int num_non_manifold_split;
+
+      IJK::split_non_manifold_isov_pairs
+        (scalar_grid, isodual_table, ambig_info, cube_list,
+         table_index, num_non_manifold_split);
+
+      mergesharp_info.sharpiso.num_non_manifold_split = num_non_manifold_split;
+    }
+
+    int num_split;
+    split_dual_isovert
+      (isodual_table, cube_list, table_index, 
+       isoquad_cube, facet_vertex, iso_vlist, quad_vert, num_split);
+
+    mergesharp_info.sharpiso.num_cube_multi_isov = num_split;
+    mergesharp_info.sharpiso.num_cube_single_isov = num_gcube - num_split;
 
     merge_sharp_iso_vertices_multi
       (scalar_grid, isodual_table, isovalue, iso_vlist, isovert, 

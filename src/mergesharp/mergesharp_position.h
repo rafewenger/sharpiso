@@ -298,21 +298,6 @@ namespace MERGESHARP {
    VERTEX_INDEX & num_split);
 
   /// Split dual isosurface vertices.
-  /// Don't split isosurface vertices in cubes merged with other cubes.
-  /// @param isodual_table Dual isosurface lookup table.
-  void split_dual_isovert
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
-   const SCALAR_TYPE isovalue,
-   const ISOVERT & isovert,
-   const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
-   const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
-   const MERGESHARP_PARAM & mergesharp_param,
-   std::vector<DUAL_ISOVERT> & iso_vlist,
-   std::vector<VERTEX_INDEX> & isoquad_vert,
-   SHARPISO_INFO & sharp_info);
-
-  /// Split dual isosurface vertices.
   /// Split all isosurface vertices as determined by the lookup table
   ///   of the non-manifold edges (if flag_split_non_manifold is true.)
   /// Version which returns cube_isovert_data.
@@ -325,9 +310,9 @@ namespace MERGESHARP {
    const std::vector<ISO_VERTEX_INDEX> & isoquad_cube,     
    const std::vector<FACET_VERTEX_INDEX> & facet_vertex,
    const MERGESHARP_PARAM & mergesharp_param,
+   std::vector<IJKDUALTABLE::TABLE_INDEX> & table_index,
    std::vector<DUAL_ISOVERT> & iso_vlist,
    std::vector<VERTEX_INDEX> & isoquad_vert,
-   std::vector<CUBE_ISOVERT_DATA> & cube_isovert_data,
    SHARPISO_INFO & sharp_info);
 
   /// Split dual isosurface vertices.
