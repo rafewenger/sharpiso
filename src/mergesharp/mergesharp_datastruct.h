@@ -157,6 +157,11 @@ namespace MERGESHARP {
     /// If true, split isosurface vertices to avoid non-manifold edges.
     bool flag_split_non_manifold;
 
+    /// If true, select which cube has configuration of split isosurface 
+    /// vertices where adjacent cubes share an ambiguous facet and one will 
+    /// have one isosurface vertex while the other has two isosurface vertices.
+    bool flag_select_split;
+
     /// If true, remove isolated isosurface vertices.  Isolated vertices
     ///   do not lie in any isosurface polygon.
     bool flag_delete_isolated_vertices;

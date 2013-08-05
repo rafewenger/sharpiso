@@ -45,6 +45,7 @@ namespace IJK {
     NTYPE num_edges;           ///< Number of cube edges.
     NTYPE num_facets;          ///< Number of cube facets.
     NTYPE num_facet_vertices;  ///< Number of cube facet vertices.
+    NTYPE num_ridge_vertices;  ///< Number of cube ridge vertices.
 
     void Init                  /// Initialize cube.
     (const DTYPE dimension);
@@ -77,6 +78,8 @@ namespace IJK {
     { return(num_facets); }
     NTYPE NumFacetVertices() const        ///< Number of cube facet vertices. 
     { return(num_facet_vertices); }
+    NTYPE NumRidgeVertices() const        ///< Number of cube ridge vertices. 
+    { return(num_ridge_vertices); }
     NTYPE NumDiagonals() const            ///< Number of cube diagonals.
     { return(NumFacetVertices()); }
 
@@ -397,6 +400,12 @@ namespace IJK {
   long compute_num_cube_facet_vertices(const DTYPE dimension)
   { return(1L << (dimension-1)); }
 
+  /// Return number of cube ridge vertices
+  /// @pre dimension > 0
+  template <typename DTYPE> 
+  long compute_num_cube_ridge_vertices(const DTYPE dimension)
+  { return(1L << (dimension-2)); }
+
   /// Return number of cube facets
   template <typename DTYPE> 
   long compute_num_cube_facets(const DTYPE dimension)
@@ -674,6 +683,7 @@ namespace IJK {
     num_edges = 0;
     num_facets = 0;
     num_facet_vertices = 0;
+    num_ridge_vertices = 0;
   }
 
   /// Initialize
@@ -693,6 +703,7 @@ namespace IJK {
     this->num_facets = compute_num_cube_facets(dimension);
     this->num_edges = compute_num_cube_edges(dimension);
     this->num_facet_vertices = num_vertices/2;
+    this->num_ridge_vertices = num_facet_vertices/2;
   }
 
   // **************************************************

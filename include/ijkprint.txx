@@ -139,7 +139,7 @@ namespace IJK {
 
   template <typename GTYPE, typename VTYPE>
   void print_grid_coord(std::ostream & out, const GTYPE & grid, const VTYPE iv,
-                        char * s)
+                        const char * s)
   {
     typename GTYPE::DIMENSION_TYPE dimension = grid.Dimension();
     VTYPE coord[dimension];

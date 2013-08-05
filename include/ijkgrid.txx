@@ -223,6 +223,12 @@ namespace IJK {
     ///   k'th vertex of facet orthogonal to d with primary vertex iv0
     VTYPE * facet_vertex_increment;
 
+    /// \brief Increment for computing ridge vertices.
+    /// iv0+ridge_vertex_increment[k+nv*d0+nv*nv*d1] = 
+    ///   k'th vertex of ridge orthogonal to d0 and d1 with primary vertex iv0
+    ///   nv = number of ridge vertices.
+    VTYPE * ridge_vertex_increment;
+
     /// unit_cube_coord[dimension*k+j] = j'th coordinate of k'th vertex of unit cube
     NTYPE * unit_cube_coord;
 
@@ -230,6 +236,9 @@ namespace IJK {
     NTYPE num_facet_vertices;  ///< Number of facet vertices.
     NTYPE num_cube_facets;     ///< Number of cube facets.
     NTYPE num_cube_edges;      ///< Number of cube edges.
+
+    /// Number of cube ridge vertices.
+    NTYPE num_cube_ridge_vertices;
 
     void ZeroLocal();
     void InitLocal();
@@ -263,8 +272,6 @@ namespace IJK {
     { return(num_cube_facets); };
     NTYPE NumCubeEdges() const          /// Return number of cube edges.
     { return(num_cube_edges); };
-    NTYPE NumFacetVertices() const      /// Return number of facet vertices.
-    { return(num_facet_vertices); };
     NTYPE NumDiagonals() const          /// Return number of cube diagonals.
     { return(num_facet_vertices); };
     const VTYPE * AxisIncrement() const /// Return array axis_increment[]
@@ -276,9 +283,30 @@ namespace IJK {
     const VTYPE CubeVertexIncrement     /// Return cube_vertex_increment[k]
     (const VTYPE k) const              
     { return(cube_vertex_increment[k]); }
-    const VTYPE FacetVertexIncrement    /// Return facet_vertex_increment[k]
+
+    /// Return number of cube facet vertices.
+    NTYPE NumFacetVertices() const
+    { return(num_facet_vertices); };
+
+    /// Return number of cube ridge vertices.
+    NTYPE NumCubeRidgeVertices() const
+    { return(num_cube_ridge_vertices); };
+
+    /// Return vertex increment of k'th vertex of facet ifacet
+    const VTYPE FacetVertexIncrement
     (const DTYPE ifacet, const VTYPE k) const              
     { return(facet_vertex_increment[k+ifacet*num_facet_vertices]); }
+
+    /// Return vertex increment of k'th vertex of ridge orthogonal
+    ///   to orth_dir0 and orth_dir1.
+    const VTYPE RidgeVertexIncrement    /// Return ridge_vertex_increment[k]
+    (const DTYPE orth_dir0, const DTYPE orth_dir1, const VTYPE k) const
+    { 
+      const DTYPE dimension = this->Dimension();
+      NTYPE j = 
+        k+this->num_cube_ridge_vertices*(orth_dir0+dimension*orth_dir1);
+      return(ridge_vertex_increment[j]);
+    }
 
     // *** DEPRECATED. REPLACE BY class UNIT_CUBE. ***
     /// Return pointer to coordinates of k'th cube vertex
@@ -330,6 +358,12 @@ namespace IJK {
     /// @pre \a k is less than the number of facet vertices.
     VTYPE FacetVertex(const VTYPE iv0, const DTYPE ifacet, const int k) const
     { return(iv0+facet_vertex_increment[k+ifacet*num_facet_vertices]); }
+
+    /// \brief Return k'th ridge vertex.
+    VTYPE RidgeVertex(const VTYPE iv0, 
+                      const DTYPE orth_dir0, const DTYPE orth_dir1, 
+                      const int k) const
+    { return(iv0+RidgeVertexIncrement(orth_dir0, orth_dir1, k)); }
 
     /// \brief Compute vertex neighbors.
     template <typename VTYPE0, typename VTYPE1, typename DIST_TYPE>
@@ -2162,6 +2196,55 @@ namespace IJK {
                     facet_vertex_increment[i+num_subfacet_vertices]);
         }
       }
+    }
+  }
+
+  /// Compute increment to add to vertex 0 to compute vertex i of ridge.
+  /// @param dimension  Dimension of grid.
+  /// @param cube_vertex_increment[] = Cube vertex increment. iv0+cube_vertex_increment[i] is the i'th vertex of the hypercube with primary vertex iv0.
+  /// @param[out] ridge_vertex_increment[] = Ridge vertex increment. iv0+ridge_vertex_increment[i] is the i'th vertex of the ridge with primary vertex iv0.
+  /// @pre Array ridge_vertex_increment[] is allocated with size at least number of ridge vertices
+  template <typename DTYPE, typename ITYPE>
+  void compute_ridge_vertex_increment
+  (const DTYPE dimension, const DTYPE orth_dir0, const DTYPE orth_dir1,
+   const ITYPE * cube_vertex_increment, ITYPE * ridge_vertex_increment)
+  {
+    IJK::PROCEDURE_ERROR error("compute_ridge_vertex_increment");
+
+    if (dimension <= 0) { return; };
+
+    if (cube_vertex_increment == NULL) {
+      error.AddMessage("Programming error. Array cube_vertex_increment[] must be allocated and set before calling compute_ridge_vertex_increment.");
+      throw error;
+    }
+
+    if (ridge_vertex_increment == NULL) {
+      error.AddMessage("Programming error. Array ridge_vertex_increment[] must be allocated before calling compute_ridge_vertex_increment.");
+      throw error;
+    }
+    
+    ITYPE num_cube_vertices = compute_num_cube_vertices(dimension);
+    ITYPE num_cube_ridge_vertices = compute_num_cube_ridge_vertices(dimension);
+    ITYPE mask0, mask1;
+
+    mask0 = (ITYPE(1) << orth_dir0);
+    mask1 = (ITYPE(1) << orth_dir1);
+
+    ITYPE i = 0;
+    for (ITYPE j = 0; j < num_cube_vertices; j++) {
+
+      if (((j & mask0) == 0) && ((j & mask1) == 0)) {
+        ridge_vertex_increment[i] = cube_vertex_increment[j];
+        i++;
+      }
+    }
+
+    if (i != num_cube_ridge_vertices) {
+      error.AddMessage("Programming error.  Added ", i,
+                       " values to ridge_vertex_increment[].");
+      error.AddMessage("  Should have added ",
+                       num_cube_ridge_vertices, " values.");
+      throw error;
     }
   }
 
@@ -4375,6 +4458,7 @@ namespace IJK {
     this->unit_cube_coord = NULL;
     this->num_cube_vertices = 0;
     this->num_facet_vertices = 0;
+    this->num_cube_ridge_vertices = 0;
     this->num_cube_facets = 0;
     this->num_cube_edges = 0;
   }
@@ -4401,9 +4485,10 @@ namespace IJK {
   template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE> 
   void GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE>::Create()
   {
+    const DTYPE dimension = this->Dimension();
     IJK::PROCEDURE_ERROR error("GRID_PLUS::Create");
 
-    if (!check_dimension(this->Dimension(), error)) { throw error; };
+    if (!check_dimension(dimension, error)) { throw error; };
     if (!IJK::check_is_NULL(axis_increment, "axis_increment", error))
       { throw error; }
     if (!IJK::check_is_NULL
@@ -4416,31 +4501,50 @@ namespace IJK {
         (unit_cube_coord, "unit_cube_coord", error))
       { throw error; }
 
-    this->num_cube_vertices = compute_num_cube_vertices(this->Dimension());
+    this->num_cube_vertices = compute_num_cube_vertices(dimension);
     this->num_facet_vertices = 
-      compute_num_cube_facet_vertices(this->Dimension());
-    this->num_cube_facets = compute_num_cube_facets(this->Dimension());
-    this->num_cube_edges = compute_num_cube_edges(this->Dimension());
-
-    this->axis_increment = new VTYPE[this->Dimension()];
+      compute_num_cube_facet_vertices(dimension);
+    this->num_cube_ridge_vertices = 
+      compute_num_cube_ridge_vertices(dimension);
+    this->num_cube_facets = compute_num_cube_facets(dimension);
+    this->num_cube_edges = compute_num_cube_edges(dimension);
+    this->axis_increment = new VTYPE[dimension];
     this->cube_vertex_increment = new VTYPE[num_cube_vertices];
     this->facet_vertex_increment = 
       new VTYPE[num_facet_vertices*this->num_cube_facets];
-    this->unit_cube_coord = new NTYPE[num_cube_vertices*this->Dimension()];
+    this->ridge_vertex_increment =
+      new VTYPE[num_cube_ridge_vertices*dimension*dimension];
+    this->unit_cube_coord = new NTYPE[num_cube_vertices*dimension];
 
     compute_increment
-      (this->Dimension(), this->AxisSize(), this->axis_increment);
+      (dimension, this->AxisSize(), this->axis_increment);
     compute_cube_vertex_increment
-      (this->Dimension(), this->AxisIncrement(), this->cube_vertex_increment);
+      (dimension, this->AxisIncrement(), this->cube_vertex_increment);
 
     for (DTYPE ifacet = 0; ifacet < this->NumCubeFacets(); ifacet++) {
       compute_facet_vertex_increment
-        (this->Dimension(), ifacet, this->cube_vertex_increment, 
+        (dimension, ifacet, this->cube_vertex_increment, 
          this->facet_vertex_increment+this->num_facet_vertices*ifacet);
     }
 
+    // Initialize ridge_vertex_increment to zero.
+    for (NTYPE i = 0; i < this->num_cube_ridge_vertices*dimension*dimension; 
+         i++) 
+      {this->ridge_vertex_increment[i] = 0; }
+
+    // Compute ridge_vertex_increment.
+    for (DTYPE orth_dir1 = 0; orth_dir1 < dimension; orth_dir1++)
+      for (DTYPE orth_dir0 = 0; orth_dir0 < dimension; orth_dir0++)
+        if (orth_dir0 != orth_dir1) {
+          compute_ridge_vertex_increment
+            (dimension, orth_dir0, orth_dir1,
+             this->cube_vertex_increment, 
+             this->ridge_vertex_increment+
+             this->num_cube_ridge_vertices*(orth_dir0+dimension*orth_dir1));
+        }
+
     compute_unit_cube_vertex_coord
-      (this->Dimension(), this->unit_cube_coord);
+      (dimension, this->unit_cube_coord);
   }
 
   /// Free memory in the derived typename GRID_PLUS.
