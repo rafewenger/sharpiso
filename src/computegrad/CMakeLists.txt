@@ -28,10 +28,10 @@ LINK_DIRECTORIES("${NRRD_LIBDIR}")
 LINK_LIBRARIES(expat NrrdIO z)
 ADD_DEFINITIONS(-DSHARP_ISOTABLE_DIR=\"${SHARP_ISOTABLE_DIR}\")
 
-ADD_EXECUTABLE(computegrad cgradient_main.cxx cgradient.cxx)
+ADD_EXECUTABLE(religrad religrad_main.cxx religrad_computations.cxx)
 
 SET(CMAKE_INSTALL_PREFIX ${SHARP_DIR})
-INSTALL(TARGETS computegrad DESTINATION "/usr/local/bin")
+INSTALL(TARGETS religrad DESTINATION "/usr/local/bin")
 
 ADD_CUSTOM_TARGET(tar WORKING_DIRECTORY ../.. COMMAND tar cvfh ${CGRADIENT_DIR}/isodual3D.tar ${CGRADIENT_DIR}/*.cxx ${CGRADIENT_DIR}/*.h ${CGRADIENT_DIR}/*.txx ${CGRADIENT_DIR}/CMakeLists.txt)
 
