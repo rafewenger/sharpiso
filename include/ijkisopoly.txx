@@ -822,6 +822,20 @@ namespace IJK {
 
   }
 
+  template <typename ISODUAL_TABLE, typename TABLE_INDEX,
+            typename ITYPE, typename INDEX0_TYPE, typename INDEX1_TYPE,
+            typename NUM_TYPE>
+  void complement_table_indices
+  (const ISODUAL_TABLE & isodual_table, 
+   const ITYPE i0, const ITYPE i1, 
+   const INDEX0_TYPE it0, const INDEX1_TYPE it1,
+   std::vector<TABLE_INDEX> & table_index, NUM_TYPE & num_changed)
+  {
+    table_index[i0] = isodual_table.Complement(it0);
+    table_index[i1] = isodual_table.Complement(it1);
+    num_changed += 2;
+  }
+
   /// Select which cube has configuration of split isosurface vertices
   /// where adjacent cubes share an ambiguous facet and one will have
   /// one isosurface vertex while the other has two isosurface vertices.
@@ -902,17 +916,33 @@ namespace IJK {
                   (it1, num_cube_vertices, num_neg_cube1, num_pos_cube1);
 
                 if (num_neg_cube0 > num_neg_cube1) {
-                  if (num_neg_in_plane > num_pos_in_plane) {
-                    table_index[i0] = isodual_table.Complement(it0);
-                    table_index[i1] = isodual_table.Complement(it1);
-                    num_changed += 2;
+                  if (num_pos_in_plane > num_neg_in_plane) {
+                    if (num_isov0 == 1) {
+                      complement_table_indices
+                        (isodual_table, i0, i1, it0, it1, 
+                         table_index, num_changed);
+                    }
+                  }
+                  else if (num_pos_in_plane < num_neg_in_plane) {
+                    if (num_isov1 == 1) {
+                      complement_table_indices
+                        (isodual_table, i0, i1, it0, it1, 
+                         table_index, num_changed);
+                    }
                   }
                 }
                 else if (num_neg_cube0 < num_neg_cube1) {
-                  if (num_neg_in_plane < num_pos_in_plane) {
-                    table_index[i0] = isodual_table.Complement(it0);
-                    table_index[i1] = isodual_table.Complement(it1);
-                    num_changed += 2;
+                  if (num_pos_in_plane > num_neg_in_plane) {
+                    if (num_isov0 == 1) {
+                      complement_table_indices
+                        (isodual_table, i0, i1, it0, it1, 
+                         table_index, num_changed);
+                    }
+                  }
+                  else if (num_pos_in_plane < num_neg_in_plane) {
+                    complement_table_indices
+                      (isodual_table, i0, i1, it0, it1, 
+                       table_index, num_changed);
                   }
                 }
               }

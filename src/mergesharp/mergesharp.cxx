@@ -708,6 +708,7 @@ void MERGESHARP::dual_contouring_merge_sharp
   const int dimension = scalar_grid.Dimension();
   const bool flag_separate_neg = mergesharp_param.flag_separate_neg;
   const bool flag_split_non_manifold = mergesharp_param.flag_split_non_manifold;
+  const bool flag_select_split = mergesharp_param.flag_select_split;
   const bool allow_multiple_iso_vertices =
     mergesharp_param.allow_multiple_iso_vertices;
   std::vector<VERTEX_INDEX> quad_vert;
@@ -744,15 +745,25 @@ void MERGESHARP::dual_contouring_merge_sharp
     compute_cube_isotable_index
       (scalar_grid, isodual_table, isovalue, cube_list, table_index);
 
-    if (flag_split_non_manifold) {
+    if (flag_split_non_manifold || flag_select_split) {
       IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO ambig_info(dimension);
-      int num_non_manifold_split;
 
-      IJK::split_non_manifold_isov_pairs
-        (scalar_grid, isodual_table, ambig_info, cube_list,
-         table_index, num_non_manifold_split);
+      if (flag_split_non_manifold) {
+        int num_non_manifold_split;
+        IJK::split_non_manifold_isov_pairs
+          (scalar_grid, isodual_table, ambig_info, cube_list,
+           table_index, num_non_manifold_split);
+        mergesharp_info.sharpiso.num_non_manifold_split = 
+          num_non_manifold_split;
+      }
 
-      mergesharp_info.sharpiso.num_non_manifold_split = num_non_manifold_split;
+      if (flag_select_split) {
+        int num_1_2_change;
+        IJK::select_split_1_2_ambig
+          (scalar_grid, isodual_table, ambig_info, isovalue, cube_list,
+           table_index, num_1_2_change);
+        mergesharp_info.sharpiso.num_1_2_change =  num_1_2_change;
+      }
     }
 
     int num_split;

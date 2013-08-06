@@ -423,6 +423,10 @@ namespace MERGESHARP {
     /// Number of splits to avoid non-manifold edges.
     int num_non_manifold_split;
 
+    /// Number of cube configuration changes from 1 to 2 isosurface vertices
+    ///   or vice versa.
+    int num_1_2_change;
+
     SHARPISO_INFO();  ///< Constructor.
     void Clear();     ///< Clear all data.
 

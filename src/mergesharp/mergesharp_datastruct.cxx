@@ -432,6 +432,7 @@ void MERGESHARP::SHARPISO_INFO::Clear()
   num_cube_multi_isov = 0;
   num_non_disk_isopatches = 0;
   num_non_manifold_split = 0;
+  num_1_2_change = 0;
 
   vertex_info.clear();
 }

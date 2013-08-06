@@ -303,6 +303,11 @@ namespace {
       input_info.flag_split_non_manifold = true;
       break;
 
+    case SELECT_SPLIT_PARAM:
+      input_info.allow_multiple_iso_vertices = true;
+      input_info.flag_select_split = true;
+      break;
+
     case ALLOW_CONFLICT_PARAM:
       input_info.flag_allow_conflict = true;
       input_info.is_conflict_set = true;
@@ -1369,6 +1374,11 @@ void MERGESHARP::report_iso_info3D
             cout << "  # of cubes changed to 2 isov to avoid non-manifold edges: "
                  << mergesharp_info.sharpiso.num_non_manifold_split
                  << endl;
+          }
+
+          if (output_info.flag_select_split) {
+            cout << "  # of cubes changed in selecting isosurface patch splits: "
+                 << mergesharp_info.sharpiso.num_1_2_change << endl;
           }
 
         }
