@@ -44,7 +44,7 @@ timespec diff(timespec start, timespec end)
 	return temp;
 }
 
-
+using namespace SHARPISO;
 
 // Main program
 

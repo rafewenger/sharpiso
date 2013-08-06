@@ -9,12 +9,13 @@
 #include <iostream>
 
 using namespace RELIGRADIENT;
+using SHARPISO::GRADIENT_GRID;
 
 // compute gradient using central difference 
 void compute_gradient_central_difference
 (const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
  GRADIENT_GRID & gradient_grid,
-  const INPUT_INFO & io_info);
+ const INPUT_INFO & io_info);
 
 // compute angle based reliable gradients
 void compute_reliable_gradients_angle
