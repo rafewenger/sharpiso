@@ -40,8 +40,7 @@ public:
 	VERTEX_INDEX cube_index;        ///< Index of cube in scalar grid.
 
   /// Linf-dist from isovert_coord[] to cube-center.
-  /// *** SHOULD BE COORD_TYPE ***
-  SCALAR_TYPE linf_dist;          
+  COORD_TYPE linf_dist;
 
   /// If true, location is centroid of (grid edge)-isosurface intersections.
   bool flag_centroid_location;
