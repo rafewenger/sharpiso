@@ -311,40 +311,7 @@ namespace IJK {
 
   }
 
-  /// Write scalar grid in nrrd file. Compress data using gzip.
-  template <typename GTYPE>
-  void write_scalar_grid_nrrd_gzip
-  (const char * output_filename, const GTYPE & grid)
-  {
-    IJK::PROCEDURE_ERROR error("write_scalar_grid_nrrd_gzip");
-
-    if (output_filename == NULL) {
-      error.AddMessage("Programming error: Empty output filename.");
-      throw error;
-    }
-
-    Nrrd * data = nrrdNew();
-    NrrdIoState * nio = nrrdIoStateNew();
-
-    nrrdIoStateEncodingSet(nio, nrrdEncodingGzip);
-
-    wrap_scalar_grid_data(data, grid.ScalarPtrConst(),
-                          grid.Dimension(), grid.AxisSize());
-    bool save_failed = nrrdSave(output_filename, data, nio);
-
-    nrrdNix(data);
-    nrrdIoStateNix(nio);
-
-    if (save_failed) {
-      error.AddMessage("Unable to save nrrd data to ", output_filename, ".");
-      add_nrrd_message(error);
-      throw error;
-    }
-
-  }
-
-  /// Write scalar grid in nrrd file.
-  /// C++ string version.
+  /// Write scalar grid in nrrd file. C++ string version.
   template <typename GTYPE>
   void write_scalar_grid_nrrd
   (const std::string & output_filename, const GTYPE & grid)
@@ -352,16 +319,7 @@ namespace IJK {
     write_scalar_grid_nrrd(output_filename.c_str(), grid);
   }
 
-  /// Write scalar grid in nrrd file. Compress data using gzip.
-  /// C++ string version.
-  template <typename GTYPE>
-  void write_scalar_grid_nrrd_gzip
-  (const std::string & output_filename, const GTYPE & grid)
-  {
-    write_scalar_grid_nrrd_gzip(output_filename.c_str(), grid);
-  }
-
-  /// Write scalar grid in nrrd file.  Add header information.
+  /// Write scalar grid in nrrd file. Add header information.
   template <typename GTYPE, typename DTYPE, typename ATYPE>
   void write_scalar_grid_nrrd
   (const char * output_filename, const GTYPE & grid, 
@@ -397,7 +355,7 @@ namespace IJK {
     }
   }
 
-  /// Write scalar grid in nrrd file.  Add header information.
+  /// \brief Write scalar grid in nrrd file. Add header information. 
   /// C++ string version.
   template <typename GTYPE, typename DTYPE, typename ATYPE>
   void write_scalar_grid_nrrd
@@ -407,7 +365,48 @@ namespace IJK {
     write_scalar_grid_nrrd(output_filename.c_str(), grid, nrrd_header);
   }
 
-  /// Write scalar grid in nrrd file. Add header information.
+  /// Write scalar grid in nrrd file. Compress data using gzip.
+  template <typename GTYPE>
+  void write_scalar_grid_nrrd_gzip
+  (const char * output_filename, const GTYPE & grid)
+  {
+    IJK::PROCEDURE_ERROR error("write_scalar_grid_nrrd_gzip");
+
+    if (output_filename == NULL) {
+      error.AddMessage("Programming error: Empty output filename.");
+      throw error;
+    }
+
+    Nrrd * data = nrrdNew();
+    NrrdIoState * nio = nrrdIoStateNew();
+
+    nrrdIoStateEncodingSet(nio, nrrdEncodingGzip);
+
+    wrap_scalar_grid_data(data, grid.ScalarPtrConst(),
+                          grid.Dimension(), grid.AxisSize());
+    bool save_failed = nrrdSave(output_filename, data, nio);
+
+    nrrdNix(data);
+    nrrdIoStateNix(nio);
+
+    if (save_failed) {
+      error.AddMessage("Unable to save nrrd data to ", output_filename, ".");
+      add_nrrd_message(error);
+      throw error;
+    }
+
+  }
+
+  /// \brief Write scalar grid in nrrd file. Compress data using gzip. 
+  /// C++ string version.
+  template <typename GTYPE>
+  void write_scalar_grid_nrrd_gzip
+  (const std::string & output_filename, const GTYPE & grid)
+  {
+    write_scalar_grid_nrrd_gzip(output_filename.c_str(), grid);
+  }
+
+  /// \brief Write scalar grid in nrrd file. Add header information.
   /// Compress data using gzip.
   template <typename GTYPE, typename DTYPE, typename ATYPE>
   void write_scalar_grid_nrrd_gzip
@@ -448,8 +447,8 @@ namespace IJK {
     }
   }
 
-  /// Write scalar grid in nrrd file. Add header information.
-  /// Compress data using gzip.
+  /// \brief Write scalar grid in nrrd file. Compress data using gzip.
+  /// Add header information.
   /// C++ string version.
   template <typename GTYPE, typename DTYPE, typename ATYPE>
   void write_scalar_grid_nrrd_gzip
@@ -486,7 +485,7 @@ namespace IJK {
     }
   }
 
-  /// Write vector grid in nrrd file.
+  /// \brief Write vector grid in nrrd file.
   /// C++ string version.
   template <typename GTYPE>
   void write_vector_grid_nrrd
@@ -495,38 +494,7 @@ namespace IJK {
     write_vector_grid_nrrd(output_filename.c_str(), grid);
   }
 
-  template <typename GTYPE>
-  void write_vector_grid_nrrd_gzip
-  (const char * output_filename, const GTYPE & grid)
-  {
-    IJK::PROCEDURE_ERROR error("write_vector_grid_nrrd_gzip");
-
-    if (output_filename == NULL) {
-      error.AddMessage("Programming error: Empty output filename.");
-      throw error;
-    }
-
-    Nrrd * data = nrrdNew();
-    NrrdIoState * nio = nrrdIoStateNew();
-
-    nrrdIoStateEncodingSet(nio, nrrdEncodingGzip);
-
-    wrap_vector_grid_data
-      (data, grid.VectorPtrConst(),
-       grid.Dimension(), grid.AxisSize(), grid.VectorLength());
-
-    bool save_failed = nrrdSave(output_filename, data, nio);
-    nrrdNix(data);
-    nrrdIoStateNix(nio);
-
-    if (save_failed) {
-      error.AddMessage("Unable to save nrrd data to ", output_filename, ".");
-      add_nrrd_message(error);
-      throw error;
-    }
-  }
-
-  /// Write vector grid in nrrd file.  Compress data using gzip.
+  /// Write vector grid in nrrd file. Add header information.
   template <typename GTYPE, typename DTYPE, typename ATYPE>
   void write_vector_grid_nrrd
   (const char * output_filename, const GTYPE & grid,
@@ -562,7 +530,7 @@ namespace IJK {
     }
   }
 
-  /// Write vector grid in nrrd file.  Compress data using gzip.
+  /// \brief Write vector grid in nrrd file. Add header information.
   /// C++ string version.
   template <typename GTYPE, typename DTYPE, typename ATYPE>
   void write_vector_grid_nrrd
@@ -570,6 +538,86 @@ namespace IJK {
    const NRRD_DATA<DTYPE,ATYPE> & nrrd_header)
   {
     write_vector_grid_nrrd
+      (output_filename.c_str(), grid, nrrd_header);
+  }
+
+  /// Write vector grid in nrrd file. Compress data using gzip.
+  template <typename GTYPE>
+  void write_vector_grid_nrrd_gzip
+  (const char * output_filename, const GTYPE & grid)
+  {
+    IJK::PROCEDURE_ERROR error("write_vector_grid_nrrd_gzip");
+
+    if (output_filename == NULL) {
+      error.AddMessage("Programming error: Empty output filename.");
+      throw error;
+    }
+
+    Nrrd * data = nrrdNew();
+    NrrdIoState * nio = nrrdIoStateNew();
+
+    nrrdIoStateEncodingSet(nio, nrrdEncodingGzip);
+
+    wrap_vector_grid_data
+      (data, grid.VectorPtrConst(),
+       grid.Dimension(), grid.AxisSize(), grid.VectorLength());
+
+    bool save_failed = nrrdSave(output_filename, data, nio);
+    nrrdNix(data);
+    nrrdIoStateNix(nio);
+
+    if (save_failed) {
+      error.AddMessage("Unable to save nrrd data to ", output_filename, ".");
+      add_nrrd_message(error);
+      throw error;
+    }
+  }
+
+  /// \brief Write vector grid in nrrd file. Compress data using gzip.
+  /// Add header information.
+  template <typename GTYPE, typename DTYPE, typename ATYPE>
+  void write_vector_grid_nrrd_gzip
+  (const char * output_filename, const GTYPE & grid,
+   const NRRD_DATA<DTYPE,ATYPE> & nrrd_header)
+  {
+    IJK::PROCEDURE_ERROR error("write_vector_grid_nrrd_gzip");
+
+    if (output_filename == NULL) {
+      error.AddMessage("Programming error: Empty output filename.");
+      throw error;
+    }
+
+    Nrrd * data = nrrdNew();
+    NrrdIoState * nio = nrrdIoStateNew();
+
+    nrrdIoStateEncodingSet(nio, nrrdEncodingGzip);
+
+    wrap_vector_grid_data
+      (data, grid.VectorPtrConst(),
+       grid.Dimension(), grid.AxisSize(), grid.VectorLength());
+
+    copy_nrrd_header(nrrd_header.DataPtrConst(), data);
+
+    bool save_failed = nrrdSave(output_filename, data, nio);
+    nrrdNix(data);
+    nrrdIoStateNix(nio);
+
+    if (save_failed) {
+      error.AddMessage("Unable to save nrrd data to ", output_filename, ".");
+      add_nrrd_message(error);
+      throw error;
+    }
+  }
+
+  /// \brief Write vector grid in nrrd file. Compress data using gzip.
+  /// Add header information.
+  /// C++ string version.
+  template <typename GTYPE, typename DTYPE, typename ATYPE>
+  void write_vector_grid_nrrd_gzip
+  (const std::string & output_filename, const GTYPE & grid,
+   const NRRD_DATA<DTYPE,ATYPE> & nrrd_header)
+  {
+    write_vector_grid_nrrd_gzip
       (output_filename.c_str(), grid, nrrd_header);
   }
 
