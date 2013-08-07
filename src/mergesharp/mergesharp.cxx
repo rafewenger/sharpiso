@@ -774,6 +774,8 @@ void MERGESHARP::dual_contouring_merge_sharp
     mergesharp_info.sharpiso.num_cube_multi_isov = num_split;
     mergesharp_info.sharpiso.num_cube_single_isov = num_gcube - num_split;
 
+    store_table_index(table_index, isovert.gcube_list);
+
     merge_sharp_iso_vertices_multi
       (scalar_grid, isodual_table, isovalue, iso_vlist, isovert, 
        mergesharp_param, quad_vert, mergesharp_info.sharpiso);

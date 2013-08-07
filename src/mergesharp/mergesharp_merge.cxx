@@ -31,6 +31,8 @@
 #include "mergesharp_merge.h"
 #include "mergesharp_extract.h"
 
+
+
 // forward declarations
 namespace {
 
@@ -308,6 +310,7 @@ namespace {
     }
   }
 
+  // Map cube_list[i] to target cube determined by gcube_map.
   void map_cube_list(const ISOVERT & isovert,
                      const std::vector<VERTEX_INDEX> & gcube_map,
                      std::vector<VERTEX_INDEX> & cube_list)
@@ -320,6 +323,9 @@ namespace {
     }
   }
 
+  // If cube0 containing isosurface vertex isov_index[i] is merged 
+  //   with some other cube cube1, then map isov_index[i] 
+  //   to the isosurface vertex in cube1.
   void map_isov_indices(const ISOVERT & isovert,
                         const std::vector<VERTEX_INDEX> & gcube_map,
                         const std::vector<DUAL_ISOVERT> & iso_vlist,
@@ -341,9 +347,12 @@ namespace {
       VERTEX_INDEX cube_index0 = iso_vlist[j0].cube_index;
       VERTEX_INDEX gcube_index0 = isovert.sharp_ind_grid.Scalar(cube_index0);
       VERTEX_INDEX gcube_index1 = gcube_map[gcube_index0];
-      VERTEX_INDEX cube_index1 = isovert.gcube_list[gcube_index1].cube_index;
-      VERTEX_HASH_TABLE::iterator cube1_iter = cube_hash.find(cube_index1);
-      isov_index[i] = cube1_iter->second;
+      if (gcube_index1 != gcube_index0 ||
+          isovert.gcube_list[gcube_index1].flag == SELECTED_GCUBE) {
+        VERTEX_INDEX cube_index1 = isovert.gcube_list[gcube_index1].cube_index;
+        VERTEX_HASH_TABLE::iterator cube1_iter = cube_hash.find(cube_index1);
+        isov_index[i] = cube1_iter->second;
+      }
     }
   }
 
@@ -469,7 +478,8 @@ namespace {
     while (!passed_all_disk_checks);
   }
 
-  // Construct cube list.
+  // Renumber vertices in vlist so that they are numbered starting at 0.
+  // Construct cube list of distinct vertices in vlist.
   template <typename VTYPE0, typename VTYPE1>
   void construct_cube_list
   (std::vector<VTYPE0> & vlist, std::vector<VTYPE1> & cube_list)
@@ -530,6 +540,22 @@ namespace {
     while (!passed_all_disk_checks);
   }
 
+  // Set table_index[i] of cube cube_list[i].
+  // Table index is stored in isovert.
+  template <typename VTYPE, typename ITYPE>
+  void set_table_index
+  (const MERGESHARP::ISOVERT & isovert, const std::vector<VTYPE> & cube_list,
+   std::vector<ITYPE> & table_index)
+  {
+    table_index.resize(cube_list.size());
+
+    for (NUM_TYPE i = 0; i < cube_list.size(); i++) {
+      VTYPE cube_index = cube_list[i];
+      VTYPE gcube_index = isovert.sharp_ind_grid.Scalar(cube_index);
+      table_index[i] = isovert.gcube_list[gcube_index].table_index;
+    }
+  }
+   
 
 }
 
@@ -778,6 +804,7 @@ void MERGESHARP::extract_dual_isopatch_incident_on_multi
   std::vector<FACET_VERTEX_INDEX> facet_vertex;
   std::vector<VERTEX_INDEX> cube_list;
   std::vector<ISO_VERTEX_INDEX> quad_vert2;
+  std::vector<IJKDUALTABLE::TABLE_INDEX> table_index;
 
   extract_dual_quad_isopatch_incident_on
     (scalar_grid, isovalue, isovert, cube_index, gcube_map, dist2cube,
@@ -789,8 +816,10 @@ void MERGESHARP::extract_dual_isopatch_incident_on_multi
 
   NUM_TYPE num_split;
 
+  set_table_index(isovert, cube_list, table_index);
+
   IJK::split_dual_isovert
-    (scalar_grid, isodual_table, isovalue, cube_list,
+    (isodual_table, cube_list, table_index,
      isoquad_cube, facet_vertex, iso_vlist, quad_vert2, num_split);
 
   map_isov_indices(isovert, gcube_map, iso_vlist, quad_vert2);

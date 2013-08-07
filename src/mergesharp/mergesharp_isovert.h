@@ -44,6 +44,9 @@ public:
 
   /// If true, location is centroid of (grid edge)-isosurface intersections.
   bool flag_centroid_location;
+
+  /// Index of cube configuration is isosurface lookup table.
+  IJKDUALTABLE::TABLE_INDEX table_index;
 };
 
 typedef std::vector<GRID_CUBE> GRID_CUBE_ARRAY;
@@ -208,6 +211,11 @@ void sort_gcube_list
 void store_boundary_bits
 (const SHARPISO_GRID & grid, GRID_CUBE_ARRAY & gcube_list);
 
+/// Store isosurface lookup table index in gcube_list.
+void store_table_index
+(const std::vector<IJKDUALTABLE::TABLE_INDEX> & table_index,
+ GRID_CUBE_ARRAY & gcube_list);
+ 
 }
 
 #endif /* _MERGESHARP_ISOVERT_H_ */

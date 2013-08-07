@@ -846,6 +846,23 @@ void MERGESHARP::get_cube_list
   }
 }
 
+// Store isosurface lookup table index in gcube_list.
+void MERGESHARP::store_table_index
+(const std::vector<IJKDUALTABLE::TABLE_INDEX> & table_index,
+ GRID_CUBE_ARRAY & gcube_list)
+{
+  IJK::PROCEDURE_ERROR error("store_table_index");
+
+  if (table_index.size() != gcube_list.size()) {
+    error.AddMessage("Programming error.  Numbers of elements in table_index and gcube_list differ.");
+    error.AddMessage("  table_index.size() = ", table_index.size(), ".");
+    error.AddMessage("  gcube_list.size() = ", gcube_list.size(), ".");
+    throw error;
+  }
+
+  for (NUM_TYPE i = 0; i < table_index.size(); i++) 
+    { gcube_list[i].table_index = table_index[i]; }
+}
 
 // **************************************************
 // ISOVERT member functions
