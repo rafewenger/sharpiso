@@ -162,11 +162,11 @@ if ((scalar keys %data_flag) == 0) {
 if ($use_all_data) {
 
   if (!$veryfastflag) {
-    $testdata{cube_A20}{fname} = "cube3D.A20x.nrrd";
-    $testdata{cube_A20}{isovalue} = [ 4.9, 5, 5.5 ];
+    $testdata{cube_A}{fname} = "cube.A.nrrd";
+    $testdata{cube_A}{isovalue} = [ 4.9, 5, 5.5 ];
 
-    $testdata{cube_B20}{fname} = "cube3D.B20x.nrrd";
-    $testdata{cube_B20}{isovalue} = [ 5, 5.5];
+    $testdata{cube_B}{fname} = "cube.B.nrrd";
+    $testdata{cube_B}{isovalue} = [ 5, 5.5];
   }
 }
 
@@ -175,80 +175,67 @@ if ($use_all_data) {
 if ($use_all_data || defined($data_flag{cubes})) {
 
   if (!$veryfastflag) {
+    $testdata{cube_dir111_A}{fname} = "cube.dir111.A.nrrd";
+    $testdata{cube_dir111_A}{isovalue} = [ 4.9, 5, 5.5 ];
 
-    $testdata{tcube110A}{fname} = "tcube110A.31x.nrrd";
-    $testdata{tcube110A}{isovalue} = [ 4.9, 5, 5.5 ];
+    $testdata{cube_dir111_B}{fname} = "cube.dir111.B.nrrd";
+    $testdata{cube_dir111_B}{isovalue} = [ 4.9, 5, 5.5 ];
 
-    $testdata{tcube111A}{fname} = "tcube111A.31x.nrrd";
-    $testdata{tcube111A}{isovalue} = [ 4.9, 5, 5.5 ];
+    $testdata{cube_dir321_A}{fname} = "cube.dir111.A.nrrd";
+    $testdata{cube_dir321_A}{isovalue} = [ 4.9, 5, 5.5 ];
 
-    $testdata{tcube211A}{fname} = "tcube211A.31x.nrrd";
-    $testdata{tcube211A}{isovalue} = [ 4.9, 5, 5.5 ];
+    $testdata{cube_dir321_A}{fname} = "cube.dir111.B.nrrd";
+    $testdata{cube_dir321_A}{isovalue} = [ 4.9, 5, 5.5 ];
+
+    $testdata{cube_dir321_A}{fname} = "cube.dir321.A.nrrd";
+    $testdata{cube_dir321_A}{isovalue} = [ 4.9, 5, 5.5 ];
   }
+  else {
+    $testdata{cube_dir321_A}{fname} = "cube.dir321.A.nrrd";
+    $testdata{cube_dir321_A}{isovalue} = [ 4.9, 5 ];
+  }
+
+
 }
 
 
 if ($use_all_data || defined($data_flag{twocubes})) {
 
   if (!$veryfastflag) {
-    $testdata{twocubes_A21}{fname} = "twocubes3D.A21x.nrrd";
-    $testdata{twocubes_A21}{isovalue} = [ 4, 4.5 ];
+    $testdata{twocubes_A}{fname} = "twocubes.A.nrrd";
+    $testdata{twocubes_A}{isovalue} = [ 9.8, 10, 10.1 ];
+
+    $testdata{twocubes_dir111_A}{fname} = "twocubes.dir111.A.nrrd";
+    $testdata{twocubes_dir111_A}{isovalue} = [ 9.8, 10, 10.1 ];
+  }
+  else {
+    $testdata{twocubes_dir111_A}{fname} = "twocubes.dir111.A.nrrd";
+    $testdata{twocubes_dir111_A}{isovalue} = [ 9.8, 10 ];
   }
 
-  $testdata{twocubes_B21}{fname} = "twocubes3D.B21x.nrrd";
-  $testdata{twocubes_B21}{isovalue} = [ 4, 4.5 ];
 }
 
 if ($use_all_data || defined($data_flag{annulus})) {
 
   if (!$veryfastflag) {
 
-    $testdata{annulus_A31}{fname} = "annulus3D.A31x.nrrd";
-    $testdata{annulus_A31}{isovalue} = [ 4, 4.5 ];
-
-    $testdata{annulus_B31}{fname} = "annulus3D.B31x.nrrd";
-    $testdata{annulus_B31}{isovalue} = [ 4, 4.1, 4.5 ];
-
-    $testdata{annulus_C31}{fname} = "annulus3D.C31x.nrrd";
-    $testdata{annulus_C31}{isovalue} = [ 4, 4.5 ];
-
-    $testdata{annulus_D31}{fname} = "annulus3D.D31x.nrrd";
-    $testdata{annulus_D31}{isovalue} = [ 4, 4.5 ];
-
-    $testdata{annulus_E31}{fname} = "annulus3D.E31x.nrrd";
-    $testdata{annulus_E31}{isovalue} = [ 4, 4.5 ];
-
-    $testdata{annulus_F31}{fname} = "annulus3D.F31x.nrrd";
-    $testdata{annulus_F31}{isovalue} = [ 4, 4.5 ];
+    $testdata{annulus_dir100_A}{fname} = "annulus.dir100.A.nrrd";
+    $testdata{annulus_dir100_A}{isovalue} = [ 4.9, 5 ];
   }
+
+  $testdata{annulus_dir100_A}{fname} = "annulus.dir111.A.nrrd";
+  $testdata{annulus_dir100_A}{isovalue} = [ 4.9, 5 ];
 }
 
 if ($use_all_data || defined($data_flag{flange})) {
 
   if (!$veryfastflag) {
-    $testdata{flange_A61}{fname} = "flange3D.A61x.nrrd";
-    $testdata{flange_A61}{isovalue} = [ 4, 4.5 ];
-
-    $testdata{flange_B61}{fname} = "flange3D.B61x.nrrd";
-    $testdata{flange_B61}{isovalue} = [ 4, 4.5 ];
-
-    $testdata{flange_C61}{fname} = "flange3D.C61x.nrrd";
-    $testdata{flange_C61}{isovalue} = [ 4, 4.5 ];
-
-    $testdata{flange_D61}{fname} = "flange3D.D61x.nrrd";
-    $testdata{flange_D61}{isovalue} = [ 4, 4.5 ];
-
-    $testdata{flange_E61}{fname} = "flange3D.E61x.nrrd";
-    $testdata{flange_E61}{isovalue} = [ 4, 4.5 ];
-
-    $testdata{flange_F61}{fname} = "flange3D.F61x.nrrd";
-    $testdata{flange_F61}{isovalue} = [ 4, 4.5, 8 ];
-  }
-  else {
-    $testdata{flange_F61}{fname} = "flange3D.F61x.nrrd";
-    $testdata{flange_F61}{isovalue} = [ 4.5, 8 ];
+    $testdata{flange_dir100_A}{fname} = "flange.dir100.A.nrrd";
+    $testdata{flange_dir100_A}{isovalue} = [ 4.9, 5 ];
   }
 
+  $testdata{flange_dir111_A}{fname} = "flange.dir111.A.nrrd";
+  $testdata{flange_dir111_A}{isovalue} = [ 4.9, 5 ];
 }
 
 if (defined($data_flag{hermite})) {
