@@ -1,0 +1,30 @@
+#test 2 versions of religrad for differences
+import subprocess
+import sys
+from subprocess import Popen, PIPE
+
+
+
+testFiles=['data2/edge.nrrd','data2/edge.nrrd']
+
+fnull = open('/dev/null','w') # null file
+def main():
+  #print str(sys.argv)
+  if (len(sys.argv) > 2):
+    religradNew=sys.argv[1]
+    religradOld=sys.argv[2]
+    
+    for fname in testFiles:
+      print fname
+      p=subprocess.check_call([religradNew, "-angle_based", fname, "outNew.nrrd"],stderr=fnull,stdout=fnull)
+      p=subprocess.check_call([religradOld, "-angle_based", fname, "outOld.nrrd"],stderr=fnull,stdout=fnull)
+      p = Popen(["diff","outNew.nrrd","outOld.nrrd"], stdout=PIPE)
+      output = p.communicate()[0]
+      if (p.returncode):
+        print "differnces detected"
+  else:
+    print "not enough arguments"
+    
+
+if __name__ == "__main__":
+    main()  
