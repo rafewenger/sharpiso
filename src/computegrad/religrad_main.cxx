@@ -84,14 +84,6 @@ int main(int argc, char **argv)
       vertex_gradient_grid.SetSpacing(d, grid_spacing[d]);
     }
 
-    // *** DEBUG ***
-    using namespace std;
-    cout << "Grid Spacing: ";
-    for (int d = 0; d < full_scalar_grid.Dimension(); d++) {
-      cout << " " << grid_spacing[d]; 
-    }
-    cout << endl;
-
     IJK::BOOL_GRID<RELIGRADIENT_GRID> reliable_grid;
 		reliable_grid.SetSize(full_scalar_grid);
 		reliable_grid.SetAll(true);
