@@ -22,29 +22,8 @@ typedef IJK::BOOL_GRID<RELIGRADIENT_GRID> BOOL_GRID;
 };
 
 // constants
-const SCALAR_TYPE zero_vector [3] = { 0.0, 0.0, 0.0};
+const GRADIENT_COORD_TYPE zero_vector [3] = { 0.0, 0.0, 0.0};
 
-
-/// Compute central difference per vertex
-void compute_gradient_weighted_central_difference
-(const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient,
-		const SCALAR_TYPE & min_gradient_mag,
-		const float * weights)
-{
-	const int dimension = scalar_grid.Dimension();
-	for (int d = 0; d < dimension; d++) {
-		VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
-		VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
-		gradient[d] = ((scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0))/(2*weights[d]));
-	}
-	// set min gradient to )
-	SCALAR_TYPE mag=0.0;
-	IJK::compute_magnitude_3D(gradient, mag);
-	if (mag < min_gradient_mag ) {
-		IJK::copy_coord_3D(zero_vector, gradient);
-	}
-}
 /// Compute central difference per vertex
 void compute_gradient_central_difference
 (const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
@@ -55,7 +34,9 @@ void compute_gradient_central_difference
 	for (int d = 0; d < dimension; d++) {
 		VERTEX_INDEX iv0 = scalar_grid.PrevVertex(iv1, d);
 		VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
-		gradient[d] = (scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0))/2;
+    COORD_TYPE dist = scalar_grid.Spacing(d)*2.0;
+		gradient[d] = 
+      (scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0))/dist;
 	}
 	// set min gradient to )
 	SCALAR_TYPE mag=0.0;
@@ -63,6 +44,9 @@ void compute_gradient_central_difference
 	if (mag < min_gradient_mag ) {
 		IJK::copy_coord_3D(zero_vector, gradient);
 	}
+  else {
+    IJK::set_coord(DIM3, 0.0, gradient);
+  }
 }
 
 /// Compute_boundary_gradients
@@ -81,15 +65,20 @@ void compute_boundary_gradient
 			if (coord[d]+1 < scalar_grid.AxisSize(d)) {
 				VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
 				// use central difference
-				gradient[d] = (scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0))/2;
+        COORD_TYPE  dist = scalar_grid.Spacing(d)*2.0;
+				gradient[d] = 
+          (scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv0))/(2.0*dist);
 			}
 			else {
-				gradient[d] = scalar_grid.Scalar(iv1) - scalar_grid.Scalar(iv0);
+        COORD_TYPE  dist = scalar_grid.Spacing(d);
+				gradient[d] = 
+          (scalar_grid.Scalar(iv1) - scalar_grid.Scalar(iv0))/dist;
 			}
 		}
 		else if (coord[d]+1 < scalar_grid.AxisSize(d)) {
 			VERTEX_INDEX iv2 = scalar_grid.NextVertex(iv1, d);
-			gradient[d] = scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv1);
+      COORD_TYPE  dist = scalar_grid.Spacing(d);
+			gradient[d] = (scalar_grid.Scalar(iv2) - scalar_grid.Scalar(iv1))/dist;
 		}
 		else {
 			gradient[d] = 0;
@@ -114,23 +103,16 @@ void compute_gradient_central_difference
 	boundary_grid.SetSize(scalar_grid);
 	compute_boundary_grid(boundary_grid);
 
-	if (io_info.flag_weighted_cdiff)
-		cout <<"Weighted central differnce being used.\n";
-
 	for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) {
 		if (boundary_grid.Scalar(iv)) {
 	  	compute_boundary_gradient(scalar_grid, iv, gradient_grid.VectorPtr(iv));
 		}
 		else {
-			if (io_info.flag_weighted_cdiff)
-			{
-				compute_gradient_weighted_central_difference
-				(scalar_grid, iv, gradient_grid.VectorPtr(iv), io_info.min_gradient_mag, io_info.weights);
-			}
-			else
-				compute_gradient_central_difference
+
+      compute_gradient_central_difference
 				(scalar_grid, iv, gradient_grid.VectorPtr(iv), io_info.min_gradient_mag);
-		}
+    }
+
 	}
 }
 
@@ -141,7 +123,7 @@ bool gradients_agree(const GRADIENT_GRID & gradient_grid,
 		const GRADIENT_COORD_TYPE * gradient1, const VERTEX_INDEX vert2,
 		const VERTEX_INDEX vert1, const INPUT_INFO & io_info)
 {
-	SCALAR_TYPE mag1 = 0.0, mag2 = 0.0;
+	GRADIENT_COORD_TYPE mag1 = 0.0, mag2 = 0.0;
 	GRADIENT_COORD_TYPE gradient2[DIM3] = { 0.0, 0.0, 0.0 };
 
 	std::copy(gradient_grid.VectorPtrConst(vert2),
@@ -154,7 +136,7 @@ bool gradients_agree(const GRADIENT_GRID & gradient_grid,
 		gradient2[1] = gradient2[1] / mag2;
 		gradient2[2] = gradient2[2] / mag2;
 
-		SCALAR_TYPE inn_pdt = 0;
+		GRADIENT_COORD_TYPE inn_pdt = 0;
 
 		IJK::compute_inner_product(DIM3, gradient1, gradient2, inn_pdt);
 
@@ -276,7 +258,7 @@ void compute_plane_point_dist (
 			IJK::normalize_vector(DIM3, grad1, io_info.min_gradient_mag, grad1_normalized);
 			// point on the plane
 			COORD_TYPE coord_iv[DIM3];
-			scalar_grid.ComputeCoord(iv, coord_iv);
+			scalar_grid.ComputeScaledCoord(iv, coord_iv);
 			// find neighbor vertices
 			vector <VERTEX_INDEX> near_vertices;
 
@@ -293,7 +275,7 @@ void compute_plane_point_dist (
 			{
 				// compute distance from plane
 				COORD_TYPE coord_nv[DIM3]={0.0,0.0,0.0};
-				scalar_grid.ComputeCoord(near_vertices[nv_ind], coord_nv);
+				scalar_grid.ComputeScaledCoord(near_vertices[nv_ind], coord_nv);
 
 				SCALAR_TYPE dist_to_plane = 0.0;
 				compute_plane_point_dist (grad1_normalized, coord_iv, coord_nv, dist_to_plane);

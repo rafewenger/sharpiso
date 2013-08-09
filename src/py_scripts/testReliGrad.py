@@ -6,7 +6,7 @@ from subprocess import Popen, PIPE
 
 
 
-testFiles=['data2/edge.nrrd','data2/edge.nrrd']
+testFiles=['data/cube.A.nrrd','data/cube.B.nrrd','data/annulus.dir111.A.nrrd','data/flange.dir321.A.nrrd','data/twocubes.dir111.A.nrrd']
 
 fnull = open('/dev/null','w') # null file
 def main():

@@ -76,6 +76,21 @@ int main(int argc, char **argv)
 		if (nrrd_in.ReadFailed()) { throw error; }
 		GRADIENT_GRID  vertex_gradient_grid;
 
+    std::vector<COORD_TYPE> grid_spacing;
+    nrrd_header.GetSpacing(grid_spacing);
+
+    for (int d = 0; d < full_scalar_grid.Dimension(); d++) {
+      full_scalar_grid.SetSpacing(d, grid_spacing[d]); 
+      vertex_gradient_grid.SetSpacing(d, grid_spacing[d]);
+    }
+
+    // *** DEBUG ***
+    using namespace std;
+    cout << "Grid Spacing: ";
+    for (int d = 0; d < full_scalar_grid.Dimension(); d++) {
+      cout << " " << grid_spacing[d]; 
+    }
+    cout << endl;
 
     IJK::BOOL_GRID<RELIGRADIENT_GRID> reliable_grid;
 		reliable_grid.SetSize(full_scalar_grid);
@@ -224,14 +239,7 @@ void output_param (INPUT_INFO & io_info){
 			cout <<"scalar error tolerance: "<<io_info.scalar_prediction_err<<endl;
 			cout <<"scalar error distance to neighbors: "<<io_info.scalar_prediction_dist<<endl;
 		}
-		if (io_info.flag_weighted_cdiff){
-			cout <<"Computing weighted central difference " << endl;
-			cout <<"-weights "<<io_info.weights[0]<<" "<<io_info.weights[1]<<" "<<io_info.weights[2]<<endl;
-		}
-		else
-		{
-			cout <<"Computing without weighted cdiff."<<endl;
-		}
+
 	}
 }
 void parse_command_line(int argc, char **argv, INPUT_INFO & io_info)
@@ -300,17 +308,6 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info)
 			iarg++;
 			io_info.flag_reliable_scalar_prediction = true;
 			io_info.scalar_prediction_dist = atoi(argv[iarg]);
-		}
-		else if (string(argv[iarg])=="-weighted_cdiff")
-		{
-
-			io_info.flag_weighted_cdiff = true;
-			for (int d=0; d<3 ; d++){
-				iarg++;
-				io_info.weights[d] = atof(argv[iarg]);
-
-			}
-
 		}
 		else if (string(argv[iarg])=="-scalar_pred_err"){
 			iarg++;
