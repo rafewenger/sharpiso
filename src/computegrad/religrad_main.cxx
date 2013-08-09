@@ -69,12 +69,14 @@ int main(int argc, char **argv)
 		RELIGRADIENT_SCALAR_GRID full_scalar_grid;
 		GRID_NRRD_IN<int,int> nrrd_in;
 		NRRD_DATA<int,int> nrrd_header;
-		SCALAR_TYPE zero_vector [3] = { 0.0, 0.0, 0.0};
+		GRADIENT_COORD_TYPE zero_vector [3] = { 0.0, 0.0, 0.0};
 
 		nrrd_in.ReadScalarGrid
 		(scalar_filename, full_scalar_grid, nrrd_header, error);
 		if (nrrd_in.ReadFailed()) { throw error; }
 		GRADIENT_GRID  vertex_gradient_grid;
+
+    const int dimension = full_scalar_grid.Dimension();
 
     std::vector<COORD_TYPE> grid_spacing;
     nrrd_header.GetSpacing(grid_spacing);
@@ -158,14 +160,29 @@ int main(int argc, char **argv)
 			}
 		}
 
+		NRRD_DATA<int,int> gradient_nrrd_header;
+    std::vector<AXIS_SIZE_TYPE> gradient_nrrd_axis_size(dimension+1,1);
+    std::vector<AXIS_SIZE_TYPE> gradient_nrrd_spacing(dimension+1);
+    gradient_nrrd_axis_size[0] = vertex_gradient_grid.VectorLength();
+    for (int d = 1; d <= dimension; d++) {
+      gradient_nrrd_axis_size[d] = vertex_gradient_grid.AxisSize(d-1);
+      gradient_nrrd_spacing[d] = vertex_gradient_grid.Spacing(d-1);
+    }
+
+    gradient_nrrd_header.SetSize(dimension+1,  &(gradient_nrrd_axis_size[0]));
+    nrrdAxisInfoSet_nva(nrrd_header.DataPtr(), nrrdAxisInfoSpacing,
+                        &(gradient_nrrd_spacing[0]));
+
 		if (flag_gzip)
 		{
-			write_vector_grid_nrrd_gzip(gradient_filename, vertex_gradient_grid);
+			write_vector_grid_nrrd_gzip
+        (gradient_filename, vertex_gradient_grid, gradient_nrrd_header);
 		}
 		else {
-			write_vector_grid_nrrd(gradient_filename, vertex_gradient_grid);
-			cerr << "file "<< gradient_filename << " created."<<endl;
+			write_vector_grid_nrrd
+        (gradient_filename, vertex_gradient_grid, gradient_nrrd_header);
 		}
+    cerr << "file "<< gradient_filename << " created."<<endl;
 
 		if (report_time_flag)
 		{
