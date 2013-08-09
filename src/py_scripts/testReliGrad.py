@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #test 2 versions of religrad for differences
 import subprocess
 import sys
@@ -16,8 +17,8 @@ def main():
     
     for fname in testFiles:
       print fname
-      p=subprocess.check_call([religradNew, "-angle_based", fname, "outNew.nrrd"],stderr=fnull,stdout=fnull)
-      p=subprocess.check_call([religradOld, "-angle_based", fname, "outOld.nrrd"],stderr=fnull,stdout=fnull)
+      p=subprocess.check_call([religradNew, "-angle_based","-reliable_scalar_pred_dist","2", fname, "outNew.nrrd"],stderr=fnull,stdout=fnull)
+      p=subprocess.check_call([religradOld, "-angle_based", "-reliable_scalar_pred_dist","2",fname, "outOld.nrrd"],stderr=fnull,stdout=fnull)
       p = Popen(["diff","outNew.nrrd","outOld.nrrd"], stdout=PIPE)
       output = p.communicate()[0]
       if (p.returncode):
