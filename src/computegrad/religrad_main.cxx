@@ -7,8 +7,11 @@
 #include <cmath>
 #include <time.h>
 #include <sys/time.h>
+
 #include "ijkNrrd.h"
 #include "ijkgrid_nrrd.txx"
+#include "ijkprint.txx"
+
 #include "religrad_computations.h"
 #include "religrad_inputIO.h"
 
@@ -81,10 +84,7 @@ int main(int argc, char **argv)
     std::vector<COORD_TYPE> grid_spacing;
     nrrd_header.GetSpacing(grid_spacing);
 
-    for (int d = 0; d < full_scalar_grid.Dimension(); d++) {
-      full_scalar_grid.SetSpacing(d, grid_spacing[d]); 
-      vertex_gradient_grid.SetSpacing(d, grid_spacing[d]);
-    }
+    full_scalar_grid.SetSpacing(&(grid_spacing[0]));
 
     IJK::BOOL_GRID<RELIGRADIENT_GRID> reliable_grid;
 		reliable_grid.SetSize(full_scalar_grid);
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 			(full_scalar_grid, vertex_gradient_grid, input_info);
 			OptChosen = true;
 		}
-  
+
 		//check neighboring gradients
 		//angle based
 		if (input_info.angle_based)
@@ -124,8 +124,6 @@ int main(int argc, char **argv)
 		
 		}
 
-
-    
 		if (input_info.flag_reliable_scalar_prediction)
 		{
 			input_info.out_info.num_unreliable = 0;

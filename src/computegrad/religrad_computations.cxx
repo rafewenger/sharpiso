@@ -94,6 +94,7 @@ void compute_gradient_central_difference
 	const int dimension = scalar_grid.Dimension();
 
 	gradient_grid.SetSize(scalar_grid, dimension);
+  gradient_grid.SetSpacing(scalar_grid);
 
 	BOOL_GRID boundary_grid;
 	boundary_grid.SetSize(scalar_grid);
