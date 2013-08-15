@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 
 			cout << "num unreliable [" << input_info.out_info.num_unreliable
 					<< "]\t num reliable [" << input_info.out_info.num_reliable
-					<<"]\t grad mag > min ["<<input_info.out_info.grad_mag_zero
+					<<"]\t grad mag < min ["<<input_info.out_info.grad_mag_zero
 					<< "]\t total [" << full_scalar_grid.NumVertices() << "]"
 					<< endl;
 			//cout <<"time " <<difftime(end,begin) <<endl;
@@ -162,15 +162,16 @@ int main(int argc, char **argv)
 
 		NRRD_DATA<int,int> gradient_nrrd_header;
     std::vector<AXIS_SIZE_TYPE> gradient_nrrd_axis_size(dimension+1,1);
-    std::vector<AXIS_SIZE_TYPE> gradient_nrrd_spacing(dimension+1);
+    std::vector<double> gradient_nrrd_spacing(dimension+1);
     gradient_nrrd_axis_size[0] = vertex_gradient_grid.VectorLength();
+    gradient_nrrd_spacing[0] = 1;
     for (int d = 1; d <= dimension; d++) {
       gradient_nrrd_axis_size[d] = vertex_gradient_grid.AxisSize(d-1);
       gradient_nrrd_spacing[d] = vertex_gradient_grid.Spacing(d-1);
     }
 
     gradient_nrrd_header.SetSize(dimension+1,  &(gradient_nrrd_axis_size[0]));
-    nrrdAxisInfoSet_nva(nrrd_header.DataPtr(), nrrdAxisInfoSpacing,
+    nrrdAxisInfoSet_nva(gradient_nrrd_header.DataPtr(), nrrdAxisInfoSpacing,
                         &(gradient_nrrd_spacing[0]));
 
 		if (flag_gzip)

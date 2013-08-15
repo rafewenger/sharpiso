@@ -21,14 +21,12 @@ typedef IJK::BOOL_GRID<RELIGRADIENT_GRID> BOOL_GRID;
 
 };
 
-// constants
-const GRADIENT_COORD_TYPE zero_vector [3] = { 0.0, 0.0, 0.0};
 
 /// Compute central difference per vertex
 void compute_gradient_central_difference
 (const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
 		const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient,
-		const SCALAR_TYPE & min_gradient_mag)
+		const GRADIENT_COORD_TYPE & min_gradient_mag)
 {
 	const int dimension = scalar_grid.Dimension();
 	for (int d = 0; d < dimension; d++) {
@@ -42,11 +40,9 @@ void compute_gradient_central_difference
 	SCALAR_TYPE mag=0.0;
 	IJK::compute_magnitude_3D(gradient, mag);
 	if (mag < min_gradient_mag ) {
-		IJK::copy_coord_3D(zero_vector, gradient);
-	}
-  else {
     IJK::set_coord(DIM3, 0.0, gradient);
-  }
+	}
+
 }
 
 /// Compute_boundary_gradients
@@ -167,10 +163,11 @@ void compute_reliable_gradients_angle
 	{
 		numAgree=0;
 		GRADIENT_COORD_TYPE  gradient_iv[DIM3]={0.0,0.0,0.0};
-		SCALAR_TYPE gradient_iv_mag=0.0;
+		GRADIENT_COORD_TYPE gradient_iv_mag=0.0;
 
 		std::copy(gradient_grid.VectorPtrConst(iv), gradient_grid.VectorPtrConst(iv)+DIM3, &(gradient_iv[0]));
 		IJK::compute_magnitude_3D(gradient_iv, gradient_iv_mag );
+
 		if (gradient_iv_mag > io_info.min_gradient_mag)
 		{
 			//normalize
