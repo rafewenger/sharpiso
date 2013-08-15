@@ -1566,7 +1566,7 @@ namespace {
     cerr << "  [-normal {normal_off_filename}]" << endl;
     cerr << "  [-merge_sharp | -no_merge_sharp] [-merge_linf_th <D>]" << endl;
     cerr << "  [-grad2hermite | -grad2hermiteI]" << endl;
-    cerr << "  [-manifold]" << endl;
+    cerr << "  [-manifold] [-select_split]" << endl;
     cerr << "  [-max_eigen {max}]" << endl;
     cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}] [-snap_dist {D}]" << endl;
     cerr << "  [-max_grad_dist {D}]" << endl;
@@ -1688,6 +1688,9 @@ void MERGESHARP::help(const char * command_path)
   cout << "  -manifold:      Output is the embedding of a manifold." << endl
        << "     Equivalent to \"-check_disk -split_non_manifold\"." << endl
        << "     Note: The manifold may be self intersecting." << endl;
+  cout << "  -select_split:  Select which cube has split isosurface vertices"
+       << endl
+       << "     where two adjacent cubes share an ambiguous facet." << endl;
   cout << "  -single_isov: Each intersected cube generates a single isosurface vertex." << endl;
   cout << "  -multi_isov:  An intersected cube may generate multiple isosurface vertices."  << endl;
   cout << "  -split_non_manifold:  Split vertices to avoid non-manifold edges."
