@@ -67,7 +67,7 @@ public:
 		flag_reliable_grad = false;
 		flag_print_grad_loc = false;
 		print_info = false;
-		min_gradient_mag = 0;
+		min_gradient_mag = 0.001;
 		param_angle=20;
 		draw = false;
 		

@@ -70,7 +70,7 @@ public:
 		flag_reliable_grad_far = false;
 		flag_reliable_scalar_prediction = false;
 		print_info = false;
-		min_gradient_mag = 0;
+		min_gradient_mag = 0.0001;
 		param_angle=20;
 		draw = false;
 		reliable_grad_far_dist = 2;
