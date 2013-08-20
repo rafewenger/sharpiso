@@ -33,7 +33,7 @@ void compute_reliable_gradients_angle(
 // compute scalar based reliable gradients
 void compute_reliable_gradients_SBP(
 		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		GRADIENT_GRID & gradient_grid, GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+		const GRADIENT_GRID & gradient_grid, const GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
 		IJK::BOOL_GRID<RELIGRADIENT_GRID> &reliable_grid, INPUT_INFO & io_info);
 
 #endif

@@ -103,6 +103,8 @@ int main(int argc, char **argv) {
 					<< endl;
 
 			time_t begin, end;
+			clock_t start, finish;
+			start = clock();
 			time(&begin);
 
 			compute_reliable_gradients_angle(full_scalar_grid,
@@ -110,19 +112,24 @@ int main(int argc, char **argv) {
 					input_info);
 			OptChosen = true;
 			time(&end);
+			finish = clock();
 
 			cout << "num unreliable [" << input_info.out_info.num_unreliable
 					<< "]\t num reliable [" << input_info.out_info.num_reliable
 					<< "]\t grad mag < min ["
 					<< input_info.out_info.grad_mag_zero << "]\t total ["
 					<< full_scalar_grid.NumVertices() << "]" << endl;
-			//cout <<"time " <<difftime(end,begin) <<endl;
+			cout << "time estimates angle based : " << difftime(end, begin)
+		   << ","<< (double(finish - start) / CLOCKS_PER_SEC) << endl;
 
 		}
 
 		if (input_info.flag_reliable_scalar_prediction) {
 			input_info.out_info.num_unreliable = 0;
+			input_info.out_info.num_unreliable = 0;
 			time_t begin, end;
+			clock_t start, finish;
+			start = clock();
 			time(&begin);
 
 			compute_reliable_gradients_SBP(full_scalar_grid,
@@ -130,13 +137,18 @@ int main(int argc, char **argv) {
 					input_info);
 			OptChosen = true;
 			time(&end);
+			finish = clock();
 
 			cout << "\tparameters\n\t[scalar_prediction_dist] "
 					<< input_info.scalar_prediction_dist
 					<< "\t[scalar_prediction_err] "
 					<< input_info.scalar_prediction_err << endl;
-			cout << "Num unreliable" << input_info.out_info.num_unreliable
+			cout << "Num unreliable " << input_info.out_info.num_unreliable
 					<< endl;
+			cout << "Num reliable " << input_info.out_info.num_reliable
+								<< endl;
+			cout << "time estimates scalar based : " << difftime(end, begin)
+		   << ","<< (double(finish - start) / CLOCKS_PER_SEC) << endl;
 
 		}
 
@@ -152,6 +164,17 @@ int main(int argc, char **argv) {
 				vertex_gradient_grid.Set(iv, zero_vector);
 				num_unreliable++;
 			}
+			else
+			{
+				GRADIENT_COORD_TYPE grad2[DIM3] = { 0.0, 0.0, 0.0 };
+				std::copy(vertex_gradient_grid.VectorPtrConst(iv),
+						vertex_gradient_grid.VectorPtrConst(iv) + DIM3, grad2);
+				GRADIENT_COORD_TYPE mag = magnitude_grid.Scalar(iv);
+				for (int l=0;l<DIM3;l++)
+					grad2[l]=grad2[l]*mag;
+				vertex_gradient_grid.Set(iv,grad2);
+			}
+
 		}
 
 		NRRD_DATA<int, int> gradient_nrrd_header;

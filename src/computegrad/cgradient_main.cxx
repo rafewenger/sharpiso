@@ -112,24 +112,32 @@ int main(int argc, char **argv)
 		if (input_info.flag_reliable_grad_far)
 		{
 			cerr << "perform angle based reliability test.\n"
-					<< "\tparameters \n\t[reliable_grad_far_dist] " << input_info.reliable_grad_far_dist
-					<< "\t[min_num_agree] "<<input_info.min_num_agree
-					<< "\t[min_cos_of_angle] "<<(acos(input_info.min_cos_of_angle)*180.0)/M_PI<<endl;
+					<< "\tparameters \n\t[reliable_grad_far_dist] "
+					<< input_info.reliable_grad_far_dist << "\t[min_num_agree] "
+					<< input_info.min_num_agree << "\t[min_cos_of_angle] "
+					<< (acos(input_info.min_cos_of_angle) * 180.0) / M_PI
+					<< endl;
 
-			time_t begin,end;
-			time (&begin);
+			time_t begin, end;
+			clock_t start, finish;
+			start = clock();
+			time(&begin);
 
-			compute_reliable_gradients_far
-			(full_scalar_grid, vertex_gradient_grid, reliable_grid, input_info);
+			compute_reliable_gradients_far(full_scalar_grid,
+					vertex_gradient_grid, reliable_grid, input_info);
 			OptChosen = true;
-			time (&end);
+			time(&end);
+			finish = clock();
 
 			cout << "num unreliable [" << input_info.out_info.num_unreliable
 					<< "]\t num reliable [" << input_info.out_info.num_reliable
-					<<"]\t grad mag 0 ["<<input_info.out_info.grad_mag_zero
+					<< "]\t grad mag 0 [" << input_info.out_info.grad_mag_zero
 					<< "]\t total [" << full_scalar_grid.NumVertices() << "]"
 					<< endl;
-			//cout <<"time " <<difftime(end,begin) <<endl;
+			cout << "time angle based: " << difftime(end, begin)
+					<< ","(double(finish - start) / CLOCKS_PER_SEC) << endl;
+
+
 		}
 
 
@@ -137,19 +145,22 @@ int main(int argc, char **argv)
 		if (input_info.flag_reliable_scalar_prediction)
 		{
 			input_info.out_info.num_unreliable = 0;
-			time_t begin,end;
-			time (&begin);
+			time_t begin, end;
+			clock_t start, finish;
+			start = clock();
+			time(&begin);
 
 			compute_reliable_gradients_SBP
 			(full_scalar_grid, vertex_gradient_grid, reliable_grid, input_info);
 			OptChosen = true;
-			time (&end);
+			time(&end);
+			finish = clock();
 
 			cout <<"\tparameters\n\t[scalar_prediction_dist] "<<input_info.scalar_prediction_dist
 					<<"\t[scalar_prediction_err] "<<input_info.scalar_prediction_err
 					<<endl;
 			cout <<"Number of vertices with un-reliable grads " << input_info.out_info.num_unreliable << endl;
-			cout <<"time " <<difftime(end,begin) << endl;
+
 /*			cout <<"*****scalar based prediction complete,\n num grad "
 					<< " whose mag is greater than "
 					<< input_info.min_gradient_mag

@@ -272,9 +272,10 @@ void compute_plane_point_dist(const GRADIENT_COORD_TYPE * normal,
 
 void compute_reliable_gradients_SBP(
 		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		GRADIENT_GRID & gradient_grid, GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+		const GRADIENT_GRID & gradient_grid,const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
 		IJK::BOOL_GRID<RELIGRADIENT_GRID> &reliable_grid,
 		INPUT_INFO & io_info) {
+
 
 	for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) {
 		int num_agree = 0;
@@ -287,6 +288,10 @@ void compute_reliable_gradients_SBP(
 				gradient_grid.VectorPtrConst(iv) + DIM3, grad1_normalized);
 
 		GRADIENT_COORD_TYPE mag1 = grad_mag_grid.Scalar(iv);
+		//debug
+
+//		cout << "gradient " << grad1_normalized[0] << "," << grad1_normalized[1]
+//				<< "," << grad1_normalized[2]<<" magnitude "<< mag1 << endl;
 
 		if (mag1 > io_info.min_gradient_mag) {
 			io_info.num_vertices_mag_grt_zero++;
@@ -318,10 +323,11 @@ void compute_reliable_gradients_SBP(
 				// if dist_to_plane is within the threshold
 				if (abs(dist_to_plane) < 0.5) {
 					close_vertices++;
-
 					// compute the distance between prediction and observed scalar value
 					SCALAR_TYPE err_distance = 0.0;
-					compute_signed_distance_to_gfield_plane(grad1_normalized,
+					for (int l=0;l<DIM3;l++)
+						grad2[l]=grad1_normalized[l]*mag1;
+					compute_signed_distance_to_gfield_plane(grad2,
 							coord_iv, scalar_grid.Scalar(iv), coord_nv,
 							scalar_grid.Scalar(near_vertices[nv_ind]),
 							err_distance);
@@ -337,6 +343,8 @@ void compute_reliable_gradients_SBP(
 					// Compare to error distance (set to .15)
 					if (abs(err_distance) < io_info.scalar_prediction_err) {
 						correct_prediction++;
+						io_info.out_info.num_reliable++;
+
 					}
 				}
 			}
