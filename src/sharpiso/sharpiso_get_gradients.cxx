@@ -30,7 +30,6 @@
 #include "sharpiso_scalar.txx"
 
 
-
 // **************************************************
 // GET GRADIENTS
 // **************************************************
@@ -1971,8 +1970,8 @@ void SHARPISO::deselect_vertices_based_on_isoplanes
   typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;
 
   // static so not reallocated at each call
-  static GRID_COORD_TYPE vertex_coord[DIM3];
-  static GRID_COORD_TYPE coord[DIM3];
+  static COORD_TYPE vertex_coord[DIM3];
+  static COORD_TYPE coord[DIM3];
 
   for (NUM_TYPE i = 0; i < num_vertices; i++) {
 
@@ -1982,15 +1981,15 @@ void SHARPISO::deselect_vertices_based_on_isoplanes
 
       gradient_grid.ComputeCoord(iv, vertex_coord);
       for (DTYPE d = 0; d < DIM3; d++) {
-        coord[d] = vertex_coord[d] - cube_coord[d] + 
-          voxel.OffsetFactor()*scalar_grid.Spacing(d); 
+        coord[d] = vertex_coord[d] - cube_coord[d] + voxel.OffsetFactor();
+        coord[d] *= scalar_grid.Spacing(d); 
       }
       const GRADIENT_COORD_TYPE * vertex_gradient_coord =
         gradient_grid.VectorPtrConst(iv);
       SCALAR_TYPE s = scalar_grid.Scalar(iv);
 
       if (!iso_intersects_cube
-          (voxel, coord, vertex_gradient_coord, s, isovalue)) 
+          (voxel, coord, vertex_gradient_coord, s, isovalue))
         { vertex_flag[i] = false; }
     }
   }

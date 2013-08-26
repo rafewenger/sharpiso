@@ -35,7 +35,6 @@
 #include "mergesharp_isovert.h"
 #include "mergesharp_position.h"
 
-
 using namespace std;
 using namespace SHARPISO;
 using namespace MERGESHARP;
