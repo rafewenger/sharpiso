@@ -217,6 +217,35 @@ namespace IJK {
     distance = std::sqrt(distance);
   }
 
+  /// Compute square of scaled distance between two points.
+  /// Scale by coordinate-wise divide.
+  /// @pre scale[d]>0 for all d in range [0,dimension-1].
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1,
+            typename SCALE_TYPE, typename DIST_TYPE>
+  void compute_scaled_distance_squared_divide
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const SCALE_TYPE scale, DIST_TYPE & scaled_distance_squared)
+  {
+    scaled_distance_squared = 0.0;
+    for (DTYPE d = 0; d < dimension; d++) {
+      CTYPE0 diff = (coord0[d] - coord1[d])/scale[d];
+      scaled_distance_squared += diff*diff;
+    }
+  }
+
+  /// Compute scaled distance between two points.
+  /// Scale by coordinate-wise divide.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename SCALE_TYPE, typename DIST_TYPE>
+  void compute_scaled_distance_divide
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const SCALE_TYPE scale, DIST_TYPE & scaled_distance)
+  {
+    compute_scaled_distance_squared_divide
+      (dimension, coord0, coord1, scale, scaled_distance);
+    scaled_distance = std::sqrt(scaled_distance);
+  }
+
   // **************************************************
   // Vector operations
   // **************************************************
