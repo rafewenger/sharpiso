@@ -13,14 +13,14 @@ using namespace RELIGRADIENT;
 using namespace std;
 using namespace SHARPISO;
 
+
 // local type definition
 namespace {
 
 typedef IJK::BOOL_GRID_BASE<RELIGRADIENT_GRID> BOOL_GRID_BASE;
 typedef IJK::BOOL_GRID<RELIGRADIENT_GRID> BOOL_GRID;
 
-}
-;
+};
 
 /// Compute central difference per vertex
 void compute_gradient_central_difference(
@@ -258,18 +258,33 @@ void compute_reliable_gradients_angle(
 		}
 	}
 }
+
 // scalar based 
-void compute_plane_point_dist(const GRADIENT_COORD_TYPE * normal,
-		const SCALAR_TYPE * pt_on_plane, const SCALAR_TYPE * far_point,
-		SCALAR_TYPE & dist) {
-	SCALAR_TYPE d = 0; //  n.pt on plane
-	SCALAR_TYPE temp = 0; // n.far_point
+void compute_plane_point_dist
+(const GRADIENT_COORD_TYPE * normal,
+ const COORD_TYPE * pt_on_plane, const COORD_TYPE * far_point,
+ SCALAR_TYPE & dist) 
+{
+	COORD_TYPE d = 0; //  n.pt on plane
+	COORD_TYPE temp = 0; // n.far_point
 	IJK::compute_inner_product_3D(normal, pt_on_plane, d);
 	IJK::compute_inner_product_3D(normal, far_point, temp);
 	dist = temp - d;
 }
-//Scalar based prediction
 
+// scalar based 
+void compute_scaled_plane_point_dist
+(const GRADIENT_COORD_TYPE normal[],
+ const COORD_TYPE point0[], const COORD_TYPE point1[],
+ const COORD_TYPE scale[], COORD_TYPE & dist) 
+{
+  dist = 0;
+  for (int d = 0; d < DIM3; d++) {
+    dist += (point1[d]-point0[d])*normal[d]/scale[d];
+  }
+}
+
+// Scalar based prediction
 void compute_reliable_gradients_SBP(
 		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
 		const GRADIENT_GRID & gradient_grid,const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
@@ -316,9 +331,11 @@ void compute_reliable_gradients_SBP(
 				COORD_TYPE coord_nv[DIM3] = { 0.0, 0.0, 0.0 };
 				scalar_grid.ComputeScaledCoord(near_vertices[nv_ind], coord_nv);
 
-				SCALAR_TYPE dist_to_plane = 0.0;
-				compute_plane_point_dist(grad1_normalized, coord_iv, coord_nv,
-						dist_to_plane);
+				COORD_TYPE dist_to_plane = 0.0;
+
+				compute_scaled_plane_point_dist
+          (grad1_normalized, coord_iv, coord_nv, scalar_grid.SpacingPtrConst(),
+           dist_to_plane);
 
 				// if dist_to_plane is within the threshold
 				if (abs(dist_to_plane) < 0.5) {
