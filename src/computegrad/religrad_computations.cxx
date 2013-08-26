@@ -303,10 +303,6 @@ void compute_reliable_gradients_SBP(
 				gradient_grid.VectorPtrConst(iv) + DIM3, grad1_normalized);
 
 		GRADIENT_COORD_TYPE mag1 = grad_mag_grid.Scalar(iv);
-		//debug
-
-//		cout << "gradient " << grad1_normalized[0] << "," << grad1_normalized[1]
-//				<< "," << grad1_normalized[2]<<" magnitude "<< mag1 << endl;
 
 		if (mag1 > io_info.min_gradient_mag) {
 			io_info.num_vertices_mag_grt_zero++;
