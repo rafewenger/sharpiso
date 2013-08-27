@@ -303,8 +303,8 @@ void compute_reliable_gradients_SBP(
 				gradient_grid.VectorPtrConst(iv) + DIM3, grad1_normalized);
 
 		GRADIENT_COORD_TYPE mag1 = grad_mag_grid.Scalar(iv);
-
-		if (mag1 > io_info.min_gradient_mag) {
+		//only run the test if it is reliable
+		if (mag1 > io_info.min_gradient_mag && reliable_grid.Scalar(iv)) {
 			io_info.num_vertices_mag_grt_zero++;
 			// find the normalized gradient
 			// point on the plane
