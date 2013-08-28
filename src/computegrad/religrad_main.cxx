@@ -378,7 +378,7 @@ void help_msg() {
   cerr << "     (Default 4.)" << endl;
 	cerr << "  -angle_based_dist {D}: Distance (integer) to neighboring vertices"
        << endl
-       << "     in angle test.  (Default 2.)" << endl;
+       << "     in angle test.  (Default 1.)" << endl;
 	cerr << "  -reliable_scalar_pred_dist: Distance (integer) to neighboring vertices" << endl
        << "     in scalar test.  (Default 2.)" << endl;
 	cerr << "  -scalar_pred_err {E}:  Error threshold for scalar test." 

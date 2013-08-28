@@ -59,7 +59,7 @@ public:
 		flag_cdiff = false;
 		//angle based 
 		angle_based = false;
-		angle_based_dist = 2;
+		angle_based_dist = 1;
 		//scalar_based
 		flag_reliable_scalar_prediction = false;
 		

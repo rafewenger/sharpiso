@@ -1299,7 +1299,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   max_small_eigenvalue = 0.1;
   round_denominator = 16;
   max_small_grad_coord_Linf = 0.2;
-  linf_dist_thresh_merge_sharp = 1.0;
+  linf_dist_thresh_merge_sharp = 1.5;
   bin_width = 5;
 }
 
