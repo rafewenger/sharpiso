@@ -285,87 +285,87 @@ void compute_scaled_plane_point_dist
 }
 
 // Scalar based prediction
-void compute_reliable_gradients_SBP(
-		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID & gradient_grid,const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
-		IJK::BOOL_GRID<RELIGRADIENT_GRID> &reliable_grid,
-		INPUT_INFO & io_info) {
-
+void compute_reliable_gradients_SBP
+(const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID & gradient_grid,
+ const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+ IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
+ INPUT_INFO & io_info) 
+{
+  GRADIENT_COORD_TYPE grad1_normalized[DIM3];
+  GRADIENT_COORD_TYPE grad2[DIM3];
+  COORD_TYPE coord_iv[DIM3]; // Coordinates of vertex iv.
+  COORD_TYPE coord_nv[DIM3]; // Coordinates of vertex nv.
+  GRADIENT_COORD_TYPE mag1;
 
 	for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) {
-		int num_agree = 0;
-		// set up a vector to keep track of the distances
-		vector<SCALAR_TYPE> vec_scalar_dists;
 
-		GRADIENT_COORD_TYPE grad1_normalized[DIM3] = { 0.0, 0.0, 0.0 };
-		GRADIENT_COORD_TYPE grad2[DIM3] = { 0.0, 0.0, 0.0 };
-		std::copy(gradient_grid.VectorPtrConst(iv),
-				gradient_grid.VectorPtrConst(iv) + DIM3, grad1_normalized);
+		// only run the test if gradient at vertex iv is reliable
+    if (reliable_grid.Scalar(iv)) {
 
-		GRADIENT_COORD_TYPE mag1 = grad_mag_grid.Scalar(iv);
-		//only run the test if it is reliable
-		if (mag1 > io_info.min_gradient_mag && reliable_grid.Scalar(iv)) {
-			io_info.num_vertices_mag_grt_zero++;
-			// find the normalized gradient
-			// point on the plane
-			COORD_TYPE coord_iv[DIM3];
-			scalar_grid.ComputeScaledCoord(iv, coord_iv);
-			// find neighbor vertices
-			vector<VERTEX_INDEX> near_vertices;
-			scalar_grid.GetVertexNeighbors(iv, io_info.scalar_prediction_dist,
-					near_vertices);
+      mag1 = grad_mag_grid.Scalar(iv);
+      if (mag1 > io_info.min_gradient_mag) {
 
-			// for all the neighboring points find the distance of points to plane
-			// nv_ind = near_vertex_index
-			// Number of vertices which are close to the gradient plane through the vertex iv
-			VERTEX_INDEX close_vertices = 0;
-			VERTEX_INDEX correct_prediction = 0;
+        int num_agree = 0;
+        // set up a vector to keep track of the distances
+        vector<SCALAR_TYPE> vec_scalar_dists;
 
-			bool flag_correct = true;
-			for (int nv_ind = 0; nv_ind < near_vertices.size(); nv_ind++) {
-				// compute distance from plane
-				COORD_TYPE coord_nv[DIM3] = { 0.0, 0.0, 0.0 };
-				scalar_grid.ComputeScaledCoord(near_vertices[nv_ind], coord_nv);
+        std::copy(gradient_grid.VectorPtrConst(iv),
+                  gradient_grid.VectorPtrConst(iv) + DIM3, grad1_normalized);
 
-				COORD_TYPE dist_to_plane = 0.0;
 
-				compute_scaled_plane_point_dist
-          (grad1_normalized, coord_iv, coord_nv, scalar_grid.SpacingPtrConst(),
-           dist_to_plane);
+        io_info.num_vertices_mag_grt_zero++;
+        // find the normalized gradient
+        // point on the plane
+        scalar_grid.ComputeScaledCoord(iv, coord_iv);
+        // find neighbor vertices
+        vector<VERTEX_INDEX> near_vertices;
+        scalar_grid.GetVertexNeighbors
+          (iv, io_info.scalar_prediction_dist, near_vertices);
 
-				// if dist_to_plane is within the threshold
-				if (abs(dist_to_plane) < 0.5) {
-					close_vertices++;
-					// compute the distance between prediction and observed scalar value
-					SCALAR_TYPE err_distance = 0.0;
-					for (int l=0;l<DIM3;l++)
-						grad2[l]=grad1_normalized[l]*mag1;
-					compute_signed_distance_to_gfield_plane(grad2,
-							coord_iv, scalar_grid.Scalar(iv), coord_nv,
-							scalar_grid.Scalar(near_vertices[nv_ind]),
-							err_distance);
+        // for all the neighboring points find the distance of points to plane
+        // nv_ind = near_vertex_index
+        // Number of vertices which are close to the gradient plane through the vertex iv
+        VERTEX_INDEX close_vertices = 0;
+        VERTEX_INDEX correct_prediction = 0;
 
-					//keep track of the error distances
-					//vec_scalar_dists.push_back (abs(err_distance));
-					float abs_err = abs(err_distance);
-					if (abs_err > io_info.scalar_prediction_err) {
-						flag_correct = false;
-						break;
-					}
+        bool flag_correct = true;
+        for (int nv_ind = 0; nv_ind < near_vertices.size(); nv_ind++) {
 
-					// Compare to error distance (set to .15)
-					if (abs(err_distance) < io_info.scalar_prediction_err) {
-						correct_prediction++;
-						io_info.out_info.num_reliable++;
+          VERTEX_INDEX nv = near_vertices[nv_ind];
+          // compute distance from plane
+          scalar_grid.ComputeScaledCoord(nv, coord_nv);
 
-					}
-				}
-			}
-			if (!flag_correct) {
-				reliable_grid.Set(iv, false);
-				io_info.out_info.num_unreliable++;
-			}
-		}
-	}
+          COORD_TYPE dist_to_plane = 0.0;
+
+          compute_scaled_plane_point_dist
+            (grad1_normalized, coord_iv, coord_nv, scalar_grid.SpacingPtrConst(),
+             dist_to_plane);
+
+          // if dist_to_plane is within the threshold
+          if (abs(dist_to_plane) < 0.5) {
+            close_vertices++;
+            // compute the distance between prediction and observed scalar value
+            SCALAR_TYPE err_distance = 0.0;
+            for (int l=0;l<DIM3;l++)
+              grad2[l]=grad1_normalized[l]*mag1;
+            compute_distance_to_gfield_plane
+              (grad2, coord_iv, scalar_grid.Scalar(iv), coord_nv,
+               scalar_grid.Scalar(nv), err_distance);
+
+            //keep track of the error distances
+            if (err_distance > io_info.scalar_prediction_err) {
+              flag_correct = false;
+              break;
+            }
+          }
+        }
+
+        if (!flag_correct) {
+          reliable_grid.Set(iv, false);
+          io_info.out_info.num_unreliable++;
+        }
+      }
+    }
+  }
 }
-

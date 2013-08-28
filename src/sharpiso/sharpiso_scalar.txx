@@ -165,7 +165,6 @@ namespace SHARPISO {
       gfield_gradient[2]*(point[2]-gfield_point[2]) +
       gfield_point_scalar - plane_scalar;
     distance = distance/gradient_magnitude;
-
   }
 
   /// Compute (non-negative) distance from point to plane 
