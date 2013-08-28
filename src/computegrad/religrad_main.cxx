@@ -27,7 +27,7 @@ bool flag_out_param = false;
 
 // local subroutines
 void memory_exhaustion();
-void usage_error();
+void usage_error(), help_msg();
 void parse_command_line(int argc, char **argv, INPUT_INFO & io_info);
 void output_param(INPUT_INFO & io_info);
 
@@ -267,59 +267,77 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 	int iarg = 1;
 
 	while (iarg < argc && argv[iarg][0] == '-') {
-		if (string(argv[iarg]) == "-time") {
+
+    string s = string(argv[iarg]);
+
+		if (s == "-time") {
 			report_time_flag = true;
-		} else if (string(argv[iarg]) == "-gzip") {
-			flag_gzip = true;
-		} else if (string(argv[iarg]) == "-cdiff") {
+		} 
+    else if (s == "-cdiff") {
 			io_info.flag_cdiff = true; // compute central difference
 		}
-
-		else if (string(argv[iarg]) == "-out_param") {
+		else if (s == "-angle_test") {
+			io_info.flag_cdiff = true;
+			io_info.angle_based = true;
+		}
+    else if (s == "-scalar_test") {
+			io_info.flag_cdiff = true;
+			io_info.flag_reliable_scalar_prediction = true;
+    }
+		else if (s == "-out_param") {
 			flag_out_param = true;
-		} else if (string(argv[iarg]) == "-min_gradient_mag") {
+		} 
+    else if (s == "-min_gradient_mag") {
 			iarg++;
 			io_info.min_gradient_mag = (float) atof(argv[iarg]);
-		} else if (string(argv[iarg]) == "-angle") {
+		} 
+    else if (s == "-angle") {
 			iarg++;
 			io_info.param_angle = (float) atof(argv[iarg]);
 			io_info.min_cos_of_angle = cos(
 					(io_info.param_angle * M_PI / 180.0));
-		} else if (string(argv[iarg]) == "-min_num_agree") {
+		} 
+    else if (s == "-min_num_agree") {
 			iarg++;
 			io_info.min_num_agree = (int) atoi(argv[iarg]);
-		} else if (string(argv[iarg]) == "-print_info") {
+		} 
+    else if (s == "-print_info") {
 			iarg++;
 			io_info.print_info = true;
 			io_info.print_info_vertex = (int) atof(argv[iarg]);
-		} else if (string(argv[iarg]) == "-draw_vert") {
+		} 
+    else if (s == "-draw_vert") {
 			iarg++;
 			io_info.draw = true;
 			io_info.draw_vert = atoi(argv[iarg]);
-
-		} else if (string(argv[iarg]) == "-print_grad_loc") {
+		} 
+    else if (s == "-print_grad_loc") {
 			io_info.flag_print_grad_loc = true;
 		}
-
-		else if (string(argv[iarg]) == "-angle_based") {
-			io_info.flag_cdiff = true;
-			io_info.angle_based = true;
-		}
-
-		else if (string(argv[iarg]) == "-angle_based_dist") {
+		else if (s == "-angle_based_dist") {
 			iarg++;
 			io_info.angle_based = true;
 			io_info.angle_based_dist = (int) atof(argv[iarg]);
-		} else if (string(argv[iarg]) == "-reliable_scalar_pred_dist") {
+		}
+    else if (s == "-reliable_scalar_pred_dist") {
 			iarg++;
 			io_info.flag_reliable_scalar_prediction = true;
 			io_info.scalar_prediction_dist = atoi(argv[iarg]);
-		} else if (string(argv[iarg]) == "-scalar_pred_err") {
+		} 
+    else if (s == "-scalar_pred_err") 
+      {
 			iarg++;
 			io_info.flag_reliable_scalar_prediction = true;
 			io_info.scalar_prediction_err = atof(argv[iarg]);
-		} else {
-			cout << "Error in  " << string(argv[iarg]) << endl;
+		} 
+    else if (s == "-gzip") {
+			flag_gzip = true;
+		} 
+    else if (s == "-help") {
+      help_msg();
+    }
+    else {
+			cout << "Error in  " << s << endl;
 			usage_error();
 		}
 		iarg++;
@@ -334,25 +352,46 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 }
 
 void usage_msg() {
-	cerr << "Usage: religrad [options] {scalar nrrd file} {gradient nrrd file}"
+	cerr << "Usage: religrad [OPTIONS] {scalar nrrd file} {gradient nrrd file}"
 			<< endl;
-	cerr << "Options \n \t\t-cdiff : compute the central difference {default}"
-			<< endl;
-	cerr << "\t\t-out_param" << endl;
-	cerr << "\t\t-min_gradient_mag [float] : min gradient magnitude." << endl;
-	cerr << "\t\t-print_info [int] : print_info of the vertex." << endl;
-	cerr
-			<< "\t\t-print_grad_loc : prints the location of all the vertices with unreliable grads"
-			<< endl;
-	cerr << "\t\t-angle_based : angle based reliable grad computations" << endl;
-	cerr << "\t\t\t-angle : angle for above" << endl;
-	cerr << "\t\t\t-min_num_agree: default set to 4" << endl;
-	cerr << "\t\t\t-angle_based_dist: <how far to look, e.g. 2>" << endl;
-	cerr << "\t\t-reliable_scalar_pred_dist: <how far to look, e.g. 2>" << endl;
-	cerr
-			<< "\t\t\t-scalar_pred_err: <threhold for error in prediction default 0.4>"
-			<< endl;
+  cerr << "OPTIONS:" << endl;
+  cerr << "  [-cdiff] [-angle_test] [-scalar_test]" << endl;
+  cerr << "  [min_gradient_mag {M}] [-angle {A}] [-min_num_agree {N}]" << endl;
+  cerr << "  [-angle_based_dist {D}] [-reliable_scalar_pred_dist {D}]" << endl;
+  cerr << "  [-scalar_pred_err {E}]" << endl;
+  cerr << "  [-gzip]" << endl;
+  cerr << "  [-out_param] [-print_info {V}] [-print_grad_loc] [-help]" << endl;
+}
 
+void help_msg() {
+	cerr << "Usage: religrad [OPTIONS] {scalar nrrd file} {gradient nrrd file}"
+			<< endl;
+  cerr << "OPTIONS:" << endl;
+	cerr << "  -cdiff: Compute the central difference (default)." << endl;
+	cerr << "  -angle_test: Apply angle test." << endl;
+	cerr << "  -scalar_test: Apply scalar test." << endl;
+	cerr << "  -min_gradient_mag {M}:  Set min gradient magnitude to {M} (float)." << endl;
+	cerr << "  -angle {A}: Set angle to {A} (float)." << endl;
+  cerr << "  -min_num_agree {N}: Set minimum agree number to {N}." << endl;
+  cerr << "     {N} gradient directions must agree to pass the angle test."
+       << endl;
+  cerr << "     (Default 4.)" << endl;
+	cerr << "  -angle_based_dist {D}: Distance (integer) to neighboring vertices"
+       << endl
+       << "     in angle test.  (Default 2.)" << endl;
+	cerr << "  -reliable_scalar_pred_dist: Distance (integer) to neighboring vertices" << endl
+       << "     in scalar test.  (Default 2.)" << endl;
+	cerr << "  -scalar_pred_err {E}:  Error threshold for scalar test." 
+       << endl;
+  cerr << "     Errors above the threshold fail the test. (Default 0.4.)" 
+       << endl;
+  cerr << "  -gzip: Store gradients in compressed (gzip) format." << endl;
+  cerr << "  -out_param:  Print parameters." << endl;
+	cerr << "  -print_info {V} : Print information about vertex {IV}." << endl;
+  cerr << "  -print_grad_loc : Print location of vertices with unreliable gradients." << endl;
+  cerr << "  -help: Print this help message." << endl;
+
+  exit(0);
 }
 
 void usage_error() {
