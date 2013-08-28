@@ -72,7 +72,7 @@ public:
 		draw = false;
 		
 		scalar_prediction_dist = 2;
-		scalar_prediction_err = 0.15;
+		scalar_prediction_err = 0.4;
 		min_num_agree = 4;
 		min_cos_of_angle = cos((param_angle*M_PI/180.0)); // 20 degrees=0.34906585, 30 degrees=0.523598776;
 		out_info.set_defaults();

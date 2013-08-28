@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
 
 		if (input_info.flag_reliable_scalar_prediction) {
 			input_info.out_info.num_unreliable = 0;
-			input_info.out_info.num_unreliable = 0;
+			input_info.out_info.num_reliable = 0;
 			time_t begin, end;
 			clock_t start, finish;
 			start = clock();
@@ -350,7 +350,7 @@ void usage_msg() {
 	cerr << "\t\t\t-angle_based_dist: <how far to look, e.g. 2>" << endl;
 	cerr << "\t\t-reliable_scalar_pred_dist: <how far to look, e.g. 2>" << endl;
 	cerr
-			<< "\t\t\t-scalar_pred_err: <threhold for error in prediction default 0.15>"
+			<< "\t\t\t-scalar_pred_err: <threhold for error in prediction default 0.4>"
 			<< endl;
 
 }

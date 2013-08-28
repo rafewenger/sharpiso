@@ -272,18 +272,6 @@ void compute_plane_point_dist
 	dist = temp - d;
 }
 
-// scalar based 
-void compute_scaled_plane_point_dist
-(const GRADIENT_COORD_TYPE normal[],
- const COORD_TYPE point0[], const COORD_TYPE point1[],
- const COORD_TYPE scale[], COORD_TYPE & dist) 
-{
-  dist = 0;
-  for (int d = 0; d < DIM3; d++) {
-    dist += (point1[d]-point0[d])*normal[d]/scale[d];
-  }
-}
-
 // Scalar based prediction
 void compute_reliable_gradients_SBP
 (const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
@@ -292,11 +280,12 @@ void compute_reliable_gradients_SBP
  IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
  INPUT_INFO & io_info) 
 {
-  GRADIENT_COORD_TYPE grad1_normalized[DIM3];
-  GRADIENT_COORD_TYPE grad2[DIM3];
+  GRADIENT_COORD_TYPE grad_iv[DIM3];  // unscaled gradient vector
+  GRADIENT_COORD_TYPE normalized_grad_iv[DIM3]; // normalized grad_iv
   COORD_TYPE coord_iv[DIM3]; // Coordinates of vertex iv.
   COORD_TYPE coord_nv[DIM3]; // Coordinates of vertex nv.
   GRADIENT_COORD_TYPE mag1;
+  COORD_TYPE err_distance;
 
 	for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) {
 
@@ -306,54 +295,53 @@ void compute_reliable_gradients_SBP
       mag1 = grad_mag_grid.Scalar(iv);
       if (mag1 > io_info.min_gradient_mag) {
 
+        // run test on unscaled, uniform grid (all edge lengths 1)
+        scalar_grid.ComputeCoord(iv, coord_iv);
+
+        // grad_iv[] is an unscaled gradient
+        for (int d = 0; d < DIM3; d++) {
+          COORD_TYPE spacing_d = scalar_grid.Spacing(d);
+          grad_iv[d] = mag1*spacing_d*gradient_grid.Vector(iv,d);
+        }
+        IJK::normalize_vector
+          (DIM3, grad_iv, io_info.min_gradient_mag, normalized_grad_iv);
+
         int num_agree = 0;
         // set up a vector to keep track of the distances
         vector<SCALAR_TYPE> vec_scalar_dists;
 
-        std::copy(gradient_grid.VectorPtrConst(iv),
-                  gradient_grid.VectorPtrConst(iv) + DIM3, grad1_normalized);
-
-
         io_info.num_vertices_mag_grt_zero++;
         // find the normalized gradient
         // point on the plane
-        scalar_grid.ComputeScaledCoord(iv, coord_iv);
         // find neighbor vertices
         vector<VERTEX_INDEX> near_vertices;
         scalar_grid.GetVertexNeighbors
           (iv, io_info.scalar_prediction_dist, near_vertices);
 
         // for all the neighboring points find the distance of points to plane
-        // nv_ind = near_vertex_index
-        // Number of vertices which are close to the gradient plane through the vertex iv
-        VERTEX_INDEX close_vertices = 0;
-        VERTEX_INDEX correct_prediction = 0;
-
         bool flag_correct = true;
         for (int nv_ind = 0; nv_ind < near_vertices.size(); nv_ind++) {
 
           VERTEX_INDEX nv = near_vertices[nv_ind];
-          // compute distance from plane
-          scalar_grid.ComputeScaledCoord(nv, coord_nv);
+          scalar_grid.ComputeCoord(nv, coord_nv);
+
+          // compute distance to plane
 
           COORD_TYPE dist_to_plane = 0.0;
-
-          compute_scaled_plane_point_dist
-            (grad1_normalized, coord_iv, coord_nv, scalar_grid.SpacingPtrConst(),
-             dist_to_plane);
+          // compute distance in unscaled grid (uniform, unit edge lengths)
+          compute_plane_point_dist
+            (normalized_grad_iv, coord_iv, coord_nv, dist_to_plane);
 
           // if dist_to_plane is within the threshold
-          if (abs(dist_to_plane) < 0.5) {
-            close_vertices++;
+          if (abs(dist_to_plane) <= 0.5) {
+
             // compute the distance between prediction and observed scalar value
-            SCALAR_TYPE err_distance = 0.0;
-            for (int l=0;l<DIM3;l++)
-              grad2[l]=grad1_normalized[l]*mag1;
+
+            // compute distance in unscaled grid (uniform, unit edge lengths)
             compute_distance_to_gfield_plane
-              (grad2, coord_iv, scalar_grid.Scalar(iv), coord_nv,
+              (grad_iv, coord_iv, scalar_grid.Scalar(iv), coord_nv,
                scalar_grid.Scalar(nv), err_distance);
 
-            //keep track of the error distances
             if (err_distance > io_info.scalar_prediction_err) {
               flag_correct = false;
               break;
@@ -364,6 +352,9 @@ void compute_reliable_gradients_SBP
         if (!flag_correct) {
           reliable_grid.Set(iv, false);
           io_info.out_info.num_unreliable++;
+        }
+        else {
+          io_info.out_info.num_reliable++;
         }
       }
     }
