@@ -60,6 +60,15 @@ namespace {
   (const MERGESHARP::ISOVERT & isovert, 
    const std::vector<MERGESHARP::DUAL_ISOVERT> & iso_vlist,
    SHARPISO::NUM_TYPE * first_gcube_isov);
+
+  void insert_vertex_list
+  (const std::vector<VERTEX_INDEX> & vlist,
+   MERGESHARP::VERTEX_HASH_TABLE & vertex_hash);
+
+  void remap_vertex_list
+  (const MERGESHARP::VERTEX_HASH_TABLE & vertex_hash,
+   const std::vector<VERTEX_INDEX> & vlist,
+   std::vector<VERTEX_INDEX> & new_vlist);
 }
 
 // **************************************************
@@ -886,62 +895,65 @@ void MERGESHARP::insert_tri_quad_edges
   insert_poly_edges(quad_vert, NUM_VERT_PER_QUAD, edge_hash);
 }
 
-// Insert or increment vertex count in vertex hash table.
-void insert_vertex(const VERTEX_INDEX iv,
-                   VERTEX_HASH_TABLE & vertex_hash)
-{
-  VERTEX_HASH_TABLE::iterator vertex_iter = vertex_hash.find(iv);
-  if (vertex_iter == vertex_hash.end()) {
-    vertex_hash.insert({iv, 1});
-  }
-  else {
-    vertex_iter->second++;
-  }
-}
+namespace {
 
-// Insert vertices from vlist into vertex hash table.
-// @param vertex_hash Maps vertex to unique number 
-//        in range [0-(vertex_hash.size()-1)].
-void insert_vertex_list
-(const std::vector<VERTEX_INDEX> & vlist,
- VERTEX_HASH_TABLE & vertex_hash)
-{
-  for (NUM_TYPE i = 0; i < vlist.size(); i++) {
-    VERTEX_INDEX iv = vlist[i];
+  // Insert or increment vertex count in vertex hash table.
+  void insert_vertex(const VERTEX_INDEX iv,
+		     VERTEX_HASH_TABLE & vertex_hash)
+  {
     VERTEX_HASH_TABLE::iterator vertex_iter = vertex_hash.find(iv);
     if (vertex_iter == vertex_hash.end()) {
-      NUM_TYPE n = vertex_hash.size();
-      vertex_hash.insert({iv, n});
+      vertex_hash.insert({iv, 1});
+    }
+    else {
+      vertex_iter->second++;
     }
   }
-}
 
-// Remap vertices from vlist to values vertex hash table.
-// @pre Every vertex in vlist is in the vertex hash table.
-void remap_vertex_list
-(const VERTEX_HASH_TABLE & vertex_hash,
- const std::vector<VERTEX_INDEX> & vlist,
- std::vector<VERTEX_INDEX> & new_vlist)
-{
-  new_vlist.resize(vlist.size());
-
-  for (NUM_TYPE i = 0; i < vlist.size(); i++) {
-    VERTEX_INDEX iv = vlist[i];
-    VERTEX_HASH_TABLE::const_iterator vertex_iter = vertex_hash.find(iv);
-    new_vlist[i] = vertex_iter->second;
+  // Insert vertices from vlist into vertex hash table.
+  // @param vertex_hash Maps vertex to unique number 
+  //        in range [0-(vertex_hash.size()-1)].
+  void insert_vertex_list
+  (const std::vector<VERTEX_INDEX> & vlist,
+   VERTEX_HASH_TABLE & vertex_hash)
+  {
+    for (NUM_TYPE i = 0; i < vlist.size(); i++) {
+      VERTEX_INDEX iv = vlist[i];
+      VERTEX_HASH_TABLE::iterator vertex_iter = vertex_hash.find(iv);
+      if (vertex_iter == vertex_hash.end()) {
+	NUM_TYPE n = vertex_hash.size();
+	vertex_hash.insert({iv, n});
+      }
+    }
   }
-}
 
-// Insert vertex in cycle.
-// @param vertex_loc Location of vertex in list cycle_vertex.
-void insert_cycle_vertex
-(const VERTEX_INDEX iv0, const VERTEX_INDEX iv1,
- std::vector<CYCLE_VERTEX> & cycle_vertex)
-{
-  NUM_TYPE num_adjacent = cycle_vertex[iv0].num_adjacent;
-  if (num_adjacent < 2) 
-    { cycle_vertex[iv0].adjacent[num_adjacent] = iv1; }
-  cycle_vertex[iv0].num_adjacent++;
+  // Remap vertices from vlist to values vertex hash table.
+  // @pre Every vertex in vlist is in the vertex hash table.
+  void remap_vertex_list
+  (const VERTEX_HASH_TABLE & vertex_hash,
+   const std::vector<VERTEX_INDEX> & vlist,
+   std::vector<VERTEX_INDEX> & new_vlist)
+  {
+    new_vlist.resize(vlist.size());
+
+    for (NUM_TYPE i = 0; i < vlist.size(); i++) {
+      VERTEX_INDEX iv = vlist[i];
+      VERTEX_HASH_TABLE::const_iterator vertex_iter = vertex_hash.find(iv);
+      new_vlist[i] = vertex_iter->second;
+    }
+  }
+
+  // Insert vertex in cycle.
+  // @param vertex_loc Location of vertex in list cycle_vertex.
+  void insert_cycle_vertex
+  (const VERTEX_INDEX iv0, const VERTEX_INDEX iv1,
+   std::vector<CYCLE_VERTEX> & cycle_vertex)
+  {
+    NUM_TYPE num_adjacent = cycle_vertex[iv0].num_adjacent;
+    if (num_adjacent < 2) 
+      { cycle_vertex[iv0].adjacent[num_adjacent] = iv1; }
+    cycle_vertex[iv0].num_adjacent++;
+  }
 }
 
 // Construct list of boundary cycle vertices.
