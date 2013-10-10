@@ -465,7 +465,7 @@ namespace IJK {
   void VECTOR_GRID_ALLOC<BASE_CLASS>::Copy(const GTYPE & vector_grid2)
   {
     this->SetSize(vector_grid2);
-    CopyVector(vector_grid2);
+    this->CopyVector(vector_grid2);
   }
 
   template <typename BASE_CLASS>

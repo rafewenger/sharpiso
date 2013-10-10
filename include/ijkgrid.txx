@@ -369,12 +369,7 @@ namespace IJK {
     template <typename VTYPE0, typename VTYPE1, typename DIST_TYPE>
     void GetVertexNeighbors
     (const VTYPE0 iv0, const DIST_TYPE distance, std::vector<VTYPE1> & vlist)
-      const
-    {
-      get_grid_vertices_in_neighborhood
-        (this->Dimension(), this->AxisSize(), this->AxisIncrement(), 
-         iv0, distance, vlist);
-    }
+      const;
   };
 
   // **************************************************
@@ -4581,6 +4576,17 @@ namespace IJK {
     SetSize(grid2.Dimension(), grid2.AxisSize());
   }
 
+  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE> 
+  template <typename VTYPE0, typename VTYPE1, typename DIST_TYPE>
+  void GRID_PLUS<DTYPE,ATYPE,VTYPE,NTYPE>::GetVertexNeighbors
+  (const VTYPE0 iv0, const DIST_TYPE distance, std::vector<VTYPE1> & vlist) 
+    const
+  {
+    get_grid_vertices_in_neighborhood
+      (this->Dimension(), this->AxisSize(), this->AxisIncrement(), 
+       iv0, distance, vlist);
+  }
+
   // **************************************************
   // TEMPLATE CLASS GRID_NEIGHBORS MEMBER FUNCTIONS
   // **************************************************
@@ -4989,7 +4995,7 @@ namespace IJK {
         (grid.Dimension(), grid.AxisSize(), orth_dir, numv);
     }
 
-    AllocateList(numv);
+    this->AllocateList(numv);
     GetVertices(grid, orth_dir);
   }
 
@@ -5037,7 +5043,7 @@ namespace IJK {
          numv);
     }
 
-    AllocateList(numv);
+    this->AllocateList(numv);
     GetVertices(grid, orth_dir);
   }
 

@@ -1110,7 +1110,7 @@ namespace IJK {
         (from_grid, "To grid", "From grid", error))
       { throw error; }
 
-    if (!CheckContainsRegion(to_v0, region_axis_size, error))
+    if (!this->CheckContainsRegion(to_v0, region_axis_size, error))
       { throw error; }
 
     if (!from_grid.CheckContainsRegion
@@ -1268,7 +1268,7 @@ namespace IJK {
   void SCALAR_GRID_ALLOC<BASE_CLASS>::Copy(const GTYPE & scalar_grid2)
   {
     this->SetSize(scalar_grid2);
-    CopyScalar(scalar_grid2);
+    this->CopyScalar(scalar_grid2);
   }
 
   template <typename BASE_CLASS>
@@ -1430,7 +1430,7 @@ namespace IJK {
       for (DTYPE j = d; j < this->Dimension(); j++)
         { subsample_period[j] = supersample_period; };
       for (DTYPE j = 0; j < this->Dimension(); j++)
-        { subgrid_axis_size[j] = AxisSize(j); };
+        { subgrid_axis_size[j] = this->AxisSize(j); };
       subgrid_axis_size[d] = 1;
 
       NTYPE numv;

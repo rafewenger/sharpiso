@@ -850,7 +850,7 @@ namespace IJK {
         NTYPE j = d*this->NumFacetVertices()+i;
         VTYPE iv0 = FacetVertex(d, i);
         edge_endpoint[2*j] = iv0;
-        VTYPE iv1 = VertexNeighbor(iv0, d);
+        VTYPE iv1 = this->VertexNeighbor(iv0, d);
         edge_endpoint[2*j+1] = iv1;
       }
     }
