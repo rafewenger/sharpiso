@@ -548,16 +548,17 @@ void MERGESHARP::compute_isosurface_grid_edge_centroid
  COORD_TYPE * coord)
 {
   const int dimension = scalar_grid.Dimension();
-  GRID_COORD_TYPE grid_coord[dimension];
-  COORD_TYPE vcoord[dimension];
-  COORD_TYPE coord0[dimension];
-  COORD_TYPE coord1[dimension];
-  COORD_TYPE coord2[dimension];
+
+  IJK::ARRAY<COORD_TYPE> vcoord(dimension);
+  IJK::ARRAY<COORD_TYPE> coord0(dimension);
+  IJK::ARRAY<COORD_TYPE> coord1(dimension);
+  IJK::ARRAY<COORD_TYPE> coord2(dimension);
+  IJK::ARRAY<GRID_COORD_TYPE> grid_coord(dimension);
 
   IJK::PROCEDURE_ERROR error("compute_isosurface_grid_edge_centroid");
 
   int num_intersected_edges = 0;
-  IJK::set_coord(dimension, 0.0, vcoord);
+  IJK::set_coord(dimension, 0.0, vcoord.Ptr());
 
   for (int edge_dir = 0; edge_dir < dimension; edge_dir++)
     for (int k = 0; k < scalar_grid.NumFacetVertices(); k++) {
@@ -576,13 +577,13 @@ void MERGESHARP::compute_isosurface_grid_edge_centroid
 
       if (is_end0_positive != is_end1_positive) {
 
-        scalar_grid.ComputeScaledCoord(iend0, coord0);
-        scalar_grid.ComputeScaledCoord(iend1, coord1);
+		  scalar_grid.ComputeScaledCoord(iend0, coord0.Ptr());
+		  scalar_grid.ComputeScaledCoord(iend1, coord1.Ptr());
 
         IJK::linear_interpolate_coord
-          (dimension, s0, coord0, s1, coord1, isovalue, coord2);
+			(dimension, s0, coord0.Ptr(), s1, coord1.Ptr(), isovalue, coord2.Ptr());
 
-        IJK::add_coord(dimension, vcoord, coord2, vcoord);
+		IJK::add_coord(dimension, vcoord.PtrConst(), coord2.Ptr(), vcoord.Ptr());
 
         num_intersected_edges++;
       }
@@ -590,13 +591,13 @@ void MERGESHARP::compute_isosurface_grid_edge_centroid
 
     if (num_intersected_edges > 0) {
       IJK::multiply_coord
-        (dimension, 1.0/num_intersected_edges, vcoord, vcoord);
+		  (dimension, 1.0/num_intersected_edges, vcoord.Ptr(), vcoord.Ptr());
     }
     else {
-      scalar_grid.ComputeCubeCenterScaledCoord(iv, vcoord);
+      scalar_grid.ComputeCubeCenterScaledCoord(iv, vcoord.Ptr());
     }
 
-    IJK::copy_coord(dimension, vcoord, coord);
+	IJK::copy_coord(dimension, vcoord.PtrConst(), coord);
 }
 
 /// Compute centroid of intersections of isosurface and cube edges.

@@ -209,7 +209,7 @@ void ISODUAL_TABLE::SetNumTableEntries(const int num_table_entries)
       (procname, "Unable to allocate memory for dual isosurface table.");
 
   for (int i = 0; i < num_table_entries; i++) {
-    entry[i].Allocate(NumPolyVertices());
+    entry[i].Allocate(NumPolyEdges());
   }
 
   this->num_table_entries = num_table_entries;
@@ -356,7 +356,6 @@ void ISODUAL_CUBE_TABLE::CreateTableEntries
 
   bool flag_separate_pos = (!flag_separate_neg);
   for (TABLE_INDEX ientry = 0; ientry < NumTableEntries(); ientry++) {
-
     find_component.ClearAll();
     find_component.SetVertexFlags(ientry);
 
@@ -370,8 +369,6 @@ void ISODUAL_CUBE_TABLE::CreateTableEntries
           { find_component.NegateVertexFlags(); };
       }
     }
-
-
     int num_components(0);
     for (int i = 0; i < NumPolyVertices(); i++) {
       if (find_component.Component(i) == 0) {

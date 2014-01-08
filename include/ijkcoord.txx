@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <cmath>
 
+
 namespace IJK {
 
   ///
@@ -348,6 +349,13 @@ namespace IJK {
   // **************************************************
   // Rounding operators
   // **************************************************
+  
+    template <typename T>
+  T round(const T x)
+  {
+   return x >= 0.0f ? floorf(x + 0.5f) : ceilf(x - 0.5f);
+  }
+  
 
   /// Round single coordinate
   template <int n, typename T>

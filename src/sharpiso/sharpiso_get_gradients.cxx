@@ -1076,14 +1076,16 @@ void SHARPISO::get_intersected_neighbor_edge_endpoint_gradients
   const DTYPE dimension = scalar_grid.Dimension();
   const GRADIENT_COORD_TYPE max_small_mag_squared =
     max_small_mag * max_small_mag;
-  bool vertex_flag[grid_444.NumVertices()];
+  
+  IJK::ARRAY<bool> vertex_flag(grid_444.NumVertices());
+  
   GRID_COORD_TYPE cube_coord[DIM3];
   GRID_COORD_TYPE coord_inc[DIM3];
   GRID_COORD_TYPE vcoord[DIM3];
   GRID_COORD_TYPE coord_111[DIM3] = { 1, 1, 1 };
 
   flag_intersected_neighbor_edge_endpoints
-    (scalar_grid, cube_index, isovalue, vertex_flag);
+    (scalar_grid, cube_index, isovalue, vertex_flag.Ptr());
 
   scalar_grid.ComputeCoord(cube_index, cube_coord);
 
@@ -1345,14 +1347,15 @@ void SHARPISO::get_intersected_cube_neighbor_edge_endpoints
 {
   typedef SHARPISO_SCALAR_GRID::DIMENSION_TYPE DTYPE;
 
-  bool vertex_flag[grid_444.NumVertices()];
+  IJK::ARRAY<bool> vertex_flag (grid_444.NumVertices());
+ 
   GRID_COORD_TYPE cube_coord[DIM3];
   GRID_COORD_TYPE coord_inc[DIM3];
   GRID_COORD_TYPE vcoord[DIM3];
   GRID_COORD_TYPE coord_111[DIM3] = { 1, 1, 1 };
 
   flag_intersected_neighbor_edge_endpoints
-    (scalar_grid, cube_index, isovalue, vertex_flag);
+    (scalar_grid, cube_index, isovalue, vertex_flag.Ptr());
 
   scalar_grid.ComputeCoord(cube_index, cube_coord);
 

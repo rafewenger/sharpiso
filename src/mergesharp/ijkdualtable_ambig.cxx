@@ -131,7 +131,7 @@ void ISODUAL_CUBE_TABLE_AMBIG_INFO::Set(const int dimension)
 
   this->dimension = dimension;
 
-  u_long num_table_entries;
+  unsigned long  num_table_entries;
   IJK::int_power(BASE2, num_cube_vertices, num_table_entries, error);
 
   // Allocate memory.

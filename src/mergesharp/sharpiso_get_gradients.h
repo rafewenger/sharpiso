@@ -1,1 +1,0 @@
-../sharpiso/sharpiso_get_gradients.h

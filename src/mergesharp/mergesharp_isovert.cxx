@@ -19,9 +19,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#include <iostream>
+#define _USE_MATH_DEFINES
 #include <cmath>
+#include <iostream>
 #include <algorithm>
 #include <stdio.h>
 #include <stdio.h>
@@ -592,13 +592,15 @@ void MERGESHARP::init_bin_grid
  BIN_GRID<VERTEX_INDEX> & bin_grid)
 {
   const int dimension = grid.Dimension();
-  AXIS_SIZE_TYPE axis_size[dimension];
-
+  IJK::ARRAY<AXIS_SIZE_TYPE> axis_size(dimension);
+  
   for (int d = 0; d < dimension; d++) {
     axis_size[d] = IJK::compute_subsample_size(grid.AxisSize(d), bin_width);
   }
 
-  bin_grid.SetSize(dimension, axis_size);
+  //bin_grid.SetSize(dimension, axis_size);
+  bin_grid.SetSize(dimension, axis_size.PtrConst());
+
 }
 
 void MERGESHARP::bin_grid_insert

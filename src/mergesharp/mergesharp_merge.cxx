@@ -903,7 +903,7 @@ namespace {
   {
     VERTEX_HASH_TABLE::iterator vertex_iter = vertex_hash.find(iv);
     if (vertex_iter == vertex_hash.end()) {
-      vertex_hash.insert({iv, 1});
+		vertex_hash.insert(std::pair<VERTEX_INDEX, int>(iv, 1));
     }
     else {
       vertex_iter->second++;
@@ -922,7 +922,7 @@ namespace {
       VERTEX_HASH_TABLE::iterator vertex_iter = vertex_hash.find(iv);
       if (vertex_iter == vertex_hash.end()) {
 	NUM_TYPE n = vertex_hash.size();
-	vertex_hash.insert({iv, n});
+	vertex_hash.insert(std::pair<VERTEX_INDEX, int >(iv, n));
       }
     }
   }

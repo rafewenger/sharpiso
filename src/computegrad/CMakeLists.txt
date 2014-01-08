@@ -23,12 +23,19 @@ IF (NOT CMAKE_BUILD_TYPE)
 ENDIF (NOT CMAKE_BUILD_TYPE)
 
 INCLUDE_DIRECTORIES("${SHARP_DIR}/include")
-INCLUDE_DIRECTORIES("${IJK_DIR}/src/sharpiso")
+INCLUDE_DIRECTORIES("${SHARP_DIR}/src/sharpiso")
 LINK_DIRECTORIES("${NRRD_LIBDIR}")
-LINK_LIBRARIES(expat NrrdIO z)
+
+include(FindEXPAT)
+find_package(EXPAT REQUIRED)
+include_directories(${EXPAT_INCLUDE_DIRS})
+
+LINK_LIBRARIES(NrrdIO itkzlib)
 ADD_DEFINITIONS(-DSHARP_ISOTABLE_DIR=\"${SHARP_ISOTABLE_DIR}\")
 
+
 ADD_EXECUTABLE(religrad religrad_main.cxx religrad_computations.cxx)
+target_link_libraries(religrad ${EXPAT_LIBRARIES} NrrdIO itkzlib)
 
 SET(CMAKE_INSTALL_PREFIX ${SHARP_DIR})
 INSTALL(TARGETS religrad DESTINATION "/usr/local/bin")

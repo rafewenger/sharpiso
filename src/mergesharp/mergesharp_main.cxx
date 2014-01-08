@@ -142,7 +142,6 @@ int main(int argc, char **argv)
       { report_mergesharp_param(mergesharp_data); }
 
     report_num_cubes(full_scalar_grid, input_info, mergesharp_data);
-
     construct_isosurface(input_info, mergesharp_data, mergesharp_time, io_time);
 
     if (input_info.report_time_flag) {
@@ -192,10 +191,10 @@ void construct_isosurface
       (mergesharp_data, isovalue, dual_isosurface, mergesharp_info);
     mergesharp_time.Add(mergesharp_info.time);
 
-    OUTPUT_INFO output_info;
+	OUTPUT_INFO output_info;
     set_output_info(input_info, i, output_info);
 
-    int grow_factor = 1;
+	int grow_factor = 1;
     int shrink_factor = 1;
     if (input_info.flag_subsample)
       { grow_factor = input_info.subsample_resolution; }
@@ -206,7 +205,7 @@ void construct_isosurface
     rescale_vertex_coord(grow_factor, shrink_factor, input_info.grid_spacing,
                          dual_isosurface.vertex_coord);
     */
-
+	
     if (mergesharp_data.flag_convert_quad_to_tri) {
 
       VERTEX_INDEX_ARRAY quad_vert(dual_isosurface.quad_vert);
@@ -230,7 +229,7 @@ void construct_isosurface
       else {
         triangulate_quad(quad_vert2, isosurface_tri_mesh.tri_vert);
       }
-
+	   
       output_dual_isosurface
         (output_info, mergesharp_data, isosurface_tri_mesh, 
          mergesharp_info, io_time);
@@ -241,6 +240,7 @@ void construct_isosurface
          mergesharp_info, io_time);
     }
   }
+
 }
 
 void memory_exhaustion()
