@@ -177,12 +177,14 @@ namespace IJK {
   }
 
   /// Compute magnitude of coordinate vector.
+  /// Fast implementation, but returns 0 when the value of (magnitude^2) 
+  /// is less than the machine epsilon of CTYPE0 or CTYPE1.
   /// @param dimension = Coordinate dimension (= number of coordinates.)
   /// @param coord0 = Input coordinates.
   /// @param[out] magnitude = magnitude
-  template <typename DTYPE, typename CTYPE0, typename STYPE>
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1>
   void compute_magnitude(const DTYPE dimension, const CTYPE0 coord0[],
-                         STYPE & magnitude)
+                         CTYPE1 & magnitude)
   {
     compute_sum_of_squares(dimension, coord0, magnitude);
     magnitude = std::sqrt(magnitude);
@@ -296,6 +298,7 @@ namespace IJK {
   ///   set coord1[] to the zero vector.
   /// @param coord0 = Input coordinates.
   /// @param[out] coord1[] Normalized coordinates or the zero vector.
+  /// @pre max_small_magnitude >= 0.
   template <typename DTYPE, typename CTYPE0, typename MTYPE, 
             typename CTYPE1>
   void normalize_vector
@@ -311,9 +314,38 @@ namespace IJK {
     else {
       set_coord(dimension, 0, coord1);
     }
-
   }
 
+  /// Compute cosine of the angle between two vectors.
+  /// If either vector has (near) zero magnitude, return zero
+  ///   and set flag_zero to true.
+  /// @param[out] cos_angle Cosine of angle between coord0[] and coord1[].
+  /// @param[out] flag_zero True, if coord0[] or coord1[]
+  ///   have zero magnitude. False, otherwise.
+  ///   Note: Computed magnitude may be zero even if vectors are not zero.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1,
+            typename COS_TYPE>
+  void compute_cos_angle
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   COS_TYPE & cos_angle, bool & flag_zero)
+  {
+    CTYPE0 mag0;
+    CTYPE1 mag1;
+    compute_magnitude(dimension, coord0, mag0);
+    compute_magnitude(dimension, coord1, mag1);
+    compute_inner_product(dimension, coord0, coord1, cos_angle);
+    if (mag0 != 0 && mag1 != 0) {
+      flag_zero = false;
+      cos_angle = (cos_angle/mag0)/mag1;
+
+      // Bound cos_angle to [-1,1].
+      // Numerical error could cause cos_angle to be outside bounds.
+      if (cos_angle < -1) { cos_angle = -1; }
+      if (cos_angle > 1) { cos_angle = 1; }
+    }
+    else 
+      { flag_zero = true; }
+  }
   
   // **************************************************
   // Comparison operators

@@ -25,7 +25,6 @@
 #define _IJKMESH_
 
 #include "ijk.txx"
-#include "ijklist.txx"
 
 #include <algorithm>
 #include <numeric>
