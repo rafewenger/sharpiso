@@ -1,6 +1,8 @@
 
 #ifndef _RELIGRADIENT_INPUTINFO_H_
 #define _RELIGRADIENT_INPUTINFO_H_
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include <cmath>
 #include <vector>
 

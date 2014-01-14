@@ -1909,6 +1909,7 @@ void MERGESHARP::set_output_info
 (const INPUT_INFO & input_info,
  const int i, OUTPUT_INFO & output_info)
 {
+
   // Set data structures in mergesharp_data
   output_info.IO_INFO::Set(input_info);
 
@@ -1931,6 +1932,7 @@ void MERGESHARP::set_output_info
     output_info.output_filename =
       construct_output_filename(input_info, i);
   }
+
 }
 
 void MERGESHARP::set_color_alternating

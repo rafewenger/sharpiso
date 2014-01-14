@@ -11,7 +11,6 @@ using namespace std;
 void EIGEN_INFO::read_file()
 {
 	ifstream infile(eigen_info_fame.c_str());
-	int n1,n2;
 	int v_index , cube_index , lkup_table_index , patch_index ,
 					 num_eigen_vals , flag_use_centroid;
 		while(infile >> v_index >> cube_index >> lkup_table_index >> patch_index >>
@@ -22,7 +21,9 @@ void EIGEN_INFO::read_file()
 			num_eigen.push_back(num_eigen_vals);
 			flag_centroid.push_back(flag_use_centroid);
 		}
-		cout <<"read complete"<< endl;
+
+		
+		cout <<"--Finished reading "<< eigen_info_fame << num_eigen.size() << endl;
 }
 
 

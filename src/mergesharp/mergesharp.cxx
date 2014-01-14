@@ -161,11 +161,14 @@ void MERGESHARP::dual_contouring
   else {
     // Default: Position iso vertices at centroid.
     if (mergesharp_param.allow_multiple_iso_vertices) {
-      dual_contouring_centroid_multiv
+				cout <<"dual contouring centroid "<<endl;
+		dual_contouring_centroid_multiv
         (scalar_grid, isovalue, mergesharp_param.flag_separate_neg,
          isoquad_vert, vertex_coord, merge_data, mergesharp_info);
+		cout <<"return form dual contoruing centroid "<<endl;
     }
     else {
+
       dual_contouring_centroid
         (scalar_grid, isovalue, isoquad_vert, vertex_coord, 
          merge_data, mergesharp_info);
@@ -275,22 +278,25 @@ void MERGESHARP::dual_contouring_centroid_multiv
 
   // Create dual isosurface lookup table.
   bool flag_separate_opposite(true);
+   
   IJKDUALTABLE::ISODUAL_CUBE_TABLE 
     isodual_table(dimension, flag_separate_neg, flag_separate_opposite);
-
+ 
   std::vector<ISO_VERTEX_INDEX> isoquad_vert2;
   std::vector<FACET_VERTEX_INDEX> facet_vertex;
   extract_dual_isopoly
     (scalar_grid, isovalue, isoquad_vert2, facet_vertex, mergesharp_info);
 
   clock_t t1 = clock();
-
+ 
   std::vector<ISO_VERTEX_INDEX> cube_list;
   std::vector<ISO_VERTEX_INDEX> isoquad_cube;      
   merge_identical(isoquad_vert2, cube_list, isoquad_cube, merge_data);
 
   std::vector<DUAL_ISOVERT> iso_vlist;
   VERTEX_INDEX num_split;
+
+  
   IJK::split_dual_isovert
     (scalar_grid, isodual_table, isovalue, 
      cube_list, isoquad_cube, facet_vertex, 
@@ -300,7 +306,6 @@ void MERGESHARP::dual_contouring_centroid_multiv
 
 
   clock_t t2 = clock();
-
   position_dual_isovertices_centroid_multi
     (scalar_grid, isodual_table, isovalue, iso_vlist, vertex_coord);
 

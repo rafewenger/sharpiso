@@ -18,14 +18,14 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <vector>
 #include <string>
-#include <cmath>
 #include <algorithm>
 #include <time.h>
 #include <stdlib.h>
@@ -58,8 +58,8 @@ double input_angle;
 // output routine 
 void output_mesh_info();
 bool edge_equals( int a, int b);
-
-bool debugMode = false;
+//If manually set to true then in DEBUG MODE
+bool debugMode = true;
 
 //eigen information
 EIGEN_INFO eigen_info;
@@ -232,6 +232,8 @@ void otherVert(int t,int e, int edge[])
 {
 	point3D n1,n2;
 	int ov1=0,ov2=0;
+
+
 	for(int i=0;i<3;i++)
 	{
 		if(simplex_vert[3*t+i]!=edge[0] && simplex_vert[3*t+i]!=edge[1])
@@ -265,6 +267,7 @@ void otherVert(int t,int e, int edge[])
 	n1.x=norm1x; n1.y=norm1y; n1.z=norm1z;
 	n2.x=norm2x; n2.y=norm2y; n2.z=norm2z;
 	double angle=0;
+
 	if ((abs(norm1-0.0) < 0.0000001)||(abs(norm2-0.0) <  0.0000001))
 	{
 		addtovetor_edge(edge, DEGEN);
@@ -273,7 +276,7 @@ void otherVert(int t,int e, int edge[])
 	}
 	else if (eigen_info.flag_eigen_based)
 	{
-
+	
 		if ((eigen_info.num_eigen[edge[0]] > 1 && eigen_info.num_eigen[edge[1]] > 1)&&
 				(eigen_info.flag_centroid[edge[0]] == false && eigen_info.flag_centroid[edge[1]] == false))
 		{
@@ -309,18 +312,20 @@ void findCommonEdges(vector<int> I,vector<int> E,int numl)
 	vector<int > c1(numl,0);
 	vector<int > Etri(numl,0);
 	int op1,op2; //other vertex other than the common edge.
-	int edge[2];point3D n1,n2;
+	int edge[2];
+	point3D n1,n2;
 
 	for (int t=0; t<num_simplices; t++)
 	{
 		for (int j=0;j<3;j++)
 		{
 			e=I[3*t+j];
-			if(c1[e]==0)
+			if(c1[e] == 0)
 				Etri[e]=t;
 			else
 			{
-				edge[0]=E[2*e];edge[1]=E[2*e+1];
+				edge[0]=E[2*e];
+				edge[1]=E[2*e+1];
 				otherVert(t,Etri[e],edge);
 			}
 			c1[e]++;
@@ -335,11 +340,16 @@ void findCommonEdges(vector<int> I,vector<int> E,int numl)
 
 void output_mesh_info()
 {
+	if (debugMode){
+		cout <<"Starting findSharp computations"<<endl;
+		cout <<"size of eigen Info "<< eigen_info.num_eigen.size() <<endl;
+	}
 	const int num_simplex_vertices = mesh_dimension+1;
 
-	for (int i=0;i<num_vertices*3; i++){
+	for (int i=0; i<num_vertices*3; i++){
 		new_vertex.push_back(vertex_coord[i]);
 	}
+
 	//algorithm to construct arrays E[] and I[] from T[]
 	int numl=3*num_simplices;
 
@@ -442,10 +452,6 @@ void output_mesh_info()
 	nume = ei.degen.size()/2;
 	ijkoutColorLINE (output_file, dimension, &(new_vertex[0]), numv, &(ei.degen[0]), nume, yellow);
 	output_file.close();
-
-
-
-
 };
 
 
@@ -494,7 +500,8 @@ void parse_command_line(int argc, char **argv)
 			eigen_info.flag_eigen_based = true;
 			eigen_info.eigen_info_fame = string(argv[iarg]);
 			eigen_info.read_file();
-			cout <<" read in eigen info from " <<eigen_info.eigen_info_fame<<endl;
+			//***DEBUG
+			cout <<" *** size "<< eigen_info.num_eigen.size() <<endl;
 		}
 		else
 		{

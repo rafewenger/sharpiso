@@ -431,7 +431,7 @@ void MERGESHARP::AMBIG_TABLE::SetCubeAmbiguityTable()
 
   cube.GenCubeOrderA(DIM3);
 
-  u_long num_table_entries;
+  unsigned long num_table_entries;
   IJK::int_power(BASE2, NUM_CUBE_VERTICES3D, num_table_entries, error);
 
   // Allocate memory.

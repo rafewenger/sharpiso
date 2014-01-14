@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <time.h>
-#include <sys/time.h>
+
 
 #include "ijkNrrd.h"
 #include "ijkgrid_nrrd.txx"
@@ -30,7 +30,7 @@ void memory_exhaustion();
 void usage_error(), help_msg();
 void parse_command_line(int argc, char **argv, INPUT_INFO & io_info);
 void output_param(INPUT_INFO & io_info);
-
+/*
 timespec diff(timespec start, timespec end) {
 	timespec temp;
 	if ((end.tv_nsec - start.tv_nsec) < 0) {
@@ -42,6 +42,7 @@ timespec diff(timespec start, timespec end) {
 	}
 	return temp;
 }
+*/
 
 using namespace SHARPISO;
 

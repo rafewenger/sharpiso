@@ -12,6 +12,7 @@ ENDIF (NOT DEFINED ${SHARPISO_DIR})
 SET(CMAKE_INSTALL_PREFIX "${SHARPISO_DIR}/")
 SET(LIBRARY_OUTPUT_PATH ${SHARPISO_DIR}/lib CACHE PATH "Library directory")
 SET(EIGEN_DIR "${SHARPISO_DIR}/src/eigen" CACHE PATH "Eigen directory")
+SET(SHARPISO_SRC_DIR "${SHARPISO_DIR}/src/sharpiso/" CACHE PATH "sharpiso src directory")
 SET(NRRD_LIBDIR "${SHARPISO_DIR}/lib" CACHE PATH "Nrrd library directory")
 SET(MERGESHARP_DIR "src/mergesharp")
 
@@ -22,11 +23,41 @@ IF (NOT CMAKE_BUILD_TYPE)
        "Default build type: Release" FORCE)
 ENDIF (NOT CMAKE_BUILD_TYPE)
 
-INCLUDE_DIRECTORIES("${EIGEN_DIR}")
-LINK_DIRECTORIES("${NRRD_LIBDIR}")
-LINK_LIBRARIES(expat NrrdIO z)
+#Find Expat
+include(FindEXPAT)
+find_package(EXPAT REQUIRED)
+include_directories(${EXPAT_INCLUDE_DIRS})
 
+find_library (ITKZLIB_LIBRARY ITKZLIB PATHS "${SHARPISO_DIR}/libs")
+find_library (ZLIB_FOUND ZLIB PATHS "${SHARPISO_DIR}/libs")
+
+#Find itkzlib
+if (ITKZLIB-NOTFOUND)
+message ("ITKZLIB NOTFOUND")
+else()
+message ("ITKZLIB FOUND")
+set (LIB_ITKZLIB "ITKZLIB")
+endif()
+
+
+INCLUDE_DIRECTORIES("${EIGEN_DIR}")
+INCLUDE_DIRECTORIES("${SHARPISO_SRC_DIR}")
+INCLUDE_DIRECTORIES("${SHARPISO_DIR}/include")
+LINK_DIRECTORIES("${NRRD_LIBDIR}")
+
+IF(MSVC AND MSVC_VERSION GREATER 1600)
+# Nothing special needed for MSVC
+# Just enable all warnings for debug and set NDEBUG for release
+set(CMAKE_CXX_FLAGS_DEBUG "/W4")
+set(CMAKE_CXX_FLAGS_RELEASE "/D NDEBUG")
+  message(
+  "Your compiler probably does support C++11. This project requires C++11")
+ELSEIF(CMAKE_COMPILER_IS_GNUCXX)
 SET(CMAKE_CXX_FLAGS "-std=c++0x")
+else()
+  message(FATAL_ERROR
+  "Your compiler probably does not support C++11. This project requires C++11")
+ENDIF()
 
 SET(MERGESHARP_SUB_LIST mergesharpIO.cxx mergesharp.cxx 
                         mergesharp_datastruct.cxx mergesharp_isovert.cxx
@@ -35,12 +66,14 @@ SET(MERGESHARP_SUB_LIST mergesharpIO.cxx mergesharp.cxx
                         ijkdualtable.cxx ijkdualtable_ambig.cxx 
                         ijktable_poly.cxx
                         ijktable_ambig.cxx mergesharp_ambig.cxx
-                        sharpiso_feature.cxx sharpiso_get_gradients.cxx
-                        sharpiso_intersect.cxx
-                        sharpiso_svd.cxx
-                        sharpiso_closest.cxx)
+                        ${SHARPISO_SRC_DIR}/sharpiso_feature.cxx
+						${SHARPISO_SRC_DIR}/sharpiso_get_gradients.cxx
+                        ${SHARPISO_SRC_DIR}/sharpiso_intersect.cxx
+                        ${SHARPISO_SRC_DIR}/sharpiso_svd.cxx
+                        ${SHARPISO_SRC_DIR}/sharpiso_closest.cxx)
 
-ADD_EXECUTABLE(mergesharp mergesharp_main.cxx ${MERGESHARP_SUB_LIST} )
+ADD_EXECUTABLE(mergesharp mergesharp_main.cxx  ${MERGESHARP_SUB_LIST} )
+target_link_libraries(mergesharp ${EXPAT_LIBRARIES} NrrdIO ${LIB_ITKZLIB})
 
 SET(CMAKE_INSTALL_PREFIX ${SHARPISO_DIR})
 INSTALL(TARGETS mergesharp DESTINATION "bin/$ENV{OSTYPE}")

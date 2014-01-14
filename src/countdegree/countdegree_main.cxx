@@ -1,4 +1,4 @@
-// Countdegree
+// Countdegree main
 
 #include <cstdlib>
 #include <cmath>

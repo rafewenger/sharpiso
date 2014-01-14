@@ -115,7 +115,7 @@ void ISOSURFACE_TABLE_AMBIG_INFO::SetAmbiguityTable
   IJK::PROCEDURE_ERROR error
     ("ISOSURFACE_TABLE_AMBIG_INFO::SetAmbiguityTable");
 
-  u_long num_table_entries;
+  unsigned long  num_table_entries;
   IJK::int_power(BASE2, poly_numv, num_table_entries, error);
 
   // Allocate memory.

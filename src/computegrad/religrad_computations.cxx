@@ -74,8 +74,9 @@ void compute_boundary_gradient(
 		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
 		const VERTEX_INDEX iv1, GRADIENT_COORD_TYPE * gradient) {
 	const int dimension = scalar_grid.Dimension();
-	GRID_COORD_TYPE coord[dimension];
-
+	//GRID_COORD_TYPE coord[dimension];
+	GRID_COORD_TYPE * coord = new GRID_COORD_TYPE [dimension];
+	
 	scalar_grid.ComputeCoord(iv1, coord);
 
 	for (int d = 0; d < dimension; d++) {
@@ -103,6 +104,7 @@ void compute_boundary_gradient(
 			gradient[d] = 0;
 		}
 	}
+	delete [] coord;
 }
 
 // compute the boundary gradient the normalized version/

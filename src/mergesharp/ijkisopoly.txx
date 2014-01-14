@@ -1,1 +1,0 @@
-../../include/ijkisopoly.txx
