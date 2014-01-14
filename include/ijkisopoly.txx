@@ -274,7 +274,6 @@ namespace IJK {
   }
 
   /// Extract reverse orientation isosurface simplices from polyhedron.
-  /// Note: Make this inline for faster execution.
   /// Returns list of isosurface simplex vertices and list of endpoints of grid edges containing simplex vertices.
   /// @param mesh_scalar = Array of scalar values of all mesh vertices.
   /// @param isotable = Isosurface lookup table.
@@ -348,7 +347,6 @@ namespace IJK {
   }
 
   /// Extract reverse orientation isosurface simplices from polyhedron.
-  /// Note: Make this inline for faster execution.
   /// Returns list of isosurface simplex vertices and list of endpoints of grid edges containing simplex vertices.
   /// @param scalar = Array of polyhedron scalar values.
   /// @param poly_vertex = Array of polyhedron vertex indices.
@@ -420,7 +418,7 @@ namespace IJK {
   /// @pre Edge (iend0, iend1) is an interior edge with direction \a edge_dir.
   template <typename GRID_TYPE, typename VTYPE,
             typename DTYPE, typename ISOV_TYPE>
-  void extract_dual_isopoly_around_edge
+  inline void extract_dual_isopoly_around_edge
   (const GRID_TYPE & grid, const VTYPE iend0, const VTYPE iend1, 
    const DTYPE edge_dir, std::vector<ISOV_TYPE> & iso_poly)
   {
@@ -442,7 +440,7 @@ namespace IJK {
   /// @pre Edge (iend0, iend1) is an interior edge with direction \a edge_dir.
   template <typename GRID_TYPE, typename VTYPE,
             typename DTYPE, typename ISOV_TYPE, typename FACETV_TYPE>
-  void extract_dual_isopoly_around_edge
+  inline void extract_dual_isopoly_around_edge
   (const GRID_TYPE & grid, const VTYPE iend0, const VTYPE iend1, 
    const DTYPE edge_dir, 
    std::vector<ISOV_TYPE> & iso_poly,   std::vector<FACETV_TYPE> & facet_vertex)
@@ -466,7 +464,7 @@ namespace IJK {
   /// @pre Edge (iend0, iend1) is an interior edge with direction \a edge_dir.
   template <typename GRID_TYPE, typename VTYPE,
             typename DTYPE, typename ISOV_TYPE>
-  void extract_dual_isopoly_around_edge_reverse_orient
+  inline void extract_dual_isopoly_around_edge_reverse_orient
   (const GRID_TYPE & grid, const VTYPE iend0, const VTYPE iend1, 
    const DTYPE edge_dir, std::vector<ISOV_TYPE> & iso_poly)
   {
@@ -493,7 +491,7 @@ namespace IJK {
   /// @pre Edge (iend0, iend1) is an interior edge with direction \a edge_dir.
   template <typename GRID_TYPE, typename VTYPE,
             typename DTYPE, typename ISOV_TYPE, typename FACETV_TYPE>
-  void extract_dual_isopoly_around_edge_reverse_orient
+  inline void extract_dual_isopoly_around_edge_reverse_orient
   (const GRID_TYPE & grid, const VTYPE iend0, const VTYPE iend1, 
    const DTYPE edge_dir,
    std::vector<ISOV_TYPE> & iso_poly, std::vector<FACETV_TYPE> & facet_vertex)
@@ -531,7 +529,7 @@ namespace IJK {
   ///     cube containing k'th vertex of polytope ip.
   template <typename GRID_TYPE, typename SCALAR_TYPE, 
             typename VTYPE, typename DTYPE, typename ISOV_TYPE>
-  void extract_dual_isopoly_around_bipolar_edge
+  void inline extract_dual_isopoly_around_bipolar_edge
   (const GRID_TYPE & scalar_grid, const SCALAR_TYPE isovalue, 
    const VTYPE iend0, const DTYPE edge_dir,
    std::vector<ISOV_TYPE> & iso_poly)
@@ -569,7 +567,7 @@ namespace IJK {
   template <typename GRID_TYPE, typename SCALAR_TYPE, 
             typename VTYPE, typename DTYPE,
             typename ISOV_TYPE, typename FACETV_TYPE>
-  void extract_dual_isopoly_around_bipolar_edge
+  inline void extract_dual_isopoly_around_bipolar_edge
   (const GRID_TYPE & scalar_grid, const SCALAR_TYPE isovalue, 
    const VTYPE iend0, const DTYPE edge_dir,
    std::vector<ISOV_TYPE> & iso_poly,

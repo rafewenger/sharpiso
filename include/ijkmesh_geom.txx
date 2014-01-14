@@ -48,19 +48,15 @@ namespace IJK {
    const CTYPE0 * coord0, const CTYPE1 * coord1, const CTYPE2 * coord2,
    const MTYPE max_small_magnitude, CTYPE3 & cos_angle)
   {
-    //CTYPE0 u1[dimension];
-    //CTYPE0 u2[dimension];
-	CTYPE0 *u1 = new CTYPE0[dimension];
-	CTYPE0 *u2 = new CTYPE0[dimension];
+    IJK::ARRAY<CTYPE0> u1(dimension);
+    IJK::ARRAY<CTYPE1> u2(dimension);
 
-    IJK::subtract_coord(dimension, coord1, coord0, u1);
-    IJK::subtract_coord(dimension, coord2, coord0, u2);
-    IJK::normalize_vector(dimension, u1, max_small_magnitude, u1);
-    IJK::normalize_vector(dimension, u2, max_small_magnitude, u2);
+    IJK::subtract_coord(dimension, coord1, coord0, u1.Ptr());
+    IJK::subtract_coord(dimension, coord2, coord0, u2.Ptr());
+    IJK::normalize_vector(dimension, u1.Ptr(), max_small_magnitude, u1.Ptr());
+    IJK::normalize_vector(dimension, u2.Ptr(), max_small_magnitude, u2.Ptr());
 
-    IJK::compute_inner_product(dimension, u1, u2, cos_angle);
-	delete [] u1;
-	delete [] u2;
+    IJK::compute_inner_product(dimension, u1.Ptr(), u2.Ptr(), cos_angle);
   }
 
   /// Triangulate a single polygon.

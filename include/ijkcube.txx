@@ -152,7 +152,7 @@ namespace IJK {
     VTYPE EdgeEndpoint(const VTYPE ie, const NTYPE iend) const
     { return(edge_endpoint[2*ie+iend]); };
 
-    /// Return pointer to faacet vertices
+    /// Return pointer to facet vertices
     const VTYPE * FacetVertex() const
     { return(facet_vertex); }
 

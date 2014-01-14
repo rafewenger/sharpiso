@@ -30,12 +30,28 @@ include(FindEXPAT)
 find_package(EXPAT REQUIRED)
 include_directories(${EXPAT_INCLUDE_DIRS})
 
-LINK_LIBRARIES(NrrdIO itkzlib)
+find_library (ITKZLIB_LIBRARY ITKZLIB PATHS "${SHARPISO_DIR}/libs")
+find_library (ZLIB_FOUND ZLIB PATHS "${SHARPISO_DIR}/libs")
+
+#Find itkzlib or z library
+if ("${ITKZLIB_LIBRARY}" STREQUAL "ITKZLIB_LIBRARY-NOTFOUND")
+  if ("${ZLIB_LIBRARY}" STREQUAL "ZLIB_LIBRARY-NOTFOUND")
+    message ("ITKZLIB and ZLIB not found.  Exiting.")
+    return(10)
+  else()
+    set (LIB_ZLIB "z")
+  endif()
+else()
+  message ("ITKZLIB FOUND")
+  set (LIB_ZLIB "ITKZLIB")
+endif()
+
+LINK_LIBRARIES(NrrdIO ${LIB_ZLIB})
 ADD_DEFINITIONS(-DSHARP_ISOTABLE_DIR=\"${SHARP_ISOTABLE_DIR}\")
 
 
 ADD_EXECUTABLE(religrad religrad_main.cxx religrad_computations.cxx)
-target_link_libraries(religrad ${EXPAT_LIBRARIES} NrrdIO itkzlib)
+target_link_libraries(religrad ${EXPAT_LIBRARIES} NrrdIO ${LIB_ZLIB})
 
 SET(CMAKE_INSTALL_PREFIX ${SHARP_DIR})
 INSTALL(TARGETS religrad DESTINATION "/usr/local/bin")

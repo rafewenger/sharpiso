@@ -31,12 +31,17 @@ include_directories(${EXPAT_INCLUDE_DIRS})
 find_library (ITKZLIB_LIBRARY ITKZLIB PATHS "${SHARPISO_DIR}/libs")
 find_library (ZLIB_FOUND ZLIB PATHS "${SHARPISO_DIR}/libs")
 
-#Find itkzlib
-if (ITKZLIB-NOTFOUND)
-message ("ITKZLIB NOTFOUND")
+#Find itkzlib or z library
+if ("${ITKZLIB_LIBRARY}" STREQUAL "ITKZLIB_LIBRARY-NOTFOUND")
+  if ("${ZLIB_LIBRARY}" STREQUAL "ZLIB_LIBRARY-NOTFOUND")
+    message ("ITKZLIB and ZLIB not found.  Exiting.")
+    return(10)
+  else()
+    set (LIB_ZLIB "z")
+  endif()
 else()
-message ("ITKZLIB FOUND")
-set (LIB_ITKZLIB "ITKZLIB")
+  message ("ITKZLIB FOUND")
+  set (LIB_ZLIB "ITKZLIB")
 endif()
 
 
@@ -73,7 +78,7 @@ SET(MERGESHARP_SUB_LIST mergesharpIO.cxx mergesharp.cxx
                         ${SHARPISO_SRC_DIR}/sharpiso_closest.cxx)
 
 ADD_EXECUTABLE(mergesharp mergesharp_main.cxx  ${MERGESHARP_SUB_LIST} )
-target_link_libraries(mergesharp ${EXPAT_LIBRARIES} NrrdIO ${LIB_ITKZLIB})
+target_link_libraries(mergesharp ${EXPAT_LIBRARIES} NrrdIO ${LIB_ZLIB})
 
 SET(CMAKE_INSTALL_PREFIX ${SHARPISO_DIR})
 INSTALL(TARGETS mergesharp DESTINATION "bin/$ENV{OSTYPE}")

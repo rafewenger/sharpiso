@@ -382,10 +382,10 @@ namespace IJK {
   // Rounding operators
   // **************************************************
   
-    template <typename T>
+  template <typename T>
   T round(const T x)
   {
-   return x >= 0.0f ? floorf(x + 0.5f) : ceilf(x - 0.5f);
+    return x >= 0.0f ? floorf(x + 0.5f) : ceilf(x - 0.5f);
   }
   
 
