@@ -28,8 +28,8 @@ include(FindEXPAT)
 find_package(EXPAT REQUIRED)
 include_directories(${EXPAT_INCLUDE_DIRS})
 
-find_library (ITKZLIB_LIBRARY ITKZLIB PATHS "${SHARPISO_DIR}/libs")
-find_library (ZLIB_FOUND ZLIB PATHS "${SHARPISO_DIR}/libs")
+find_library (ITKZLIB_LIBRARY ITKZLIB PATHS "${SHARPISO_DIR}/lib")
+find_library (ZLIB_FOUND ZLIB PATHS "${SHARPISO_DIR}/lib")
 
 #Find itkzlib or z library
 if ("${ITKZLIB_LIBRARY}" STREQUAL "ITKZLIB_LIBRARY-NOTFOUND")
