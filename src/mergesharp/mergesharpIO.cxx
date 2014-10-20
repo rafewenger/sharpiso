@@ -76,6 +76,7 @@ namespace {
     ROUND_PARAM, NO_ROUND_PARAM,
     KEEPV_PARAM,
     MINC_PARAM, MAXC_PARAM,
+	MAP_EXTENDED,
     HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
     OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
     NOWRITE_PARAM, OUTPUT_INFO_PARAM, WRITE_ISOV_INFO_PARAM, SILENT_PARAM,
@@ -102,6 +103,7 @@ namespace {
       "-round", "-no_round",
       "-keepv",
       "-minc", "-maxc",
+	  "-map_extended",
       "-help", "-off", "-iv", "-out_param",
       "-o", "-stdout",
       "-nowrite", "-info", "-write_isov_info", "-s", "-time", "-unknown"};
@@ -355,6 +357,9 @@ namespace {
       input_info.flag_check_triangle_angle = false;
       break;
 
+	  	case MAP_EXTENDED:
+		input_info.flag_map_extended = true;
+		break;
     case DIST2CENTER_PARAM:
       input_info.flag_dist2centroid = false;
       break;
@@ -511,7 +516,7 @@ namespace {
     case MAXC_PARAM:
       get_option_multiple_arguments
         (option_string, value_string, input_info.maxc);
-      break;
+	  break;
 
     case OUTPUT_FILENAME_PARAM:
       input_info.output_filename = value_string;
@@ -800,7 +805,7 @@ void MERGESHARP::read_nrrd_file
     nrrd_info.grid_spacing.push_back(grid_spacing[d]); 
     scalar_grid.SetSpacing(d, grid_spacing[d]);
   };
-
+  
 }
 
 void MERGESHARP::read_nrrd_file
@@ -1583,6 +1588,7 @@ namespace {
     cerr << "  [-Linf | -no_Linf]" << endl;
     cerr << "  [-dist2center | -dist2centroid]" << endl;
     cerr << "  [-no_round | -round <n>]" << endl;
+	cerr << "  [-map_extended]" <<endl;
     cerr << "  [-keepv]" << endl;
     cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
          << endl;
@@ -1759,6 +1765,7 @@ void MERGESHARP::help(const char * command_path)
   cout << "  -check_disk: Check that merged vertices form a disk." << endl;
   cout << "  -no_check_disk: Skip disk check for merged vertices." << endl;
   cout << "  -trimesh:   Output triangle mesh." << endl;
+  cout << "  -map_extended: Use the extended version of mapping to sharp vertices." << endl;
   cout << "  -off: Output in geomview OFF format. (Default.)" << endl;
   cout << "  -iv: Output in OpenInventor .iv format." << endl;
   cout << "  -o {output_filename}: Write isosurface to file {output_filename}." << endl;

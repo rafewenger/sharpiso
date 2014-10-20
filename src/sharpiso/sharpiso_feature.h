@@ -324,6 +324,7 @@ namespace SHARPISO {
     bool use_lindstrom2;
     bool use_lindstrom_fast;       /// use the garland heckbert approach
     bool use_Linf_dist;            ///< If true, use Linf dist.
+	bool flag_map_extended;        ///< If true, then the extended version of mapping used.
 
 
     /// Merge sharp vertices which are within this threshold distance.

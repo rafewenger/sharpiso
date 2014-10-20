@@ -199,7 +199,109 @@ namespace {
       }
     }
   }
-    
+  
+  // Map isosurface vertices adjacent to sharp and convered cubes to 
+  // Selected cubes. 
+  void map_adjacent_cubes_extended
+	  (const MERGESHARP::ISOVERT & isovert, 
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+  {
+	  std::vector<NUM_TYPE> sorted_gcube_list;
+	  using namespace MERGESHARP;
+	  const NUM_TYPE num_gcube = isovert.gcube_list.size();
+	  VERTEX_INDEX cube_index_covered, neighbor_index;
+	  
+	  SHARPISO_GRID_NEIGHBORS gridn;
+	  // Set size of grid neighbors grid.
+	  gridn.SetSize(isovert.sharp_ind_grid);
+
+	  sort_gcube_list(isovert.gcube_list, sorted_gcube_list);
+
+
+	  // Set cubes which share facets with selected cubes.
+	  for (NUM_TYPE i = 0; i < sorted_gcube_list.size(); i++) 
+	  {
+		  //index to sharp cube in the sorted gcube list
+		  NUM_TYPE gcube_index = sorted_gcube_list[i];
+		  //covered and not selected.
+		  if (isovert.gcube_list[gcube_index].flag == COVERED_A_GCUBE
+			  && isovert.gcube_list[gcube_index].flag != SELECTED_GCUBE) {
+			  //cube index of the sharp cube
+			  cube_index_covered = isovert.gcube_list[gcube_index].cube_index;
+
+			  if (isovert.gcube_list[gcube_index].boundary_bits == 0) {
+				  // Cube cube_index is an interior cube.
+
+				  for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsF(); j++) {
+
+					  neighbor_index = gridn.CubeNeighborF(cube_index_covered, j);
+
+					  INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
+					  //map to cube where cube index covered is mapped.
+					  VERTEX_INDEX to_cube = gcube_map[gcube_index];
+					  map_iso_vertex(isovert.gcube_list, k, to_cube, gcube_map);
+				  }
+			  }
+			  else {
+				  // *** Handle boundary case. ***
+			  }
+		  }
+	  }
+	  // Set cubes which share edges with selected cubes.
+	  for (NUM_TYPE i = 0; i < sorted_gcube_list.size(); i++) {
+		  NUM_TYPE gcube_index = sorted_gcube_list[i];
+		  //covered and not selected.
+		  if (isovert.gcube_list[gcube_index].flag == COVERED_A_GCUBE
+			  && isovert.gcube_list[gcube_index].flag != SELECTED_GCUBE) {
+
+			  cube_index_covered = isovert.gcube_list[gcube_index].cube_index;
+
+			  if (isovert.gcube_list[gcube_index].boundary_bits == 0) {
+				  // Cube cube_index is an interior cube.
+
+				  for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsE(); j++) {
+
+					  neighbor_index = gridn.CubeNeighborE(cube_index_covered, j);
+
+					  INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
+					  //map to cube where cube index covered is mapped.
+					  VERTEX_INDEX to_cube = gcube_map[gcube_index];
+					  map_iso_vertex(isovert.gcube_list, k, to_cube, gcube_map);
+				  }
+			  }
+			  else {
+				  // *** Handle boundary case. ***
+			  }
+		  }
+	  }
+	  		  //covered and not selected.
+	  for (NUM_TYPE i = 0; i < sorted_gcube_list.size(); i++) {
+		  NUM_TYPE gcube_index = sorted_gcube_list[i];
+		  if (isovert.gcube_list[gcube_index].flag == COVERED_A_GCUBE
+			  && isovert.gcube_list[gcube_index].flag != SELECTED_GCUBE) {
+
+			  cube_index_covered = isovert.gcube_list[gcube_index].cube_index;
+
+			  if (isovert.gcube_list[gcube_index].boundary_bits == 0) {
+				  // Cube cube_index is an interior cube.
+
+				  for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsV(); j++) {
+
+					  neighbor_index = gridn.CubeNeighborV(cube_index_covered, j);
+
+					  INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
+					  //map to cube where cube index covered is mapped.
+					  VERTEX_INDEX to_cube = gcube_map[gcube_index];
+					  map_iso_vertex(isovert.gcube_list, k, to_cube, gcube_map);
+				  }
+			  }
+			  else {
+				  // *** Fill in. ***
+			  }
+		  }
+	  }
+  }
+
   // Map isosurface vertices adjacent to selected cubes
   //  to the isosurface vertex in the selected cube.
   void map_adjacent_cubes
@@ -223,22 +325,24 @@ namespace {
 
     // Set cubes which share facets with selected cubes.
     for (NUM_TYPE i = 0; i < sorted_gcube_list.size(); i++) {
+		//index to sharp cube in sorted gcube_list
       NUM_TYPE gcube_index = sorted_gcube_list[i];
-
       if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
-
+		// cube index of the sharp cube.
         cube_index = isovert.gcube_list[gcube_index].cube_index;
 
         if (isovert.gcube_list[gcube_index].boundary_bits == 0) {
           // Cube cube_index is an interior cube.
+			//find the neighbors
+			for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsF(); j++) 
+			{
+				//neighbor to the sharp cube. (cube_index)
+				neighbor_index = gridn.CubeNeighborF(cube_index, j);
 
-          for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsF(); j++) {
-
-            neighbor_index = gridn.CubeNeighborF(cube_index, j);
-
-            INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
-            map_iso_vertex(isovert.gcube_list, k, gcube_index, gcube_map);
-          }
+				INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
+				// k is the 'from-cube', and gcube_index is the 'to-cube'.
+				map_iso_vertex(isovert.gcube_list, k, gcube_index, gcube_map);
+			}
         }
         else {
           // *** Handle boundary case. ***
@@ -391,6 +495,10 @@ namespace {
    MERGESHARP::SHARPISO_INFO & sharpiso_info)
   {
     map_adjacent_cubes(isovert, gcube_map);
+	//DEBUG
+	if(sharp_isovert_param.flag_map_extended){
+		map_adjacent_cubes_extended( isovert, gcube_map);
+	}
 
     if (sharp_isovert_param.flag_check_disk) {
       unmap_non_disk_isopatches
@@ -408,7 +516,10 @@ namespace {
    MERGESHARP::SHARPISO_INFO & sharpiso_info)
   {
     map_adjacent_cubes(isovert, gcube_map);
-
+	//DEBUG
+	if(sharp_isovert_param.flag_map_extended){
+		map_adjacent_cubes_extended( isovert, gcube_map);
+	}
     if (sharp_isovert_param.flag_check_disk) {
       unmap_non_disk_isopatches
         (scalar_grid, isodual_table, isovalue, isovert, gcube_map, 
@@ -441,7 +552,8 @@ namespace {
       NUM_TYPE gcube_index1 = isovert.sharp_ind_grid.Scalar(cube_index1);
       if (gcube_map[gcube_index1] == gcube_index0) {
         gcube_map[gcube_index1] = gcube_index1; 
-        if (isovert.gcube_list[gcube_index1].flag == COVERED_GCUBE) {
+		//DEBUG : COVERED_GCUBE is being replaced by COVERED_A_GCUBE and COVERED_B_GCUBE
+        if (isovert.gcube_list[gcube_index1].flag == COVERED_A_GCUBE) {
           isovert.gcube_list[gcube_index1].flag = SMOOTH_GCUBE;
         }
       }

@@ -94,7 +94,9 @@ namespace {
 // ISOVERT ROUTINES
 // **************************************************
 
-// Compute isosurface vertex positions.
+/**
+* Compute Isovertex Positions
+*/
 void compute_isovert_positions 
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -615,8 +617,44 @@ void MERGESHARP::bin_grid_insert
   bin_grid.Insert(ibin, cube_index);
 }
 
+//DEBUG
+/**
+* Extended version of selecting the 3x3x3 regions
+*/
 /*
- * select the 3x3x3 regions
+void select_3x3x3_regions_extended
+	(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+	vector<NUM_TYPE> sortd_ind2gcube_list,
+	ISOVERT &isovert)
+{
+	SHARPISO_GRID_NEIGHBORS gridn;
+	gridn.SetSize(scalar_grid);
+	for (int ind=0; ind < sortd_ind2gcube_list.size(); ind++) {
+
+		GRID_CUBE c;
+		c = isovert.gcube_list[sortd_ind2gcube_list[ind]];
+		// check boundary
+		if(c.boundary_bits == 0 && c.flag == COVERED_A_GCUBE)
+		{
+			// mark all the neighbors as covered
+			for (int i=0;i < gridn.NumVertexNeighborsC(); i++)
+			{
+				VERTEX_INDEX n = gridn.VertexNeighborC
+					( c.cube_index, i);
+
+				if(isovert.sharp_ind_grid.Scalar(n)!=ISOVERT::NO_INDEX)
+				{
+					
+					VERTEX_INDEX neighbor_index_2_gclist = isovert.sharp_ind_grid.Scalar(n);
+					isovert.gcube_list[neighbor_index_2_gclist].flag = COVERED_B_GCUBE;
+				}
+			}
+		}
+	}
+}
+*/
+/**
+ * Select the 3x3x3 regions
  */
 
 void select_3x3x3_regions
@@ -629,10 +667,11 @@ void select_3x3x3_regions
 {
   const int dimension = scalar_grid.Dimension();
   const int bin_width = isovert_param.bin_width;
+
   const COORD_TYPE linf_dist_threshold = 
     isovert_param.linf_dist_thresh_merge_sharp;
-  BIN_GRID<VERTEX_INDEX> bin_grid;
 
+  BIN_GRID<VERTEX_INDEX> bin_grid;
   init_bin_grid(scalar_grid, bin_width, bin_grid);
 
   // list of selected vertices
@@ -640,15 +679,19 @@ void select_3x3x3_regions
 
   SHARPISO_GRID_NEIGHBORS gridn;
   gridn.SetSize(scalar_grid);
-  for (int ind=0;ind<sortd_ind2gcube_list.size();ind++) {
+
+  for (int ind=0; ind < sortd_ind2gcube_list.size(); ind++) {
 
     GRID_CUBE c;
     c = isovert.gcube_list[sortd_ind2gcube_list[ind]];
     // check boundary
     if(c.boundary_bits == 0)
       if (isovert.isFlag
-          (cube_ind_frm_gc_ind(isovert, sortd_ind2gcube_list[ind]),AVAILABLE_GCUBE)
-          && c.linf_dist < linf_dist_threshold) {
+          (
+		  cube_ind_frm_gc_ind(isovert, sortd_ind2gcube_list[ind]), AVAILABLE_GCUBE)
+          && 
+		  c.linf_dist < linf_dist_threshold
+		  ) {
 
         VERTEX_INDEX v1, v2;
 
@@ -671,17 +714,17 @@ void select_3x3x3_regions
           bin_grid_insert(scalar_grid, bin_width, cube_index, bin_grid);
 
           // mark all the neighbors as covered
-          for (int i=0;i<gridn.NumVertexNeighborsC();i++)
+          for (int i=0;i < gridn.NumVertexNeighborsC(); i++)
             {
-
               VERTEX_INDEX n = gridn.VertexNeighborC
-                (isovert.gcube_list[sortd_ind2gcube_list[ind]].cube_index,i);
+                (isovert.gcube_list[sortd_ind2gcube_list[ind]].cube_index, i);
 
               if(isovert.sharp_ind_grid.Scalar(n)!=ISOVERT::NO_INDEX)
                 {
-
                   VERTEX_INDEX neighbor_index_2_gclist = isovert.sharp_ind_grid.Scalar(n);
-                  isovert.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
+				  // DEBUG
+                  //isovert.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
+				  isovert.gcube_list[neighbor_index_2_gclist].flag = COVERED_A_GCUBE;
                 }
             }
         }
@@ -767,7 +810,9 @@ void process_edge(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 {
   is_intersect = is_gt_min_le_max(scalar_grid, v0, v1, isovalue);
 }
-
+/**
+* Compute dual isovert.
+*/
 void MERGESHARP::compute_dual_isovert
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -933,7 +978,8 @@ void MERGESHARP::count_vertices
 namespace {
 
 
-  // Find the linf distance between the sharp vertex for the cube and the center of the cube.
+  // Find the linf distance between the sharp vertex for the cube
+  // and the center of the cube.
   void compute_linf_dist
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const VERTEX_INDEX iv,

@@ -24,9 +24,13 @@ namespace MERGESHARP {
 typedef enum {
 	AVAILABLE_GCUBE,    ///< Cube is available.
 	SELECTED_GCUBE,     ///< Cube contains a sharp vertex.
-	COVERED_GCUBE,      ///< Cube is near a cube containing a sharp vertex.
+	//DEBUG:is being replaced by A and B.
+	//COVERED_GCUBE,    ///< Cube is near a cube containing a sharp vertex.
+	COVERED_A_GCUBE,    ///< Cube is near a cube containing a sharp vertex.
+	COVERED_B_GCUBE,	///< Cube is near a covered cube, which has a sharp vertex.
+
 	UNAVAILABLE_GCUBE,  ///< Cube is within 3x3 of a 2 covering.
-  NON_DISK_GCUBE,     ///< Merging cube with neighbors creates non-disk patch.
+	NON_DISK_GCUBE,     ///< Merging cube with neighbors creates non-disk patch.
 	SMOOTH_GCUBE		    ///< Cube contains smooth isosurface patch.
 } GRID_CUBE_FLAG;
 

@@ -1,4 +1,4 @@
-/// \file mergesharp.cxx
+/// \file mergesharp_main.cxx
 /// generate isosurface using dual contouring algorithm
 /// Version 0.1.1
 
@@ -169,7 +169,10 @@ int main(int argc, char **argv)
   };
 
 }
-
+/**
+* Construct Isosurface 
+* Rescaling using spacing now done when ISO coordinated  are computed. 
+*/
 void construct_isosurface
 (const INPUT_INFO & input_info, const MERGESHARP_DATA & mergesharp_data,
  MERGESHARP_TIME & mergesharp_time, IO_TIME & io_time)

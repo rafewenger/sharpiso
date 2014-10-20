@@ -572,12 +572,13 @@ void MERGESHARP::dual_contouring_extract_isopoly_multi
 // **************************************************
 // MERGE SHARP
 // **************************************************
-
+/**
 // Extract dual contouring isosurface by merging grid cubes
 //   around sharp vertices.
 // Returns list of isosurface triangle and quad vertices
 //   and list of isosurface vertex coordinates.
 // Use gradients to place isosurface vertices on sharp features. 
+*/
 void MERGESHARP::dual_contouring_merge_sharp_from_grad
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,

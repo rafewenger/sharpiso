@@ -17,6 +17,7 @@ using namespace Eigen;
 
 #include "sharpiso_svd.h"
 #include "ijkcoord.txx"
+#include "ijk.txx"
 
 using namespace std;
 using namespace SHARPISO;
@@ -48,7 +49,8 @@ void compute_A_inverse_top_2(const MatrixXf &A,
 		NUM_TYPE & num_singular_vals, MatrixXf&);
 
 // Normalize a vector
-void normalize(const GRADIENT_COORD_TYPE *initial,
+void normalize(
+	const GRADIENT_COORD_TYPE *initial,
 		GRADIENT_COORD_TYPE *normalized) {
 	double sum(0.0), mag(0.0);
 	for (int i = 0; i < DIM3; i++) {
@@ -118,6 +120,7 @@ void compute_cube_vertex_lindstrom_3x3
 /// Calculate the sharp vertex using svd and the faster garland heckbert way
 /// of storing normals
 
+
 void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		const NUM_TYPE num_vert,
 		const EIGENVALUE_TYPE err_tolerance,
@@ -130,8 +133,13 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		COORD_TYPE * mass_point,
 		COORD_TYPE * isoVertcoords)
 {
+	IJK::PROCEDURE_ERROR error ("svd_calculate_sharpiso_vertex_using_lindstrom_fast");
+
 	if (num_vert==0)
-		return ;
+	{
+		error.AddMessage("Programming error, number of gradients is 0.");
+		throw error;
+	}
 	// A matrix
 	SCALAR_TYPE A[3][3]={0.0};
 	SCALAR_TYPE B[3]={0.0};
@@ -157,7 +165,9 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		SCALAR_TYPE iprod,d;
 		compute_inner_product(DIM3, tempN,&(vert_coords[DIM3 * i]), iprod);
 		SCALAR_TYPE gradient_magnitude;
+
 		IJK::compute_magnitude(DIM3,&(vert_grads[DIM3 * i]),gradient_magnitude );
+	
 		d = -1.0*iprod + (vert_scalars[i] - isovalue)/gradient_magnitude;
 
 		for(int l=0;l<DIM3;l++)
@@ -179,7 +189,6 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 	compute_cube_vertex_lindstrom_3x3
 	(linear_A, B, err_tolerance, num_singular_vals,
 			singular_vals, mass_point, isoVertcoords);
-
 
 }
 

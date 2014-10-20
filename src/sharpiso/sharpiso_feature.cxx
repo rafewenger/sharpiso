@@ -31,6 +31,7 @@
 #include "ijkgrid.txx"
 #include "ijkinterpolate.txx"
 #include "sharpiso_scalar.txx"
+#include "math.h"
 
 // Local functions.
 bool is_dist_to_cube_le
@@ -69,6 +70,7 @@ void compute_central_point
 
 /// Compute sharp isosurface vertex using singular valued decomposition.
 /// Use Lindstrom's formula.
+/// Also post processes vertices.
 void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -89,7 +91,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
   std::vector<GRADIENT_COORD_TYPE> gradient_coord;
   std::vector<SCALAR_TYPE> scalar;
 
-  // Compute coord of the cube.
+  // Scale cube coord by spacings
   COORD_TYPE cube_coord[DIM3];
   scalar_grid.ComputeScaledCoord(cube_index, cube_coord);
 
@@ -97,6 +99,15 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
     (scalar_grid, gradient_grid, cube_index, isovalue,
      sharpiso_param, voxel, sharpiso_param.flag_sort_gradients,
      point_coord, gradient_coord, scalar, num_gradients);
+
+  if(num_gradients == 0)
+  {
+	  compute_edgeI_centroid
+		  (scalar_grid, isovalue, cube_index, sharp_coord);
+	  svd_info.location = CENTROID;
+	  return;
+  }
+
 
   svd_info.location = LOC_SVD;
   svd_info.flag_conflict = false;
@@ -115,6 +126,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
         (num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]), 
          &(point_coord[0]), &(gradient_coord[0]), 
          num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
+	 
     }
     else{
 
@@ -124,10 +136,12 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
          num_gradients, isovalue, max_small_eigenvalue,
          num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
     }
-
+	
+	//post process the isovertex. 
     postprocess_isovert_location
       (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
        sharpiso_param, sharp_coord, svd_info);
+	
 }
 
 // Compute sharp isosurface vertex using singular valued decomposition.
@@ -952,7 +966,10 @@ void SHARPISO::clamp_point
   }
 }
 
-
+/**
+* Post process isovertex locations.
+* Uses max_dist.
+*/
 void SHARPISO::postprocess_isovert_location
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -960,7 +977,7 @@ void SHARPISO::postprocess_isovert_location
  const COORD_TYPE cube_coord[DIM3],
  const SCALAR_TYPE isovalue,
  const SHARP_ISOVERT_PARAM & sharpiso_param,
- COORD_TYPE iso_coord[DIM3],
+ COORD_TYPE iso_coord[DIM3],/**< [in, out] sharp isovertex. */
  SVD_INFO & svd_info)
 {
   const COORD_TYPE max_dist = sharpiso_param.max_dist;
@@ -989,8 +1006,10 @@ void SHARPISO::postprocess_isovert_location
     }
   }
   else {
+	  // The point is far
     process_far_point(scalar_grid, cube_index, cube_coord, isovalue,
                       sharpiso_param, iso_coord, svd_info);
+
   }
 
   if (sharpiso_param.flag_round)
@@ -1023,7 +1042,9 @@ void SHARPISO::process_conflict
   }
 
 }
-
+/** 
+* Clamp far point to max_dist or centroid.
+*/
 void SHARPISO::process_far_point
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const VERTEX_INDEX cube_index,
@@ -1051,19 +1072,27 @@ void SHARPISO::process_far_point
 // MISC ROUTINES
 // **************************************************
 
-/// Return true if scaled distance from coord to cube is at most
-bool is_dist_to_cube_le
-(const COORD_TYPE coord[DIM3], const COORD_TYPE cube_coord[DIM3],
- const COORD_TYPE spacing[DIM3], const COORD_TYPE max_dist)
-{
-  for (int d=0; d<DIM3; d++) {
-    COORD_TYPE scaled_max_dist = max_dist*spacing[d];
-    if (coord[d]+scaled_max_dist < cube_coord[d]) { return(false); }
-    if (coord[d] > cube_coord[d]+spacing[d]+scaled_max_dist) 
-      { return(false); }
-  }
+/// Return true if scaled distance from sharp coord to cube is at most scaled dist
 
-  return(true);
+bool is_dist_to_cube_le
+	(const COORD_TYPE sharp_coord[DIM3],/**< [in, out] sharp isovertex. */
+	const COORD_TYPE cube_coord[DIM3],
+	const COORD_TYPE spacing[DIM3],
+	const COORD_TYPE max_dist)
+{
+	for (int d=0; d<DIM3; d++) {
+		COORD_TYPE scaled_max_dist = max_dist*spacing[d];
+
+		if (sharp_coord[d] + scaled_max_dist < cube_coord[d]) 
+		{
+			return(false); 
+		}
+		if (sharp_coord[d] > cube_coord[d] + spacing[d] + scaled_max_dist) 
+		{ 
+			return(false); 
+		}
+	}
+	return(true);
 }
 
 /// Return index of cube containing point.
@@ -1303,6 +1332,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   max_small_grad_coord_Linf = 0.2;
   linf_dist_thresh_merge_sharp = 1.5;
   bin_width = 5;
+  flag_map_extended = false;
 }
 
 // **************************************************
