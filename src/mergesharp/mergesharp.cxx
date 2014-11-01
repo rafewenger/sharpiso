@@ -616,7 +616,17 @@ void MERGESHARP::dual_contouring_merge_sharp_from_grad
     recompute_isovert_positions
       (scalar_grid, gradient_grid, isovalue, mergesharp_param, isovert);
   }
+  std::cout <<"size "<<isovert.gcube_list.size() << std::endl;
+  for (int i = 0; i < isovert.gcube_list.size(); i++)
+  {
+	  using namespace std;
+	  cout <<"sharp coord "<< isovert.gcube_list[i].isovert_coord[0]
+	  <<" "<<isovert.gcube_list[i].isovert_coord[1]
+	  <<" "<<isovert.gcube_list[i].isovert_coord[2]
+	  <<" eigen val large "<< int(isovert.gcube_list[i].num_eigenvalues) <<endl;
 
+  }
+	
   count_vertices(isovert, isovert_info);
 
   t3 = clock();
@@ -788,7 +798,7 @@ void MERGESHARP::dual_contouring_merge_sharp
 
     IJK::get_non_degenerate_quad_btlr
       (quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
-
+	
     position_merged_dual_isovertices_multi
       (scalar_grid, isodual_table, isovalue, isovert,
        iso_vlist, dual_isosurface.vertex_coord);
@@ -846,4 +856,15 @@ void MERGESHARP::dual_contouring_merge_sharp
   clock2seconds(t1-t0, mergesharp_info.time.extract);
   clock2seconds(t2-t1, seconds);
   mergesharp_info.time.merge_sharp += seconds;
+
+  //DEBUG
+
+  using namespace std;
+  cout <<"final size "<< dual_isosurface.vertex_coord.size()<<endl;
+  for (int i = 0; i <  dual_isosurface.vertex_coord.size()/3; i++)
+  {
+	  cout << dual_isosurface.vertex_coord[3*i]<<" "
+		  << dual_isosurface.vertex_coord[3*i+1]<<" "
+		  << dual_isosurface.vertex_coord[3*i+2]<< endl;
+  }
 }

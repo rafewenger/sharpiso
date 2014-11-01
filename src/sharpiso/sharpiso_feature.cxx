@@ -72,76 +72,75 @@ void compute_central_point
 /// Use Lindstrom's formula.
 /// Also post processes vertices.
 void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX cube_index,
- const SCALAR_TYPE isovalue,
- const SHARP_ISOVERT_PARAM & sharpiso_param,
- const OFFSET_VOXEL & voxel,
- COORD_TYPE sharp_coord[DIM3],
- EIGENVALUE_TYPE eigenvalues[DIM3],
- NUM_TYPE & num_large_eigenvalues,
- SVD_INFO & svd_info)
+	(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+	const GRADIENT_GRID_BASE & gradient_grid,
+	const VERTEX_INDEX cube_index,
+	const SCALAR_TYPE isovalue,
+	const SHARP_ISOVERT_PARAM & sharpiso_param,
+	const OFFSET_VOXEL & voxel,
+	COORD_TYPE sharp_coord[DIM3],
+	EIGENVALUE_TYPE eigenvalues[DIM3],
+	NUM_TYPE & num_large_eigenvalues,
+	SVD_INFO & svd_info)
 {
-  const EIGENVALUE_TYPE max_small_eigenvalue =
-    sharpiso_param.max_small_eigenvalue;
+	const EIGENVALUE_TYPE max_small_eigenvalue =
+		sharpiso_param.max_small_eigenvalue;
 
-  NUM_TYPE num_gradients = 0;
-  std::vector<COORD_TYPE> point_coord;
-  std::vector<GRADIENT_COORD_TYPE> gradient_coord;
-  std::vector<SCALAR_TYPE> scalar;
+	NUM_TYPE num_gradients = 0;
+	std::vector<COORD_TYPE> point_coord;
+	std::vector<GRADIENT_COORD_TYPE> gradient_coord;
+	std::vector<SCALAR_TYPE> scalar;
 
-  // Scale cube coord by spacings
-  COORD_TYPE cube_coord[DIM3];
-  scalar_grid.ComputeScaledCoord(cube_index, cube_coord);
+	// Scale cube coord by spacings
+	COORD_TYPE cube_coord[DIM3];
+	scalar_grid.ComputeScaledCoord(cube_index, cube_coord);
 
-  get_gradients
-    (scalar_grid, gradient_grid, cube_index, isovalue,
-     sharpiso_param, voxel, sharpiso_param.flag_sort_gradients,
-     point_coord, gradient_coord, scalar, num_gradients);
+	get_gradients
+		(scalar_grid, gradient_grid, cube_index, isovalue,
+		sharpiso_param, voxel, sharpiso_param.flag_sort_gradients,
+		point_coord, gradient_coord, scalar, num_gradients);
 
-  if(num_gradients == 0)
-  {
-	  compute_edgeI_centroid
-		  (scalar_grid, isovalue, cube_index, sharp_coord);
-	  svd_info.location = CENTROID;
-	  return;
-  }
+	if(num_gradients == 0)
+	{
+		compute_edgeI_centroid
+			(scalar_grid, isovalue, cube_index, sharp_coord);
+		svd_info.location = CENTROID;
+		return;
+	}
 
 
-  svd_info.location = LOC_SVD;
-  svd_info.flag_conflict = false;
-  svd_info.flag_Linf_iso_vertex_location = false;
+	svd_info.location = LOC_SVD;
+	svd_info.flag_conflict = false;
+	svd_info.flag_Linf_iso_vertex_location = false;
 
-  // svd_calculate_sharpiso vertex using lindstrom
-  COORD_TYPE central_point[DIM3];
-  compute_central_point
-    (scalar_grid, gradient_grid, isovalue, cube_index,
-     sharpiso_param, central_point, svd_info);
+	// svd_calculate_sharpiso vertex using lindstrom
+	COORD_TYPE central_point[DIM3];
+	compute_central_point
+		(scalar_grid, gradient_grid, isovalue, cube_index,
+		sharpiso_param, central_point, svd_info);
 
-  /// use the sharp version with the garlnd heckbert way of storing normals
-    if (sharpiso_param.use_lindstrom_fast){
+	/// use the sharp version with the garlnd heckbert way of storing normals
+	if (sharpiso_param.use_lindstrom_fast)
+	{
+		svd_calculate_sharpiso_vertex_using_lindstrom_fast
+			(num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]), 
+			&(point_coord[0]), &(gradient_coord[0]), 
+			num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
+	}
+	else
+	{
+		svd_calculate_sharpiso_vertex_using_lindstrom
+			(sharpiso_param.use_lindstrom2, &(point_coord[0]),
+			&(gradient_coord[0]), &(scalar[0]),
+			num_gradients, isovalue, max_small_eigenvalue,
+			num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
+	}
 
-      svd_calculate_sharpiso_vertex_using_lindstrom_fast
-        (num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]), 
-         &(point_coord[0]), &(gradient_coord[0]), 
-         num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
-	 
-    }
-    else{
-
-      svd_calculate_sharpiso_vertex_using_lindstrom
-        (sharpiso_param.use_lindstrom2, &(point_coord[0]),
-         &(gradient_coord[0]), &(scalar[0]),
-         num_gradients, isovalue, max_small_eigenvalue,
-         num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
-    }
-	
 	//post process the isovertex. 
-    postprocess_isovert_location
-      (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
-       sharpiso_param, sharp_coord, svd_info);
-	
+	postprocess_isovert_location
+		(scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
+		sharpiso_param, sharp_coord, svd_info);
+
 }
 
 // Compute sharp isosurface vertex using singular valued decomposition.
@@ -971,50 +970,51 @@ void SHARPISO::clamp_point
 * Uses max_dist.
 */
 void SHARPISO::postprocess_isovert_location
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const GRADIENT_GRID_BASE & gradient_grid,
- const VERTEX_INDEX cube_index,
- const COORD_TYPE cube_coord[DIM3],
- const SCALAR_TYPE isovalue,
- const SHARP_ISOVERT_PARAM & sharpiso_param,
- COORD_TYPE iso_coord[DIM3],/**< [in, out] sharp isovertex. */
- SVD_INFO & svd_info)
+	(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+	const GRADIENT_GRID_BASE & gradient_grid,
+	const VERTEX_INDEX cube_index,
+	const COORD_TYPE cube_coord[DIM3],
+	const SCALAR_TYPE isovalue,
+	const SHARP_ISOVERT_PARAM & sharpiso_param,
+	COORD_TYPE iso_coord[DIM3],/**< [in, out] sharp isovertex. */
+	SVD_INFO & svd_info)
 {
-  const COORD_TYPE max_dist = sharpiso_param.max_dist;
-  const COORD_TYPE snap_dist = sharpiso_param.snap_dist;
+	const COORD_TYPE max_dist = sharpiso_param.max_dist;
+	const COORD_TYPE snap_dist = sharpiso_param.snap_dist;
 
-  svd_info.cube_containing_coord = cube_index;
-  if (is_dist_to_cube_le
-      (iso_coord, cube_coord, scalar_grid.SpacingPtrConst(), max_dist)) {
+	svd_info.cube_containing_coord = cube_index;
+	if (is_dist_to_cube_le
+		(iso_coord, cube_coord, scalar_grid.SpacingPtrConst(), max_dist)) 
+	{
+		if (!sharpiso_param.flag_allow_conflict) 
+		{
+			bool flag_conflict;
+			VERTEX_INDEX conflicting_cube;
+			snap_to_cube(cube_coord, scalar_grid.SpacingPtrConst(), snap_dist, 
+				iso_coord);
+			flag_conflict =
+				check_conflict(scalar_grid, isovalue, cube_coord, iso_coord,
+				conflicting_cube);
 
-    if (!sharpiso_param.flag_allow_conflict) {
-      bool flag_conflict;
-      VERTEX_INDEX conflicting_cube;
-      snap_to_cube(cube_coord, scalar_grid.SpacingPtrConst(), snap_dist, 
-                   iso_coord);
-      flag_conflict =
-        check_conflict(scalar_grid, isovalue, cube_coord, iso_coord,
-                       conflicting_cube);
+			if (flag_conflict) {
+				process_conflict
+					(scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
+					sharpiso_param, iso_coord, svd_info);
+				svd_info.flag_conflict = true;
+				svd_info.cube_containing_coord = conflicting_cube;
+			}
+		}
+	}
+	else 
+	{
+		// The point is far
+		process_far_point(scalar_grid, cube_index, cube_coord, isovalue,
+			sharpiso_param, iso_coord, svd_info);
+	}
 
-      if (flag_conflict) {
-        process_conflict
-          (scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
-           sharpiso_param, iso_coord, svd_info);
-        svd_info.flag_conflict = true;
-        svd_info.cube_containing_coord = conflicting_cube;
-      }
-    }
-  }
-  else {
-	  // The point is far
-    process_far_point(scalar_grid, cube_index, cube_coord, isovalue,
-                      sharpiso_param, iso_coord, svd_info);
-
-  }
-
-  if (sharpiso_param.flag_round)
-    { IJK::round_coord
-        (sharpiso_param.round_denominator, DIM3, iso_coord, iso_coord); }
+	if (sharpiso_param.flag_round)
+	{ IJK::round_coord
+	(sharpiso_param.round_denominator, DIM3, iso_coord, iso_coord); }
 }
 
 void SHARPISO::process_conflict

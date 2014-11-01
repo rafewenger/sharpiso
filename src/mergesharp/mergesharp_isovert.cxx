@@ -23,6 +23,7 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <iomanip>  
 #include <stdio.h>
 #include <stdio.h>
 
@@ -60,32 +61,32 @@ namespace {
 
   // Store information from singular valued decomposition.
   inline void store_svd_info
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const VERTEX_INDEX cube_index,
-   const NUM_TYPE gcube_index,
-   const NUM_TYPE num_large_eigenvalues,
-   const SVD_INFO svd_info,
-   ISOVERT & isovert, ISOVERT_INFO & isovert_info)
+	  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+	  const VERTEX_INDEX cube_index,
+	  const NUM_TYPE gcube_index,
+	  const NUM_TYPE num_large_eigenvalues,
+	  const SVD_INFO svd_info,
+	  ISOVERT & isovert, ISOVERT_INFO & isovert_info)
   {
-    if (svd_info.flag_conflict) 
-      { isovert_info.num_conflicts++; }
-    else if (svd_info.flag_Linf_iso_vertex_location)
-      { isovert_info.num_Linf_iso_vertex_locations++; }
+	  if (svd_info.flag_conflict) 
+	  { isovert_info.num_conflicts++; }
+	  else if (svd_info.flag_Linf_iso_vertex_location)
+	  { isovert_info.num_Linf_iso_vertex_locations++; }
 
-    // set number of eigenvalues.
-    isovert.gcube_list[gcube_index].num_eigenvalues =
-      (unsigned char) num_large_eigenvalues;
+	  // set number of eigenvalues.
+	  isovert.gcube_list[gcube_index].num_eigenvalues =
+		  (unsigned char) num_large_eigenvalues;
 
-    // set the sharp vertex type to be *AVAILABLE*.
-    if (num_large_eigenvalues > 1 && svd_info.location == LOC_SVD)
-      { isovert.gcube_list[gcube_index].flag = AVAILABLE_GCUBE; }
-    else 
-      { isovert.gcube_list[gcube_index].flag = SMOOTH_GCUBE; }
+	  // set the sharp vertex type to be *AVAILABLE*.
+	  if (num_large_eigenvalues > 1 && svd_info.location == LOC_SVD)
+	  { isovert.gcube_list[gcube_index].flag = AVAILABLE_GCUBE; }
+	  else 
+	  { isovert.gcube_list[gcube_index].flag = SMOOTH_GCUBE; }
 
-    // store distance.
-    compute_linf_dist(scalar_grid, cube_index, 
-                      isovert.gcube_list[gcube_index].isovert_coord,
-                      isovert.gcube_list[gcube_index].linf_dist);
+	  // store distance.
+	  compute_linf_dist(scalar_grid, cube_index, 
+		  isovert.gcube_list[gcube_index].isovert_coord,
+		  isovert.gcube_list[gcube_index].linf_dist);
   }
 
 }
@@ -95,7 +96,7 @@ namespace {
 // **************************************************
 
 /**
-* Compute Isovertex Positions
+* Compute Isovertex Positions from gradients. 
 */
 void compute_isovert_positions 
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -130,12 +131,20 @@ void compute_isovert_positions
           (scalar_grid, gradient_grid, iv, isovalue, isovert_param, voxel,
            isovert.gcube_list[index].isovert_coord,
            eigenvalues, num_large_eigenvalues, svd_info);
-
         store_svd_info(scalar_grid, iv, index, num_large_eigenvalues,
                        svd_info, isovert, isovert_info);
+
+		//DEBUG
+		using namespace std;
+		cout <<"cube index eigen "<< iv 
+			<<" eigen values ";
+		for (int j = 0; j < num_large_eigenvalues; j++)
+		{
+			cout << eigenvalues[j]<<" ";
+		}
+		cout << endl;
       }
     }
-
   }
   else {
 
@@ -161,8 +170,8 @@ void compute_isovert_positions
     }
 
   }
-
   store_boundary_bits(scalar_grid, isovert.gcube_list);
+
 }
 
 // Compute isosurface vertex positions using isosurface-edge intersections.
@@ -235,7 +244,7 @@ void compute_isovert_positions_edgeI
 }
 
 /// Recompute isosurface vertex positions for cubes 
-///   which are not selected or covered.
+/// which are not selected or covered.
 void MERGESHARP::recompute_isovert_positions 
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -246,7 +255,7 @@ void MERGESHARP::recompute_isovert_positions
   for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
     GRID_CUBE_FLAG cube_flag = isovert.gcube_list[i].flag;
 
-    if ((cube_flag == AVAILABLE_GCUBE) || (cube_flag == UNAVAILABLE_GCUBE)) {
+	if ((cube_flag == AVAILABLE_GCUBE) || (cube_flag == UNAVAILABLE_GCUBE) || (cube_flag == COVERED_POINT)) {
 
       VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
 
@@ -417,21 +426,22 @@ public:
   }
 };
 
-
+// Create and set the sortd_ind2gcube_list.
 void MERGESHARP::sort_gcube_list
-(const std::vector<GRID_CUBE> & gcube_list,
- std::vector<NUM_TYPE> & sortd_ind2gcube_list)
+	(const std::vector<GRID_CUBE> & gcube_list,
+	std::vector<NUM_TYPE> & sortd_ind2gcube_list)
 {
-  GCUBE_COMPARE gcube_compare(gcube_list);
-
-  for (int i=0;i<gcube_list.size();i++)
-    {
-      if (gcube_list[i].num_eigenvalues > 1)
-        sortd_ind2gcube_list.push_back(i);
-    }
-
-  sort (sortd_ind2gcube_list.begin(),sortd_ind2gcube_list.end(), 
-        gcube_compare);
+	GCUBE_COMPARE gcube_compare(gcube_list);
+	const VERTEX_INDEX gcube_list_size = gcube_list.size(); 
+	for (int i = 0; i < gcube_list_size; i++)
+	{
+		if(gcube_list[i].num_eigenvalues > 1)
+		{
+			sortd_ind2gcube_list.push_back(i);
+		}
+	}
+	sort (sortd_ind2gcube_list.begin(),sortd_ind2gcube_list.end(), 
+		gcube_compare);
 }
 
 void MERGESHARP::store_boundary_bits
@@ -445,7 +455,7 @@ void MERGESHARP::store_boundary_bits
 
 /// Compute the cube index from the gc index
 VERTEX_INDEX cube_ind_frm_gc_ind
-(const ISOVERT &isoData,const  NUM_TYPE &gc_ind){
+(const ISOVERT &isoData, const  NUM_TYPE &gc_ind){
   return isoData.gcube_list[gc_ind].cube_index;
 }
 
@@ -617,42 +627,72 @@ void MERGESHARP::bin_grid_insert
   bin_grid.Insert(ibin, cube_index);
 }
 
-//DEBUG
+
 /**
-* Extended version of selecting the 3x3x3 regions
+Check if the sharp vertex is in a cube which is already covered.
+if yes then return true else return false.
 */
-/*
-void select_3x3x3_regions_extended
-	(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-	vector<NUM_TYPE> sortd_ind2gcube_list,
-	ISOVERT &isovert)
+bool check_covered_point(
+	const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+	const SHARPISO_BOOL_GRID &covered_grid,
+	ISOVERT &isovert,
+	const VERTEX_INDEX &gcube_index)
 {
-	SHARPISO_GRID_NEIGHBORS gridn;
-	gridn.SetSize(scalar_grid);
-	for (int ind=0; ind < sortd_ind2gcube_list.size(); ind++) {
+	//stor the coordinated of the cube which has point A
+	COORD_TYPE cube_coord[DIM3];
+	for (int d = 0; d < DIM3; d++)
+	{
+		COORD_TYPE c = isovert.gcube_list[gcube_index].isovert_coord[d];
+		cube_coord[d] = int(c/scalar_grid.Spacing(d));
+	}
 
-		GRID_CUBE c;
-		c = isovert.gcube_list[sortd_ind2gcube_list[ind]];
-		// check boundary
-		if(c.boundary_bits == 0 && c.flag == COVERED_A_GCUBE)
-		{
-			// mark all the neighbors as covered
-			for (int i=0;i < gridn.NumVertexNeighborsC(); i++)
-			{
-				VERTEX_INDEX n = gridn.VertexNeighborC
-					( c.cube_index, i);
+	// Cube index of the actual cube in which the vertex is present.
+	VERTEX_INDEX cube_index = scalar_grid.ComputeVertexIndex(cube_coord);
+	//DEBUG
+	cout <<"[ "<<isovert.gcube_list[gcube_index].isovert_coord[0] <<" "
+		<< isovert.gcube_list[gcube_index].isovert_coord[1]<<" "
+		<< isovert.gcube_list[gcube_index].isovert_coord[2]<<"]\n";
+	COORD_TYPE coord1[DIM3];
+	scalar_grid.ComputeScaledCoord(cube_index, coord1);
+	cout <<"cube_index1 scaled "<< cube_index <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
+	scalar_grid.ComputeCoord(cube_index, coord1);
+	cout <<"cube_index1 unscal "<< cube_index <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
 
-				if(isovert.sharp_ind_grid.Scalar(n)!=ISOVERT::NO_INDEX)
-				{
-					
-					VERTEX_INDEX neighbor_index_2_gclist = isovert.sharp_ind_grid.Scalar(n);
-					isovert.gcube_list[neighbor_index_2_gclist].flag = COVERED_B_GCUBE;
-				}
+	if(covered_grid.Scalar(cube_index))
+	{
+		cout <<"covered\n";
+		return true;
+	}
+	else
+	{
+		cout <<"not covered "<<endl;
+	}
+
+	//if the sharp vertex is not in the same cube. 
+	if (isovert.sharp_ind_grid.Scalar(cube_index) != ISOVERT::NO_INDEX){
+		if(isovert.gcube_list[gcube_index].cube_index != cube_index){
+			//DEBUG
+			VERTEX_INDEX cube_index2 = isovert.gcube_list[gcube_index].cube_index;
+			scalar_grid.ComputeScaledCoord(cube_index2, coord1);
+			cout <<"cube_index original scaled "<<cube_index2 <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
+
+			scalar_grid.ComputeCoord(cube_index2, coord1);
+			cout <<"cube_index original unscal "<<cube_index2 <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
+
+			if (isovert.isFlag(cube_index, COVERED_A_GCUBE)){
+				cout <<"return true;"<<endl;
+				return true;
+			}
+			else{
+				cout << "Flag "<<isovert.gcube_list[isovert.sharp_ind_grid.Scalar(cube_index2)].flag ;
+				cout <<" return false;"<<endl;
+				return false;
 			}
 		}
 	}
+	cout <<"here\n";
+	return false;
 }
-*/
 /**
  * Select the 3x3x3 regions
  */
@@ -680,20 +720,33 @@ void select_3x3x3_regions
   SHARPISO_GRID_NEIGHBORS gridn;
   gridn.SetSize(scalar_grid);
 
+  //Keeps track of all cubes which are covered.
+  SHARPISO_BOOL_GRID covered_grid;
+  covered_grid.SetSize(scalar_grid);
+  covered_grid.SetAll(false);
+
   for (int ind=0; ind < sortd_ind2gcube_list.size(); ind++) {
 
     GRID_CUBE c;
     c = isovert.gcube_list[sortd_ind2gcube_list[ind]];
     // check boundary
     if(c.boundary_bits == 0)
-      if (isovert.isFlag
-          (
-		  cube_ind_frm_gc_ind(isovert, sortd_ind2gcube_list[ind]), AVAILABLE_GCUBE)
-          && 
-		  c.linf_dist < linf_dist_threshold
-		  ) {
+      if (isovert.isFlag(cube_ind_frm_gc_ind(isovert, sortd_ind2gcube_list[ind]), AVAILABLE_GCUBE)
+          && c.linf_dist < linf_dist_threshold) 
+	  {
 
         VERTEX_INDEX v1, v2;
+		//Check if the sharp vertex is a covered point.
+		//Covered point: the point is inside a covered cube. 
+		
+		bool flag_covered_point 
+			= check_covered_point(scalar_grid, covered_grid, isovert, sortd_ind2gcube_list[ind]);
+		if(flag_covered_point)
+		{   
+			isovert.gcube_list[sortd_ind2gcube_list[ind]].flag = COVERED_POINT;
+			continue;
+		}
+		
 
         bool flag_check_angle = isovert_param.flag_check_triangle_angle;
         bool triangle_flag =
@@ -701,15 +754,28 @@ void select_3x3x3_regions
                            isovalue, bin_grid, bin_width, v1, v2);
 
         if (!triangle_flag) {
-
+			//The vertex is selcted as sharp.
           isovert.gcube_list[sortd_ind2gcube_list[ind]].flag =
             SELECTED_GCUBE;
+		
+		  //DEBUG 4
+		  COORD_TYPE coord1[DIM3];
+		  scalar_grid.ComputeCoord(
+			  isovert.gcube_list[sortd_ind2gcube_list[ind]].cube_index,
+			  coord1);
+		 
+		 cout << "*** "<<isovert.gcube_list[sortd_ind2gcube_list[ind]].isovert_coord[0] <<" "
+			  << isovert.gcube_list[sortd_ind2gcube_list[ind]].isovert_coord[1]<<" "
+			  <<isovert.gcube_list[sortd_ind2gcube_list[ind]].isovert_coord[2]<<" *** "
+			  <<" linf "<<isovert.gcube_list[sortd_ind2gcube_list[ind]].linf_dist<<" ind "<< ind<<
+			  " cubeindex  "<< isovert.gcube_list[sortd_ind2gcube_list[ind]].cube_index<<endl;
 
-          // add to selected list
+		  // add to selected list
           VERTEX_INDEX cube_index =
             isovert.gcube_list[sortd_ind2gcube_list[ind]].cube_index;
 
           selected_list.push_back(cube_index);
+		  covered_grid.Set(cube_index, true);
 
           bin_grid_insert(scalar_grid, bin_width, cube_index, bin_grid);
 
@@ -719,13 +785,33 @@ void select_3x3x3_regions
               VERTEX_INDEX n = gridn.VertexNeighborC
                 (isovert.gcube_list[sortd_ind2gcube_list[ind]].cube_index, i);
 
+			  //DEBUG
+			  covered_grid.Set(n, true);
+
               if(isovert.sharp_ind_grid.Scalar(n)!=ISOVERT::NO_INDEX)
                 {
                   VERTEX_INDEX neighbor_index_2_gclist = isovert.sharp_ind_grid.Scalar(n);
-				  // DEBUG
-                  //isovert.gcube_list[neighbor_index_2_gclist].flag = COVERED_GCUBE;
 				  isovert.gcube_list[neighbor_index_2_gclist].flag = COVERED_A_GCUBE;
+				  //DEBUG
+				  VERTEX_INDEX ci = isovert.gcube_list[neighbor_index_2_gclist].cube_index;
+				  COORD_TYPE coord1[DIM3];
+				  scalar_grid.ComputeScaledCoord(ci, coord1);
+				  cout <<"neighbor"<< ci << " scaled "<< ci <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2];
+				  scalar_grid.ComputeCoord(ci, coord1);
+				  cout <<"neighbor unscal "<< ci <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
+				  cout <<" flag " << isovert.gcube_list[neighbor_index_2_gclist].flag << endl;
                 }
+			  //DEBUG
+			  else
+			  {
+				 
+				  COORD_TYPE coord1[DIM3];
+				  scalar_grid.ComputeScaledCoord(n, coord1);
+				  cout <<"neighbor no index "<< n << " scaled "<< n <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2];
+				  scalar_grid.ComputeCoord(n, coord1);
+				  cout <<"neighbor unscal "<< n <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
+				  
+			  }
             }
         }
         else
@@ -739,38 +825,40 @@ void select_3x3x3_regions
 
 
 
-/*
- * Traverse the scalar grid,
- * set everything to be ISOVERT::NO_INDEX
- * if isosurface intersects the cube then set *index*
- * push the corresponding *grid_cube* into the *gcube_list*
- */
-void create_active_cubes (
-                          const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-                          const SCALAR_TYPE isovalue,
-                          ISOVERT &isovert)
-{
-  NUM_TYPE index=0;
-  //set the size of sharp index grid
-  isovert.sharp_ind_grid.SetSize(scalar_grid);
-  IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX)
-    {
-      if (is_gt_cube_min_le_cube_max(scalar_grid, iv, isovalue))
-        {
-          index=isovert.gcube_list.size();
-          isovert.sharp_ind_grid.Set(iv,index);
-          GRID_CUBE gc;
-          gc.cube_index = iv;
-          isovert.gcube_list.push_back(gc);
-        }
-      else
-        {
-          // if it is not intersected then mark as ISOVERT::NO_INDEX
-          isovert.sharp_ind_grid.Set(iv,ISOVERT::NO_INDEX);
-        }
-    }
-}
-/// Compute the overlap region between two cube indices
+/**
+Sets the sharp_ind_grid and gcube_list
+
+Traverse the scalar grid,
+set everything to be ISOVERT::NO_INDEX
+if isosurface intersects the cube then set *index*
+push the corresponding *grid_cube* into the *gcube_list*
+*/
+ void create_active_cubes (
+	 const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+	 const SCALAR_TYPE isovalue,
+	 ISOVERT &isovert)
+ {
+	 NUM_TYPE index = 0;
+	 //set the size of sharp index grid
+	 isovert.sharp_ind_grid.SetSize(scalar_grid);
+	 IJK_FOR_EACH_GRID_CUBE(iv, scalar_grid, VERTEX_INDEX)
+	 {
+		 if (is_gt_cube_min_le_cube_max(scalar_grid, iv, isovalue))
+		 {
+			 index = isovert.gcube_list.size();
+			 isovert.sharp_ind_grid.Set(iv,index);
+			 GRID_CUBE gc;
+			 gc.cube_index = iv;
+			 isovert.gcube_list.push_back(gc);
+		 }
+		 else
+		 {
+			 // if it is not intersected then mark as ISOVERT::NO_INDEX
+			 isovert.sharp_ind_grid.Set(iv,ISOVERT::NO_INDEX);
+		 }
+	 }
+ }
+ /// Compute the overlap region between two cube indices
 bool find_overlap(
                   const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
                   const VERTEX_INDEX &cube_index1,
@@ -851,6 +939,23 @@ void MERGESHARP::select_sharp_isovert
   // keep track of the sorted indices
   std::vector<NUM_TYPE> sortd_ind2gcube_list;
   sort_gcube_list(isovert.gcube_list, sortd_ind2gcube_list);
+  //DEBUG NOW
+  for (int i = 0; i < sortd_ind2gcube_list.size(); i++)
+  {
+	  cout <<"isovert "<< isovert.gcube_list[sortd_ind2gcube_list[i]].isovert_coord[0]
+	  <<" "<< isovert.gcube_list[sortd_ind2gcube_list[i]].isovert_coord[1]
+	  <<" "<< isovert.gcube_list[sortd_ind2gcube_list[i]].isovert_coord[2]<<endl;
+
+
+	  COORD_TYPE coord1[DIM3];
+	  VERTEX_INDEX cube_index = isovert.gcube_list[sortd_ind2gcube_list[i]].cube_index;
+
+	  scalar_grid.ComputeScaledCoord(cube_index, coord1);
+	  cout <<"cube_index scaled   ["<< cube_index <<"] " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
+	  scalar_grid.ComputeCoord(cube_index, coord1);
+	  cout <<"cube_index unscaled ["<< cube_index <<"] " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl<<endl;
+
+  }
   select_3x3x3_regions (scalar_grid, isovalue, isovert_param, 
                         sortd_ind2gcube_list, isovert);
 }
@@ -1032,18 +1137,18 @@ namespace {
       d1 = (d0+1)%3;
       d2 = (d0+2)%3;
       v1 = vbase;
-      for (int i1=rmin[d1]; i1 <=rmax[d1]; i1++){
-        v2=v1;
-        for (int i2=rmin[d2];i2<=rmax[d2];i2++){
-          v0=v2;
-          for(int i0=rmin[d0];i0<rmax[d0];i0++){
-            vnext = scalar_grid.NextVertex(v0,d0);
-            process_edge(scalar_grid, v0,vnext,isovalue, is_intersect);
-            num++;
-            if (is_intersect)
-              return true;
-            v0=vnext;
-          }
+	  for (int i1=rmin[d1]; i1 <=rmax[d1];i1++){
+		  v2=v1;
+		  for (int i2=rmin[d2];i2<=rmax[d2];i2++){
+			  v0=v2;
+			  for(int i0=rmin[d0];i0<rmax[d0];i0++){
+				  vnext = scalar_grid.NextVertex(v0,d0);
+				  process_edge(scalar_grid, v0,vnext,isovalue, is_intersect);
+				  num++;
+				  if (is_intersect)
+					  return true;
+				  v0=vnext;
+			  }
           v2=scalar_grid.NextVertex(v2,d2);
         }
         v1=scalar_grid.NextVertex(v1,d1);

@@ -193,20 +193,36 @@ void MERGESHARP::position_merged_dual_isovertices_multi
         if (isovert.gcube_list[gcube_index].flag == SMOOTH_GCUBE) {
 
           IJK::copy_coord_3D(isovert.gcube_list[gcube_index].isovert_coord,
-                             isov_coord+i*DIM3);
-        }
-        else {
-          compute_isosurface_grid_edge_centroid
-            (scalar_grid, isovalue, cube_index, isov_coord+i*DIM3);
-        }
-      }
-      else {
-        FACET_VERTEX_INDEX ipatch= iso_vlist[i].patch_index;
+			  isov_coord+i*DIM3);
+		}
+		else {
+			//DEBUG
+			using namespace std;
+			cout <<"old vertex "<< isovert.gcube_list[gcube_index].isovert_coord[0]
+			<<" "<< isovert.gcube_list[gcube_index].isovert_coord[1] 
+			<<" "<<isovert.gcube_list[gcube_index].isovert_coord[2]
+			<<" flag "<<int(isovert.gcube_list[gcube_index].flag) 
+			<<" gcubeindex "<<	gcube_index 
+			<<" cubeindex "<< isovert.gcube_list[gcube_index].cube_index <<endl;
 
-        compute_isosurface_grid_edge_centroid
-          (scalar_grid, isodual_table, isovalue, cube_index, ipatch,
-           it, cube, isov_coord+i*DIM3);
-      }
+
+			compute_isosurface_grid_edge_centroid
+				(scalar_grid, isovalue, cube_index, isov_coord+i*DIM3);
+			cout <<"new vertex "<< isov_coord[i*DIM3] <<" "<< isov_coord[i*DIM3+1]<<" "<< isov_coord[i*DIM3+2]<<endl;
+		}
+	  }
+	  else {
+		  FACET_VERTEX_INDEX ipatch= iso_vlist[i].patch_index;
+		  //DEBUG
+		  using namespace std;
+		  cout <<"old vertex B "<< isovert.gcube_list[gcube_index].isovert_coord[0] 
+		  <<" "<<isovert.gcube_list[gcube_index].isovert_coord[1]
+		  <<" "<< isovert.gcube_list[gcube_index].isovert_coord[2]<<endl;
+		  compute_isosurface_grid_edge_centroid
+			(scalar_grid, isodual_table, isovalue, cube_index, ipatch,
+			it, cube, isov_coord+i*DIM3);
+		cout <<"new vertex B "<< isov_coord[i*DIM3] <<" "<< isov_coord[i*DIM3+1]<<" "<< isov_coord[i*DIM3+2]<<endl;
+	  }
     }
     else {
       IJK::copy_coord_3D(isovert.gcube_list[gcube_index].isovert_coord,

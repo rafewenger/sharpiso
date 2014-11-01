@@ -1226,16 +1226,19 @@ void MERGESHARP::report_mergesharp_param
 
   }
 
-  if (!mergesharp_param.flag_merge_sharp) {
+  if (mergesharp_param.flag_merge_sharp) {
 
     if (mergesharp_param.flag_allow_conflict) {
       cout << "Allow isosurface vertex conflicts." << endl;
     }
     else {
       if (mergesharp_param.flag_clamp_conflict) 
-        { cout << "Resolve conflict by clamping coordinates." << endl; }
+        {   cout <<"Do NOT allow conflicts, instead "<<endl;
+			cout << "Resolve conflict by clamping coordinates." << endl; }
       else
-        { cout << "Resolve conflict by reverting to centroid." << endl; }
+        { 
+			cout <<"Do NOT allow conflicts, instead "<<endl;
+			cout << "Resolve conflict by reverting to centroid." << endl; }
     }
   }
 
