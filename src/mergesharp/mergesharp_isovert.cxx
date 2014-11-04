@@ -44,6 +44,7 @@ using namespace IJK;
 
 namespace {
 
+
   void compute_linf_dist
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, const VERTEX_INDEX iv,
    COORD_TYPE isovert_coord[DIM3],SCALAR_TYPE & linf_dist);
@@ -258,10 +259,19 @@ void MERGESHARP::recompute_isovert_positions
 	if ((cube_flag == AVAILABLE_GCUBE) || (cube_flag == UNAVAILABLE_GCUBE) || (cube_flag == COVERED_POINT)) {
 
       VERTEX_INDEX cube_index = isovert.gcube_list[i].cube_index;
-
+	  //DEBUG
+	  std::cerr <<" RED "<< int (isovert_param.use_sharp_edgeI)<<std::endl;
       compute_edgeI_centroid
         (scalar_grid, gradient_grid, isovalue, cube_index,
          isovert_param.use_sharp_edgeI, isovert.gcube_list[i].isovert_coord);
+	  /*
+	  //DEBUG
+	  void SHARPISO::compute_edgeI_sharp_centroid
+	  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+	  const GRADIENT_GRID_BASE & gradient_grid,
+	  const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
+	  COORD_TYPE * coord)
+	  */
 
       isovert.gcube_list[i].flag_centroid_location = true;
     }
@@ -271,7 +281,8 @@ void MERGESHARP::recompute_isovert_positions
 
 
 /// Recompute isosurface vertex positions for cubes 
-///   which are not selected or covered.
+/// which are not selected or covered.
+/// This is not called by the sharp computations
 void MERGESHARP::recompute_isovert_positions 
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const std::vector<COORD_TYPE> & edgeI_coord,
@@ -293,6 +304,7 @@ void MERGESHARP::recompute_isovert_positions
       compute_edgeI_centroid
         (scalar_grid, edgeI_coord, edge_index, isovalue, cube_index,
          isovert.gcube_list[i].isovert_coord);
+
 
 
       isovert.gcube_list[i].flag_centroid_location = true;
@@ -546,55 +558,65 @@ void get_selected
 
 
 // Check if selecting this vertex creates a triangle with a large angle.
-/// @param check_triangl_angle If true, check it triangle has large angles.
+// @param check_triangle_angle If true, check it triangle has large angles.
 // @param bin_grid Contains the already selected vertices.
 // @param[out] v1,v2 vertex indices which form a triangle with iv
-bool MERGESHARP::creates_triangle (
-                                  const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-                                  const bool check_triangle_angle,
-                                  const ISOVERT & isovert,
-                                  const VERTEX_INDEX iv,
-                                  const SCALAR_TYPE isovalue,
-                                  const BIN_GRID<VERTEX_INDEX> & bin_grid,
-                                  const AXIS_SIZE_TYPE bin_width,
-                                  VERTEX_INDEX & v1,
-                                  VERTEX_INDEX & v2
-                                  )
+bool MERGESHARP::creates_triangle 
+	(
+	const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+	const bool check_triangle_angle,
+	const ISOVERT & isovert,
+	const VERTEX_INDEX iv,
+	const SCALAR_TYPE isovalue,
+	const BIN_GRID<VERTEX_INDEX> & bin_grid,
+	const AXIS_SIZE_TYPE bin_width,
+	VERTEX_INDEX & v1,
+	VERTEX_INDEX & v2)
 {
-  const SCALAR_TYPE threshold = cos(140*M_PI/180);
-  vector <VERTEX_INDEX> selected_list;
-  vector <VERTEX_INDEX> connected_list;
+	const SCALAR_TYPE threshold = cos(140*M_PI/180);
+	vector <VERTEX_INDEX> selected_list;
+	vector <VERTEX_INDEX> connected_list;
 
-  // get the selected vertices around iv
-  get_selected(scalar_grid, iv, bin_grid, bin_width, selected_list);
+	// get the selected vertices around iv
+	get_selected(scalar_grid, iv, bin_grid, bin_width, selected_list);
 
-  // get the list of vertices connected to the vertex iv
-  get_connected(scalar_grid, isovalue, iv, selected_list, connected_list);
-  int limit = connected_list.size();
-  // for each pair jv1 jv2 in the connected list
-  for (int i=0; i< limit-1;++i){
-    for(int j=i+1;j<= (limit-1);++j)
-      {
-        if (are_connected(scalar_grid, connected_list[i],
-                          connected_list[j], isovalue)){
-          v1 = connected_list[i];
-          v2 = connected_list[j];
-          if (check_triangle_angle){
-            // checking angle
-            bool flag_large_angle = 
-              is_angle_large(scalar_grid, isovert, iv, threshold, v1 , v2);
+	// get the list of vertices connected to the vertex iv
+	get_connected(scalar_grid, isovalue, iv, selected_list, connected_list);
+	
+	int limit = connected_list.size();
+	// for each pair jv1 jv2 in the connected list
+	for (int i=0; i< limit-1; ++i){
+		for(int j=i+1; j <= (limit-1); ++j)
+		{
+			if (are_connected(scalar_grid, connected_list[i],
+				connected_list[j], isovalue))
+			{
+				v1 = connected_list[i];
+				v2 = connected_list[j];
+				//Debug
+				cout <<"create triangle v1 "<< v1 <<",create triangle v2 "<< v2 << endl;
+				if (check_triangle_angle){
+					// checking angle
+					bool flag_large_angle = 
+						is_angle_large(scalar_grid, isovert, iv, threshold, v1 , v2);
 
-            if (flag_large_angle)
-              { return true; }
-          }
-          else {
-            // returning true without checking angles angles
-            return true;
-          }
-        }
-      }
-  }
-  return false;
+					if (flag_large_angle)
+					{ 
+						return true; 
+					}
+				}
+				else 
+				{
+					// returning true without checking angles angles
+					return true;
+				}
+			}
+		}
+	}
+	
+	cout <<"size connected list " << connected_list.size() 
+		<<" selected list "<<selected_list.size()<<endl;
+	return false;
 }
 
 /// Initialize bin_grid.
@@ -1181,7 +1203,9 @@ namespace {
   }
 
 
-  // Return true if triangle(iv,v1,v2) has a lareg angle.
+  // Return true if triangle(iv,v1,v2) has a large angle
+  // iv, v1 and v2 are cube_indices.
+
   bool is_angle_large
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const ISOVERT &isovert,

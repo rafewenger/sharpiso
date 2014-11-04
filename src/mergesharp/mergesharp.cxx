@@ -620,7 +620,7 @@ void MERGESHARP::dual_contouring_merge_sharp_from_grad
   for (int i = 0; i < isovert.gcube_list.size(); i++)
   {
 	  using namespace std;
-	  cout <<"sharp coord "<< isovert.gcube_list[i].isovert_coord[0]
+	  cout <<"all coord "<< isovert.gcube_list[i].isovert_coord[0]
 	  <<" "<<isovert.gcube_list[i].isovert_coord[1]
 	  <<" "<<isovert.gcube_list[i].isovert_coord[2]
 	  <<" eigen val large "<< int(isovert.gcube_list[i].num_eigenvalues) <<endl;

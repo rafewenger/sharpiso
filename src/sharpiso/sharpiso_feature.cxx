@@ -773,6 +773,7 @@ void SHARPISO::compute_edgeI_centroid
  const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
  const bool use_sharp_edgeI, COORD_TYPE * coord)
 {
+
   if (use_sharp_edgeI) {
     compute_edgeI_sharp_centroid
       (scalar_grid, gradient_grid, isovalue, iv, coord);
