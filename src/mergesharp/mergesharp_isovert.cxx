@@ -426,6 +426,7 @@ void MERGESHARP::sort_gcube_list
 
   for (int i=0;i<gcube_list.size();i++)
     {
+      // *** SHOULD CHECK THAT POINT IS NOT COMPUTED USING CENTROID ***
       if (gcube_list[i].num_eigenvalues > 1)
         sortd_ind2gcube_list.push_back(i);
     }
@@ -687,10 +688,8 @@ void select_3x3x3_regions
     // check boundary
     if(c.boundary_bits == 0)
       if (isovert.isFlag
-          (
-		  cube_ind_frm_gc_ind(isovert, sortd_ind2gcube_list[ind]), AVAILABLE_GCUBE)
-          && 
-		  c.linf_dist < linf_dist_threshold
+          (cube_ind_frm_gc_ind(isovert, sortd_ind2gcube_list[ind]), 
+           AVAILABLE_GCUBE) && c.linf_dist < linf_dist_threshold
 		  ) {
 
         VERTEX_INDEX v1, v2;
