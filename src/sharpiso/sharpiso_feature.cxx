@@ -123,10 +123,9 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
     if (sharpiso_param.use_lindstrom_fast){
 
       svd_calculate_sharpiso_vertex_using_lindstrom_fast
-        (num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]), 
+        (num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]),
          &(point_coord[0]), &(gradient_coord[0]), 
          num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
-	 
     }
     else{
 

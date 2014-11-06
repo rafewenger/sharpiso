@@ -229,7 +229,7 @@ int main(int argc, char **argv)
 
     nrrd_header.GetSpacing(grid_spacing);
     for (int d = 0; d < scalar_grid.Dimension(); d++) 
-      { gradient_grid.SetSpacing(d, grid_spacing[d]); };
+      { gradient_grid.SetSpacing(d, grid_spacing[d+1]); };
 
     if (!check_gradient_grid(gradient_grid, error))
       { throw error; };
