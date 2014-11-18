@@ -145,7 +145,6 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 	postprocess_isovert_location
 		(scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
 		sharpiso_param, sharp_coord, svd_info);
-
 }
 
 // Compute sharp isosurface vertex using singular valued decomposition.

@@ -209,16 +209,27 @@ int main(int argc, char **argv)
 
     SHARPISO_SCALAR_GRID scalar_grid;
     IJK::GRID_NRRD_IN<NUM_TYPE,AXIS_SIZE_TYPE> nrrd_in_scalar;
+    IJK::NRRD_DATA<int,int> nrrd_header;
     nrrd_in_scalar.ReadScalarGrid
-      (scalar_filename, scalar_grid,  error);
+      (scalar_filename, scalar_grid,  nrrd_header, error);
     if (nrrd_in_scalar.ReadFailed()) { throw(error); }
+
+    std::vector<COORD_TYPE> grid_spacing;
+    nrrd_header.GetSpacing(grid_spacing);
+
+    for (int d = 0; d < scalar_grid.Dimension(); d++) 
+      { scalar_grid.SetSpacing(d, grid_spacing[d]); };
 
     GRADIENT_GRID gradient_grid;
     IJK::GRID_NRRD_IN<NUM_TYPE,AXIS_SIZE_TYPE> nrrd_in_gradient;
 
     nrrd_in_gradient.ReadVectorGrid
-      (gradient_filename, gradient_grid, error);
+      (gradient_filename, gradient_grid, nrrd_header, error);
     if (nrrd_in_gradient.ReadFailed()) { throw(error); }
+
+    nrrd_header.GetSpacing(grid_spacing);
+    for (int d = 0; d < scalar_grid.Dimension(); d++) 
+      { gradient_grid.SetSpacing(d, grid_spacing[d+1]); };
 
     if (!check_gradient_grid(gradient_grid, error))
       { throw error; };
@@ -257,8 +268,10 @@ int main(int argc, char **argv)
       GRADIENT_COORD_TYPE max_small_eigenvalue =
         sharpiso_param.max_small_eigenvalue;
 
-      OFFSET_CUBE_111 cube_111
-        (sharpiso_param.grad_selection_cube_offset);
+      OFFSET_VOXEL offset_voxel;
+      offset_voxel.SetVertexCoord
+        (scalar_grid.SpacingPtrConst(), 
+         sharpiso_param.grad_selection_cube_offset);
 
       if (flag_edge_intersect_sharp) {
         compute_cube_edgeI
@@ -268,14 +281,11 @@ int main(int argc, char **argv)
 
         for (int i = 0; i < num_gradients; i++)
           { scalar.push_back(isovalue); }
-
-        // *** DEBUG ***
-        cerr << "Passed compute_cube_edgeI" << endl;
       }
       else {
         get_gradients
           (scalar_grid, gradient_grid, cube_index, isovalue,
-           sharpiso_param, cube_111, sharpiso_param.flag_sort_gradients,
+           sharpiso_param, offset_voxel, sharpiso_param.flag_sort_gradients,
            point_coord, gradient_coord, scalar, num_gradients);
       }
 
@@ -476,18 +486,21 @@ void compute_iso_vertex_using_svd
   }
   else {
 
-    OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+    OFFSET_VOXEL offset_voxel;
+    offset_voxel.SetVertexCoord
+      (scalar_grid.SpacingPtrConst(), 
+       sharpiso_param.grad_selection_cube_offset);
 
     if (sharpiso_param.use_lindstrom) {
       svd_compute_sharp_vertex_for_cube_lindstrom
         (scalar_grid, gradient_grid, cube_index, isovalue,
-         sharpiso_param, cube_111,
+         sharpiso_param, offset_voxel,
          sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
     }
     else {
       svd_compute_sharp_vertex_for_cube_lc_intersection
         (scalar_grid, gradient_grid, cube_index, isovalue,
-         sharpiso_param, cube_111,
+         sharpiso_param, offset_voxel,
          sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
     }
   }
@@ -509,11 +522,14 @@ void compute_iso_vertex_using_subgrid
   SIGNED_COORD_TYPE grad_selection_cube_offset =
     sharpiso_param.grad_selection_cube_offset;
 
-  OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+  OFFSET_VOXEL offset_voxel;
+  offset_voxel.SetVertexCoord
+    (scalar_grid.SpacingPtrConst(), 
+     sharpiso_param.grad_selection_cube_offset);
 
   subgrid_compute_sharp_vertex_in_cube
     (scalar_grid, gradient_grid, cube_index, isovalue,
-     get_gradients_param, cube_111, subgrid_axis_size,
+     get_gradients_param, offset_voxel, subgrid_axis_size,
      sharp_coord, scalar_stdev, max_abs_scalar_error);
 }
 
@@ -1001,20 +1017,23 @@ void output_cube_eigenvalues
   const SIGNED_COORD_TYPE grad_selection_cube_offset =
     sharpiso_param.grad_selection_cube_offset;
 
-  OFFSET_CUBE_111 cube_111(grad_selection_cube_offset);
+  OFFSET_VOXEL offset_voxel;
+  offset_voxel.SetVertexCoord
+    (scalar_grid.SpacingPtrConst(), 
+     sharpiso_param.grad_selection_cube_offset);
 
   IJK_FOR_EACH_GRID_CUBE(icube, scalar_grid, VERTEX_INDEX) {
 
     if (sharpiso_param.use_lindstrom) {
       svd_compute_sharp_vertex_for_cube_lindstrom
         (scalar_grid, gradient_grid, icube, isovalue,
-         sharpiso_param, cube_111,
+         sharpiso_param, offset_voxel,
          sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
     }
     else {
       svd_compute_sharp_vertex_for_cube_lc_intersection
         (scalar_grid, gradient_grid, icube, isovalue,
-         sharpiso_param, cube_111,
+         sharpiso_param, offset_voxel,
          sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
     }
 
