@@ -28,12 +28,30 @@ void compute_reliable_gradients_angle(
 		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
 		GRADIENT_GRID & gradient_grid,
 		GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
-		IJK::BOOL_GRID<RELIGRADIENT_GRID> &reliable_grid, INPUT_INFO & io_info);
+		IJK::BOOL_GRID<RELIGRADIENT_GRID> &reliable_grid,
+		INPUT_INFO & io_info);
 
 // compute scalar based reliable gradients
 void compute_reliable_gradients_SBP(
 		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID & gradient_grid, const GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
-		IJK::BOOL_GRID<RELIGRADIENT_GRID> &reliable_grid, INPUT_INFO & io_info);
+		const GRADIENT_GRID & gradient_grid,
+		const GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+		IJK::BOOL_GRID<RELIGRADIENT_GRID> &reliable_grid,
+		INPUT_INFO & io_info);
+
+// Advanced angle based reliable gradients computations
+void compute_reliable_gradients_advangle(
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	const GRADIENT_GRID & gradient_grid,
+	const GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+	IJK::BOOL_GRID<RELIGRADIENT_GRID> &reliable_grid,
+	INPUT_INFO & io_info);
+
+void compute_reliable_gradients_advangle_version2(
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	const GRADIENT_GRID & gradient_grid,
+	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
+	INPUT_INFO & io_info);
 
 #endif
