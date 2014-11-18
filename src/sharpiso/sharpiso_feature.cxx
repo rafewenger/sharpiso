@@ -102,8 +102,10 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 
 	if(num_gradients == 0)
 	{
+		
 		compute_edgeI_centroid
 			(scalar_grid, isovalue, cube_index, sharp_coord);
+
 		svd_info.location = CENTROID;
 		return;
 	}
@@ -126,6 +128,9 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 			(num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]), 
 			&(point_coord[0]), &(gradient_coord[0]), 
 			num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
+		//DEBUG
+		//cout <<"svd output "<< sharp_coord[0]<<" "<<sharp_coord[1]<<" "
+		//	<<sharp_coord[2]<<"\n ";
 	}
 	else
 	{

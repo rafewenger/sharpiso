@@ -140,12 +140,25 @@ void select_sharp_isovert(
 
 /// Recompute isosurface vertex positions for cubes 
 ///   which are not selected or covered.
+/// also takes isovert_info as parameter
+void recompute_isovert_positions(
+	const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+	const GRADIENT_GRID_BASE & gradient_grid,
+	const SCALAR_TYPE isovalue,
+	const SHARP_ISOVERT_PARAM & isovert_param,
+	ISOVERT & isovertData,
+	ISOVERT_INFO & isovert_info);
+
+
+/// Recompute isosurface vertex positions for cubes 
+///   which are not selected or covered.
 void recompute_isovert_positions(
     const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const GRADIENT_GRID_BASE & gradient_grid,
 		const SCALAR_TYPE isovalue,
 		const SHARP_ISOVERT_PARAM & isovert_param,
     ISOVERT & isovertData);
+
 
 /// Recompute isosurface vertex positions for cubes 
 ///   which are not selected or covered.

@@ -98,13 +98,30 @@ void compute_cube_vertex_lindstrom_3x3
 	for (int i=0; i< svd.nonzeroSingularValues(); i++)
 	{
 
-		if (singVals[i] > scaled_error_tolerance){
-			sigma(i,i)=singVals[i];
+		if (singVals[i] >= scaled_error_tolerance){
+			sigma(i,i) = singVals[i];
 			num_singular_vals++;
-			singular_vals[i]=singVals[i];
-			pseudo_inv_sigma(i,i)= 1.0/singVals[i];
+			singular_vals[i] = singVals[i];
+			pseudo_inv_sigma(i,i) =  1.0/singVals[i];
 		}
 	}
+	//DEBUG
+	//if(svd.nonzeroSingularValues()){
+	//	sigma(0,0) = singVals[0];
+	//	num_singular_vals++;
+	//	singular_vals[0] = singVals[0];
+	//	pseudo_inv_sigma(0,0) =  1.0/singVals[0];
+	//}
+	////for scaled singular vals  less than 1.
+	//for (int i=1; i< svd.nonzeroSingularValues(); i++)
+	//{
+	//	if ( singVals[i] >= scaled_error_tolerance){
+	//		sigma(i,i) = singVals[i];
+	//		num_singular_vals++;
+	//		singular_vals[i] = singVals[i];
+	//		pseudo_inv_sigma(i,i) =  1.0 / singVals[i];
+	//	}
+	//}
 
 	Matrix3f reconstruct_A = svd.matrixU()*sigma*(svd.matrixV().transpose());
 	Vector3f sharpCoord = massPoint.transpose() +
@@ -113,7 +130,7 @@ void compute_cube_vertex_lindstrom_3x3
 						reconstruct_A*massPoint.transpose());
 
 	//set isoVertCoords
-	for(int d=0;d<DIM3;d++)
+	for(int d=0; d<DIM3; d++)
 		isoVertCoords[d]=sharpCoord[d];
 
 }

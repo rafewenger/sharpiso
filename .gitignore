@@ -1,6 +1,2 @@
-\sharpiso\src\eigen\*
-sharpiso\src\eigen\*
-C:\Users\bhattaca\Documents\GitHub\sharpiso\src\eigen
-\src\eigen\*
-src\eigen\*
-C:\Users\bhattaca\Documents\GitHub\sharpiso\src
+src/eigen/*
+lib/*
