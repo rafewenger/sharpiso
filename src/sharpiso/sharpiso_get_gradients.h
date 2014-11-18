@@ -4,7 +4,7 @@
 
 /*
  IJK: Isosurface Jeneration Code
- Copyright (C) 2012-2013 Rephael Wenger
+ Copyright (C) 2012-2014 Rephael Wenger
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public License
@@ -352,13 +352,23 @@ namespace SHARPISO {
      std::vector<VERTEX_INDEX> & vertex_list);
 
   /// Get intersected edge endpoints in large neighborhood.
-  void get_ie_endpoints_in_large_neighborhood
+  /// Old, deprecated version.
+  void get_ie_endpoints_in_large_neighborhood_old_version
     (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
      const GRADIENT_GRID_BASE & gradient_grid,
      const SCALAR_TYPE isovalue,
      const VERTEX_INDEX cube_index,
      const GET_GRADIENTS_PARAM & gradient_param,
      std::vector<VERTEX_INDEX> & vertex_list);
+
+  /// Get intersected edge endpoints in large neighborhood.
+  void get_ie_endpoints_in_large_neighborhood
+	(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX cube_index,
+   const GET_GRADIENTS_PARAM & gradient_param,
+   std::vector<VERTEX_INDEX> & vertex_list);
 
   // **************************************************
   // SORT VERTICES
@@ -490,6 +500,7 @@ namespace SHARPISO {
     bool use_gradients_determining_edge_intersections;
     bool allow_duplicates;
     bool flag_sort_gradients;               ///< Sort gradients.
+    bool use_new_version;                  ///< If true, use new version.
     SIGNED_COORD_TYPE grad_selection_cube_offset;
     GRADIENT_COORD_TYPE zero_tolerance;
 
