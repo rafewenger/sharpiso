@@ -1040,14 +1040,15 @@ namespace IJK {
   (const DTYPE dimension, const ATYPE * axis_size, const WTYPE boundary_width,
    NTYPE & num_vertices)
   {
-    ATYPE interior_axis_size[dimension];
+    //ATYPE interior_axis_size[dimension];
+	IJK:ARRAY <ATYPE> interior_axis_size ( dimension );
 
     num_vertices = 0;
     for (DTYPE d = 0; d < dimension; d++) {
       if (axis_size[d] <= 2*boundary_width) { return; };
       interior_axis_size[d] = axis_size[d]-2*boundary_width;
     }
-    compute_num_grid_vertices(dimension, interior_axis_size, num_vertices);
+    compute_num_grid_vertices(dimension, &(interior_axis_size[0]), num_vertices);
   }
 
   /// Return number of vertices in grid interior for boundary width 1.
@@ -2518,10 +2519,13 @@ namespace IJK {
   (const DTYPE dimension, const ATYPE * axis_size, 
    const VTYPE iv0, const ATYPE max_region_edge_length, VTYPE * vlist)
   {
-    ATYPE coord[dimension];
-    ATYPE region_size[dimension];
+    //ATYPE coord[dimension];
+    //ATYPE region_size[dimension];
+	
+	IJK::ARRAY <ATYPE>  coord ( dimension );
+	IJK::ARRAY <ATYPE> region_size (dimension);
 
-    compute_coord(iv0, dimension, axis_size, coord);
+    compute_coord(iv0, dimension, axis_size, &(coord[0]));
 
     for (DTYPE d = 0; d < dimension; d++) {
       if (coord[d] + max_region_edge_length < axis_size[d])
@@ -2534,7 +2538,7 @@ namespace IJK {
       }
     }
 
-    get_subgrid_vertices(dimension, axis_size, iv0, region_size, vlist);
+    get_subgrid_vertices(dimension, axis_size, iv0, &(region_size[0]), vlist);
   }
 
   /// Get grid cubes in region.
@@ -2982,7 +2986,8 @@ namespace IJK {
     // Precondition: vlist[] is preallocated to size 
     //   at least num_outer_vertices
   {
-    VTYPE axis_increment[dimension];
+   // VTYPE axis_increment[dimension];
+   IJK::ARRAY <VTYPE> axis_increment ( dimension ); 
 
     if (dimension < 1) { return; };
 
@@ -3002,7 +3007,7 @@ namespace IJK {
       VTYPE num_vertices; 
       compute_num_outer_vertices(d_last, axis_size, num_vertices);
 
-      compute_increment(dimension, axis_size, axis_increment);
+      compute_increment(dimension, axis_size, &(axis_increment[0]));
 
       for (VTYPE i = 1; i < axis_size[d_last]-1; i++) {
         VTYPE k = i*num_vertices;
@@ -3276,8 +3281,9 @@ namespace IJK {
       return;
     }
 
-    ATYPE axis_increment[dimension];
-    compute_increment(dimension, axis_size, axis_increment);
+    //ATYPE axis_increment[dimension];
+	IJK::ARRAY <ATYPE> axis_increment ( dimension );
+    compute_increment(dimension, axis_size, &(axis_increment[0]));
 
     // get vertices in lower facet
     VTYPE num_vertices_in_grid_facet;
