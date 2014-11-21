@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2008-2013 Rephael Wenger
+  Copyright (C) 2008-2014 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -1949,6 +1949,66 @@ namespace IJK {
     }
 
     return(false);
+  }
+
+  /// Returns true if \a s is greater than min scalar value of facet vertices
+  ///   and \a s is less then or equal to max scalar value of facet vertices.
+  /// @param scalar_grid Scalar grid.
+  /// @pre GRID_TYPE must have member function FacetVertex()
+  /// @pre scalar_grid.Dimension() > 0 so scalar_grid.NumFacetVertices() > 0.
+  /// @param icube Cube index.
+  /// @param ifacet Facet index.
+  /// @param s Scalar value
+  template <typename GRID_TYPE, typename ITYPE0, typename ITYPE1, 
+            typename STYPE>
+  bool is_gt_facet_min_le_facet_max
+  (const GRID_TYPE & scalar_grid, const ITYPE0 icube, const ITYPE1 ifacet,
+   const STYPE s)
+  {
+    typedef typename GRID_TYPE::VERTEX_INDEX_TYPE VTYPE;
+    typedef typename GRID_TYPE::NUMBER_TYPE NTYPE;
+
+    const VTYPE iv0 = scalar_grid.FacetVertex(icube, ifacet, 0);
+
+    if (scalar_grid.Scalar(iv0) < s) {
+      for (NTYPE k = 1; k < scalar_grid.NumFacetVertices(); k++) {
+        VTYPE iv1 = scalar_grid.FacetVertex(icube, ifacet, k);
+        if (scalar_grid.Scalar(iv1) >= s)
+          { return(true); }
+      }
+    }
+    else {
+      for (NTYPE k = 1; k < scalar_grid.NumFacetVertices(); k++) {
+        VTYPE iv1 = scalar_grid.FacetVertex(icube, ifacet, k);
+        if (scalar_grid.Scalar(iv1) < s)
+          { return(true); }
+      }
+    }
+
+    return(false);
+  }
+
+  /// Returns true if \a s is greater than min scalar value of facet vertices
+  ///   and \a s is less then or equal to max scalar value of facet vertices.
+  /// Input direction orthogonal to facet and cube side instead of facet index.
+  /// @param scalar_grid Scalar grid.
+  /// @pre GRID_TYPE must have member function FacetVertex()
+  /// @pre scalar_grid.Dimension() > 0 so scalar_grid.NumFacetVertices() > 0.
+  /// @param icube Cube index.
+  /// @param orth_dir Direction orthogonal to facet.
+  /// @param side Cube side. False = side containing lower/left cube vertex.
+  /// @param s Scalar value
+  template <typename GRID_TYPE, typename ITYPE, typename DIR_TYPE, 
+            typename STYPE>
+  bool is_gt_facet_min_le_facet_max
+  (const GRID_TYPE & scalar_grid, const ITYPE icube, 
+   const DIR_TYPE orth_dir, const bool side, const STYPE s)
+  {
+    ITYPE ifacet = orth_dir;
+
+    if (side) { ifacet += scalar_grid.Dimension(); }
+
+    return(is_gt_facet_min_le_facet_max(scalar_grid, icube, ifacet, s));
   }
 
   /// Returns true if \a s is greater than min scalar value of (iv0,iv1)
