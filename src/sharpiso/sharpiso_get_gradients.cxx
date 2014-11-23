@@ -2400,7 +2400,8 @@ void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
 		use_selected_gradients = true;
 		use_intersected_edge_endpoint_gradients = true;
 		use_zero_grad_boundary = true;
-    use_new_version = true;
+		use_large_neighborhood = true;
+		use_new_version = true;
 		break;
 
 	case GRAD_BIES_OLD:
@@ -2408,7 +2409,8 @@ void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
 		use_selected_gradients = true;
 		use_intersected_edge_endpoint_gradients = true;
 		use_zero_grad_boundary = true;
-    use_new_version = false;
+		use_large_neighborhood = true;
+		use_new_version = false;
 		break;
 
 	case GRAD_EDGEI_INTERPOLATE:
