@@ -256,6 +256,7 @@ void compute_isovert_positions_edgeI
 /// Recompute isosurface vertex positions for cubes 
 /// which are not selected or covered.
 /// takes isovert_info as parameter.
+// NOT USED
 void MERGESHARP::recompute_isovert_positions 
 	(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 	const GRADIENT_GRID_BASE & gradient_grid,

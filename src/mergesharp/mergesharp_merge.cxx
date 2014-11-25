@@ -195,9 +195,17 @@ namespace {
 			if (gcube_list[from_cube].flag != SELECTED_GCUBE && 
 				gcube_map[from_cube] == from_cube) {
 					if (gcube_list[from_cube].boundary_bits == 0) {
+						//DEBUG
+						//using namespace std;
+						//cout <<"successfully mapped"<< endl;
 						// Map gcube_list[from_cube] to isosurface vertex in cube to_cube.
 						gcube_map[from_cube] = to_cube;
 					}
+					//else
+					//{//DEBUG
+					//	using namespace std;
+					//	cout <<"\n";
+					//}
 			}
 		}
 	}
@@ -231,15 +239,15 @@ namespace {
 				neighbor_cube_index_v = gridn.CubeNeighborF(cube_index_v, j);
 				//DEBUG
 				//std::cout <<"neighbor cube index " << neighbor_cube_index_v << std::endl;
-				INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_cube_index_v);
+				INDEX_DIFF_TYPE neighbor_gcube_index_v = isovert.sharp_ind_grid.Scalar(neighbor_cube_index_v);
 				//NOT_ACTIVE
-				if(k == ISOVERT::NO_INDEX)
+				if(neighbor_gcube_index_v == ISOVERT::NO_INDEX)
 					continue;
 				//DEBUG
 				//std::cout <<"gcube_map size "<<
-				//	  gcube_map.size() <<" k neighbor "<< k <<std::endl;
+				//	  gcube_map.size() <<" neighbor_gcube_index_v neighbor "<< neighbor_gcube_index_v <<std::endl;
 				// the neighbor maps to x;
-				VERTEX_INDEX x = gcube_map[k]; 
+				VERTEX_INDEX x = gcube_map[neighbor_gcube_index_v]; 
 
 				bool is_x_selected = false;
 				if(isovert.gcube_list[x].flag == SELECTED_GCUBE)
@@ -257,7 +265,9 @@ namespace {
 					}
 				}
 			}//for_end
-
+			//DEBUG
+			//find connected sharp. 
+			/*
 			//For edge neighbors
 			for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsE(); j++) 
 			{
@@ -320,6 +330,8 @@ namespace {
 					}
 				}
 			}//for_end
+			*/
+			
 		}
 	}
 	//****************************************
@@ -430,13 +442,23 @@ namespace {
 		VERTEX_INDEX & gcube_index_to_vertex // gcube_index of the vertex which is a good mapping
 		)
 	{
+		//debug
+		/*using namespace std;
+		cout <<"connected sharp"<<endl;
+		for (int i = 0; i < connected_sharp.size(); i++)
+		{
+			cout <<isovert.gcube_list[connected_sharp[i]].cube_index<<endl;
+		}*/
+
+
 		if(connected_sharp.size() < 1)
 		{
-
 			return false;
 		}
 		else if(connected_sharp.size() <= 2)
 		{
+		
+
 			for (int i = 0; i < connected_sharp.size(); i++)
 			{
 				if(connected_sharp[i] == gcube_index_to_vertex)
@@ -454,33 +476,59 @@ namespace {
 		}
 		else
 		{
-			for (int k = 0; k < 3; k++)
+			//check for degree 3
+			short num_of_deg3 = 0;
+			int deg3_index = 0;
+			for (int i = 0; i < connected_sharp.size(); i++)
 			{
-				if (connected_sharp[k] == gcube_index_to_vertex)
+				if( isovert.gcube_list[connected_sharp[i]].num_eigenvalues == 3)
 				{
-					VERTEX_INDEX k1 = (k+1)%3;
-					VERTEX_INDEX k2 = (k+2)%3;
-
-					VERTEX_INDEX cube_index1 = 
-						isovert.gcube_list[connected_sharp[k1]].cube_index;
-					VERTEX_INDEX cube_index2 = 
-						isovert.gcube_list[connected_sharp[k2]].cube_index;
-					bool flag = are_connected(scalar_grid, cube_index1,
-						cube_index2, isovalue);
-					if(flag == false)// The other two vertices are not connected.
-					{
-						gcube_index_to_vertex = connected_sharp[k];
-						return true;
-					}
+					num_of_deg3++;
+					deg3_index = i;
 				}
 			}
-			return false;
+			if(num_of_deg3 == 1)
+			{
+				gcube_index_to_vertex = connected_sharp[deg3_index];
+				return true;
+			}
+			else if(num_of_deg3 > 1)
+			{
+				using namespace std;
+				cerr <<"ERROR "<< isovert.gcube_list[gcube_index_from_v].cube_index
+					<<" connected to more than one degree 3 vertex.\n";
+				return false;
+			}
+			else{
+				for (int k = 0; k < 3; k++)
+				{
+					if (connected_sharp[k] == gcube_index_to_vertex)
+					{
+
+						VERTEX_INDEX k1 = (k+1)%3;
+						VERTEX_INDEX k2 = (k+2)%3;
+
+						VERTEX_INDEX cube_index1 = 
+							isovert.gcube_list[connected_sharp[k1]].cube_index;
+						VERTEX_INDEX cube_index2 = 
+							isovert.gcube_list[connected_sharp[k2]].cube_index;
+						bool flag = are_connected(scalar_grid, cube_index1,
+							cube_index2, isovalue);
+						if(flag == false)// The other two vertices are not connected.
+						{
+							gcube_index_to_vertex = connected_sharp[k];
+							return true;
+						}
+					}
+				}
+				return false;
+			}
 		}
 	}
 
 	// Map isosurface vertices adjacent to sharp and convered cubes to 
 	// Selected cubes. 
-	void map_adjacent_cubes_extended_old
+	void map_adjacent_cubes_extended
 		(
 		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
 		const SCALAR_TYPE isovalue,
@@ -505,17 +553,31 @@ namespace {
 		{
 			//index to sharp cube in the sorted gcube list
 			NUM_TYPE gcube_index = sorted_gcube_list[i];
+
+			//debug
+			using namespace std;
+
+			
 			//covered and not selected.
 			if (isovert.gcube_list[gcube_index].flag == COVERED_A_GCUBE
 				&& isovert.gcube_list[gcube_index].flag != SELECTED_GCUBE) {
 					//cube index of the sharp cube
 					cube_index_covered = isovert.gcube_list[gcube_index].cube_index;
+					
+					//debug
+					/*COORD_TYPE coord1[DIM3];
+					scalar_grid.ComputeScaledCoord(cube_index_covered, coord1);
+					cout <<"covered sharpF  "<< coord1[0]<<" "<< coord1[1]<<" "<<  coord1[2] << endl;*/
+
 
 					if (isovert.gcube_list[gcube_index].boundary_bits == 0) {
 						// Cube cube_index is an interior cube.
 
-						for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsF(); j++) {
 
+
+						for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsF(); j++) 
+						{
+							
 							neighbor_index = gridn.CubeNeighborF(cube_index_covered, j);
 							//k is an entry into the gcube list 
 							INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
@@ -529,21 +591,21 @@ namespace {
 							VERTEX_INDEX to_cube = gcube_map[gcube_index];
 
 							//DEBUG
-							VERTEX_INDEX v = isovert.gcube_list[to_cube].cube_index;
+							/*VERTEX_INDEX v = isovert.gcube_list[to_cube].cube_index;
 							COORD_TYPE coord1[DIM3];
 							using namespace std;
 							scalar_grid.ComputeScaledCoord(v, coord1);
-							//cout <<"to_cube  scaled "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
+							cout <<"\n---------------------------------------------\n";
+							cout <<"to_cube scaled "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
 
-							/*cout <<"neighbor gcubeindex F "<<k <<" neighbor cubeindex " << neighbor_index <<endl;
+							cout <<"neighbor gcubeindex F "<<k <<" neighbor cubeindex " << neighbor_index <<endl;
 							cout <<"from {"<< isovert.gcube_list[k].isovert_coord[0]
 							<<" "<< isovert.gcube_list[k].isovert_coord[1]
 							<<" "<< isovert.gcube_list[k].isovert_coord[2]<<"}";
 
 							scalar_grid.ComputeCoord(v, coord1);
-							cout <<" to_cube unscal  {"<< v <<"} with coord {" << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2]<<"}" << endl;*/
-
-
+							cout <<" to_cube unscal  {"<< v <<"} with coord {" 
+								<< coord1[0]<<" "<<coord1[1]<<" "<< coord1[2]<<"}";*/
 
 							std::vector<VERTEX_INDEX> connected_sharp;
 							//NOT_ACTIVE
@@ -554,16 +616,108 @@ namespace {
 								isovert, k, connected_sharp, to_cube);
 							if(flag)
 							{
+								//debug
+								//cout <<"map Vertex: "<< endl;
 								map_iso_vertex(isovert.gcube_list, k, to_cube, gcube_map);
-								//isovert.gcube_list[k].flag = COVERED_B_GCUBE;
+								//isovert.gcube_list[gcube_index].flag = COVERED_B_GCUBE;
 							}
+							//debug
+							/*else
+							{
+								cout <<"no good mapping" << endl;
+							}*/
 						}
+
+
+						/*
+						for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsE(); j++) 
+						{
+
+							neighbor_index = gridn.CubeNeighborE(cube_index_covered, j);
+
+							INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
+							//NOT_ACTIVE
+							if(k == -1)
+								continue;
+							//map to cube where cube index covered is mapped.
+							VERTEX_INDEX to_cube = gcube_map[gcube_index];
+							VERTEX_INDEX v = isovert.gcube_list[to_cube].cube_index;
+							COORD_TYPE coord1[DIM3];
+							using namespace std;
+							scalar_grid.ComputeScaledCoord(v, coord1);
+							cout <<"to_cube  scaled "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
+
+
+							scalar_grid.ComputeCoord(v, coord1);
+							cout <<"neighbor gcubeindex E "<<k <<" neighbor cubeindex " << neighbor_index <<endl;
+							cout <<"from "<< isovert.gcube_list[k].isovert_coord[0]<<" "
+								<< isovert.gcube_list[k].isovert_coord[1]<<" "<<
+								isovert.gcube_list[k].isovert_coord[2];
+							cout <<" to_cube unscal  "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2];
+
+							std::vector<VERTEX_INDEX> connected_sharp;
+
+							find_connected_sharp(k, isovert, gcube_map, connected_sharp);
+							bool flag = find_good_mapping(scalar_grid, isovalue, 
+								isovert, k, connected_sharp, to_cube);
+							if(flag)
+							{
+								//cout <<"successfully mapped"<< endl;
+								map_iso_vertex(isovert.gcube_list, k, to_cube, gcube_map);
+								//isovert.gcube_list[gcube_index].flag = COVERED_B_GCUBE;
+							}
+							else
+							{
+								cout <<"no good mapping" << endl;
+							}
+						}//
+
+						for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsV(); j++) 
+						{
+
+							neighbor_index = gridn.CubeNeighborV(cube_index_covered, j);
+
+							INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
+							//NOT_ACTIVE
+							if(k == -1)
+								continue;
+							//map to cube where cube index covered is mapped.
+							VERTEX_INDEX to_cube = gcube_map[gcube_index];
+							VERTEX_INDEX v = isovert.gcube_list[to_cube].cube_index;
+							COORD_TYPE coord1[DIM3];
+							using namespace std;
+							scalar_grid.ComputeScaledCoord(v, coord1);
+							cout <<"to_cube  scaled "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
+							scalar_grid.ComputeCoord(v, coord1);
+							cout <<"neighbor gcubeindex V "<<k <<" neighbor cubeindex " << neighbor_index <<endl;
+							cout <<"from "<< isovert.gcube_list[k].isovert_coord[0]<<" "
+								<< isovert.gcube_list[k].isovert_coord[1]<<" "<<
+								isovert.gcube_list[k].isovert_coord[2];
+							cout <<" to_cube unscal  "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2];
+							std::vector<VERTEX_INDEX> connected_sharp;
+							find_connected_sharp(k, isovert, gcube_map, connected_sharp);
+							bool flag = find_good_mapping(scalar_grid, isovalue, 
+								isovert, k, connected_sharp, to_cube);
+							if(flag)
+							{
+								//cout <<"successfully mapped"<< endl;
+								map_iso_vertex(isovert.gcube_list, k, to_cube, gcube_map);
+								//isovert.gcube_list[gcube_index].flag = COVERED_B_GCUBE;
+							}
+							else
+							{
+								cout <<"no good mapping" << endl;
+							}
+						}*/
+						
+
 					}
 					else {
 						// *** Handle boundary case. ***
 					}
 			}
 		}
+		
 		// Set cubes which share edges with selected cubes.
 		for (NUM_TYPE i = 0; i < sorted_gcube_list.size(); i++) {
 			NUM_TYPE gcube_index = sorted_gcube_list[i];
@@ -572,6 +726,11 @@ namespace {
 				&& isovert.gcube_list[gcube_index].flag != SELECTED_GCUBE) {
 
 					cube_index_covered = isovert.gcube_list[gcube_index].cube_index;
+					
+					//debug
+					/*COORD_TYPE coord1[DIM3];
+					scalar_grid.ComputeScaledCoord(cube_index_covered, coord1);
+					cout <<"covered sharpE  "<< coord1[0]<<" "<< coord1[1]<<" "<<  coord1[2] << endl;*/
 
 					if (isovert.gcube_list[gcube_index].boundary_bits == 0) {
 						// Cube cube_index is an interior cube.
@@ -586,19 +745,22 @@ namespace {
 								continue;
 							//map to cube where cube index covered is mapped.
 							VERTEX_INDEX to_cube = gcube_map[gcube_index];
-							VERTEX_INDEX v = isovert.gcube_list[to_cube].cube_index;
+							//debug
+							/*VERTEX_INDEX v = isovert.gcube_list[to_cube].cube_index;
 							COORD_TYPE coord1[DIM3];
 							using namespace std;
 							scalar_grid.ComputeScaledCoord(v, coord1);
-							////cout <<"to_cube  scaled "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
+							cout <<"\n---------------------------------------------\n";
+							cout <<"to_cube  scaled "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
 
 
-							/*scalar_grid.ComputeCoord(v, coord1);
+							scalar_grid.ComputeCoord(v, coord1);
 							cout <<"neighbor gcubeindex E "<<k <<" neighbor cubeindex " << neighbor_index <<endl;
 							cout <<"from "<< isovert.gcube_list[k].isovert_coord[0]<<" "
-							<< isovert.gcube_list[k].isovert_coord[1]<<" "<<
-							isovert.gcube_list[k].isovert_coord[2];
-							cout <<" to_cube unscal  "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;*/
+								<< isovert.gcube_list[k].isovert_coord[1]<<" "<<
+								isovert.gcube_list[k].isovert_coord[2];
+							cout <<" to_cube unscal  "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2];*/
+							//debug_end
 
 							std::vector<VERTEX_INDEX> connected_sharp;
 
@@ -607,9 +769,17 @@ namespace {
 								isovert, k, connected_sharp, to_cube);
 							if(flag)
 							{
+								//debug
+								//cout <<"map Vertex: "<< endl;
+								
 								map_iso_vertex(isovert.gcube_list, k, to_cube, gcube_map);
 							}
-						}
+							//debug
+							/*else
+							{
+								cout <<"no good mapping" << endl;
+							}*/
+						}//
 					}
 					else {
 						// *** Handle boundary case. ***
@@ -617,13 +787,19 @@ namespace {
 			}
 		}
 		//covered and not selected.
+
 		for (NUM_TYPE i = 0; i < sorted_gcube_list.size(); i++) {
 			NUM_TYPE gcube_index = sorted_gcube_list[i];
 			if (isovert.gcube_list[gcube_index].flag == COVERED_A_GCUBE
 				&& isovert.gcube_list[gcube_index].flag != SELECTED_GCUBE) {
 
 					cube_index_covered = isovert.gcube_list[gcube_index].cube_index;
-
+					//debug
+					/*COORD_TYPE coord1[DIM3];
+					scalar_grid.ComputeScaledCoord(cube_index_covered, coord1);
+					cout <<"covered sharpV  "<< coord1[0]<<" "<< coord1[1]<<" "<<  coord1[2] << endl;*/
+					//debug_end
+					
 					if (isovert.gcube_list[gcube_index].boundary_bits == 0) {
 						// Cube cube_index is an interior cube.
 
@@ -633,29 +809,39 @@ namespace {
 
 							INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
 							//NOT_ACTIVE
-							if(k == -1)
+							if(k == ISOVERT::NO_INDEX)
 								continue;
 							//map to cube where cube index covered is mapped.
 							VERTEX_INDEX to_cube = gcube_map[gcube_index];
-							VERTEX_INDEX v = isovert.gcube_list[to_cube].cube_index;
+							//debug
+							/*VERTEX_INDEX v = isovert.gcube_list[to_cube].cube_index;
 							COORD_TYPE coord1[DIM3];
 							using namespace std;
 							scalar_grid.ComputeScaledCoord(v, coord1);
-							//cout <<"to_cube  scaled "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
-							/*scalar_grid.ComputeCoord(v, coord1);
+							cout <<"\n---------------------------------------------\n";
+							cout <<"to_cube  scaled "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;
+							scalar_grid.ComputeCoord(v, coord1);
 							cout <<"neighbor gcubeindex V "<<k <<" neighbor cubeindex " << neighbor_index <<endl;
 							cout <<"from "<< isovert.gcube_list[k].isovert_coord[0]<<" "
-							<< isovert.gcube_list[k].isovert_coord[1]<<" "<<
-							isovert.gcube_list[k].isovert_coord[2];
-							cout <<" to_cube unscal  "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2] << endl;*/
+								<< isovert.gcube_list[k].isovert_coord[1]<<" "<<
+								isovert.gcube_list[k].isovert_coord[2];
+							cout <<" to_cube unscal  "<< v <<" " << coord1[0]<<" "<<coord1[1]<<" "<< coord1[2];
+							*///debug_end
+
 							std::vector<VERTEX_INDEX> connected_sharp;
 							find_connected_sharp(k, isovert, gcube_map, connected_sharp);
 							bool flag = find_good_mapping(scalar_grid, isovalue, 
 								isovert, k, connected_sharp, to_cube);
 							if(flag)
 							{
+								//debug
+								//cout <<"map Vertex: "<< endl;
 								map_iso_vertex(isovert.gcube_list, k, to_cube, gcube_map);
 							}
+							/*else
+							{
+								cout <<"no good mapping" << endl;
+							}*/
 						}
 					}
 					else {
@@ -667,7 +853,7 @@ namespace {
 
 	// 2nd version of the map cube extension 
 
-	void map_adjacent_cubes_extended
+	void map_adjacent_cubes_extended_version2
 		(const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
 		const SCALAR_TYPE isovalue,
 		const MERGESHARP::ISOVERT & isovert, 
@@ -1069,8 +1255,8 @@ namespace {
 		//DEBUG
 		if(sharp_isovert_param.flag_map_extended){
 
-			//map_adjacent_cubes_extended(scalar_grid, isovalue, isovert, gcube_map, sharp_isovert_param);
-			map_adjacent_cubes_extended_old(scalar_grid, isovalue, isovert, gcube_map);
+			//map_adjacent_cubes_extended_version2(scalar_grid, isovalue, isovert, gcube_map, sharp_isovert_param);
+			map_adjacent_cubes_extended(scalar_grid, isovalue, isovert, gcube_map);
 		}
 
 		if (sharp_isovert_param.flag_check_disk) {
@@ -1091,9 +1277,9 @@ namespace {
 		map_adjacent_cubes(isovert, gcube_map);
 		if(sharp_isovert_param.flag_map_extended){
 
-			//map_adjacent_cubes_extended(scalar_grid, isovalue, isovert, gcube_map, sharp_isovert_param);
+			//map_adjacent_cubes_extended_version2(scalar_grid, isovalue, isovert, gcube_map, sharp_isovert_param);
 			//DEBUG going back to the old 
-			map_adjacent_cubes_extended_old(scalar_grid, isovalue, isovert, gcube_map);
+			map_adjacent_cubes_extended(scalar_grid, isovalue, isovert, gcube_map);
 		}
 		if (sharp_isovert_param.flag_check_disk) {
 			unmap_non_disk_isopatches

@@ -1,2 +1,5 @@
 src/eigen/*
 lib/*
+*.exe
+*.txt~
+*.cmake
