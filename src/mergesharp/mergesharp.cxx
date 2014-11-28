@@ -622,7 +622,8 @@ void MERGESHARP::dual_contouring_merge_sharp_from_grad
 
 	}
 	//DEBUG
-	/*COORD_TYPE coord1[DIM3]={0.0,0.0,0.0};
+	if(false){
+	COORD_TYPE coord1[DIM3]={0.0,0.0,0.0};
 	std::cout <<"size "<<isovert.gcube_list.size() << std::endl;
 	for (int i = 0; i < isovert.gcube_list.size(); i++)
 	{
@@ -640,7 +641,9 @@ void MERGESHARP::dual_contouring_merge_sharp_from_grad
 	 cout <<"cc "<< coord1[0]-scalar_grid.Spacing(0)/2.0<<" "
 	  <<coord1[1]-scalar_grid.Spacing(1)/2.0 <<" "
 	  <<coord1[2]-scalar_grid.Spacing(2)/2.0 <<"\n";
-	}*/
+	}
+	}
+	
 
 	count_vertices(isovert, isovert_info);
 
