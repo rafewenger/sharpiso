@@ -526,15 +526,15 @@ namespace {
 			else if(num_of_deg3 > 1)
 			{
 				using namespace std;
-				COORD_TYPE coord1[DIM3]= {0.0,0.0,0.0};
-				scalar_grid.ComputeCoord(
-					isovert.gcube_list[gcube_index_from_v].cube_index, coord1);
-				cout <<"ERROR "<< isovert.gcube_list[gcube_index_from_v].cube_index
-					<<" "<< coord1[0]<<" "<<coord1[1]<<" "<<coord1[2]
-				<<" connected to more than one degree 3 vertex.\n";
-				cerr <<"ERROR "<< isovert.gcube_list[gcube_index_from_v].cube_index
-					<<" "<< coord1[0]<<" "<<coord1[1]<<" "<<coord1[2]
-				<<" connected to more than one degree 3 vertex.\n";
+				//COORD_TYPE coord1[DIM3]= {0.0,0.0,0.0};
+				//scalar_grid.ComputeCoord(
+				//	isovert.gcube_list[gcube_index_from_v].cube_index, coord1);
+				//cout <<"ERROR "<< isovert.gcube_list[gcube_index_from_v].cube_index
+				//	<<" "<< coord1[0]<<" "<<coord1[1]<<" "<<coord1[2]
+				//<<" connected to more than one degree 3 vertex.\n";
+				//cerr <<"ERROR "<< isovert.gcube_list[gcube_index_from_v].cube_index
+				//	<<" "<< coord1[0]<<" "<<coord1[1]<<" "<<coord1[2]
+				//<<" connected to more than one degree 3 vertex.\n";
 				return false;
 			}
 			else{
