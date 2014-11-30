@@ -204,8 +204,8 @@ namespace {
 					}
 					else
 					{//DEBUG
-						using namespace std;
-						//cout <<"\n";
+						/*using namespace std;
+						cout <<"\n";*/
 					}
 			}
 		}
@@ -474,12 +474,12 @@ namespace {
 		)
 	{
 		//debug
-		/*using namespace std;
-		cout <<"connected sharp to "<< isovert.gcube_list[gcube_index_from_v].cube_index<<" this is the neighbor being mapped"<<endl;
-		for (int i = 0; i < connected_sharp.size(); i++)
-		{
-			cout <<isovert.gcube_list[connected_sharp[i]].cube_index<<endl;
-		}*/
+		//using namespace std;
+		//cout <<"connected sharp to "<< isovert.gcube_list[gcube_index_from_v].cube_index<<" this is the neighbor being mapped"<<endl;
+		//for (int i = 0; i < connected_sharp.size(); i++)
+		//{
+		//	cout <<isovert.gcube_list[connected_sharp[i]].cube_index<<endl;
+		//}
 
 
 		if(connected_sharp.size() < 1)
@@ -559,13 +559,13 @@ namespace {
 						isovert.gcube_list[connected_sharp[k]].cube_index;
 						bool flag2 = are_connected(scalar_grid, cube_index1,
 						cube_index_temp, isovalue);
-						cout << cube_index1 <<" and " << cube_index_temp <<" are among them connected and "
-						<<flag2 <<" ";
+						cout << cube_index1 <<" and " << cube_index_temp <<" are among them connected  ["
+						<<flag2 <<"] ";
 
 						bool flag3 = are_connected(scalar_grid, cube_index2,
 						cube_index_temp, isovalue);
-						cout << cube_index2 <<" and " << cube_index_temp <<" are among them connected and "
-						<<flag2 <<" \n";*/
+						cout << cube_index2 <<" and " << cube_index_temp <<" are among them connected ["
+						<<flag2 <<"] \n";*/
 						//debug_end
 
 						//debug
@@ -598,6 +598,78 @@ namespace {
 			}
 		}
 	}
+	/*
+	* check if the merge is permitted
+	*/
+	bool is_cube_merge_permitted(
+		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		MERGESHARP::ISOVERT & isovert,
+		const VERTEX_INDEX &from_cube_gcube_index,
+		const VERTEX_INDEX &to_cube_gcube_index,
+		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+	{
+
+		COORD_TYPE from_cube_cc[DIM3] = {0.0,0.0,0.0};
+		COORD_TYPE to_cube_cc[DIM3] = {0.0,0.0,0.0};
+		VERTEX_INDEX to_cube_cube_index = isovert.gcube_list[to_cube_gcube_index].cube_index;
+		VERTEX_INDEX from_cube_cube_index = isovert.gcube_list[from_cube_gcube_index].cube_index;
+
+		scalar_grid.ComputeCoord(from_cube_cube_index, from_cube_cc);
+		scalar_grid.ComputeCoord(to_cube_cube_index, to_cube_cc);
+
+		using namespace std;
+		//cout <<"check "<<endl;
+		if (isovert.gcube_list[from_cube_gcube_index].boundary_bits == 0) {
+			for (int d = 0; d < DIM3; d++)
+			{
+				//cout <<"d"<<d<<endl;
+				VERTEX_INDEX prev_v_cube_index = scalar_grid.PrevVertex(from_cube_cube_index,d);
+				COORD_TYPE prev_v_cc[DIM3] = {0.0,0.0,0.0};
+				scalar_grid.ComputeCoord(prev_v_cube_index, prev_v_cc);
+
+				INDEX_DIFF_TYPE prev_v_gcube_index
+					= isovert.sharp_ind_grid.Scalar( prev_v_cube_index );
+
+				/*cout <<"prev_v "<< isovert.gcube_list[prev_v_gcube_index].cube_index
+				<<" "<< prev_v_cc[0]<<" "<<prev_v_cc[1]<<" "<<prev_v_cc[2]<<endl;*/
+				if(prev_v_gcube_index != ISOVERT::NO_INDEX)
+				{
+					if( gcube_map[prev_v_gcube_index] == prev_v_gcube_index)
+					{
+						/*x is the dth coord of prev_v_cc*/
+						COORD_TYPE x = from_cube_cc[d]-1;
+						if(to_cube_cc[d] < x)
+						{
+							return false;
+						}
+					}
+				}
+				VERTEX_INDEX next_v_cube_index = scalar_grid.NextVertex(from_cube_cube_index,d);
+				COORD_TYPE next_v_cc[DIM3] = {0.0,0.0,0.0};
+				scalar_grid.ComputeCoord(next_v_cube_index, next_v_cc);
+
+				INDEX_DIFF_TYPE next_v_gcube_index
+					= isovert.sharp_ind_grid.Scalar( next_v_cube_index );
+
+				/*cout <<"nezt_v "<< isovert.gcube_list[next_v_gcube_index].cube_index
+				<<" "<< next_v_cc[0]<<" "<<next_v_cc[1]<<" "<<next_v_cc[2]<<endl;*/
+				if(next_v_gcube_index != ISOVERT::NO_INDEX)
+				{
+					if( gcube_map[next_v_gcube_index] == next_v_gcube_index)
+					{
+						/*x is the dth coord of next_v_cc*/
+						COORD_TYPE x = from_cube_cc[d]+1;
+						if(to_cube_cc[d] > x)
+						{
+							return false;
+						}
+					}
+				}
+			}
+		}
+		return true;
+	}
+	
 
 	// Map isosurface vertices adjacent to sharp and convered cubes to 
 	// Selected cubes. 
@@ -955,7 +1027,12 @@ namespace {
 
 		bool found_mapping = find_good_mapping(scalar_grid, isovalue, 
 			isovert, neighbor_gcube_index, connected_sharp, tocube_gcube_index);
-		if(found_mapping)
+		//add new check 
+		bool flag_merge_permitted = 
+			is_cube_merge_permitted(scalar_grid, isovert,
+			neighbor_gcube_index, tocube_gcube_index, gcube_map);
+
+		if(found_mapping && flag_merge_permitted)
 		{
 			map_iso_vertex(isovert.gcube_list, neighbor_gcube_index, tocube_gcube_index, gcube_map);
 		}
@@ -1006,8 +1083,8 @@ namespace {
 				using namespace std;
 				COORD_TYPE cc[DIM3] = {0.0,0.0,0.0};
 				scalar_grid.ComputeCoord(neighbor_cube_index, cc);
-				cout <<"\nmapping neighbor "<<neighbor_cube_index<<" {"<<cc[0]<<","<<cc[1]<<","<<cc[2]<<"}"
-					<<" to cube " << tocube_cube_index<<" ";
+				//cout <<"\nmapping neighbor "<<neighbor_cube_index<<" {"<<cc[0]<<","<<cc[1]<<","<<cc[2]<<"}"
+				//	<<" to cube " << tocube_cube_index<<" ";
 
 				map_iso_vertex(isovert.gcube_list, neighbor_gcube_index, tocube_gcube_index, gcube_map);
 
@@ -1015,7 +1092,7 @@ namespace {
 		}
 		else{
 			using namespace std;
-			cout <<"coord differ by 2 vdiff "<<vdiff[0]<<" "<<vdiff[1]<<" "<<vdiff[2]<<endl;
+			//cout <<"coord differ by 2 vdiff "<<vdiff[0]<<" "<<vdiff[1]<<" "<<vdiff[2]<<endl;
 		}
 	}
 	/*
@@ -1084,11 +1161,11 @@ namespace {
 			INDEX_DIFF_TYPE neighbor_gcube_index
 				= isovert.sharp_ind_grid.Scalar(neighbor_cube_index);
 			//debug
-			//COORD_TYPE  cc[DIM3]={0.0,0.0,0.0};
-			//scalar_grid.ComputeCoord(neighbor_cube_index,cc);
-			//cout <<"j "<< j <<" cube index "<< neighbor_cube_index
-			//	<<" "<<cc[0]<<" "<<cc[1]<<" "<<cc[2]
-			//	<<endl;
+			COORD_TYPE  cc[DIM3]={0.0,0.0,0.0};
+			scalar_grid.ComputeCoord(neighbor_cube_index,cc);
+			/*cout <<"j "<< j <<" cube index "<< neighbor_cube_index
+				<<" "<<cc[0]<<" "<<cc[1]<<" "<<cc[2]
+				<<endl;*/
 			if(neighbor_gcube_index == ISOVERT::NO_INDEX)
 			{
 				continue;
@@ -1126,9 +1203,9 @@ namespace {
 			//debug
 			COORD_TYPE  cc[DIM3]={0.0,0.0,0.0};
 			scalar_grid.ComputeCoord(neighbor_cube_index,cc);
-			//cout <<"j "<< j <<" cube index "<< neighbor_cube_index
-			//	<<" "<<cc[0]<<" "<<cc[1]<<" "<<cc[2]
-			//	<<endl;
+			/*cout <<"j "<< j <<" cube index "<< neighbor_cube_index
+				<<" "<<cc[0]<<" "<<cc[1]<<" "<<cc[2]
+				<<endl;*/
 			if(neighbor_gcube_index == ISOVERT::NO_INDEX)
 			{
 				
