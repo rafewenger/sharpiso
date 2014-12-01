@@ -28,7 +28,7 @@ typedef enum {
 
 	COVERED_A_GCUBE,    ///< Cube is near a cube containing a sharp vertex.
 	COVERED_B_GCUBE,	///< Cube is near a covered cube, which has a sharp vertex.
-
+	COVERED_CORNER_GCUBE, /// Covers a cube with >3 large eigen value
 	COVERED_POINT,      ///< The sharp vertex is in a covered cube.
 
 	UNAVAILABLE_GCUBE,  ///< Cube is within 3x3 of a 2 covering.
