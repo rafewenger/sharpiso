@@ -1046,12 +1046,14 @@ namespace {
 		bool flag_merge_permitted = 
 			is_cube_merge_permitted (scalar_grid, isovert,
 			neighbor_gcube_index, tocube_gcube_index, gcube_map);
+    /* Turn off
 		bool flag_merge_permitted_edges = 
 			is_cube_merge_permitted_edge_neighbors(scalar_grid, isovert,
 			neighbor_gcube_index, tocube_gcube_index, gcube_map);
-
-		//DEBUG
-		flag_merge_permitted_edges = true;
+			
+			*/
+    // Turn off check based on edge neighbors
+		bool flag_merge_permitted_edges = true;
 
 		if(found_mapping && flag_merge_permitted   && flag_merge_permitted_edges  
 			&& (gcube_map[covered_gcube_index] == tocube_gcube_index))
