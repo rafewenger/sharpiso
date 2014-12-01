@@ -1071,7 +1071,7 @@ bool is_neighbor(
 		{
 			continue;
 		}
-		if(isovert.gcube_list[neighbor_cube_index].flag == flag)
+		if(isovert.gcube_list[neighbor_gcube_index].flag == flag)
 		{
 			return true;
 		}
@@ -1089,7 +1089,7 @@ bool is_neighbor(
 		{
 			continue;
 		}
-		if(isovert.gcube_list[neighbor_cube_index].flag == flag)
+		if(isovert.gcube_list[neighbor_gcube_index].flag == flag)
 		{
 			return true;
 		}
@@ -1107,7 +1107,7 @@ bool is_neighbor(
 		{
 			continue;
 		}
-		if(isovert.gcube_list[neighbor_cube_index].flag == flag)
+		if(isovert.gcube_list[neighbor_gcube_index].flag == flag)
 		{
 			return true;
 		}
