@@ -1185,8 +1185,8 @@ void select_3x3x3_regions
 	select_corners (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param, 
 		sortd_ind2gcube_list, isovert, selected_list);
 	// pick near corners
-	select_near_corners (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param, 
-		sortd_ind2gcube_list, isovert, selected_list);
+	//select_near_corners (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param, 
+	//	sortd_ind2gcube_list, isovert, selected_list);
 	//everything else
 	select_edges (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param, 
 		sortd_ind2gcube_list, isovert, selected_list);
