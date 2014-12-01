@@ -1139,17 +1139,19 @@ void select_near_corners	(
 
 		GRID_CUBE c;
 		c = isovert.gcube_list[sortd_ind2gcube_list[ind]];
-		// check boundary
-		if(c.boundary_bits == 0 && c.linf_dist <= 0.5 )
-		{
-			bool flag = is_neighbor(c, scalar_grid, gridn,  isovert,  COVERED_CORNER_GCUBE );
-			VERTEX_INDEX neighbor_cube_index;
-			if(flag)
-				check_and_select_vertex
-				(c, scalar_grid, covered_grid, bin_grid, gridn, ind, isovalue, isovert_param, 
-				sortd_ind2gcube_list, isovert, selected_list, COVERED_A_GCUBE );
-		}
 
+    if (isovert.isFlag(cube_ind_frm_gc_ind(isovert, sortd_ind2gcube_list[ind]), AVAILABLE_GCUBE)) {
+
+      // check boundary
+      if(c.boundary_bits == 0 && c.linf_dist <= 0.5 ) {
+        bool flag = is_neighbor(c, scalar_grid, gridn,  isovert,  COVERED_CORNER_GCUBE );
+        VERTEX_INDEX neighbor_cube_index;
+        if(flag)
+          check_and_select_vertex
+            (c, scalar_grid, covered_grid, bin_grid, gridn, ind, isovalue, isovert_param, 
+             sortd_ind2gcube_list, isovert, selected_list, COVERED_A_GCUBE );
+      }
+    }
 	}
 }
 /*
@@ -1184,9 +1186,11 @@ void select_3x3x3_regions
 	// pick corners
 	select_corners (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param, 
 		sortd_ind2gcube_list, isovert, selected_list);
+
 	// pick near corners
 	select_near_corners (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param, 
 		sortd_ind2gcube_list, isovert, selected_list);
+
 	//everything else
 	select_edges (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param, 
 		sortd_ind2gcube_list, isovert, selected_list);
