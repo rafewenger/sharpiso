@@ -42,6 +42,10 @@ using namespace MERGESHARP;
 using namespace IJK;
 
 
+// *** DEBUG ***
+bool flag_debug(false);
+
+
 namespace {
 
 
@@ -931,6 +935,18 @@ void select_vertex
   selected_list.push_back(cube_index);
   covered_grid.Set(cube_index, true);
 
+  // *** DEBUG ***
+  /*
+  if (flag_debug) {
+    using namespace std;
+    GRID_COORD_TYPE coord[DIM3];
+    scalar_grid.ComputeCoord(cube_index, coord);
+    cerr << "Selecting cube " << cube_index;
+    cerr << ".  Coord: (" << coord[0] << "," << coord[1] << "," 
+         << coord[2] << ")." << endl;
+  }
+  */
+
   bin_grid_insert(scalar_grid, bin_width, cube_index, bin_grid);
 
   // mark all the neighbors as covered
@@ -1032,7 +1048,6 @@ void select_corners	(
              sortd_ind2gcube_list, isovert, selected_list, COVERED_CORNER_GCUBE );
 				}
 	}
-
 }
 
 /*
@@ -1771,6 +1786,19 @@ void MERGESHARP::store_table_index
 
 	for (NUM_TYPE i = 0; i < table_index.size(); i++) 
 	{ gcube_list[i].table_index = table_index[i]; }
+}
+
+// **************************************************
+// GRID_CUBE member functions
+// **************************************************
+
+bool GRID_CUBE::IsCoveredOrSelected() const
+{
+  if (flag == COVERED_A_GCUBE || flag == COVERED_B_GCUBE ||
+      flag == COVERED_CORNER_GCUBE || flag == SELECTED_GCUBE) 
+    { return true; }
+  else
+    { return false; }
 }
 
 // **************************************************

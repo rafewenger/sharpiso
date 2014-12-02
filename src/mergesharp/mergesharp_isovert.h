@@ -56,6 +56,9 @@ public:
 
   /// Grid index of cube which covered this cube.
   VERTEX_INDEX covered_by;
+
+  /// Return true if cube is covered or selected.
+  bool IsCoveredOrSelected() const;
 };
 
 typedef std::vector<GRID_CUBE> GRID_CUBE_ARRAY;
