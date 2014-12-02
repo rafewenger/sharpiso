@@ -396,9 +396,148 @@ namespace {
 
 		return false;
 	}
-	//
+
 	// Find a good mapping for a vertex. 
 	bool find_good_mapping(
+		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+		const SCALAR_TYPE isovalue,
+		const MERGESHARP::ISOVERT & isovert, 
+		const VERTEX_INDEX gcube_index_from_v, // gcube_index of the from_vertex
+		const std::vector<VERTEX_INDEX> & connected_sharp, // list of gcube_indices.
+		VERTEX_INDEX & gcube_index_to_vertex // gcube_index of the vertex which is a good mapping
+		)
+	{
+		//debug
+		/*using namespace std;
+		cout <<"connected sharp to "<< isovert.gcube_list[gcube_index_from_v].cube_index<<" this is the neighbor being mapped"<<endl;
+		for (int i = 0; i < connected_sharp.size(); i++)
+		{
+			cout <<isovert.gcube_list[connected_sharp[i]].cube_index<<endl;
+		}*/
+
+
+		if(connected_sharp.size() < 1)
+		{
+			return false;
+		}
+		else if(connected_sharp.size() == 1) {
+      return true;
+    }
+		else if(connected_sharp.size() == 2)
+		{
+      // Check that two vertices are connected
+      VERTEX_INDEX cube_index0 = 
+        isovert.gcube_list[connected_sharp[0]].cube_index;
+      VERTEX_INDEX cube_index1 = 
+        isovert.gcube_list[connected_sharp[1]].cube_index;
+      if (!are_connected
+          (scalar_grid, cube_index0, cube_index1, isovalue))
+        { return(false); }
+
+			//check for degree 3
+			for (int i = 0; i < connected_sharp.size(); i++)
+			{
+				if( isovert.gcube_list[connected_sharp[i]].num_eigenvalues == 3)
+				{
+					gcube_index_to_vertex = connected_sharp[i];
+					return true;
+				}
+			}
+
+			for (int i = 0; i < connected_sharp.size(); i++)
+			{
+				if(connected_sharp[i] == gcube_index_to_vertex)
+				{
+					gcube_index_to_vertex = connected_sharp[i];
+
+					return true;
+				}
+			}
+			return false;
+		}
+		else if(connected_sharp.size() > 3)
+		{  
+			return false;
+		}
+		else
+		{
+			//check for degree 3
+			short num_of_deg3 = 0;
+			int deg3_index = 0;
+			for (int i = 0; i < connected_sharp.size(); i++)
+			{
+				if( isovert.gcube_list[connected_sharp[i]].num_eigenvalues == 3)
+				{
+					num_of_deg3++;
+					deg3_index = i;
+				}
+			}
+
+			if(num_of_deg3 == 1)
+			{
+				gcube_index_to_vertex = connected_sharp[deg3_index];
+				return true;
+			}
+			else if(num_of_deg3 > 1)
+			{
+				using namespace std;
+				//COORD_TYPE coord1[DIM3]= {0.0,0.0,0.0};
+				//scalar_grid.ComputeCoord(
+				//	isovert.gcube_list[gcube_index_from_v].cube_index, coord1);
+				//cout <<"ERROR "<< isovert.gcube_list[gcube_index_from_v].cube_index
+				//	<<" "<< coord1[0]<<" "<<coord1[1]<<" "<<coord1[2]
+				//<<" connected to more than one degree 3 vertex.\n";
+				//cerr <<"ERROR "<< isovert.gcube_list[gcube_index_from_v].cube_index
+				//	<<" "<< coord1[0]<<" "<<coord1[1]<<" "<<coord1[2]
+				//<<" connected to more than one degree 3 vertex.\n";
+				return false;
+			}
+			else{
+				
+				for (int k = 0; k < 3; k++)
+				{
+					if (connected_sharp[k] == gcube_index_to_vertex)
+					{
+						
+						VERTEX_INDEX k1 = (k+1)%3;
+						VERTEX_INDEX k2 = (k+2)%3;
+
+            VERTEX_INDEX cube_index0 =
+							isovert.gcube_list[connected_sharp[k]].cube_index;
+						VERTEX_INDEX cube_index1 = 
+							isovert.gcube_list[connected_sharp[k1]].cube_index;
+						VERTEX_INDEX cube_index2 = 
+							isovert.gcube_list[connected_sharp[k2]].cube_index;
+
+            gcube_index_to_vertex = connected_sharp[k];
+
+            // Check that cube_index1 and cube_index2 are NOT connected.
+            if (are_connected
+                (scalar_grid, cube_index1, cube_index2, isovalue))
+              { return false; }
+
+            // Check that cube_index0 is connected to cube_index1.
+            if (!are_connected
+                (scalar_grid, cube_index0, cube_index1, isovalue))
+              { return(false); }
+
+            // Check that cube_index0 is connected to cube_index2.
+            if (!are_connected
+                (scalar_grid, cube_index0, cube_index2, isovalue))
+              { return(false); }
+
+            return true;
+					}
+				}
+
+				return false;
+			}
+		}
+	}
+
+  // OLD VERSION
+	// Find a good mapping for a vertex. 
+	bool find_good_mapping_old(
 		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
 		const SCALAR_TYPE isovalue,
 		const MERGESHARP::ISOVERT & isovert, 
@@ -540,6 +679,7 @@ namespace {
 			}
 		}
 	}
+
 	/*
 	* Check merge Against edge neighbors
 	*/

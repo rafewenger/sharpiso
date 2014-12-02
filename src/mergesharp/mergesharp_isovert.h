@@ -53,6 +53,9 @@ public:
 
   /// Index of cube configuration is isosurface lookup table.
   IJKDUALTABLE::TABLE_INDEX table_index;
+
+  /// Grid index of cube which covered this cube.
+  VERTEX_INDEX covered_by;
 };
 
 typedef std::vector<GRID_CUBE> GRID_CUBE_ARRAY;
