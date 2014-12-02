@@ -42,7 +42,6 @@ using namespace MERGESHARP;
 using namespace IJK;
 
 
-
 namespace {
 
 
@@ -926,7 +925,6 @@ void select_vertex
   const NUM_TYPE gcube_index = sortd_ind2gcube_list[ind];
   const VERTEX_INDEX cube_index = 
     isovert.gcube_list[gcube_index].cube_index;
-  COORD_TYPE coord1[DIM3];
 
   isovert.gcube_list[gcube_index].flag = SELECTED_GCUBE;
 
@@ -1018,21 +1016,23 @@ void select_corners	(
 	const COORD_TYPE linf_dist_threshold = 
 		isovert_param.linf_dist_thresh_merge_sharp;
 	const int bin_width = isovert_param.bin_width;
+
 	for (int ind=0; ind < sortd_ind2gcube_list.size(); ind++) {
 
 		GRID_CUBE c;
 		c = isovert.gcube_list[sortd_ind2gcube_list[ind]];
 		// check boundary
-		if(c.boundary_bits == 0)
-			//select corners first
+		if (c.boundary_bits == 0)
+			// select corners first
 				if (isovert.isFlag(cube_ind_frm_gc_ind(isovert, sortd_ind2gcube_list[ind]), AVAILABLE_GCUBE)
-					&& c.linf_dist < linf_dist_threshold && c.num_eigenvalues > 2) 
+            && c.linf_dist < linf_dist_threshold && c.num_eigenvalues > 2) 
 				{
 					check_and_select_vertex
 						(scalar_grid, covered_grid, bin_grid, gridn, ind, isovalue, isovert_param, 
-						sortd_ind2gcube_list, isovert, selected_list, COVERED_CORNER_GCUBE );
+             sortd_ind2gcube_list, isovert, selected_list, COVERED_CORNER_GCUBE );
 				}
 	}
+
 }
 
 /*
