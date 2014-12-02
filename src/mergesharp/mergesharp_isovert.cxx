@@ -1048,6 +1048,7 @@ void select_corners	(
              sortd_ind2gcube_list, isovert, selected_list, COVERED_CORNER_GCUBE );
 				}
 	}
+
 }
 
 /*
