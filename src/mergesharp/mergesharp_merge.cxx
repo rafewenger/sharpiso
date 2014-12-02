@@ -1190,7 +1190,8 @@ namespace {
 		bool flag_merge_permitted_edges = 
 			is_cube_merge_permitted_edge_neighbors(scalar_grid, isovert,
 			neighbor_gcube_index, tocube_gcube_index, gcube_map);
-    */
+			
+			*/
     // Turn off check based on edge neighbors
 		bool flag_merge_permitted_edges = true;
 
