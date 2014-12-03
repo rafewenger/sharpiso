@@ -2011,6 +2011,64 @@ namespace IJK {
     return(is_gt_facet_min_le_facet_max(scalar_grid, icube, ifacet, s));
   }
 
+  /// Returns true if \a s is greater than min scalar value of vertices 
+  ///   of some boundary facet and \a s is less then or equal to max scalar 
+  ///   value of the same boundary facet.
+  /// Input direction orthogonal to facet and cube side instead of facet index.
+  /// @param scalar_grid Scalar grid.
+  /// @pre GRID_TYPE must have member function FacetVertex()
+  /// @pre scalar_grid.Dimension() > 0 so scalar_grid.NumFacetVertices() > 0.
+  /// @param icube Cube index.
+  /// @param boundary_bits Indicates which facets are on cube boundary.
+  ///       If bit \a 2d is true, then <em>d</em>'th coordinate 
+  ///              of cube \a icube is zero.
+  ///       If bit <em>(2d+1)</em> is true, then <em>d</em>'th coordinate 
+  ///              of cube \a icube equals <em>axis_size[d]-2</em>.
+  /// @param orth_dir Direction orthogonal to facet.
+  /// @param side Cube side. False = side containing lower/left cube vertex.
+  /// @param s Scalar value
+  template <typename GRID_TYPE, typename ITYPE, typename BTYPE,
+            typename STYPE>
+  bool is_gt_boundary_facet_min_le_facet_max
+  (const GRID_TYPE & scalar_grid, const ITYPE icube, 
+   const BTYPE boundary_bits, const STYPE s)
+  {
+    typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
+    
+    const DTYPE dimension = scalar_grid.Dimension();
+    BTYPE mask;
+
+    for (DTYPE orth_dir = 0; orth_dir < dimension; orth_dir++) {
+
+      mask = (1 << (2*orth_dir));
+      if ((mask & boundary_bits) != 0) {
+        if (is_gt_facet_min_le_facet_max
+            (scalar_grid, icube, orth_dir, false, s)) 
+          { return(true); }
+      }
+
+      mask = (1 << (2*orth_dir+1));
+      if ((mask & boundary_bits) != 0) {
+        if (is_gt_facet_min_le_facet_max
+            (scalar_grid, icube, orth_dir, true, s)) 
+          { return(true); }
+      }
+    }
+
+    return(false);
+  }
+
+  template <typename GRID_TYPE, typename ITYPE, typename STYPE>
+  bool is_gt_boundary_facet_min_le_facet_max
+  (const GRID_TYPE & scalar_grid, const ITYPE icube, const STYPE s)
+  {
+    long boundary_bits;
+
+    scalar_grid.ComputeBoundaryCubeBits(icube, boundary_bits);
+    return(is_gt_boundary_facet_min_le_facet_max
+           (scalar_grid, icube, boundary_bits, s));
+  }
+
   /// Returns true if \a s is greater than min scalar value of (iv0,iv1)
   ///   and \a s is less then or equal to max scalar value of (iv0,iv1)
   /// @param scalar_grid Scalar grid.
