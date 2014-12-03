@@ -196,17 +196,8 @@ namespace {
 			if (gcube_list[from_cube].flag != SELECTED_GCUBE && 
 				gcube_map[from_cube] == from_cube) {
 					if (gcube_list[from_cube].boundary_bits == 0) {
-						//DEBUG
-						using namespace std;
-						//cout <<"successfully mapped"<< endl;
 						// Map gcube_list[from_cube] to isosurface vertex in cube to_cube.
 						gcube_map[from_cube] = to_cube;
-					}
-					else
-					{
-						//DEBUG
-						using namespace std;
-						//cout <<"not mapped \n";
 					}
 			}
 		}
@@ -2238,7 +2229,9 @@ namespace {
 				// cube index of the sharp cube.
 				cube_index = isovert.gcube_list[gcube_index].cube_index;
 
-				if (isovert.gcube_list[gcube_index].boundary_bits == 0) {
+        int boundary_bits = isovert.gcube_list[gcube_index].boundary_bits;
+
+				if (boundary_bits == 0) {
 					// Cube cube_index is an interior cube.
 					//find the neighbors
 					for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsF(); j++) 
@@ -2247,12 +2240,28 @@ namespace {
 						neighbor_index = gridn.CubeNeighborF(cube_index, j);
 
 						INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
-						// k is the 'from-cube', and gcube_index is the 'to-cube'.
+						// k is the 'from_cube', and gcube_index is the 'to_cube'.
 						map_iso_vertex(isovert.gcube_list, k, gcube_index, gcube_map);
 					}
 				}
 				else {
-					// *** Handle boundary case. ***
+
+          // *** NOT TESTED ***
+          for (int d = 0; d < gridn.Dimension(); d++) {
+            int mask = (1 << (2*d));
+            if ((mask & boundary_bits) == 0) {
+              neighbor_index = gridn.PrevVertex(cube_index, d);
+              INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
+              map_iso_vertex(isovert.gcube_list, k, gcube_index, gcube_map);
+            }
+
+            mask = (1 << (2*d+1));
+            if ((mask & boundary_bits) == 0) {
+              neighbor_index = gridn.NextVertex(cube_index, d);
+              INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
+              map_iso_vertex(isovert.gcube_list, k, gcube_index, gcube_map);
+            }
+          }
 				}
 			}
 		}
