@@ -284,29 +284,29 @@ namespace {
 
 				VERTEX_INDEX x = gcube_map[neighbor_gcube_index_v]; 
 
-				bool is_x_selected = false;
-				if(isovert.gcube_list[x].flag == SELECTED_GCUBE)
-				{
-					is_x_selected = true;
-				}
-				if (is_x_selected)
-				{
-					std::vector<VERTEX_INDEX>::iterator it;
-					it = find (connected_sharp.begin(), connected_sharp.end(), x);
-					// if x not in connected_sharp, add it to connected_sharp
-					if (it == connected_sharp.end())
-					{
-						connected_sharp.push_back(x);
+				if (isovert.gcube_list[x].flag == SELECTED_GCUBE) {
 
-            // *** DEBUG ***
-            /*
-            using namespace std;
-            if (cube_index_v == 100829) {
-              cerr << "  Cube: " << cube_index_v 
-                   << " is connected to " << isovert.gcube_list[x].cube_index 
-                   << " by facet neighbor " << neighbor_cube_index_v << endl;
+          // Note: Assumes j'th facet neighbor shares j'th facet with cube.
+          if (is_gt_facet_min_le_facet_max
+              (scalar_grid, cube_index_v, j, isovalue)) {
+
+            std::vector<VERTEX_INDEX>::iterator it;
+            it = find (connected_sharp.begin(), connected_sharp.end(), x);
+            // if x not in connected_sharp, add it to connected_sharp
+            if (it == connected_sharp.end()) {
+
+              connected_sharp.push_back(x);
+
+              // *** DEBUG ***
+              /*
+              using namespace std;
+              if (cube_index_v == 3270) {
+                cerr << "  Cube: " << cube_index_v 
+                     << " is connected to " << isovert.gcube_list[x].cube_index 
+                     << " by facet neighbor " << neighbor_cube_index_v << endl;
+              }
+              */
             }
-            */
 
 					}
 				}
@@ -339,7 +339,7 @@ namespace {
 
           // *** DEBUG ***
           /*
-          if (cube_index_v == 100829) {
+          if (cube_index_v == 3270) {
             cerr << "cube: " << cube_index_v 
                  << "  neighbor: " << neighbor_cube_index_v
                  << "  maps to: " << isovert.gcube_list[x].cube_index
@@ -359,7 +359,7 @@ namespace {
 
               // *** DEBUG ***
               /*
-              if (cube_index_v == 100829) {
+              if (cube_index_v == 3270) {
                 cerr << "  Cube: " << cube_index_v 
                      << " is connected to " << isovert.gcube_list[x].cube_index 
                      << " by edge neighbor " << neighbor_cube_index_v << endl;
@@ -669,7 +669,7 @@ namespace {
 		else
 		{
 			//check for degree 3
-			short num_of_deg3 = 0;
+			NUM_TYPE num_of_deg3 = 0;
 			int deg3_index = 0;
 			for (int i = 0; i < connected_sharp.size(); i++)
 			{
@@ -680,12 +680,16 @@ namespace {
 				}
 			}
 
+      /* DISABLED
 			if(num_of_deg3 == 1)
 			{
 				gcube_index_to_vertex = connected_sharp[deg3_index];
 				return true;
 			}
-			else if(num_of_deg3 > 1)
+			else if (num_of_deg3 > 1)
+      */
+
+      if ( num_of_deg3 > 1)
 			{
 				using namespace std;
 				//COORD_TYPE coord1[DIM3]= {0.0,0.0,0.0};
@@ -1483,10 +1487,7 @@ namespace {
 
     // *** DEBUG ***
     /*
-    if (tocube_cube_index == 6990 || tocube_cube_index == 6752 ||
-        tocube_cube_index == 7008 || tocube_cube_index == 6592 ||
-        tocube_cube_index == 7428 || neighbor_cube_index == 6631 ||
-        neighbor_cube_index == 6630) {
+    if (tocube_cube_index == 3230 || tocube_cube_index == 2470) {
 
       VERTEX_INDEX icube = 
         isovert.gcube_list[covered_gcube_index].cube_index;
@@ -1531,8 +1532,7 @@ namespace {
       // *** DEBUG ***
       /*
       using namespace std;
-      if (tocube_cube_index == 6990 || tocube_cube_index == 6752 ||
-          tocube_cube_index == 7008) {
+      if (tocube_cube_index == 3230 || tocube_cube_index == 3270) {
         GRID_CUBE c = isovert.gcube_list[neighbor_gcube_index];
         cerr << "  Mapping " << neighbor_cube_index << " to "
              << tocube_cube_index << endl;
