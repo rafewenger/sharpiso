@@ -271,8 +271,7 @@ namespace {
             // *** DEBUG ***
             /*
             using namespace std;
-            if (cube_index_v == 5869 || cube_index_v == 5448 ||
-                cube_index_v == 5848) {
+            if (cube_index_v == 128907 || cube_index_v == 125306) {
               cerr << "  Cube: " << cube_index_v 
                    << " is connected to " << isovert.gcube_list[x].cube_index 
                    << " by facet neighbor " << neighbor_cube_index_v << endl;
@@ -306,7 +305,17 @@ namespace {
           int edge_dir = int(j/gridn.NumFacetVertices());
           int k = j%gridn.NumFacetVertices();
           VERTEX_INDEX iv0 = gridn.FacetVertex(cube_index_v, edge_dir, k);
-          VERTEX_INDEX iv1 = gridn.NextVertex(cube_index_v, edge_dir);
+          VERTEX_INDEX iv1 = gridn.NextVertex(iv0, edge_dir);
+
+          // *** DEBUG ***
+          /*
+          if (cube_index_v == 128907 || cube_index_v == 125306) {
+            cerr << "cube: " << cube_index_v 
+                 << "  neighbor: " << neighbor_cube_index_v
+                 << "  maps to: " << isovert.gcube_list[x].cube_index
+                 << "  edge: (" << iv0 << " " << iv1 << ")" << endl;
+          }
+          */
           
           if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
 
@@ -320,8 +329,7 @@ namespace {
 
               // *** DEBUG ***
               /*
-              if (cube_index_v == 5869 || cube_index_v == 5448 ||
-                  cube_index_v == 5848) {
+              if (cube_index_v == 128907 || cube_index_v == 125306) {
                 cerr << "  Cube: " << cube_index_v 
                      << " is connected to " << isovert.gcube_list[x].cube_index 
                      << " by edge neighbor " << neighbor_cube_index_v << endl;
@@ -538,7 +546,7 @@ namespace {
 		}*/
 
 
-		if(connected_sharp.size() < 1)
+		if (connected_sharp.size() < 1)
 		{
 			return false;
 		}
@@ -571,7 +579,6 @@ namespace {
              << ".  are_connected: " << int(flag0)
              << ". are_connected_by_iso_edge: " << int(flag1) << endl;
       }
-      if (!flag1) { return(false); }
       */
 
       /* OLD VERSION
@@ -587,8 +594,8 @@ namespace {
 
 
       // *** DEBUG ***
-      /*
       using namespace std;
+      /*
       VERTEX_INDEX cube_index = 
         isovert.gcube_list[gcube_index_from_v].cube_index;      
       if (cube_index == 5448) {
@@ -930,6 +937,22 @@ namespace {
 		scalar_grid.ComputeCoord(from_cube_cube_index, from_cube_cc);
 		scalar_grid.ComputeCoord(to_cube_cube_index, to_cube_cc);
 
+    // *** DEBUG ***
+    /*
+    using namespace std;
+    if (from_cube_cube_index == 128907) {
+      cerr << "  checking permitted from cube: "
+           << from_cube_cube_index
+           << " (" << from_cube_cc[0] << ","
+           << from_cube_cc[1] << ","
+           << from_cube_cc[2] << ")" << endl;
+      cerr << "  to cube: " << to_cube_cube_index
+           << " (" << to_cube_cc[0] << ","
+           << to_cube_cc[1] << ","
+           << to_cube_cc[2] << ")" << endl;
+    }
+    */
+
 		using namespace std;
 		//cout <<"check "<<endl;
 		if (isovert.gcube_list[from_cube_gcube_index].boundary_bits == 0) {
@@ -943,9 +966,15 @@ namespace {
 				INDEX_DIFF_TYPE prev_v_gcube_index
 					= isovert.sharp_ind_grid.Scalar( prev_v_cube_index );
 
-				/*cout <<"prev_v "<< isovert.gcube_list[prev_v_gcube_index].cube_index
-				<<" "<< prev_v_cc[0]<<" "<<prev_v_cc[1]<<" "<<prev_v_cc[2]<<endl;*/
-				if(prev_v_gcube_index != ISOVERT::NO_INDEX)
+        // *** DEBUG ***
+        /*
+        if (from_cube_cube_index == 128907) {
+          cerr <<"prev_v "<< isovert.gcube_list[prev_v_gcube_index].cube_index
+               <<" "<< prev_v_cc[0]<<" "<<prev_v_cc[1]<<" "<<prev_v_cc[2]<<endl;
+        }
+        */
+
+				if (prev_v_gcube_index != ISOVERT::NO_INDEX)
 				{
 					if( gcube_map[prev_v_gcube_index] == prev_v_gcube_index)
 					{
@@ -969,22 +998,38 @@ namespace {
 						}
 					}
 				}
-				VERTEX_INDEX next_v_cube_index = scalar_grid.NextVertex(from_cube_cube_index,d);
+
+				VERTEX_INDEX next_v_cube_index = 
+          scalar_grid.NextVertex(from_cube_cube_index,d);
 				COORD_TYPE next_v_cc[DIM3] = {0.0,0.0,0.0};
 				scalar_grid.ComputeCoord(next_v_cube_index, next_v_cc);
 
 				INDEX_DIFF_TYPE next_v_gcube_index
 					= isovert.sharp_ind_grid.Scalar( next_v_cube_index );
 
-				/*cout <<"nezt_v "<< isovert.gcube_list[next_v_gcube_index].cube_index
-				<<" "<< next_v_cc[0]<<" "<<next_v_cc[1]<<" "<<next_v_cc[2]<<endl;*/
-				if(next_v_gcube_index != ISOVERT::NO_INDEX)
-				{
-					if( gcube_map[next_v_gcube_index] == next_v_gcube_index)
-					{
+        // *** DEBUG ***
+        /*
+        if (from_cube_cube_index == 128907) {
+          cerr << "next_v " << next_v_cube_index
+               <<" "<< next_v_cc[0]<<" "<<next_v_cc[1]<<" "<<next_v_cc[2]<<endl;
+        }
+        */
+
+				if (next_v_gcube_index != ISOVERT::NO_INDEX) {
+
+          // *** DEBUG ***
+          /*
+          if (from_cube_cube_index == 128907) {
+            cerr << "gcube_map[" << next_v_gcube_index << "] = "
+                 << gcube_map[next_v_gcube_index] << endl;
+          }
+          */
+
+					if (gcube_map[next_v_gcube_index] == next_v_gcube_index) {
+
 						/*x is the dth coord of next_v_cc*/
 						COORD_TYPE x = from_cube_cc[d]+1;
-						if(to_cube_cc[d] > x)
+						if (to_cube_cc[d] > x)
 						{
 
               // *** DEBUG ***
@@ -1386,7 +1431,9 @@ namespace {
 
     // *** DEBUG ***
     /*
-    if (tocube_cube_index == 3022 || tocube_cube_index == 3802) {
+    if (tocube_cube_index == 136165 || tocube_cube_index == 129025 ||
+        tocube_cube_index == 125306 || tocube_cube_index == 121826 ||
+        neighbor_cube_index == 125306) {
       if (found_mapping) {
         VERTEX_INDEX icube = 
           isovert.gcube_list[covered_gcube_index].cube_index;
@@ -1405,30 +1452,34 @@ namespace {
     }
     */
 
+
 		bool flag_merge_permitted = 
 			is_cube_merge_permitted (scalar_grid, isovert,
 			neighbor_gcube_index, tocube_gcube_index, gcube_map);
+
     /* Turn off
 		bool flag_merge_permitted_edges = 
 			is_cube_merge_permitted_edge_neighbors(scalar_grid, isovert,
 			neighbor_gcube_index, tocube_gcube_index, gcube_map);
-			
-			*/
+    */
+
     // Turn off check based on edge neighbors
 		bool flag_merge_permitted_edges = true;
 
 		if(found_mapping && flag_merge_permitted   && flag_merge_permitted_edges  
 			&& (gcube_map[covered_gcube_index] == tocube_gcube_index))
 		{
-			//debug
-			using namespace std;
 			COORD_TYPE cc[DIM3] = {0.0,0.0,0.0};
 			scalar_grid.ComputeCoord(neighbor_cube_index, cc);
-			VERTEX_INDEX tocube_cube_index = isovert.gcube_list[tocube_gcube_index].cube_index;
+			VERTEX_INDEX tocube_cube_index = 
+        isovert.gcube_list[tocube_gcube_index].cube_index;
 
       // *** DEBUG ***
       /*
-      if (tocube_cube_index == 3022 || tocube_cube_index == 3802) {
+      using namespace std;
+      if (tocube_cube_index == 136165 || tocube_cube_index == 129025 ||
+          tocube_cube_index == 125306 || tocube_cube_index == 121826 ||
+          neighbor_cube_index == 125306) {
         GRID_CUBE c = isovert.gcube_list[neighbor_gcube_index];
         cerr << "  Mapping " << neighbor_cube_index << " to "
              << tocube_cube_index << endl;
@@ -1445,6 +1496,7 @@ namespace {
       isovert.gcube_list[neighbor_gcube_index].flag = COVERED_B_GCUBE;
 		}
 	}
+
 	/*
 	* NOT USED
 	* Compute mapping version 2 for new extended merge  
@@ -1534,6 +1586,15 @@ namespace {
 				= isovert.sharp_ind_grid.Scalar(neighbor_cube_index);
 
 
+      // *** DEBUG ***
+      /*
+      if (neighbor_cube_index == 125306)
+        { cerr << "  Processing face neighbor: " << neighbor_cube_index
+               << " gcube: " << neighbor_gcube_index
+               << " flag: " 
+               << int(isovert.gcube_list[neighbor_gcube_index].flag)
+               << endl; }
+      */
 
 			//debug
 			//cout <<"j "<< j <<" cube index "<< neighbor_cube_index<<endl;
@@ -1587,6 +1648,17 @@ namespace {
 			/*	cout <<"j "<< j <<" cube index "<< neighbor_cube_index
 			<<" "<<cc[0]<<" "<<cc[1]<<" "<<cc[2]
 			<<endl;*/
+
+      // *** DEBUG ***
+      /*
+      if (neighbor_cube_index == 125306)
+        { cerr << "  Processing edge neighbor: " << neighbor_cube_index
+               << " gcube: " << neighbor_gcube_index
+               << " flag: " 
+               << int(isovert.gcube_list[neighbor_gcube_index].flag)
+               << endl; }
+      */
+
 			if(neighbor_gcube_index == ISOVERT::NO_INDEX)
         { continue; }
 
@@ -1633,6 +1705,17 @@ namespace {
 			/*cout <<"j "<< j <<" cube index "<< neighbor_cube_index
 			<<" "<<cc[0]<<" "<<cc[1]<<" "<<cc[2]
 			<<endl;*/
+
+      // *** DEBUG ***
+      /*
+      if (neighbor_cube_index == 125306)
+        { cerr << "  Processing vertex neighbor: " << neighbor_cube_index
+               << " gcube: " << neighbor_gcube_index
+               << " flag: " 
+               << int(isovert.gcube_list[neighbor_gcube_index].flag)
+               << endl; }
+      */
+
 			if(neighbor_gcube_index == ISOVERT::NO_INDEX)
         { continue; }
 
@@ -2300,13 +2383,10 @@ namespace {
 		MERGESHARP::SHARPISO_INFO & sharpiso_info)
 	{
 		map_adjacent_cubes(isovert, gcube_map);
-		//DEBUG
-		if(sharp_isovert_param.flag_map_extended){
 
-			
-			//map_adjacent_cubes_extended(scalar_grid, isovalue, isovert, gcube_map);
-			//map_adjacent_cubes_extended_version3(scalar_grid, isovalue, isovert, gcube_map);
-			map_adjacent_cubes_extended_version4(scalar_grid, isovalue, isovert, gcube_map);
+		if (sharp_isovert_param.flag_map_extended){
+			map_adjacent_cubes_extended_version4
+        (scalar_grid, isovalue, isovert, gcube_map);
 		}
 
 		if (sharp_isovert_param.flag_check_disk) {
