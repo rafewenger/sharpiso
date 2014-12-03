@@ -2108,16 +2108,23 @@ namespace {
       if (covered_by == cube_index1) { return(true); }
     }
 
-    for (NUM_TYPE j = 0; j < grid.NumVertexNeighborsC(); j++) {
-      VERTEX_INDEX icube = grid.VertexNeighborC(cube_index0, j);
+    if (isovert.gcube_list[gcube_index].boundary_bits == 0) {
 
-      gcube_index = isovert.sharp_ind_grid.Scalar(icube);
+      for (NUM_TYPE j = 0; j < grid.NumVertexNeighborsC(); j++) {
+        VERTEX_INDEX icube = grid.VertexNeighborC(cube_index0, j);
 
-      if (gcube_index != ISOVERT::NO_INDEX) {
-        VERTEX_INDEX covered_by = isovert.gcube_list[gcube_index].covered_by;
-        if (covered_by == cube_index1) { return(true); }
+        gcube_index = isovert.sharp_ind_grid.Scalar(icube);
+
+        if (gcube_index != ISOVERT::NO_INDEX) {
+          VERTEX_INDEX covered_by = isovert.gcube_list[gcube_index].covered_by;
+          if (covered_by == cube_index1) { return(true); }
+        }
       }
     }
+    else {
+      // *** NOT YET IMPLEMENTED. ***
+    }
+
     return(false);
   }
 
