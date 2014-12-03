@@ -271,7 +271,7 @@ namespace {
             // *** DEBUG ***
             /*
             using namespace std;
-            if (cube_index_v == 128907 || cube_index_v == 125306) {
+            if (cube_index_v == 100829) {
               cerr << "  Cube: " << cube_index_v 
                    << " is connected to " << isovert.gcube_list[x].cube_index 
                    << " by facet neighbor " << neighbor_cube_index_v << endl;
@@ -309,7 +309,7 @@ namespace {
 
           // *** DEBUG ***
           /*
-          if (cube_index_v == 128907 || cube_index_v == 125306) {
+          if (cube_index_v == 100829) {
             cerr << "cube: " << cube_index_v 
                  << "  neighbor: " << neighbor_cube_index_v
                  << "  maps to: " << isovert.gcube_list[x].cube_index
@@ -329,7 +329,7 @@ namespace {
 
               // *** DEBUG ***
               /*
-              if (cube_index_v == 128907 || cube_index_v == 125306) {
+              if (cube_index_v == 100829) {
                 cerr << "  Cube: " << cube_index_v 
                      << " is connected to " << isovert.gcube_list[x].cube_index 
                      << " by edge neighbor " << neighbor_cube_index_v << endl;
@@ -689,9 +689,28 @@ namespace {
             gcube_index_to_vertex = connected_sharp[k];
 
             // Check that cube_index1 and cube_index2 are NOT connected.
+            if (are_connected_by_iso_edge
+                (scalar_grid, cube_index1, cube_index2,
+                 isovalue, isovert, gcube_map))
+              { return(false); }
+
+            // Check that cube_index0 is connected to cube_index1.
+            if (!are_connected_by_iso_edge
+                (scalar_grid, cube_index0, cube_index1,
+                 isovalue, isovert, gcube_map))
+              { return(false); }
+
+            // Check that cube_index0 is connected to cube_index2.
+            if (!are_connected_by_iso_edge
+                (scalar_grid, cube_index0, cube_index2,
+                 isovalue, isovert, gcube_map))
+              { return(false); }
+
+            /* OLD VERSION
+            // Check that cube_index1 and cube_index2 are NOT connected.
             if (are_connected
-                (scalar_grid, cube_index1, cube_index2, isovalue))
-              { return false; }
+                (scalar_grid, cube_index1, cube_index2, isovalue)) 
+                { return false; }
 
             // Check that cube_index0 is connected to cube_index1.
             if (!are_connected
@@ -702,6 +721,8 @@ namespace {
             if (!are_connected
                 (scalar_grid, cube_index0, cube_index2, isovalue))
               { return(false); }
+            */
+
 
             return true;
 					}
@@ -940,7 +961,7 @@ namespace {
     // *** DEBUG ***
     /*
     using namespace std;
-    if (from_cube_cube_index == 128907) {
+    if (from_cube_cube_index == 100829) {
       cerr << "  checking permitted from cube: "
            << from_cube_cube_index
            << " (" << from_cube_cc[0] << ","
@@ -968,7 +989,7 @@ namespace {
 
         // *** DEBUG ***
         /*
-        if (from_cube_cube_index == 128907) {
+        if (from_cube_cube_index == 100829) {
           cerr <<"prev_v "<< isovert.gcube_list[prev_v_gcube_index].cube_index
                <<" "<< prev_v_cc[0]<<" "<<prev_v_cc[1]<<" "<<prev_v_cc[2]<<endl;
         }
@@ -986,7 +1007,7 @@ namespace {
               // *** DEBUG ***
               /*
               using namespace std;
-              if (from_cube_cube_index == 1751) {
+              if (from_cube_cube_index == 100829) {
                 cerr << "Cube " << from_cube_cube_index 
                      << " is stopped from mapping to " 
                      << to_cube_cube_index << " by "
@@ -1009,7 +1030,7 @@ namespace {
 
         // *** DEBUG ***
         /*
-        if (from_cube_cube_index == 128907) {
+        if (from_cube_cube_index == 100829) {
           cerr << "next_v " << next_v_cube_index
                <<" "<< next_v_cc[0]<<" "<<next_v_cc[1]<<" "<<next_v_cc[2]<<endl;
         }
@@ -1019,7 +1040,7 @@ namespace {
 
           // *** DEBUG ***
           /*
-          if (from_cube_cube_index == 128907) {
+          if (from_cube_cube_index == 100829) {
             cerr << "gcube_map[" << next_v_gcube_index << "] = "
                  << gcube_map[next_v_gcube_index] << endl;
           }
@@ -1035,7 +1056,7 @@ namespace {
               // *** DEBUG ***
               /*
               using namespace std;
-              if (from_cube_cube_index == 1751) {
+              if (from_cube_cube_index == 100829) {
                 cerr << "Cube " << from_cube_cube_index 
                      << " is stopped from mapping to " 
                      << to_cube_cube_index << " by "
@@ -1431,9 +1452,8 @@ namespace {
 
     // *** DEBUG ***
     /*
-    if (tocube_cube_index == 136165 || tocube_cube_index == 129025 ||
-        tocube_cube_index == 125306 || tocube_cube_index == 121826 ||
-        neighbor_cube_index == 125306) {
+    if (tocube_cube_index == 100747 || tocube_cube_index == 94269 ||
+        neighbor_cube_index == 100829) {
       if (found_mapping) {
         VERTEX_INDEX icube = 
           isovert.gcube_list[covered_gcube_index].cube_index;
@@ -1477,9 +1497,8 @@ namespace {
       // *** DEBUG ***
       /*
       using namespace std;
-      if (tocube_cube_index == 136165 || tocube_cube_index == 129025 ||
-          tocube_cube_index == 125306 || tocube_cube_index == 121826 ||
-          neighbor_cube_index == 125306) {
+      if (tocube_cube_index == 100747 || tocube_cube_index == 94269 ||
+          neighbor_cube_index == 100829) {
         GRID_CUBE c = isovert.gcube_list[neighbor_gcube_index];
         cerr << "  Mapping " << neighbor_cube_index << " to "
              << tocube_cube_index << endl;
