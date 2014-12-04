@@ -84,6 +84,18 @@ public:
 
   /// Return true if cube flag equals flag.
 	bool isFlag(const int cube_index, GRID_CUBE_FLAG flag); 
+
+  /// Return cube index.
+  VERTEX_INDEX CubeIndex(const int gcube_index) const
+  { return(gcube_list[gcube_index].cube_index); }
+
+  /// Return gcube index or NO_INDEX.
+  INDEX_DIFF_TYPE GCubeIndex(const int cube_index) const
+  { return(sharp_ind_grid.Scalar(cube_index)); }
+
+  /// Return pointer to isovert_coord[].
+  const COORD_TYPE * IsoVertCoord(const int gcube_index) const
+  { return(gcube_list[gcube_index].isovert_coord); }
 };
 
 

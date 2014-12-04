@@ -34,7 +34,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "mergesharp_merge.h"
 #include "mergesharp_extract.h"
 
-
+// *** DEBUG ***
+#include "ijkprint.txx"
 
 // forward declarations
 namespace {
@@ -737,9 +738,9 @@ namespace {
 	bool is_cube_merge_permitted_edge_neighbors(
 		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		MERGESHARP::ISOVERT & isovert,
-		const VERTEX_INDEX &from_cube_gcube_index,
-		const VERTEX_INDEX &to_cube_gcube_index,
-		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+		const VERTEX_INDEX from_cube_gcube_index,
+		const VERTEX_INDEX to_cube_gcube_index,
+		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
 	{
 	
 		COORD_TYPE from_cube_cc[DIM3] = {0.0,0.0,0.0};
@@ -792,21 +793,247 @@ namespace {
 		}
 		return true;
 	}
+
 	/*
-	* check if the merge is permitted
+	* 
+  *   
 	*/
-	bool is_cube_merge_permitted(
+  /// Check if merge distorts triangle between vertices in cubes 
+  ///   from_gcube_index, ca_gcube_index and cb_gcube_index.
+  /// @param min_distance_between_isovert Points closer 
+  ///          than min_distance_between_isovert are considered identical.
+	bool is_triangle_distorted
+  (const MERGESHARP::ISOVERT & isovert,
+   const VERTEX_INDEX from_gcube_index,
+   const VERTEX_INDEX to_gcube_index,
+   const VERTEX_INDEX ca_gcube_index,
+   const VERTEX_INDEX cb_gcube_index,
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   const COORD_TYPE min_distance_between_isovert,
+   const COORD_TYPE max_cos)
+  {
+    const COORD_TYPE * from_coord = isovert.IsoVertCoord(from_gcube_index);
+    const COORD_TYPE * to_coord = isovert.IsoVertCoord(to_gcube_index);
+    const VERTEX_INDEX ca_to_gcube = gcube_map[ca_gcube_index];
+    const VERTEX_INDEX cb_to_gcube = gcube_map[cb_gcube_index];
+    const COORD_TYPE * ca_coord = isovert.IsoVertCoord(ca_to_gcube);
+    const COORD_TYPE * cb_coord = isovert.IsoVertCoord(cb_to_gcube);
+    COORD_TYPE v0[DIM3], v1[DIM3], v2[DIM3];
+    COORD_TYPE wA[DIM3], wB[DIM3];
+    COORD_TYPE mag0, mag1, mag2;
+    COORD_TYPE cos_angle;
+    bool flag0_zero, flag1_zero, flag2_zero;
+
+    IJK::subtract_coord_3D(to_coord, cb_coord, v0);
+    IJK::subtract_coord_3D(ca_coord, cb_coord, v1);
+    IJK::subtract_coord_3D(from_coord, cb_coord, v2);
+
+    IJK::normalize_vector
+      (DIM3, v0, min_distance_between_isovert, v0, mag0, flag0_zero);
+    IJK::normalize_vector
+      (DIM3, v1, min_distance_between_isovert, v1, mag1, flag1_zero);
+    IJK::normalize_vector
+      (DIM3, v2, min_distance_between_isovert, v2, mag2, flag2_zero);
+
+    if (flag0_zero || flag1_zero || flag2_zero) {
+      // Points are too close to determine distortion.
+      // Assume distortion.
+
+      return(true);
+    }
+
+    // Check that moving from_coord to to_coord does not create small angle.
+    IJK::compute_inner_product(DIM3, v0, v1, cos_angle);
+    
+    // *** DEBUG **
+    /*
+    using namespace std;
+    VERTEX_INDEX from_cube = isovert.CubeIndex(from_gcube_index);
+    VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube_index);
+    if (to_cube == 150825) {
+      cerr << "from_cube: " << from_cube;
+      cerr << "  cos_angle: " << cos_angle << "  max_cos: " << max_cos << endl;
+    }
+    */
+
+    if (cos_angle > max_cos) 
+      { return(true); }
+
+    /* DISABLE
+    // Check that moving from_coord to to_coord does not flip triangle.
+    IJK::compute_cross_product_3D(v0, v1, wA);
+    IJK::compute_cross_product_3D(v2, v1, wB);
+
+    IJK::compute_inner_product(DIM3, wA, wB, cos_angle);
+    if (cos_angle <= 0) { 
+      // Angle between wA and wB is at least 90 degrees.
+      return(true); 
+    }
+    */
+
+    return(false);
+  }
+
+	/*
+	* Check if merge distorts triangles
+	*/
+	bool does_cube_merge_distort_triangles
+  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const MERGESHARP::ISOVERT & isovert,
+   const VERTEX_INDEX from_gcube_index,
+   const VERTEX_INDEX to_gcube_index,
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+	{
+		const VERTEX_INDEX to_cube_index = isovert.CubeIndex(to_gcube_index);
+		const VERTEX_INDEX from_cube_index = isovert.CubeIndex(from_gcube_index);
+    VERTEX_INDEX cb;
+
+    // REPLACE BY PARAM
+    const COORD_TYPE min_distance_between_isovert = 0.001;
+    //    const COORD_TYPE max_cos_angle = std::cos(10.0*(M_PI/180.0));
+    const COORD_TYPE max_cos_angle = std::cos(5.0*(M_PI/180.0));
+
+    // *** DEBUG ***
+    /*
+    using namespace std;
+    if (to_cube_index == 150825) {
+      cout << "Checking distortion. from_cube: " << from_cube_index
+           << " to_cube " << to_cube_index << endl;
+    }
+    */
+
+    // Check triangles formed by two facet neighbors
+    for (int d = 0; d < DIM3; d++) {
+			int d1 = (d+1)%3;
+			int d2 = (d+2)%3;
+
+			for (int j1 = -1; j1 < 2; j1=j1+2) {
+				
+        for (int j2 = -1; j2 < 2; j2=j2+2) {
+
+					VERTEX_INDEX c1 = from_cube_index + j1*scalar_grid.AxisIncrement(d1);
+          VERTEX_INDEX c2 = from_cube_index + j2*scalar_grid.AxisIncrement(d2);
+					INDEX_DIFF_TYPE c1_gcube_index = isovert.GCubeIndex(c1);
+					INDEX_DIFF_TYPE c2_gcube_index = isovert.GCubeIndex(c2);
+
+          if (c1_gcube_index != ISOVERT::NO_INDEX &&
+              c2_gcube_index != ISOVERT::NO_INDEX) {
+
+            if (gcube_map[c1_gcube_index] != to_gcube_index &&
+                gcube_map[c2_gcube_index] != to_gcube_index &&
+                gcube_map[c1_gcube_index] != gcube_map[c2_gcube_index]) {
+
+              // *** DEBUG ***
+              /*
+              using namespace std;
+              GRID_COORD_TYPE coordA[DIM3];
+              GRID_COORD_TYPE coordB[DIM3];
+              scalar_grid.ComputeCoord(c1, coordA);
+              scalar_grid.ComputeCoord(c2, coordB);
+              if (to_cube_index == 150825) {
+                cout << "  Facet neighbor 1: " << c1 << " ";
+                IJK::print_coord3D(cerr, coordB);
+                
+                cout << "  Facet neighbor 2: " << c2 << " ";
+                IJK::print_coord3D(cerr, coordA);
+                cerr << endl;
+              }
+              */
+
+              if (is_triangle_distorted
+                  (isovert, from_gcube_index, to_gcube_index,
+                   c1_gcube_index, c2_gcube_index, gcube_map,
+                   min_distance_between_isovert, max_cos_angle))
+                { return(true); }
+            }
+          }
+        }
+      }
+    }
+
+
+    // Check triangles formed by facet and edge neighbor.
+		for (int d = 0; d < DIM3; d++)
+		{
+			int d1 = (d+1)%3;
+			int d2 = (d+2)%3;
+			for (int j1 = -1; j1 < 2; j1=j1+2)
+			{
+				for (int j2 = -1; j2 < 2; j2=j2+2)
+				{
+					VERTEX_INDEX ca = from_cube_index + j1*scalar_grid.AxisIncrement(d1) 
+						+ j2*scalar_grid.AxisIncrement(d2);
+					VERTEX_INDEX ca_gcube_index = isovert.GCubeIndex(ca);
+
+					if (ca_gcube_index != ISOVERT::NO_INDEX) {
+
+            if (gcube_map[ca_gcube_index] != to_gcube_index) {
+
+              for (int k = 0; k < 2; k++) {
+
+                if (k == 0) {
+                  cb = from_cube_index + j1*scalar_grid.AxisIncrement(d1);
+                }
+                else {
+                  cb = from_cube_index + j2*scalar_grid.AxisIncrement(d2);
+                }
+                INDEX_DIFF_TYPE cb_gcube_index = isovert.GCubeIndex(cb);
+
+                if (cb_gcube_index != ISOVERT::NO_INDEX) {
+                  if (gcube_map[cb_gcube_index] != to_gcube_index &&
+                      gcube_map[ca_gcube_index] != gcube_map[cb_gcube_index]) {
+
+                    // *** DEBUG ***
+                    /*
+                    using namespace std;
+                    GRID_COORD_TYPE coordA[DIM3];
+                    GRID_COORD_TYPE coordB[DIM3];
+                    scalar_grid.ComputeCoord(ca, coordA);
+                    scalar_grid.ComputeCoord(cb, coordB);
+                    if (to_cube_index == 150825) {
+                      cout << "  Facet neighbor: " << cb << " ";
+                      IJK::print_coord3D(cerr, coordB);
+
+                      cout << "  Edge neighbor: " << ca << " ";
+                      IJK::print_coord3D(cerr, coordA);
+                      cerr << endl;
+                    }
+                    */
+
+                    if (is_triangle_distorted
+                        (isovert, from_gcube_index, to_gcube_index,
+                         ca_gcube_index, cb_gcube_index, gcube_map,
+                         min_distance_between_isovert, max_cos_angle))
+                      { return(true); }
+                  }
+                }
+              }
+            }
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/*
+	* check if merge reverses order of isosurface vertices along grid axes
+	*/
+	bool does_merge_reverse_isovert_order(
 		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		MERGESHARP::ISOVERT & isovert,
-		const VERTEX_INDEX &from_cube_gcube_index,
-		const VERTEX_INDEX &to_cube_gcube_index,
-		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+		const MERGESHARP::ISOVERT & isovert,
+		const INDEX_DIFF_TYPE from_cube_gcube_index,
+		const INDEX_DIFF_TYPE to_cube_gcube_index,
+		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
 	{
 
 		COORD_TYPE from_cube_cc[DIM3] = {0.0,0.0,0.0};
 		COORD_TYPE to_cube_cc[DIM3] = {0.0,0.0,0.0};
-		VERTEX_INDEX to_cube_cube_index = isovert.gcube_list[to_cube_gcube_index].cube_index;
-		VERTEX_INDEX from_cube_cube_index = isovert.gcube_list[from_cube_gcube_index].cube_index;
+		VERTEX_INDEX to_cube_cube_index = 
+      isovert.gcube_list[to_cube_gcube_index].cube_index;
+		VERTEX_INDEX from_cube_cube_index = 
+      isovert.gcube_list[from_cube_gcube_index].cube_index;
 
 		scalar_grid.ComputeCoord(from_cube_cube_index, from_cube_cc);
 		scalar_grid.ComputeCoord(to_cube_cube_index, to_cube_cc);
@@ -829,7 +1056,7 @@ namespace {
 						/*x is the dth coord of prev_v_cc*/
 						COORD_TYPE x = from_cube_cc[d]-1;
 						if (to_cube_cc[d] < x)
-              { return false;	}
+              { return true;	}
 					}
 				}
 
@@ -848,15 +1075,36 @@ namespace {
 						/*x is the dth coord of next_v_cc*/
 						COORD_TYPE x = from_cube_cc[d]+1;
 						if (to_cube_cc[d] > x)
-              {	return false;	}
+              {	return true;	}
 					}
 				}
 			}
 		}
 		
-		return true;
+		return false;
 	}
-	
+
+	/*
+	* check if mapping of vertex in from_cube to to_cube is permitted.
+	*/
+	bool is_cube_merge_permitted(
+		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const MERGESHARP::ISOVERT & isovert,
+		const INDEX_DIFF_TYPE from_gcube_index,
+		const INDEX_DIFF_TYPE to_gcube_index,
+		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+  {
+    if (does_merge_reverse_isovert_order
+        (scalar_grid, isovert, from_gcube_index, to_gcube_index, gcube_map))
+      { return(false); }
+
+    if (does_cube_merge_distort_triangles
+        (scalar_grid, isovert, from_gcube_index, to_gcube_index, gcube_map)) {
+      return(false);
+    }
+
+    return(true);
+  }
 
 	/*
 	* Compute mapping original
@@ -865,7 +1113,7 @@ namespace {
 		const VERTEX_INDEX covered_gcube_index,
 		const VERTEX_INDEX neighbor_cube_index,
 		const VERTEX_INDEX neighbor_gcube_index,
-		VERTEX_INDEX & tocube_gcube_index,
+    VERTEX_INDEX & tocube_gcube_index,
 		const SCALAR_TYPE isovalue,
 		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		MERGESHARP::ISOVERT & isovert,
@@ -881,33 +1129,28 @@ namespace {
                         neighbor_gcube_index, 
                         connected_sharp, tocube_gcube_index);
 
-		using namespace std;
-		VERTEX_INDEX tocube_cube_index = 
-      isovert.gcube_list[tocube_gcube_index].cube_index;
-		COORD_TYPE cc[DIM3] = {0.0,0.0,0.0};
-		scalar_grid.ComputeCoord(neighbor_cube_index, cc);
-
-
 		bool flag_merge_permitted = 
-			is_cube_merge_permitted (scalar_grid, isovert,
-			neighbor_gcube_index, tocube_gcube_index, gcube_map);
+			is_cube_merge_permitted(scalar_grid, isovert, neighbor_gcube_index, 
+                              tocube_gcube_index, gcube_map);
 
-    /* Turn off
-		bool flag_merge_permitted_edges = 
-			is_cube_merge_permitted_edge_neighbors(scalar_grid, isovert,
-			neighbor_gcube_index, tocube_gcube_index, gcube_map);
-    */
-
-    // Turn off check based on edge neighbors
-		bool flag_merge_permitted_edges = true;
-
-		if(found_mapping && flag_merge_permitted   && flag_merge_permitted_edges  
-			&& (gcube_map[covered_gcube_index] == tocube_gcube_index))
+		if(found_mapping && flag_merge_permitted &&
+       (gcube_map[covered_gcube_index] == tocube_gcube_index))
 		{
-			COORD_TYPE cc[DIM3] = {0.0,0.0,0.0};
-			scalar_grid.ComputeCoord(neighbor_cube_index, cc);
 			VERTEX_INDEX tocube_cube_index = 
         isovert.gcube_list[tocube_gcube_index].cube_index;
+
+      // *** DEBUG ***
+      /*
+      using namespace std;
+			COORD_TYPE cc[DIM3] = {0.0,0.0,0.0};
+			scalar_grid.ComputeCoord(neighbor_cube_index, cc);
+      if (tocube_cube_index == 150825) {
+        cerr << "Mapping " << neighbor_cube_index << " ";
+        IJK::print_coord3D(cerr, cc);
+        cerr << " to " << tocube_cube_index << endl;
+      }
+      */
+
 
 			map_iso_vertex(isovert.gcube_list, neighbor_gcube_index, 
                      tocube_gcube_index, gcube_map);
