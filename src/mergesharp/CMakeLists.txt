@@ -59,6 +59,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "/D NDEBUG")
   "Your compiler probably does support C++11. This project requires C++11")
 ELSEIF(CMAKE_COMPILER_IS_GNUCXX)
 SET(CMAKE_CXX_FLAGS "-std=c++0x")
+ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+SET(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
 else()
   message(FATAL_ERROR
   "Your compiler probably does not support C++11. This project requires C++11")
