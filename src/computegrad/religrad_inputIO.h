@@ -37,6 +37,7 @@ public:
 
 	bool adv_angle_based;     // advanced angle based 
 	bool adv_angle_based_v2;     // advanced angle based version 2 
+	bool curv_based;           // curvature based.
 
 	//Compare the cdiff gradient with immediate neighbors or
 	//neighbors at a certain distance

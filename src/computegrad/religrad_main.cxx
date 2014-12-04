@@ -197,13 +197,6 @@ int main(int argc, char **argv) {
 			start = clock();
 			time(&begin);
 
-			/*compute_reliable_gradients_advangle
-			(full_scalar_grid, vertex_gradient_grid, magnitude_grid, 
-			reliable_grid, input_info);
-			out_stats(full_scalar_grid, input_info);
-			*/
-
-
 			compute_reliable_gradients_advangle_version2
 				(full_scalar_grid, vertex_gradient_grid, magnitude_grid, 
 				reliable_grid, input_info);
@@ -213,6 +206,16 @@ int main(int argc, char **argv) {
 			OptChosen = true;
 			time(&end);
 			finish = clock();			
+		}
+		if(input_info.curv_based)
+		{
+			cout <<"in curvature based computations"<< endl;
+			//curvature based computation.
+			compute_reliable_gradients_curvature_based
+				(full_scalar_grid, vertex_gradient_grid, magnitude_grid, 
+				reliable_grid, input_info);
+			out_stats(full_scalar_grid, input_info);
+
 		}
 
 		if (!OptChosen) {
@@ -426,6 +429,11 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 			io_info.flag_cdiff = true;
 			io_info.adv_angle_based = true;
 			io_info.neighbor_angle_parameter = atof(argv[iarg]);
+		}
+		else if (s == "-curvature_based")
+		{
+			io_info.flag_cdiff = true;
+			io_info.curv_based = true;
 		}
 		else if (s == "-gzip") {
 			flag_gzip = true;

@@ -54,4 +54,11 @@ void compute_reliable_gradients_advangle_version2(
 	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
 	INPUT_INFO & io_info);
 
+// Curvature based reliable gradients computations
+void compute_reliable_gradients_curvature_based(
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	const GRADIENT_GRID & gradient_grid,
+	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
+	INPUT_INFO & io_info);
 #endif
