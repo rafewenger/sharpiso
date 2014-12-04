@@ -209,7 +209,12 @@ int main(int argc, char **argv) {
 		}
 		if(input_info.curv_based)
 		{
-			cout <<"in curvature based computations"<< endl;
+			input_info.out_info.num_unreliable = 0;
+			input_info.out_info.num_reliable = 0;
+			time_t begin, end;
+			clock_t start, finish;
+			start = clock();
+			time(&begin);	
 			//curvature based computation.
 			compute_reliable_gradients_curvature_based
 				(full_scalar_grid, vertex_gradient_grid, magnitude_grid, 
