@@ -465,6 +465,7 @@ void usage_msg() {
 	cerr << "  [-angle_based_dist {D}] [-reliable_scalar_pred_dist {D}]" << endl;
 	cerr << "  [-neighbor_angle {A}]"<< endl;
 	cerr << "  [-scalar_pred_err {E}]" << endl;
+	cerr << "  [-curvature_based]" << endl;
 	cerr << "  [-gzip]" << endl;
 	cerr << "  [-out_param] [-print_info {V}] [-print_grad_loc] [-help]" << endl;
 }

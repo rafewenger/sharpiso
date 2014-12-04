@@ -359,7 +359,7 @@ void compute_reliable_gradients_SBP
 	bool debug = false;
 	for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) {
 
-		
+
 		// only run the test if gradient at vertex iv is reliable
 		if (reliable_grid.Scalar(iv)) {
 
@@ -756,389 +756,389 @@ void compute_reliable_gradients_advangle_version2(
 			}
 		}
 	}
+}
+
+
+
+
+
+
+//DEBUG
+const bool debug = false;
+/*
+* check if neighbor v of iv can be put into the
+* tangent neighbor set or orthogonal set.
+*/
+void check_v_for_insert2_Nt_and_No_iv(
+	const VERTEX_INDEX iv, 
+	GRADIENT_COORD_TYPE *grad_iv,
+	const VERTEX_INDEX v, 
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	vector <VERTEX_INDEX> &tangent_neighbor_set,
+	vector <VERTEX_INDEX> &ortho_neighbor_set, INPUT_INFO & io_info)
+{
+	COORD_TYPE edge_vec[DIM3] = {0, 0, 0};
+	float degree_param = io_info.neighbor_angle_parameter*M_PI/180.0;
+	compute_vector_between_grid_vertex
+		(scalar_grid, iv, v, &(edge_vec[0]));
+	IJK::normalize_vector(DIM3, &(edge_vec[0]), 0.0, &(edge_vec[0]));
+	float inn_pdt = 0.0;
+	IJK::compute_inner_product(DIM3, grad_iv, edge_vec, inn_pdt);
+	bool insert_flag = update_tangent_vertex_list
+		(v, inn_pdt, degree_param, tangent_neighbor_set);
+	if (!insert_flag)
+	{
+		ortho_neighbor_set.push_back(v);
 	}
+}
+/*
+* Compute tangent neighors set
+* @param iv , find tangent neighbors of iv
+*/
+void compute_Nt_and_No_iv
+	(const VERTEX_INDEX iv, GRADIENT_COORD_TYPE *grad_iv,
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	vector <VERTEX_INDEX> &tangent_neighbor_set,
+	vector <VERTEX_INDEX> &ortho_neighbor_set, INPUT_INFO & io_info)
+{
+	//insert_flag = update_tangent_vertex_list
+	//(next_vertex, inn_pdt, degree_param, tangent_vertex_list);
+	COORD_TYPE coord_iv[DIM3] = {0.0,0.0,0.0};
+	scalar_grid.ComputeCoord(iv, coord_iv);
+	for (int d = 0; d < DIM3; d++) 
+	{
+		int k = min(1, int(coord_iv[d]));
+		VERTEX_INDEX prev_vertex = 
+			iv - k * scalar_grid.AxisIncrement(d);
+		check_v_for_insert2_Nt_and_No_iv(iv, grad_iv, prev_vertex, scalar_grid, 
+			tangent_neighbor_set, ortho_neighbor_set, io_info);
+
+		k = min(1,(scalar_grid.AxisSize(d) - int(coord_iv[d]) - 1));
+		VERTEX_INDEX next_vertex = 
+			iv + k * scalar_grid.AxisIncrement(d);
+		check_v_for_insert2_Nt_and_No_iv(iv, grad_iv, next_vertex, scalar_grid, 
+			tangent_neighbor_set, ortho_neighbor_set, io_info);
+	}
+}
+/*
+* Compute the neighbor set of a vertex iv
+*/
+void compute_neighbor_set(
+	const VERTEX_INDEX iv,
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	vector<VERTEX_INDEX> &neighbor_set)
+{
+	COORD_TYPE coord_iv[DIM3] = {0.0,0.0,0.0};
+	scalar_grid.ComputeCoord(iv, coord_iv);
+
+	for (int d = 0; d < DIM3; d++) 
+	{
+		int k = min(1, int(coord_iv[d]));
+		VERTEX_INDEX prev_vertex = 
+			iv - k * scalar_grid.AxisIncrement(d);
+		neighbor_set.push_back(prev_vertex);
+		k = min(1,(scalar_grid.AxisSize(d) - int(coord_iv[d]) - 1));
+		VERTEX_INDEX next_vertex = 
+			iv + k * scalar_grid.AxisIncrement(d);
+		neighbor_set.push_back(next_vertex);
+	}
+}
 
 
+/*
+* compute phi between v and v1
+*/
+void compute_phi(const VERTEX_INDEX v, const VERTEX_INDEX v1,
+				 const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+				 const GRADIENT_GRID & gradient_grid,
+				 const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+				 float * phi_vector)
+{
+	COORD_TYPE gradv[DIM3]={0.0,0.0,0.0};
+	COORD_TYPE gradv1[DIM3]={0.0,0.0,0.0};
+	float min_grad_mag = 0.0;
+	GRADIENT_COORD_TYPE magv = grad_mag_grid.Scalar(v);
+	GRADIENT_COORD_TYPE magv1 = grad_mag_grid.Scalar(v1);
 
+	// grad_iv[] is an unscaled gradient
+	for (int d = 0; d < DIM3; d++) 
+	{
+		COORD_TYPE spacing_d = scalar_grid.Spacing(d);
+		gradv[d] = magv*spacing_d*gradient_grid.Vector(v,d);
+	}
+	IJK::normalize_vector
+		(DIM3, gradv, min_grad_mag, gradv);
+	//v1
+	for (int d = 0; d < DIM3; d++) 
+	{
+		COORD_TYPE spacing_d = scalar_grid.Spacing(d);
+		gradv1[d] = magv1*spacing_d*gradient_grid.Vector(v1,d);
+	}
+	IJK::normalize_vector
+		(DIM3, gradv1, min_grad_mag, gradv1);
 
-
-
+	float innpdt = 0.0;
+	IJK::compute_inner_product(DIM3, gradv, gradv1, innpdt);
+	for (int d = 0; d < DIM3; d++)
+	{
+		phi_vector[d]=phi_vector[d]+2*(innpdt)*gradv1[d]-gradv[d];
+		//phi_vector[d]=phi_vector[d]+gradv[d]+2*(innpdt)*gradv1[d];
+	}
+	IJK::normalize_vector(DIM3, phi_vector, 0.0, phi_vector);
 	//DEBUG
-	const bool debug = false;
-	/*
-	* check if neighbor v of iv can be put into the
-	* tangent neighbor set or orthogonal set.
-	*/
-	void check_v_for_insert2_Nt_and_No_iv(
-		const VERTEX_INDEX iv, 
-		GRADIENT_COORD_TYPE *grad_iv,
-		const VERTEX_INDEX v, 
-		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		vector <VERTEX_INDEX> &tangent_neighbor_set,
-		vector <VERTEX_INDEX> &ortho_neighbor_set, INPUT_INFO & io_info)
-	{
-		COORD_TYPE edge_vec[DIM3] = {0, 0, 0};
-		float degree_param = io_info.neighbor_angle_parameter*M_PI/180.0;
-		compute_vector_between_grid_vertex
-			(scalar_grid, iv, v, &(edge_vec[0]));
-		IJK::normalize_vector(DIM3, &(edge_vec[0]), 0.0, &(edge_vec[0]));
-		float inn_pdt = 0.0;
-		IJK::compute_inner_product(DIM3, grad_iv, edge_vec, inn_pdt);
-		bool insert_flag = update_tangent_vertex_list
-			(v, inn_pdt, degree_param, tangent_neighbor_set);
-		if (!insert_flag)
-		{
-			ortho_neighbor_set.push_back(v);
-		}
-	}
-	/*
-	* Compute tangent neighors set
-	* @param iv , find tangent neighbors of iv
-	*/
-	void compute_Nt_and_No_iv
-		(const VERTEX_INDEX iv, GRADIENT_COORD_TYPE *grad_iv,
-		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		vector <VERTEX_INDEX> &tangent_neighbor_set,
-		vector <VERTEX_INDEX> &ortho_neighbor_set, INPUT_INFO & io_info)
-	{
-		//insert_flag = update_tangent_vertex_list
-		//(next_vertex, inn_pdt, degree_param, tangent_vertex_list);
-		COORD_TYPE coord_iv[DIM3] = {0.0,0.0,0.0};
-		scalar_grid.ComputeCoord(iv, coord_iv);
-		for (int d = 0; d < DIM3; d++) 
-		{
-			int k = min(1, int(coord_iv[d]));
-			VERTEX_INDEX prev_vertex = 
-				iv - k * scalar_grid.AxisIncrement(d);
-			check_v_for_insert2_Nt_and_No_iv(iv, grad_iv, prev_vertex, scalar_grid, 
-				tangent_neighbor_set, ortho_neighbor_set, io_info);
-
-			k = min(1,(scalar_grid.AxisSize(d) - int(coord_iv[d]) - 1));
-			VERTEX_INDEX next_vertex = 
-				iv + k * scalar_grid.AxisIncrement(d);
-			check_v_for_insert2_Nt_and_No_iv(iv, grad_iv, next_vertex, scalar_grid, 
-				tangent_neighbor_set, ortho_neighbor_set, io_info);
-		}
-	}
-	/*
-	* Compute the neighbor set of a vertex iv
-	*/
-	void compute_neighbor_set(
-		const VERTEX_INDEX iv,
-		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		vector<VERTEX_INDEX> &neighbor_set)
-	{
-		COORD_TYPE coord_iv[DIM3] = {0.0,0.0,0.0};
-		scalar_grid.ComputeCoord(iv, coord_iv);
-
-		for (int d = 0; d < DIM3; d++) 
-		{
-			int k = min(1, int(coord_iv[d]));
-			VERTEX_INDEX prev_vertex = 
-				iv - k * scalar_grid.AxisIncrement(d);
-			neighbor_set.push_back(prev_vertex);
-			k = min(1,(scalar_grid.AxisSize(d) - int(coord_iv[d]) - 1));
-			VERTEX_INDEX next_vertex = 
-				iv + k * scalar_grid.AxisIncrement(d);
-			neighbor_set.push_back(next_vertex);
-		}
-	}
-
-
-	/*
-	* compute phi between v and v1
-	*/
-	void compute_phi(const VERTEX_INDEX v, const VERTEX_INDEX v1,
-		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID & gradient_grid,
-		const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
-		float * phi_vector)
-	{
-		COORD_TYPE gradv[DIM3]={0.0,0.0,0.0};
-		COORD_TYPE gradv1[DIM3]={0.0,0.0,0.0};
-		float min_grad_mag = 0.0;
-		GRADIENT_COORD_TYPE magv = grad_mag_grid.Scalar(v);
-		GRADIENT_COORD_TYPE magv1 = grad_mag_grid.Scalar(v1);
-
-		// grad_iv[] is an unscaled gradient
-		for (int d = 0; d < DIM3; d++) 
-		{
-			COORD_TYPE spacing_d = scalar_grid.Spacing(d);
-			gradv[d] = magv*spacing_d*gradient_grid.Vector(v,d);
-		}
-		IJK::normalize_vector
-			(DIM3, gradv, min_grad_mag, gradv);
-		//v1
-		for (int d = 0; d < DIM3; d++) 
-		{
-			COORD_TYPE spacing_d = scalar_grid.Spacing(d);
-			gradv1[d] = magv1*spacing_d*gradient_grid.Vector(v1,d);
-		}
-		IJK::normalize_vector
-			(DIM3, gradv1, min_grad_mag, gradv1);
-
-		float innpdt = 0.0;
-		IJK::compute_inner_product(DIM3, gradv, gradv1, innpdt);
-		for (int d = 0; d < DIM3; d++)
-		{
-			phi_vector[d]=phi_vector[d]+2*(innpdt)*gradv1[d]-gradv[d];
-			//phi_vector[d]=phi_vector[d]+gradv[d]+2*(innpdt)*gradv1[d];
-		}
-		IJK::normalize_vector(DIM3, phi_vector, 0.0, phi_vector);
-		//DEBUG
-		if(debug)
+	if(debug)
 		cout <<"phi "<< phi_vector[0]<<" "<< phi_vector[1]<<" "<<phi_vector[2]<<endl;
-		//DEBUG END
-	}
+	//DEBUG END
+}
 
-	/*
-	* lambda computations
-	*/
-	float lambda_computations(const VERTEX_INDEX iv, 
-		const VERTEX_INDEX v1, const VERTEX_INDEX v2,
-		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID & gradient_grid,
-		const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid)
+/*
+* lambda computations
+*/
+float lambda_computations(const VERTEX_INDEX iv, 
+						  const VERTEX_INDEX v1, const VERTEX_INDEX v2,
+						  const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+						  const GRADIENT_GRID & gradient_grid,
+						  const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid)
+{
+	float  phi_vector[DIM3]={0.0,0.0,0.0};
+	compute_phi(iv, v1, scalar_grid, gradient_grid, grad_mag_grid,
+		&(phi_vector[0]));
+
+	GRADIENT_COORD_TYPE magv2 = grad_mag_grid.Scalar(v2);
+	COORD_TYPE gradv2[DIM3]={0.0,0.0,0.0};
+	for (int d = 0; d < DIM3; d++) 
 	{
-		float  phi_vector[DIM3]={0.0,0.0,0.0};
-		compute_phi(iv, v1, scalar_grid, gradient_grid, grad_mag_grid,
-			&(phi_vector[0]));
+		COORD_TYPE spacing_d = scalar_grid.Spacing(d);
+		gradv2[d] = magv2*spacing_d*gradient_grid.Vector(v1,d);
+	}
+	IJK::normalize_vector
+		(DIM3, gradv2, 0.0, gradv2);
 
-		GRADIENT_COORD_TYPE magv2 = grad_mag_grid.Scalar(v2);
-		COORD_TYPE gradv2[DIM3]={0.0,0.0,0.0};
-		for (int d = 0; d < DIM3; d++) 
-		{
-			COORD_TYPE spacing_d = scalar_grid.Spacing(d);
-			gradv2[d] = magv2*spacing_d*gradient_grid.Vector(v1,d);
-		}
-		IJK::normalize_vector
-			(DIM3, gradv2, 0.0, gradv2);
-		
-		//
-		float inn_pdt = 0.0;
-		IJK::compute_inner_product(DIM3, gradv2, phi_vector, inn_pdt);
-		//DEBUG
-		if(debug){
+	//
+	float inn_pdt = 0.0;
+	IJK::compute_inner_product(DIM3, gradv2, phi_vector, inn_pdt);
+	//DEBUG
+	if(debug){
 		cout <<"gradV2 "<< gradv2[0]<<","<<gradv2[1]<<","<<gradv2[2]
 		<<" angle "<<acos (inn_pdt) * 180.0 / M_PI<<endl;}
-		//DEBUG end
-		return acos (inn_pdt) * 180.0 / M_PI;
-	}
-	/*
-	* Check if vectors iv,v1 and v1,v2 are collinear.
-	*/
-	bool are_collinear(const VERTEX_INDEX iv,
-		const VERTEX_INDEX v1,
-		const VERTEX_INDEX v2,
-		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid)
-	{
-		//compute vectors and dot pdt for collinear
-		COORD_TYPE edge_vec1[DIM3]={0.0,0.0,0.0};
-		COORD_TYPE edge_vec2[DIM3]={0.0,0.0,0.0};
-		compute_vector_between_grid_vertex
-			(scalar_grid, iv, v1, &(edge_vec1[0]));
-		IJK::normalize_vector(DIM3, &(edge_vec1[0]), 0.0, &(edge_vec1[0]));
-		compute_vector_between_grid_vertex
-			(scalar_grid, v1, v2, &(edge_vec2[0]));
-		IJK::normalize_vector(DIM3, &(edge_vec2[0]), 0.0, &(edge_vec2[0]));
+	//DEBUG end
+	return acos (inn_pdt) * 180.0 / M_PI;
+}
+/*
+* Check if vectors iv,v1 and v1,v2 are collinear.
+*/
+bool are_collinear(const VERTEX_INDEX iv,
+				   const VERTEX_INDEX v1,
+				   const VERTEX_INDEX v2,
+				   const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid)
+{
+	//compute vectors and dot pdt for collinear
+	COORD_TYPE edge_vec1[DIM3]={0.0,0.0,0.0};
+	COORD_TYPE edge_vec2[DIM3]={0.0,0.0,0.0};
+	compute_vector_between_grid_vertex
+		(scalar_grid, iv, v1, &(edge_vec1[0]));
+	IJK::normalize_vector(DIM3, &(edge_vec1[0]), 0.0, &(edge_vec1[0]));
+	compute_vector_between_grid_vertex
+		(scalar_grid, v1, v2, &(edge_vec2[0]));
+	IJK::normalize_vector(DIM3, &(edge_vec2[0]), 0.0, &(edge_vec2[0]));
 
-		float inn_pdt = 0.0;
-		IJK::compute_inner_product(DIM3, edge_vec1, edge_vec2, inn_pdt);
+	float inn_pdt = 0.0;
+	IJK::compute_inner_product(DIM3, edge_vec1, edge_vec2, inn_pdt);
 
-		//DEBUG
-		if(debug){
+	//DEBUG
+	if(debug){
 		using namespace std;
 		COORD_TYPE c[DIM3]={0.0,0.0,0.0};
 		scalar_grid.ComputeCoord(v2,c);
 		cout <<"neighbor of {"<<v1<<"}, is "<< v2 
 			<<" coordv2 {"<<c[0]<<" "<<c[1]<<" "<<c[2]<<"} "
 			<<" col "<<int(abs(inn_pdt))<<"\n";
-		}
-		//DEBUG end 
-
-		//collinear
-		if((int(abs(inn_pdt))-1)==0)
-			return true;
-		else
-			return false;
 	}
-	/*
-	* DEPRECATED
-	* Tangent neighbor based computations old
-	*/
-	bool Nt_based_computations_for_iv_old(
-		const VERTEX_INDEX iv,
-		float alpha,
-		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID & gradient_grid,
-		const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
-		vector <VERTEX_INDEX> &tangent_neighbor_set
-		)
-	{
-		for (int v = 0; v < tangent_neighbor_set.size(); v++)
-		{
-			VERTEX_INDEX v1 = tangent_neighbor_set[v];
-			vector<VERTEX_INDEX> neighbor_set_v1;
-			compute_neighbor_set(v1, scalar_grid, neighbor_set_v1);
-			for (int j = 0; j < neighbor_set_v1.size(); j++)
-			{
-				VERTEX_INDEX v2 = neighbor_set_v1[j];
+	//DEBUG end 
 
-				bool flag_collinear = are_collinear(iv,v1,v2, scalar_grid);
-				if(flag_collinear)
+	//collinear
+	if((int(abs(inn_pdt))-1)==0)
+		return true;
+	else
+		return false;
+}
+/*
+* DEPRECATED
+* Tangent neighbor based computations old
+*/
+bool Nt_based_computations_for_iv_old(
+	const VERTEX_INDEX iv,
+	float alpha,
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	const GRADIENT_GRID & gradient_grid,
+	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+	vector <VERTEX_INDEX> &tangent_neighbor_set
+	)
+{
+	for (int v = 0; v < tangent_neighbor_set.size(); v++)
+	{
+		VERTEX_INDEX v1 = tangent_neighbor_set[v];
+		vector<VERTEX_INDEX> neighbor_set_v1;
+		compute_neighbor_set(v1, scalar_grid, neighbor_set_v1);
+		for (int j = 0; j < neighbor_set_v1.size(); j++)
+		{
+			VERTEX_INDEX v2 = neighbor_set_v1[j];
+
+			bool flag_collinear = are_collinear(iv,v1,v2, scalar_grid);
+			if(flag_collinear)
+			{
+				if(lambda_computations
+					(iv,v1,v2, scalar_grid, gradient_grid, grad_mag_grid) > alpha)
 				{
-					if(lambda_computations
-						(iv,v1,v2, scalar_grid, gradient_grid, grad_mag_grid) > alpha)
-					{
-						if(debug)
+					if(debug)
 						cout <<" **fail** ";
-						return false;
-					}
+					return false;
 				}
 			}
 		}
-		return true;
 	}
-	/*
-	* Orthogonal neighbor based computations  OLD
-	*/
-	bool No_based_computations_for_iv_old(
-		const VERTEX_INDEX iv,
-		float alpha,
-		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID & gradient_grid,
-		const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
-		vector <VERTEX_INDEX> &ortho_neighbor_set)
+	return true;
+}
+/*
+* Orthogonal neighbor based computations  OLD
+*/
+bool No_based_computations_for_iv_old(
+	const VERTEX_INDEX iv,
+	float alpha,
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	const GRADIENT_GRID & gradient_grid,
+	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+	vector <VERTEX_INDEX> &ortho_neighbor_set)
+{
+	int m=0;
+	for (int i = 0; i < ortho_neighbor_set.size(); i++)
 	{
-		int m=0;
-		for (int i = 0; i < ortho_neighbor_set.size(); i++)
+		VERTEX_INDEX v1 = ortho_neighbor_set[i];
+		vector<VERTEX_INDEX> neighbor_set_v1;
+		compute_neighbor_set(v1, scalar_grid, neighbor_set_v1);
+		for (int j = 0; j < neighbor_set_v1.size(); j++)
 		{
-			VERTEX_INDEX v1 = ortho_neighbor_set[i];
-			vector<VERTEX_INDEX> neighbor_set_v1;
-			compute_neighbor_set(v1, scalar_grid, neighbor_set_v1);
-			for (int j = 0; j < neighbor_set_v1.size(); j++)
+			VERTEX_INDEX v2 = neighbor_set_v1[j];
+			bool flag_collinear = are_collinear(iv,v1,v2, scalar_grid);
+			if(flag_collinear)
 			{
-				VERTEX_INDEX v2 = neighbor_set_v1[j];
-				bool flag_collinear = are_collinear(iv,v1,v2, scalar_grid);
-				if(flag_collinear)
+				if(lambda_computations
+					(iv,v1,v2, scalar_grid, gradient_grid, grad_mag_grid) > alpha)
 				{
-					if(lambda_computations
-						(iv,v1,v2, scalar_grid, gradient_grid, grad_mag_grid) > alpha)
-					{
-						if(debug)
+					if(debug)
 						cout <<" **failNo** ";
-						m++;
-					}
+					m++;
 				}
 			}
 		}
-		if(m>1)
-			return false;
-		else
-			return true;
 	}
-	/*
-	* compute v2 from v1
-	*/
-	void compute_v2(
-		const VERTEX_INDEX iv,
-		const VERTEX_INDEX v1,
-		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		VERTEX_INDEX & v2
-		)
-	{
-		COORD_TYPE civ[DIM3] = {0.0,0.0,0.0};
-		scalar_grid.ComputeCoord(iv, civ);
-		COORD_TYPE cv1[DIM3] = {0.0,0.0,0.0};
-		scalar_grid.ComputeCoord(v1, cv1);
-		COORD_TYPE cdiff[DIM3] = {0.0,0.0,0.0};
-		IJK::subtract_coord_3D(cv1,civ,cdiff);
-		COORD_TYPE cv2[DIM3] = {0.0,0.0,0.0};
-		IJK::add_coord_3D(cdiff,cv1,cv2);
-		//
-	
-		for (int d = 0; d < DIM3; d++)
-		{
-			if(cv2[d] < 0)
-				cv2[d]=0;
-			if(cv2[d] > (scalar_grid.AxisSize(d)-1))
-			{
-				cv2[d] = scalar_grid.AxisSize(d)-1;
-			}
-		}
-		v2 = scalar_grid.ComputeVertexIndex(cv2);
-		
-		
-		if(debug){
-			using namespace std;
-			COORD_TYPE c[DIM3]={0.0,0.0,0.0};
-			scalar_grid.ComputeCoord(v2,c);
-			cout <<"neighbor of {"<<v1<<"}, is "<< v2 
-				<<" coordv2 {"<<c[0]<<" "<<c[1]<<" "<<c[2]<<"} "
-				<<" diff"<<cdiff[0]<<","<<cdiff[1]<<","<<cdiff[2]<<"\n";
-		}
-		//DEBUG end 
-		
-		
-	}
-	/*
-	* Tangent neighbor based computations
-	*/
-	bool Nt_based_computations_for_iv(
-		const VERTEX_INDEX iv,
-		float alpha,
-		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID & gradient_grid,
-		const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
-		vector <VERTEX_INDEX> &tangent_neighbor_set
-		)
-	{
-		for (int v = 0; v < tangent_neighbor_set.size(); v++)
-		{
-			VERTEX_INDEX v1 = tangent_neighbor_set[v];
-			VERTEX_INDEX v2 = 0;
-			compute_v2(iv,v1,scalar_grid,v2);	
-			if(lambda_computations
-				(iv,v1,v2, scalar_grid, 
-				gradient_grid, grad_mag_grid) > alpha)
-			{
-				if(debug)
-					cout <<" **fail** ";
-				return false;
-			}	
-		}
+	if(m>1)
+		return false;
+	else
 		return true;
-	}
-	/*
-	* Orthogonal neighbor based computations
-	*/
-	bool No_based_computations_for_iv(
-		const VERTEX_INDEX iv,
-		float alpha,
-		const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-		const GRADIENT_GRID & gradient_grid,
-		const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
-		vector <VERTEX_INDEX> &ortho_neighbor_set)
+}
+/*
+* compute v2 from v1
+*/
+void compute_v2(
+	const VERTEX_INDEX iv,
+	const VERTEX_INDEX v1,
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	VERTEX_INDEX & v2
+	)
+{
+	COORD_TYPE civ[DIM3] = {0.0,0.0,0.0};
+	scalar_grid.ComputeCoord(iv, civ);
+	COORD_TYPE cv1[DIM3] = {0.0,0.0,0.0};
+	scalar_grid.ComputeCoord(v1, cv1);
+	COORD_TYPE cdiff[DIM3] = {0.0,0.0,0.0};
+	IJK::subtract_coord_3D(cv1,civ,cdiff);
+	COORD_TYPE cv2[DIM3] = {0.0,0.0,0.0};
+	IJK::add_coord_3D(cdiff,cv1,cv2);
+	//
+
+	for (int d = 0; d < DIM3; d++)
 	{
-		int m=0;
-		for (int i = 0; i < ortho_neighbor_set.size(); i++)
+		if(cv2[d] < 0)
+			cv2[d]=0;
+		if(cv2[d] > (scalar_grid.AxisSize(d)-1))
 		{
-			VERTEX_INDEX v1 = ortho_neighbor_set[i];
-			VERTEX_INDEX v2 = 0;
-			compute_v2(iv,v1,scalar_grid,v2);	
-			if(lambda_computations
-				(iv,v1,v2, scalar_grid, gradient_grid, grad_mag_grid) > alpha)
-			{
-				if(debug)
-					cout <<" **failNo** ";
-				m++;
-			}
+			cv2[d] = scalar_grid.AxisSize(d)-1;
 		}
-		if(m>1)
-			return false;
-		else
-			return true;
 	}
+	v2 = scalar_grid.ComputeVertexIndex(cv2);
+
+
+	if(debug){
+		using namespace std;
+		COORD_TYPE c[DIM3]={0.0,0.0,0.0};
+		scalar_grid.ComputeCoord(v2,c);
+		cout <<"neighbor of {"<<v1<<"}, is "<< v2 
+			<<" coordv2 {"<<c[0]<<" "<<c[1]<<" "<<c[2]<<"} "
+			<<" diff"<<cdiff[0]<<","<<cdiff[1]<<","<<cdiff[2]<<"\n";
+	}
+	//DEBUG end 
+
+
+}
+/*
+* Tangent neighbor based computations
+*/
+bool Nt_based_computations_for_iv(
+	const VERTEX_INDEX iv,
+	float alpha,
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	const GRADIENT_GRID & gradient_grid,
+	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+	vector <VERTEX_INDEX> &tangent_neighbor_set
+	)
+{
+	for (int v = 0; v < tangent_neighbor_set.size(); v++)
+	{
+		VERTEX_INDEX v1 = tangent_neighbor_set[v];
+		VERTEX_INDEX v2 = 0;
+		compute_v2(iv,v1,scalar_grid,v2);	
+		if(lambda_computations
+			(iv,v1,v2, scalar_grid, 
+			gradient_grid, grad_mag_grid) > alpha)
+		{
+			if(debug)
+				cout <<" **fail** ";
+			return false;
+		}	
+	}
+	return true;
+}
+/*
+* Orthogonal neighbor based computations
+*/
+bool No_based_computations_for_iv(
+	const VERTEX_INDEX iv,
+	float alpha,
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	const GRADIENT_GRID & gradient_grid,
+	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+	vector <VERTEX_INDEX> &ortho_neighbor_set)
+{
+	int m=0;
+	for (int i = 0; i < ortho_neighbor_set.size(); i++)
+	{
+		VERTEX_INDEX v1 = ortho_neighbor_set[i];
+		VERTEX_INDEX v2 = 0;
+		compute_v2(iv,v1,scalar_grid,v2);	
+		if(lambda_computations
+			(iv,v1,v2, scalar_grid, gradient_grid, grad_mag_grid) > alpha)
+		{
+			if(debug)
+				cout <<" **failNo** ";
+			m++;
+		}
+	}
+	if(m>1)
+		return false;
+	else
+		return true;
+}
 
 // Curvature based computations for vertex iv, 
 // @param iv , grid vertex
@@ -1168,7 +1168,7 @@ void curvature_based_per_vertex(
 			IJK::normalize_vector
 				(DIM3, grad_iv, io_info.min_gradient_mag, normalized_grad_iv);
 
-		
+
 			// tangent neighbor set
 			vector<VERTEX_INDEX> tangent_neighbor_set_iv;
 			vector <VERTEX_INDEX> ortho_neighbor_set_iv;
@@ -1179,42 +1179,40 @@ void curvature_based_per_vertex(
 
 			if(debug){
 				cout <<"debug "<< debug<< endl;
-			using namespace std;
-			COORD_TYPE c[DIM3]={0.0,0.0,0.0};
-			scalar_grid.ComputeCoord(iv,c);
-			cout <<"cube index{"<<iv<<"}"
-				<<" coord{"<<c[0]<<" "<<c[1]<<" "<<c[2]<<"}"
-				<<" tangent neighbors {\n";
-			for (int k = 0; k < tangent_neighbor_set_iv.size(); k++)
-			{
-				cout <<tangent_neighbor_set_iv[k]<<"[";
-				scalar_grid.ComputeCoord(tangent_neighbor_set_iv[k],c);
-				cout <<c[0]<<" "<<c[1]<<" "<<c[2]<<endl;
-			}
-			cout <<"}"<<endl;
-			cout 	<<" ortho neighbors {\n";
-			for (int k = 0; k < ortho_neighbor_set_iv.size(); k++)
-			{
-				cout <<ortho_neighbor_set_iv[k]<<"[";
-				scalar_grid.ComputeCoord(ortho_neighbor_set_iv[k],c);
-				cout <<c[0]<<" "<<c[1]<<" "<<c[2]<<endl;
-			}
-			cout <<"}"<<endl;}
-			
+				using namespace std;
+				COORD_TYPE c[DIM3]={0.0,0.0,0.0};
+				scalar_grid.ComputeCoord(iv,c);
+				cout <<"cube index{"<<iv<<"}"
+					<<" coord{"<<c[0]<<" "<<c[1]<<" "<<c[2]<<"}"
+					<<" tangent neighbors {\n";
+				for (int k = 0; k < tangent_neighbor_set_iv.size(); k++)
+				{
+					cout <<tangent_neighbor_set_iv[k]<<"[";
+					scalar_grid.ComputeCoord(tangent_neighbor_set_iv[k],c);
+					cout <<c[0]<<" "<<c[1]<<" "<<c[2]<<endl;
+				}
+				cout <<"}"<<endl;
+				cout 	<<" ortho neighbors {\n";
+				for (int k = 0; k < ortho_neighbor_set_iv.size(); k++)
+				{
+					cout <<ortho_neighbor_set_iv[k]<<"[";
+					scalar_grid.ComputeCoord(ortho_neighbor_set_iv[k],c);
+					cout <<c[0]<<" "<<c[1]<<" "<<c[2]<<endl;
+				}
+				cout <<"}"<<endl;}
+
 			//DEBUG_END
-
-
 			float  alpha = 5; //degrees
 			bool flag_nt = Nt_based_computations_for_iv(iv, alpha, scalar_grid,
 				gradient_grid, grad_mag_grid, tangent_neighbor_set_iv);
 			bool flag_no = No_based_computations_for_iv(iv, alpha, scalar_grid,
 				gradient_grid, grad_mag_grid, ortho_neighbor_set_iv);
-			
+
 			//DEBUG
 			if(debug)
-			cout <<"is reliable: Nt "<< flag_nt <<" No "<< flag_no<<endl;
+				cout <<"is reliable: Nt "<< flag_nt <<" No "<< flag_no<<endl;
 			//DEBUG_END
-			
+
 			reliable_grid.Set(iv, (flag_nt && flag_no) );
 
 		}
@@ -1236,6 +1234,6 @@ void compute_reliable_gradients_curvature_based(
 	{
 		curvature_based_per_vertex(iv, scalar_grid, gradient_grid,
 			grad_mag_grid, reliable_grid, io_info);
-		
+
 	}
 }
