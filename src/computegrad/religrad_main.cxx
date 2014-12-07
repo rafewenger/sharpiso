@@ -209,12 +209,20 @@ int main(int argc, char **argv) {
 		}
 		if(input_info.curv_based)
 		{
-			cout <<"in curvature based computations"<< endl;
+			input_info.out_info.num_unreliable = 0;
+			input_info.out_info.num_reliable = 0;
+			time_t begin, end;
+			clock_t start, finish;
+			start = clock();
+			time(&begin);	
 			//curvature based computation.
 			compute_reliable_gradients_curvature_based
 				(full_scalar_grid, vertex_gradient_grid, magnitude_grid, 
 				reliable_grid, input_info);
 			out_stats(full_scalar_grid, input_info);
+			OptChosen = true;
+			time(&end);
+			finish = clock();	
 
 		}
 
@@ -310,13 +318,11 @@ void output_param(INPUT_INFO & io_info) {
 	if (flag_out_param) {
 		cout << "*********************************\n";
 		cout <<"\tOut Parameters.\n*********************************\n";
-		if (io_info.flag_cdiff) {
-			cerr << "Central Difference for computing gradients.\n";
-		}
+		
 		if (io_info.flag_reliable_grad) {
 			cout << "reliable_grad, ";
 		}
-		if (io_info.angle_based) {
+		else if (io_info.angle_based) {
 			cout << "Reliable grad far" << endl;
 			cout << "reliable_grad_dist : " << io_info.angle_based_dist << endl;
 			cout << "min cos angle    "
@@ -325,22 +331,33 @@ void output_param(INPUT_INFO & io_info) {
 			cout << "min_gradient_mag " << io_info.min_gradient_mag << endl;
 			cout << "\n";
 		}
-		if (io_info.flag_reliable_scalar_prediction) {
+		else if (io_info.flag_reliable_scalar_prediction) {
 			cout << "Scalar based prediction" << endl;
 			cout << "scalar error tolerance: " << io_info.scalar_prediction_err
 				<< endl;
 			cout << "scalar error distance to neighbors: "
 				<< io_info.scalar_prediction_dist << endl;
 		}
-		if(io_info.adv_angle_based)
+		else if(io_info.adv_angle_based)
 		{
-			cout << "*********************************\n";
+			
 			cout <<"Advanced Angle based Reliability criteria."<<endl;
-			cout << "*********************************\n";
+			
 			cout <<"Angle threshold for gradients to agree "<<io_info.param_angle << endl;
 			cout <<"Neighbor angle "<<io_info.neighbor_angle_parameter<<endl;
 			cout <<"\t{angle between grad at v and vector vv' where v' is an edge neighbor}"<<endl;
 			
+		}
+		else if(io_info.curv_based)
+		{
+			
+			cout <<"Curvature  based."<<endl;
+			
+			cout <<"Neighbor angle "<<io_info.neighbor_angle_parameter<<endl;
+			cout <<"Angle threshold for gradients to agree "<<io_info.param_angle << endl;
+		}
+		if (io_info.flag_cdiff) {
+			cerr << "Central Difference for computing gradients.\n";
 		}
 
 	}
@@ -465,6 +482,7 @@ void usage_msg() {
 	cerr << "  [-angle_based_dist {D}] [-reliable_scalar_pred_dist {D}]" << endl;
 	cerr << "  [-neighbor_angle {A}]"<< endl;
 	cerr << "  [-scalar_pred_err {E}]" << endl;
+	cerr << "  [-curvature_based]" << endl;
 	cerr << "  [-gzip]" << endl;
 	cerr << "  [-out_param] [-print_info {V}] [-print_grad_loc] [-help]" << endl;
 }
