@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011-2013 Rephael Wenger
+  Copyright (C) 2011-2014 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -865,7 +865,7 @@ namespace IJK {
 
     if (read_failed) {
       read_error.AddMessage("Error reading: ", input_filename);
-      add_nrrd_message(error);
+      add_nrrd_message(read_error);
       return;
     }
   }

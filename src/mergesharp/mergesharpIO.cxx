@@ -784,12 +784,7 @@ void MERGESHARP::read_nrrd_file
   IJK::NRRD_DATA<int,int> nrrd_header;
 
   nrrd_in.ReadScalarGrid(input_filename, scalar_grid, nrrd_header, error);
-  if (nrrd_in.ReadFailed()) { 
-    char *err = biffGetDone(NRRD);
-    cerr << "Error reading: " << input_filename << endl;
-    cerr << "  Error: " << err << endl;
-    exit(35);
-  }
+  if (nrrd_in.ReadFailed()) { throw error; }
 
   if (scalar_grid.Dimension() < 1) {
     cerr << "Illegal scalar grid dimension.  Dimension must be at least 1." 
