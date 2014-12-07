@@ -862,7 +862,7 @@ bool check_covered_point(
 
 
 
-void select_vertex
+void select_cube
 	(
 	const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 	SHARPISO_BOOL_GRID &covered_grid,
@@ -917,7 +917,7 @@ void select_vertex
 	}
 }
 
-void check_and_select_vertex
+void check_and_select_cube
 	(
 	const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 	SHARPISO_BOOL_GRID &covered_grid,
@@ -952,7 +952,7 @@ void check_and_select_vertex
                      isovalue, bin_grid, bin_width, v1, v2);
 
 	if (!triangle_flag) {
-    select_vertex
+    select_cube
       (scalar_grid, covered_grid, bin_grid, gridn, ind, isovalue,
        isovert_param, sortd_ind2gcube_list, isovert, flag);
 	}
@@ -991,7 +991,7 @@ void select_corner_cubes	(
 				if (isovert.isFlag(cube_ind_frm_gc_ind(isovert, sortd_ind2gcube_list[ind]), AVAILABLE_GCUBE)
             && c.linf_dist < linf_dist_threshold && c.num_eigenvalues > 2) 
 				{
-					check_and_select_vertex
+					check_and_select_cube
 						(scalar_grid, covered_grid, bin_grid, gridn, ind, isovalue, 
              isovert_param, sortd_ind2gcube_list, isovert, 
              COVERED_CORNER_GCUBE);
@@ -1026,7 +1026,7 @@ void select_edge_cubes	(
                            (isovert, sortd_ind2gcube_list[ind]), AVAILABLE_GCUBE)
 					&& c.linf_dist < linf_dist_threshold  && c.num_eigenvalues == 2) 
 				{
-					check_and_select_vertex
+					check_and_select_cube
 						(scalar_grid, covered_grid, bin_grid, gridn, ind, isovalue, 
              isovert_param, sortd_ind2gcube_list, isovert, COVERED_A_GCUBE );
 				}
@@ -1060,7 +1060,7 @@ bool select_one_edge_cube	(
                            (isovert, from_list[ind]), AVAILABLE_GCUBE)
             && c.linf_dist < linf_dist_threshold  && c.num_eigenvalues == 2) 
 				{
-					check_and_select_vertex
+					check_and_select_cube
 						(scalar_grid, covered_grid, bin_grid, gridn, ind, isovalue, 
              isovert_param, from_list, isovert,
              COVERED_A_GCUBE);
@@ -1134,7 +1134,7 @@ void select_cubes_containing_covered_points	(
                     << cube_index1 << " " << cube_index2 << endl;
                   */
 
-                  select_vertex
+                  select_cube
                     (scalar_grid, covered_grid, bin_grid, gridn, ind, 
                      isovalue, isovert_param, sortd_ind2gcube_list, isovert, 
                      COVERED_A_GCUBE );
@@ -1248,7 +1248,7 @@ void select_cubes_near_corners	(
         bool flag = is_neighbor(c, scalar_grid, gridn,  isovert,  COVERED_CORNER_GCUBE );
         VERTEX_INDEX neighbor_cube_index;
         if(flag)
-          check_and_select_vertex
+          check_and_select_cube
             (scalar_grid, covered_grid, bin_grid, gridn, ind, isovalue, 
              isovert_param, sortd_ind2gcube_list, isovert, COVERED_A_GCUBE );
 
