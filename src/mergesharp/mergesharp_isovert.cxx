@@ -871,7 +871,7 @@ void select_cube
 	const VERTEX_INDEX ind,
 	const SCALAR_TYPE isovalue,
 	const SHARP_ISOVERT_PARAM & isovert_param,
-	vector<NUM_TYPE> sortd_ind2gcube_list,
+	vector<NUM_TYPE> & sortd_ind2gcube_list,
 	ISOVERT & isovert,
 	GRID_CUBE_FLAG flag
 	)
@@ -920,14 +920,14 @@ void select_cube
 void check_and_select_cube
 	(
 	const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-	SHARPISO_BOOL_GRID &covered_grid,
-	BIN_GRID<VERTEX_INDEX> &bin_grid,
-	SHARPISO_GRID_NEIGHBORS &gridn,
+	SHARPISO_BOOL_GRID & covered_grid,
+	BIN_GRID<VERTEX_INDEX> & bin_grid,
+	SHARPISO_GRID_NEIGHBORS & gridn,
 	const VERTEX_INDEX ind,
 	const SCALAR_TYPE isovalue,
 	const SHARP_ISOVERT_PARAM & isovert_param,
-	vector<NUM_TYPE> sortd_ind2gcube_list,
-	ISOVERT &isovert,
+	vector<NUM_TYPE> & sortd_ind2gcube_list,
+	ISOVERT & isovert,
 	GRID_CUBE_FLAG flag
 	)
 {
@@ -969,9 +969,9 @@ void check_and_select_cube
 */
 void select_corner_cubes	(
 	const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-	SHARPISO_BOOL_GRID &covered_grid,
-	BIN_GRID<VERTEX_INDEX> &bin_grid,
-	SHARPISO_GRID_NEIGHBORS &gridn,
+	SHARPISO_BOOL_GRID & covered_grid,
+	BIN_GRID<VERTEX_INDEX> & bin_grid,
+	SHARPISO_GRID_NEIGHBORS & gridn,
 	const SCALAR_TYPE isovalue,
 	const SHARP_ISOVERT_PARAM & isovert_param,
 	vector<NUM_TYPE> & sortd_ind2gcube_list,
@@ -1043,7 +1043,7 @@ bool select_one_edge_cube	(
 	SHARPISO_GRID_NEIGHBORS & gridn,
 	const SCALAR_TYPE isovalue,
 	const SHARP_ISOVERT_PARAM & isovert_param,
-	vector<NUM_TYPE> from_list,
+	vector<NUM_TYPE> & from_list,
 	ISOVERT & isovert)
 {
 	const COORD_TYPE linf_dist_threshold = 
@@ -1052,8 +1052,10 @@ bool select_one_edge_cube	(
 
 	for (int ind=0; ind < from_list.size(); ind++) {
 
+    VERTEX_INDEX gcube_index = from_list[ind];
+
 		GRID_CUBE c;
-		c = isovert.gcube_list[from_list[ind]];
+		c = isovert.gcube_list[gcube_index];
 
 		if (c.boundary_bits == 0)
 				if (isovert.isFlag(cube_ind_frm_gc_ind
@@ -1064,8 +1066,13 @@ bool select_one_edge_cube	(
 						(scalar_grid, covered_grid, bin_grid, gridn, ind, isovalue, 
              isovert_param, from_list, isovert,
              COVERED_A_GCUBE);
+
+          if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE)
+            { return(true); }
 				}
 	}
+
+  return(false);
 }
 
 
