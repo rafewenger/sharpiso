@@ -189,17 +189,29 @@ namespace {
 	using namespace MERGESHARP;
 
 	void map_iso_vertex(const std::vector<GRID_CUBE> & gcube_list,
-		const INDEX_DIFF_TYPE from_cube,
-		const INDEX_DIFF_TYPE to_cube,
+		const INDEX_DIFF_TYPE from_gcube,
+		const INDEX_DIFF_TYPE to_gcube,
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
 	{
-		if (from_cube != ISOVERT::NO_INDEX) {
-			if (gcube_list[from_cube].flag != SELECTED_GCUBE && 
-				gcube_map[from_cube] == from_cube) {
-					if (gcube_list[from_cube].boundary_bits == 0) {
-						// Map gcube_list[from_cube] to isosurface vertex in cube to_cube.
-						gcube_map[from_cube] = to_cube;
-					}
+		if (from_gcube != ISOVERT::NO_INDEX) {
+      if (gcube_list[from_gcube].flag != SELECTED_GCUBE && 
+          gcube_map[from_gcube] == from_gcube) {
+
+        if (gcube_list[from_gcube].boundary_bits == 0) {
+          // Map gcube_list[from_gcube] to isosurface vertex in cube to_gcube.
+          gcube_map[from_gcube] = to_gcube;
+
+          // *** DEBUG ***
+          /*
+            using namespace std;
+            VERTEX_INDEX to_cube = gcube_list[to_gcube].cube_index;
+            VERTEX_INDEX from_cube = gcube_list[from_gcube].cube_index;
+            if (to_cube == 57843 || to_cube == 54061) {
+              cerr << "Mapping " << from_cube << " ";
+              cerr << " to " << to_cube << endl;
+            }
+          */
+        }
 			}
 		}
 	}
@@ -222,6 +234,20 @@ namespace {
 
         int boundary_bits = gcube_list[from_gcube].boundary_bits;
 
+        // *** DEBUG ***
+        /*
+        using namespace std;
+        VERTEX_INDEX to_cube = gcube_list[to_gcube].cube_index;
+        VERTEX_INDEX from_cube = gcube_list[from_gcube].cube_index;
+        if (to_cube == 57843 || to_cube == 54061) {
+          GRID_COORD_TYPE coord[DIM3];
+          scalar_grid.ComputeCoord(from_cube, coord);
+           
+          cerr << "Mapping " << from_cube << " ";
+          IJK::print_coord3D(cerr, coord);
+          cerr << " to " << to_cube << endl;
+        }
+        */
 
         if (boundary_bits == 0) {
           // Map gcube_list[from_gcube] to isosurface vertex in cube to_gcube.
@@ -1106,6 +1132,35 @@ namespace {
     return(true);
   }
 
+  /// Count number of coordinates differences
+  /// *** NOT USED ***
+  /// @param[out] num_diff1 Number of coordinates with difference 1.
+  /// @param[out] num_diff2_or_more Number of coordinates at least 2.
+  void count_num_coord_diff
+  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const VERTEX_INDEX icube0, const VERTEX_INDEX icube1,
+   NUM_TYPE & num_diff1, NUM_TYPE & num_diff2_or_more)
+  {
+    GRID_COORD_TYPE coord0[DIM3];
+    GRID_COORD_TYPE coord1[DIM3];
+
+		scalar_grid.ComputeCoord(icube0, coord0);
+		scalar_grid.ComputeCoord(icube1, coord1); 
+
+    num_diff1 = 0;
+    num_diff2_or_more = 0;
+
+		for (int d = 0; d < DIM3; d++) {
+
+      GRID_COORD_TYPE diff = abs(coord0[d]-coord1[d]);
+      if (diff == 1) 
+        { num_diff1++; }
+      else if (diff > 1)
+        { num_diff2_or_more++; }
+		}
+  }
+
+
 	/*
 	* Compute mapping original
 	*/
@@ -1120,9 +1175,20 @@ namespace {
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map
 		)
 	{
+    const VERTEX_INDEX tocube_index = isovert.CubeIndex(tocube_gcube_index);
+
+    /* NOT USED
+    // Check that cubes differ by 2 in at most 1 coordinate.
+    NUM_TYPE num_diff1, num_diff2_or_more;
+    count_num_coord_diff(scalar_grid, neighbor_cube_index, tocube_index,
+                         num_diff1, num_diff2_or_more);
+    if (num_diff2_or_more > 1) { return; }
+    */
+
 		std::vector<VERTEX_INDEX> connected_sharp;
 		find_connected_sharp
-      (scalar_grid, isovalue, neighbor_gcube_index, isovert, gcube_map, connected_sharp);
+      (scalar_grid, isovalue, neighbor_gcube_index, isovert, 
+       gcube_map, connected_sharp);
 
 		bool found_mapping = 
       find_good_mapping(scalar_grid, isovalue, isovert, gcube_map,
@@ -1132,6 +1198,18 @@ namespace {
 		bool flag_merge_permitted = 
 			is_cube_merge_permitted(scalar_grid, isovert, neighbor_gcube_index, 
                               tocube_gcube_index, gcube_map);
+
+    // *** DEBUG ***
+    /*
+    using namespace std;
+    COORD_TYPE cc[DIM3] = {0.0,0.0,0.0};
+    scalar_grid.ComputeCoord(neighbor_cube_index, cc);
+    if (tocube_index == 170660) {
+      cerr << "Checking mapping " << neighbor_cube_index << " ";
+      IJK::print_coord3D(cerr, cc);
+      cerr << " to " << tocube_index << endl;
+    }
+    */
 
 		if(found_mapping && flag_merge_permitted &&
        (gcube_map[covered_gcube_index] == tocube_gcube_index))
@@ -1144,8 +1222,8 @@ namespace {
       using namespace std;
 			COORD_TYPE cc[DIM3] = {0.0,0.0,0.0};
 			scalar_grid.ComputeCoord(neighbor_cube_index, cc);
-      if (tocube_cube_index == 150825) {
-        cerr << "Mapping " << neighbor_cube_index << " ";
+      if (tocube_cube_index == 170660) {
+        cerr << "  Mapping " << neighbor_cube_index << " ";
         IJK::print_coord3D(cerr, cc);
         cerr << " to " << tocube_cube_index << endl;
       }
@@ -1155,58 +1233,6 @@ namespace {
 			map_iso_vertex(isovert.gcube_list, neighbor_gcube_index, 
                      tocube_gcube_index, gcube_map);
       isovert.gcube_list[neighbor_gcube_index].flag = COVERED_B_GCUBE;
-		}
-	}
-
-	/*
-	* NOT USED
-	* Compute mapping version 2 for new extended merge  
-	*/
-	void compute_mapping_temp(
-		const VERTEX_INDEX neighbor_cube_index,
-		const VERTEX_INDEX neighbor_gcube_index,
-		VERTEX_INDEX & tocube_gcube_index,
-		const SCALAR_TYPE isovalue,
-		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		MERGESHARP::ISOVERT & isovert,
-		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map
-		)
-	{
-		COORD_TYPE c1coord[DIM3]={0.0,0.0,0.0};
-		COORD_TYPE c2coord[DIM3]={0.0,0.0,0.0};
-
-		VERTEX_INDEX tocube_cube_index = isovert.gcube_list[tocube_gcube_index].cube_index;
-		scalar_grid.ComputeScaledCoord( tocube_cube_index, c1coord);
-
-		scalar_grid.ComputeScaledCoord( neighbor_cube_index, c2coord);
-
-
-		COORD_TYPE vdiff[DIM3]={0.0,0.0,0.0};
-		IJK::subtract_coord_3D(c1coord,c2coord,vdiff);
-		int m=0;
-		for (int i = 0; i < DIM3; i++)
-		{
-			if(abs(int(vdiff[i])) == 2)
-			{
-				m++;
-			}
-		}
-		if (m<2)
-		{
-
-			std::vector<VERTEX_INDEX> connected_sharp;
-			find_connected_sharp
-        (scalar_grid, isovalue, neighbor_gcube_index, isovert, gcube_map, connected_sharp);
-
-			bool found_mapping = find_good_mapping
-        (scalar_grid, isovalue, isovert, gcube_map,
-         neighbor_gcube_index, connected_sharp, tocube_gcube_index);
-			if(found_mapping)
-			{
-				map_iso_vertex(isovert.gcube_list, neighbor_gcube_index, 
-                       tocube_gcube_index, gcube_map);
-
-			}
 		}
 	}
 
@@ -1700,6 +1726,35 @@ namespace {
 				}
 			}
 		}
+
+    // *** DEBUG ***
+    /*
+    using namespace std;
+    VERTEX_INDEX temp_index = 57843;
+    INDEX_DIFF_TYPE gcube_index = isovert.GCubeIndex(temp_index);
+    if (gcube_index != ISOVERT::NO_INDEX) {
+      cerr << "Cube " << temp_index << " flag: " 
+           << int(isovert.gcube_list[gcube_index].flag) << endl;
+      cerr << "  Vertex maps to: " << isovert.CubeIndex(gcube_map[gcube_index])
+           << endl;
+    }
+
+    temp_index = 54061;
+    gcube_index = isovert.GCubeIndex(temp_index);
+    if (gcube_index != ISOVERT::NO_INDEX) {
+      cerr << "Cube " << temp_index << " flag: " 
+           << int(isovert.gcube_list[gcube_index].flag) << endl;
+      cerr << "  Vertex maps to: " << isovert.CubeIndex(gcube_map[gcube_index])
+           << endl;
+    }
+    temp_index = 54121;
+    gcube_index = isovert.GCubeIndex(temp_index);
+    cerr << "  Isovert: ";
+    IJK::print_coord3D(cerr, isovert.gcube_list[gcube_index].isovert_coord);
+    cerr << endl;
+    */
+
+
 	}
 
 	void set_first_gcube_isov
