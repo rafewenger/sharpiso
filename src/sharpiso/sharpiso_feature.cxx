@@ -40,17 +40,6 @@ bool is_dist_to_cube_le
 void snap_to_cube
 (const COORD_TYPE cube_coord[DIM3], const COORD_TYPE spacing[DIM3],
  const COORD_TYPE snap_dist, COORD_TYPE coord[DIM3]);
-bool check_conflict
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const SCALAR_TYPE isovalue,
- const COORD_TYPE cube_coord[DIM3],
- const COORD_TYPE point_coord[DIM3]);
-bool check_conflict
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const SCALAR_TYPE isovalue,
- const COORD_TYPE cube_coord[DIM3],
- const COORD_TYPE point_coord[DIM3],
- VERTEX_INDEX & conflicting_cube);
 void diff_coord
 (const GRID_COORD_TYPE coordA[DIM3], const GRID_COORD_TYPE coordB[DIM3],
  NUM_TYPE & num_diff, VERTEX_INDEX & icoord);
@@ -951,6 +940,185 @@ void SHARPISO::subgrid_calculate_iso_vertex_in_cube
 
 
 // **************************************************
+// POINT LOCATION/CONFLICT ROUTINES
+// **************************************************
+
+/// Return true if cube contains point.
+bool SHARPISO::cube_contains_point
+(const COORD_TYPE cube_coord[DIM3],
+ const COORD_TYPE point_coord[DIM3],
+ const COORD_TYPE spacing[DIM3])
+{
+  for (int d = 0; d < DIM3; d++) {
+    if (point_coord[d] < cube_coord[d])
+      { return(false); }
+    if (point_coord[d] > cube_coord[d]+spacing[d])
+      { return(false); }
+  }
+
+  return(true);
+}
+
+/// Return index of cube containing point.
+/// Set flag_boundary to true if point is on cube boundary.
+/// @pre Point is contained in grid.
+/// @pre grid.AxisSize(d) > 0 for every axis d.
+void SHARPISO::get_cube_containing_point
+(const SHARPISO_GRID & grid, const COORD_TYPE * coord,
+ VERTEX_INDEX & cube_index, bool & flag_boundary)
+{
+  static COORD_TYPE coord2[DIM3];
+
+  flag_boundary = false;
+  for (int d = 0; d < DIM3; d++) {
+    coord2[d] = floor(coord[d]);
+
+    if (coord2[d] == coord[d])
+      { flag_boundary = true; }
+
+    if (coord2[d] < 0) {
+      coord2[d] = 0;
+      flag_boundary = true;
+    }
+
+    if (coord2[d] >= grid.AxisSize(d)) {
+      coord2[d] = grid.AxisSize(d)-1; 
+      flag_boundary = true;
+    }
+  }
+
+  cube_index = grid.ComputeVertexIndex(coord2);
+}
+
+/// Return index of cube containing point.
+/// Set flag_boundary to true if point is on cube boundary.
+/// Set flag_active to true if cube is active.
+/// @pre Point is contained in grid.
+/// @pre grid.AxisSize(d) > 0 for every axis d.
+void SHARPISO::get_cube_containing_point
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue, const COORD_TYPE * coord,
+ VERTEX_INDEX & cube_index, bool & flag_boundary,
+ bool & flag_active)
+{
+  get_cube_containing_point(scalar_grid, coord, cube_index, flag_boundary);
+  flag_active = 
+    IJK::is_gt_cube_min_le_cube_max(scalar_grid, cube_index, isovalue);
+}
+
+
+/// Return list of cubes containing point.
+/// Set flag_boundary to true if point is on cube boundary.
+/// @pre Point is contained in grid.
+/// @pre grid.AxisSize(d) > 0 for every axis d.
+void get_all_cubes_containing_point
+(const SHARPISO_GRID & grid, const COORD_TYPE * coord,
+ std::vector<VERTEX_INDEX> & cube_list)
+{
+  static COORD_TYPE coord2[DIM3];
+
+  cube_list.clear();
+
+
+  for (int index = 0; index < 8; index++) {
+
+    bool flag_skip(false);
+    for (int d = 0; d < DIM3; d++) {
+      coord2[d] = floor(coord[d]);
+
+      if (coord2[d] == coord[d]) {
+        int mask = (1L << d);
+        if ((mask & index) == 0) {
+          if (coord2[d] > 0)
+            { coord2[d]--; }
+          else
+            { flag_skip = true; }
+        }
+      }
+
+      if (coord2[d] >= grid.AxisSize(d))
+        { flag_skip = true; }
+    }
+
+    if (!flag_skip) {
+      VERTEX_INDEX cube_index = grid.ComputeVertexIndex(coord2);
+      cube_list.push_back(cube_index);
+    }
+  }
+
+  if (cube_list.size() == 0) {
+    // Point is not on cube boundary.
+    VERTEX_INDEX cube_index;
+    bool flag_boundary;
+    get_cube_containing_point(grid, coord, cube_index, flag_boundary);
+    cube_list.push_back(cube_index);
+  }
+
+}
+
+/// Return true if point lies in an occupied cube
+///   other than the one given by cube_coord[].
+/// Returns conflicting cube.
+bool SHARPISO::check_conflict
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const COORD_TYPE cube_coord[DIM3],
+ const COORD_TYPE point_coord[DIM3],
+ VERTEX_INDEX & conflicting_cube)
+{
+  if (cube_contains_point(cube_coord, point_coord, 
+                          scalar_grid.SpacingPtrConst())) {
+    // Point is in cube.  No conflict.
+    return(false);
+  }
+
+  if (scalar_grid.ContainsPoint(point_coord)) {
+    // Point is inside grid.
+    VERTEX_INDEX icube2;
+    bool flag_boundary;
+    bool flag_active;
+
+    get_cube_containing_point
+      (scalar_grid, isovalue, point_coord, icube2, flag_boundary, flag_active);
+    if (flag_active) { 
+      conflicting_cube = icube2;
+      return(true); 
+    }
+
+    if (flag_boundary) {
+      std::vector<VERTEX_INDEX> cube_list;
+      get_all_cubes_containing_point(scalar_grid, point_coord, cube_list);
+
+      for (int i = 0; i < cube_list.size(); i++) {
+        if (IJK::is_gt_cube_min_le_cube_max
+            (scalar_grid, cube_list[i], isovalue)) {
+          // Isosurface intersects cube_list[i]. Conflict.
+          conflicting_cube = cube_list[i];
+          return(true);
+        }
+      }
+    }
+  }
+
+  // No conflict.
+  return(false);
+}
+
+/// Return true if point lies in an occupied cube
+///   other than the one given by cube_coord[].
+bool SHARPISO::check_conflict
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const COORD_TYPE cube_coord[DIM3],
+ const COORD_TYPE point_coord[DIM3])
+{
+  VERTEX_INDEX conflicting_cube;
+
+  return(check_conflict(scalar_grid, isovalue, cube_coord, point_coord,
+                        conflicting_cube));
+}
+
+// **************************************************
 // ROUTINES TO MOVE POINTS
 // **************************************************
 
@@ -1100,79 +1268,6 @@ bool is_dist_to_cube_le
 	return(true);
 }
 
-/// Return index of cube containing point.
-/// Set flag_boundary to true if point is on cube boundary.
-/// @pre Point is contained in grid.
-/// @pre grid.AxisSize(d) > 0 for every axis d.
-void get_cube_containing_point
-(const SHARPISO_GRID & grid, const COORD_TYPE * coord,
- VERTEX_INDEX & cube_index, bool & flag_boundary)
-{
-  static COORD_TYPE coord2[DIM3];
-
-  flag_boundary = false;
-  for (int d = 0; d < DIM3; d++) {
-    coord2[d] = floor(coord[d]);
-
-    if (coord2[d] == coord[d])
-      { flag_boundary = true; }
-
-    if (coord2[d] >= grid.AxisSize(d))
-      { coord2[d] = grid.AxisSize(d)-1; }
-  }
-
-  cube_index = grid.ComputeVertexIndex(coord2);
-}
-
-/// Return list of cubes containing point.
-/// Set flag_boundary to true if point is on cube boundary.
-/// @pre Point is contained in grid.
-/// @pre grid.AxisSize(d) > 0 for every axis d.
-void get_all_cubes_containing_point
-(const SHARPISO_GRID & grid, const COORD_TYPE * coord,
- std::vector<VERTEX_INDEX> & cube_list)
-{
-  static COORD_TYPE coord2[DIM3];
-
-  cube_list.clear();
-
-
-  for (int index = 0; index < 8; index++) {
-
-    bool flag_skip(false);
-    for (int d = 0; d < DIM3; d++) {
-      coord2[d] = floor(coord[d]);
-
-      if (coord2[d] == coord[d]) {
-        int mask = (1L << d);
-        if ((mask & index) == 0) {
-          if (coord2[d] > 0)
-            { coord2[d]--; }
-          else
-            { flag_skip = true; }
-        }
-      }
-
-      if (coord2[d] >= grid.AxisSize(d))
-        { flag_skip = true; }
-    }
-
-    if (!flag_skip) {
-      VERTEX_INDEX cube_index = grid.ComputeVertexIndex(coord2);
-      cube_list.push_back(cube_index);
-    }
-  }
-
-  if (cube_list.size() == 0) {
-    // Point is not on cube boundary.
-    VERTEX_INDEX cube_index;
-    bool flag_boundary;
-    get_cube_containing_point(grid, coord, cube_index, flag_boundary);
-    cube_list.push_back(cube_index);
-  }
-
-}
-
 // Snap coordinate to cube.
 void snap_to_cube
 (const COORD_TYPE cube_coord[DIM3], const COORD_TYPE spacing[DIM3],
@@ -1230,87 +1325,6 @@ void compute_central_point
   IJK::copy_coord(DIM3, central_point, svd_info.central_point);
 }
 
-// **************************************************
-// Check for conflict
-// **************************************************
-
-/// Return true if cube contains point.
-bool cube_contains_point
-(const COORD_TYPE cube_coord[DIM3],
- const COORD_TYPE point_coord[DIM3],
- const COORD_TYPE spacing[DIM3])
-{
-  for (int d = 0; d < DIM3; d++) {
-    if (point_coord[d] < cube_coord[d])
-      { return(false); }
-    if (point_coord[d] > cube_coord[d]+spacing[d])
-      { return(false); }
-  }
-
-  return(true);
-}
-
-/// Return true if point lies in an occupied cube
-///   other than the one given by cube_coord[].
-/// Returns conflicting cube.
-bool check_conflict
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const SCALAR_TYPE isovalue,
- const COORD_TYPE cube_coord[DIM3],
- const COORD_TYPE point_coord[DIM3],
- VERTEX_INDEX & conflicting_cube)
-{
-  if (cube_contains_point(cube_coord, point_coord, 
-                          scalar_grid.SpacingPtrConst())) {
-    // Point is in cube.  No conflict.
-    return(false);
-  }
-
-  if (scalar_grid.ContainsPoint(point_coord)) {
-    // Point is inside grid.
-    VERTEX_INDEX icube2;
-    bool flag_boundary;
-    get_cube_containing_point(scalar_grid, point_coord, icube2, flag_boundary);
-
-    if (IJK::is_gt_cube_min_le_cube_max(scalar_grid, icube2, isovalue)) {
-      // Isosurface intersects icube2. Conflict.
-      conflicting_cube = icube2;
-      return(true);
-    }
-
-    if (flag_boundary) {
-      std::vector<VERTEX_INDEX> cube_list;
-      get_all_cubes_containing_point(scalar_grid, point_coord, cube_list);
-
-      for (int i = 0; i < cube_list.size(); i++) {
-        if (IJK::is_gt_cube_min_le_cube_max
-            (scalar_grid, cube_list[i], isovalue)) {
-          // Isosurface intersects cube_list[i]. Conflict.
-          conflicting_cube = cube_list[i];
-          return(true);
-        }
-      }
-    }
-  }
-
-  // No conflict.
-  return(false);
-}
-
-/// Return true if point lies in an occupied cube
-///   other than the one given by cube_coord[].
-/// Returns conflicting cube.
-bool check_conflict
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const SCALAR_TYPE isovalue,
- const COORD_TYPE cube_coord[DIM3],
- const COORD_TYPE point_coord[DIM3])
-{
-  VERTEX_INDEX conflicting_cube;
-
-  return(check_conflict(scalar_grid, isovalue, cube_coord, point_coord,
-                        conflicting_cube));
-}
 
 // **************************************************
 // SHARP_ISOVERT_PARAM

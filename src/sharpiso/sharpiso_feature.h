@@ -255,6 +255,55 @@ namespace SHARPISO {
    const SCALAR_TYPE isovalue, const VERTEX_INDEX cube_index,
    COORD_TYPE * coord);
 
+
+  // **************************************************
+  // POINT LOCATION/CONFLICT ROUTINES
+  // **************************************************
+
+  /// Return true if cube contains point.
+  bool cube_contains_point
+  (const COORD_TYPE cube_coord[DIM3], const COORD_TYPE point_coord[DIM3],
+   const COORD_TYPE spacing[DIM3]);
+
+  /// Return index of cube containing point.
+  /// Set flag_boundary to true if point is on cube boundary.
+  /// @pre Point is contained in grid.
+  /// @pre grid.AxisSize(d) > 0 for every axis d.
+  void get_cube_containing_point
+  (const SHARPISO_GRID & grid, const COORD_TYPE * coord,
+   VERTEX_INDEX & cube_index, bool & flag_boundary);
+
+  /// Return index of cube containing point.
+  /// Set flag_boundary to true if point is on cube boundary.
+  /// Set flag_active to true if cube is active.
+  /// @pre Point is contained in grid.
+  /// @pre grid.AxisSize(d) > 0 for every axis d.
+  void get_cube_containing_point
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue, const COORD_TYPE * coord,
+   VERTEX_INDEX & cube_index, bool & flag_boundary,
+   bool & flag_active);
+
+  /// Return true if point lies in an occupied cube
+  ///   other than the one given by cube_coord[].
+  /// @param[out] conflicting_cube Index of conflicting cube.
+  bool check_conflict
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const COORD_TYPE cube_coord[DIM3],
+   const COORD_TYPE point_coord[DIM3],
+   VERTEX_INDEX & conflicting_cube);
+
+  /// Return true if point lies in an occupied cube
+  ///   other than the one given by cube_coord[].
+  bool check_conflict
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const COORD_TYPE cube_coord[DIM3],
+   const COORD_TYPE point_coord[DIM3]);
+
+
+
   // **************************************************
   // ROUTINES TO MOVE POINTS
   // **************************************************

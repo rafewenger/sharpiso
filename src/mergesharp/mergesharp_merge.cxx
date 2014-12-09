@@ -206,11 +206,13 @@ namespace {
             using namespace std;
             VERTEX_INDEX to_cube = gcube_list[to_gcube].cube_index;
             VERTEX_INDEX from_cube = gcube_list[from_gcube].cube_index;
-            if (to_cube == 57843 || to_cube == 54061) {
+            if (to_cube == 76034 || to_cube == 73705 || to_cube == 79009 ||
+                to_cube == 71204) {
               cerr << "Mapping " << from_cube << " ";
               cerr << " to " << to_cube << endl;
             }
           */
+
         }
 			}
 		}
@@ -239,13 +241,13 @@ namespace {
         using namespace std;
         VERTEX_INDEX to_cube = gcube_list[to_gcube].cube_index;
         VERTEX_INDEX from_cube = gcube_list[from_gcube].cube_index;
-        if (to_cube == 57843 || to_cube == 54061) {
-          GRID_COORD_TYPE coord[DIM3];
-          scalar_grid.ComputeCoord(from_cube, coord);
-           
+        if (to_cube == 76304 || to_cube == 73705 || to_cube == 79009 ||
+            to_cube == 71204) {
           cerr << "Mapping " << from_cube << " ";
-          IJK::print_coord3D(cerr, coord);
-          cerr << " to " << to_cube << endl;
+          ijkgrid_output_vertex_coord(cerr, scalar_grid, from_cube);
+          cerr << " to " << to_cube << " ";
+          ijkgrid_output_vertex_coord(cerr, scalar_grid, to_cube);
+          cerr << endl;
         }
         */
 
@@ -367,6 +369,7 @@ namespace {
 	{
 		is_intersect = is_gt_min_le_max(scalar_grid, v0, v1, isovalue);
 	}
+
 	/// Compute the overlap region between two cube indices
   /// @param dist2boundary Distance from cube to region boundary
   //         region size = (2*dist2boundary+1)
@@ -1373,7 +1376,7 @@ namespace {
 		gridn.SetSize(isovert.sharp_ind_grid);
 
 		//setup the  sorted_gcube_list
-		sort_gcube_list(isovert.gcube_list, sorted_gcube_list);
+		get_corner_or_edge_cubes(isovert.gcube_list, sorted_gcube_list);
 
 		//FACE
 		for (NUM_TYPE i = 0; i < sorted_gcube_list.size(); i++) 
@@ -1521,15 +1524,17 @@ namespace {
 		// Set size of grid neighbors grid.
 		gridn.SetSize(isovert.sharp_ind_grid);
 
-		sort_gcube_list(isovert.gcube_list, sorted_gcube_list);
+		get_corner_or_edge_cubes(isovert.gcube_list, sorted_gcube_list);
 
 		for (NUM_TYPE i = 0; i < num_gcube; i++)
 		{ gcube_map[i] = i; }
 
 		// Set cubes which share facets with selected cubes.
 		for (NUM_TYPE i = 0; i < sorted_gcube_list.size(); i++) {
-			//index to sharp cube in sorted gcube_list
+
+			// index to sharp cube in sorted gcube_list
 			NUM_TYPE gcube_index = sorted_gcube_list[i];
+
 			if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
 				// cube index of the sharp cube.
 				cube_index = isovert.gcube_list[gcube_index].cube_index;
@@ -1625,7 +1630,7 @@ namespace {
 		// Set size of grid neighbors grid.
 		gridn.SetSize(isovert.sharp_ind_grid);
 
-		sort_gcube_list(isovert.gcube_list, sorted_gcube_list);
+		get_corner_or_edge_cubes(isovert.gcube_list, sorted_gcube_list);
 
 		for (NUM_TYPE i = 0; i < num_gcube; i++)
 		{ gcube_map[i] = i; }
@@ -1634,6 +1639,22 @@ namespace {
 		for (NUM_TYPE i = 0; i < sorted_gcube_list.size(); i++) {
 			//index to sharp cube in sorted gcube_list
 			NUM_TYPE gcube_index = sorted_gcube_list[i];
+
+      // *** DEBUG ***
+      /*
+      using namespace std;
+      VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
+      if (cube_index == 76304 || cube_index == 73705 || cube_index == 79009 ||
+          cube_index == 71204) {
+
+        cerr << "Processing cube: " << cube_index;
+        cerr << "  flag: " << int(isovert.gcube_list[gcube_index].flag)
+             << "  boundary bits: " 
+             << isovert.gcube_list[gcube_index].boundary_bits
+             << endl;
+      }
+      */
+
 			if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
 				// cube index of the sharp cube.
 				cube_index = isovert.gcube_list[gcube_index].cube_index;
@@ -1649,6 +1670,7 @@ namespace {
 						neighbor_index = gridn.CubeNeighborF(cube_index, j);
 
 						INDEX_DIFF_TYPE k = isovert.sharp_ind_grid.Scalar(neighbor_index);
+
 						// k is the 'from_cube', and gcube_index is the 'to_cube'.
 						map_iso_vertex(scalar_grid, isovalue, isovert.gcube_list, 
                            k, gcube_index, gcube_map);

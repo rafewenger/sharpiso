@@ -38,6 +38,11 @@ typedef enum {
 
 
 class GRID_CUBE {
+
+protected:
+
+  void Init();
+
 public:
 	COORD_TYPE isovert_coord[DIM3]; ///< Location of the sharp isovertex.
 	unsigned char num_eigenvalues;  ///< Number of eigenvalues.
@@ -51,6 +56,18 @@ public:
   /// If true, location is centroid of (grid edge)-isosurface intersections.
   bool flag_centroid_location;
 
+  /// If true, some other non-empty cube contains the isovert coord.
+  bool flag_conflict;
+
+  /// If true, cube is near corner cube.
+  bool flag_near_corner;
+
+  /// Grid index of cube containing the isovert_coord.
+  VERTEX_INDEX cube_containing_isovert;
+
+  /// If true, isovert_coord[] determined by an adjacent cube.
+  bool flag_coord_from_other;
+
   /// Index of cube configuration is isosurface lookup table.
   IJKDUALTABLE::TABLE_INDEX table_index;
 
@@ -59,6 +76,8 @@ public:
 
   /// Return true if cube is covered or selected.
   bool IsCoveredOrSelected() const;
+
+  GRID_CUBE() { Init(); }
 };
 
 typedef std::vector<GRID_CUBE> GRID_CUBE_ARRAY;
@@ -234,15 +253,26 @@ void bin_grid_insert
 (const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
  const VERTEX_INDEX cube_index, BIN_GRID<int> & bin_grid);
 
-/// Sort elements of gcube list with more than one eigenvalue.
-/// @param gcube_list List of grid cubes intersected by the isosurface.
-/// @param[out] sortd_ind2gcube_list Sorted indices to grid cube list.
-///             Sorted by decreasing number of eigenvalues.
-///             Then, sorted by increasing linf_dist.
-///             Grid cubes with one eigenvalue are ignored.
-void sort_gcube_list
+/// Remove cube cube_index into the bin_grid.
+void bin_grid_remove
+(const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
+ const VERTEX_INDEX cube_index, BIN_GRID<int> & bin_grid);
+
+/// Select and sort cubes with more than one eigenvalue.
+///   Store references to cubes sorted by number of large eigenvalues
+///     and then by increasing distance from isovert_coord to cube center.
+/// @param gcube_index_list List of references to sharp cubes
+///    sorted by number of large eigenvalues and by distance 
+///    of sharp coord from cube center.
+
+
+/// @param[out] gcube_index_list Sorted list of references to grid cubes
+///      with more than one eigenvalue.
+///    List is sorted by decreasing number of eigenvalues and then by
+///      increasing linf_dist.
+void get_corner_or_edge_cubes
 (const std::vector<GRID_CUBE> & gcube_list,
- std::vector<NUM_TYPE> & sortd_ind2gcube_list);
+ std::vector<NUM_TYPE> & gcube_index_list);
 
 /// Store boundary bits for each cube in gcube_list.
 void store_boundary_bits

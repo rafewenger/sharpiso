@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Code
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011-2014 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -23,6 +23,8 @@
 
 #ifndef _SHARPISO_GRIDS_
 #define _SHARPISO_GRIDS_
+
+#include <algorithm>
 
 #include "sharpiso_types.h"
 
@@ -110,6 +112,15 @@ namespace SHARPISO {
     /// Insert element.
     void Insert(const VTYPE iv, const ETYPE & x)
     { this->object[iv].list.push_back(x); }
+
+    /// Remove element.
+    void Remove(const VTYPE iv, const ETYPE & x) {
+
+      typename std::vector<ETYPE>::iterator new_end =
+        std::remove(this->object[iv].list.begin(), 
+                    this->object[iv].list.end(), x);
+      this->object[iv].list.erase(new_end, this->object[iv].list.end());
+    }
 
     /// Get element.
     ETYPE List(const VTYPE iv, const NTYPE i) const
