@@ -4,7 +4,7 @@
 
 /*
  IJK: Isosurface Jeneration Kode
- Copyright (C) 2011-2013 Rephael Wenger
+ Copyright (C) 2011-2014 Rephael Wenger
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public License
@@ -54,6 +54,7 @@ int facet_orth_dir(0);
 VERTEX_INDEX vertex_index(0);
 std::vector<GRID_COORD_TYPE> cube_coord;
 std::vector<GRID_COORD_TYPE> vertex_coord;
+std::vector<COORD_TYPE> pointX;
 AXIS_SIZE_TYPE subgrid_axis_size(3);
 bool flag_list_gradients(false);
 bool flag_list_subgrid(false);
@@ -111,6 +112,9 @@ bool check_cube_coord
 bool check_vertex_coord
 (const SHARPISO_SCALAR_GRID & scalar_grid,
  const std::vector<GRID_COORD_TYPE> & vertex_coord, IJK::ERROR & error);
+bool check_pointX_coord
+(const SHARPISO_SCALAR_GRID & scalar_grid,
+ const std::vector<COORD_TYPE> & pointX, IJK::ERROR & error);
 bool check_facet
 (const SHARPISO_SCALAR_GRID & scalar_grid,
  const VERTEX_INDEX facet_v0, const NUM_TYPE facet_orth_dir,
@@ -243,6 +247,11 @@ int main(int argc, char **argv)
 
       cube_index = scalar_grid.ComputeVertexIndex(cube_coord);
       flag_cube_set = true;
+    }
+
+    if (pointX.size() > 0) {
+      if (!check_pointX_coord(scalar_grid, pointX, error))
+        { throw error; }
     }
 
     if (vertex_coord.size() > 0) {
@@ -492,10 +501,19 @@ void compute_iso_vertex_using_svd
        sharpiso_param.grad_selection_cube_offset);
 
     if (sharpiso_param.use_lindstrom) {
-      svd_compute_sharp_vertex_for_cube_lindstrom
-        (scalar_grid, gradient_grid, cube_index, isovalue,
-         sharpiso_param, offset_voxel,
-         sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+
+      if (pointX.size() > 0) {
+        svd_compute_sharp_vertex_for_cube_lindstrom
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           sharpiso_param, offset_voxel, &(pointX[0]),
+           sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+      }
+      else {
+        svd_compute_sharp_vertex_for_cube_lindstrom
+          (scalar_grid, gradient_grid, cube_index, isovalue,
+           sharpiso_param, offset_voxel,
+           sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+      }
     }
     else {
       svd_compute_sharp_vertex_for_cube_lc_intersection
@@ -1157,6 +1175,21 @@ bool check_vertex_coord
     return(true);
 }
 
+bool check_pointX_coord
+(const SHARPISO_SCALAR_GRID & scalar_grid,
+ const std::vector<COORD_TYPE> & pointX, IJK::ERROR & error)
+{
+    if (scalar_grid.Dimension() != pointX.size()) {
+        error.AddMessage("Error: Option -pointX followed by incorrect number of coordinates.");
+        error.AddMessage("  Option -pointX followed by ", pointX.size(), " coordinates.");
+        error.AddMessage("  Option -pointX should be followed by ", scalar_grid.Dimension(),
+                         " coordinates.");
+        return(false);
+    }
+
+    return(true);
+}
+
 bool check_facet
 (const SHARPISO_SCALAR_GRID & scalar_grid,
  const VERTEX_INDEX facet_v0, const NUM_TYPE facet_orth_dir,
@@ -1209,12 +1242,12 @@ void usage_error()
     cerr << "   -gradIE | -gradIES | -gradIEDir | -gradNIE | -gradNIES |" 
          << endl;
     cerr << "   -gradCD | -gradCDdup | -gradES | -gradEC ]" << endl;
-    cerr << "  -subgrid | -lindstrom | -rayI" << endl;
+    cerr << "  -subgrid | -lindstrom | -lindstrom_fast| -rayI" << endl;
     cerr << "  [-allow_conflict | -clamp_conflict | -centroid_conflict]" 
          << endl;
     cerr << "  -clamp_far | [-recompute_eigen2 | -no_recompute_eigen2]" << endl;
     cerr << "  [-sharp_edgeI | -interpolate_edgeI]" << endl;
-    cerr << "  [-dist2center | -dist2centroid]" << endl;
+    cerr << "  [-dist2center | -dist2centroid | -pointX \"coordinates\"]" << endl;
     cerr << "  [-removeg | -no_removeg]"
          << "  [-centroid_eigen1 | -no_centroid_eigen1] [-no_Linf]" << endl;
     cerr << "  [-no_round | -round <n>]" << endl;
@@ -1335,6 +1368,11 @@ void parse_command_line(int argc, char **argv)
       iarg++;
       if (iarg >= argc) { usage_error(); };
       IJK::string2vector(argv[iarg], vertex_coord);
+    }
+    else if (s == "-pointX") {
+      iarg++;
+      if (iarg >= argc) { usage_error(); };
+      IJK::string2vector(argv[iarg], pointX);
     }
     else if (s == "-isovalue") {
       isovalue = get_float(iarg, argc, argv);
@@ -1670,6 +1708,7 @@ void help()
   cout << "  -dist2center:  Use distance to center in lindstrom." << endl;
   cout << "  -dist2centroid:  Use distance to centroid of isourface-edge"
        << "                   intersections in lindstrom." << endl;
+  cout << "  -pointX \"point_coord\": Use distance to pointX coordinates." << endl;
   cerr << "  -edgeI:     Output edge intersection information." << endl;
   cerr << "  -rayI:      Use intersection of ray and cubes for calculating point on sharp feature." << endl;
   cerr << "  -coord \"point_coord\":  Compute scalar values at coordinate point_coord." << endl;

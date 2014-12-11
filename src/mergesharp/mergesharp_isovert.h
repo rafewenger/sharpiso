@@ -44,11 +44,12 @@ protected:
   void Init();
 
 public:
-	COORD_TYPE isovert_coord[DIM3]; ///< Location of the sharp isovertex.
-	unsigned char num_eigenvalues;  ///< Number of eigenvalues.
-	GRID_CUBE_FLAG flag;            ///< Type for this cube.
-	int boundary_bits;              ///< Boundary bits for the cube
-	VERTEX_INDEX cube_index;        ///< Index of cube in scalar grid.
+	COORD_TYPE isovert_coord[DIM3];    ///< Location of the sharp isovertex.
+	COORD_TYPE isovert_coordB[DIM3];   ///< Substitute location.
+	unsigned char num_eigenvalues;     ///< Number of eigenvalues.
+	GRID_CUBE_FLAG flag;               ///< Type for this cube.
+	int boundary_bits;                 ///< Boundary bits for the cube
+	VERTEX_INDEX cube_index;           ///< Index of cube in scalar grid.
 
   /// Linf-dist from isovert_coord[] to cube-center.
   COORD_TYPE linf_dist;
@@ -67,6 +68,9 @@ public:
 
   /// If true, isovert_coord[] determined by an adjacent cube.
   bool flag_coord_from_other;
+
+  /// If true, using replacement coordinate.
+  bool flag_using_substitute_coord;
 
   /// Index of cube configuration is isosurface lookup table.
   IJKDUALTABLE::TABLE_INDEX table_index;

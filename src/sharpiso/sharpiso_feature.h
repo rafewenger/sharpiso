@@ -51,6 +51,24 @@ namespace SHARPISO {
 
   /// Compute sharp isosurface vertex using singular valued decomposition.
   /// Use Lindstrom's formula.
+  /// @param pointX Compute vertex closest to pointX.
+  void svd_compute_sharp_vertex_for_cube_lindstrom
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & sharpiso_param,
+   const OFFSET_VOXEL & voxel,
+   const COORD_TYPE pointX[DIM3],
+   COORD_TYPE sharp_coord[DIM3],
+   EIGENVALUE_TYPE eigenvalues[DIM3],
+   NUM_TYPE & num_large_eigenvalues,
+   SVD_INFO & svd_info);
+
+  /// Compute sharp isosurface vertex using singular valued decomposition.
+  /// Use Lindstrom's formula.
+  /// Compute vertex closest to cube center or centroid 
+  ///   of interpolated grid edge/isosurface intersections.
   void svd_compute_sharp_vertex_for_cube_lindstrom
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const GRADIENT_GRID_BASE & gradient_grid,
@@ -264,6 +282,11 @@ namespace SHARPISO {
   bool cube_contains_point
   (const COORD_TYPE cube_coord[DIM3], const COORD_TYPE point_coord[DIM3],
    const COORD_TYPE spacing[DIM3]);
+
+  /// Return true if cube contains point.
+  bool cube_contains_point
+  (const SHARPISO_GRID & grid, const VERTEX_INDEX cube_index,
+   const COORD_TYPE point_coord[DIM3]);
 
   /// Return index of cube containing point.
   /// Set flag_boundary to true if point is on cube boundary.

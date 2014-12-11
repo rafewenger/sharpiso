@@ -613,37 +613,9 @@ void MERGESHARP::dual_contouring_merge_sharp_from_grad
 	t2 = clock();
 
 	if (mergesharp_param.flag_recompute_isovert) {
-
-		//recompute_isovert_positions
-		//(scalar_grid, gradient_grid, isovalue, mergesharp_param, isovert, isovert_info);
-		// No longer computing covered point location, shifting to centroid, shift to old call 
 		recompute_isovert_positions
 			(scalar_grid, gradient_grid, isovalue, mergesharp_param, isovert);
-
 	}
-	//DEBUG
-	if(false){
-	COORD_TYPE coord1[DIM3]={0.0,0.0,0.0};
-	std::cout <<"size "<<isovert.gcube_list.size() << std::endl;
-	for (int i = 0; i < isovert.gcube_list.size(); i++)
-	{
-	 using namespace std;
-	 cout <<"cube index "<< isovert.gcube_list[i].cube_index  <<" ";
-	 scalar_grid.ComputeCoord(isovert.gcube_list[i].cube_index , coord1);
-	 cout <<"{"<<coord1[0]<<","<<coord1[1]<<","<<coord1[2]<<"}";
-	 cout <<"all coord "<< isovert.gcube_list[i].isovert_coord[0]
-	 <<" "<<isovert.gcube_list[i].isovert_coord[1]
-	 <<" "<<isovert.gcube_list[i].isovert_coord[2]
-	 <<" eigen val large "<< int(isovert.gcube_list[i].num_eigenvalues)
-	  <<" flag "<< isovert.gcube_list[i].flag << endl;
-	 scalar_grid.ComputeScaledCoord(isovert.gcube_list[i].cube_index , coord1);
-	
-	 cout <<"cc "<< coord1[0]-scalar_grid.Spacing(0)/2.0<<" "
-	  <<coord1[1]-scalar_grid.Spacing(1)/2.0 <<" "
-	  <<coord1[2]-scalar_grid.Spacing(2)/2.0 <<"\n";
-	}
-	}
-	
 
 	count_vertices(isovert, isovert_info);
 

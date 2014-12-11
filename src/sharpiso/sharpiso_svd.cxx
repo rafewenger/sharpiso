@@ -74,17 +74,18 @@ inline void compute_X(const MatrixXf &Inv_A, RowVectorXf &B, RowVectorXf &X) {
 
 
 
+/// @param pointX Compute vertex closest to pointX.
 void compute_cube_vertex_lindstrom_3x3
 (		SCALAR_TYPE *A,
 		const SCALAR_TYPE _b[3],
 		const EIGENVALUE_TYPE err_tolerance,
+		const COORD_TYPE * pointX,
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE * _masspoint,
 		COORD_TYPE * isoVertCoords)
 {
 	Map<const Matrix3f >eigenA(A);
-	Map<const RowVector3f >massPoint(_masspoint);
+	Map<const RowVector3f >eigen_pX(pointX);
 	Map<const RowVector3f>b(_b);
 	JacobiSVD<Matrix3f> svd(eigenA, ComputeFullU | ComputeFullV);
 	// compute the singular values
@@ -123,21 +124,21 @@ void compute_cube_vertex_lindstrom_3x3
 	//	}
 	//}
 
-	Matrix3f reconstruct_A = svd.matrixU()*sigma*(svd.matrixV().transpose());
-	Vector3f sharpCoord = massPoint.transpose() +
+  // FORMULA CORRECTED: 12-11-2014 by R.W.
+	Vector3f sharpCoord = eigen_pX.transpose() +
 				svd.matrixV()*pseudo_inv_sigma*(svd.matrixU().transpose())*
-				(b.transpose() -
-						reconstruct_A*massPoint.transpose());
+				(b.transpose() - eigenA*eigen_pX.transpose());
 
 	//set isoVertCoords
 	for(int d=0; d<DIM3; d++)
-		isoVertCoords[d]=sharpCoord[d];
-
+    { isoVertCoords[d] = sharpCoord[d]; }
 }
+
 /// Calculate the sharp vertex using svd and the faster garland heckbert way
 /// of storing normals
 
 
+/// @param pointX Compute vertex closest to pointX.
 void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		const NUM_TYPE num_vert,
 		const EIGENVALUE_TYPE err_tolerance,
@@ -145,9 +146,9 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		const SCALAR_TYPE * vert_scalars,
 		const COORD_TYPE * vert_coords,
 		const GRADIENT_COORD_TYPE * vert_grads,
+		const COORD_TYPE * pointX,
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE * mass_point,
 		COORD_TYPE * isoVertcoords)
 {
 	IJK::PROCEDURE_ERROR error ("svd_calculate_sharpiso_vertex_using_lindstrom_fast");
@@ -204,8 +205,8 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		}
 
 	compute_cube_vertex_lindstrom_3x3
-	(linear_A, B, err_tolerance, num_singular_vals,
-			singular_vals, mass_point, isoVertcoords);
+    (linear_A, B, err_tolerance, pointX, 
+     num_singular_vals, singular_vals, isoVertcoords);
 
 }
 
@@ -213,13 +214,15 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 // Calculate the sharp iso vertex using SVD,
 // and the lindstrom approach
 // this is called from svd_compute_sharp_vertex_for_cube in sharpiso_feature.cxx
+/// @param pointX Compute vertex closest to pointX.
 void svd_calculate_sharpiso_vertex_using_lindstrom(
 		const bool useLindstrom2,
 		const COORD_TYPE * vert_coords, const GRADIENT_COORD_TYPE * vert_grads,
 		const SCALAR_TYPE * vert_scalars, const NUM_TYPE num_vert,
 		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
+		const COORD_TYPE * pointX, 
 		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE * cubecenter, COORD_TYPE * isoVertcoords)
+    COORD_TYPE * isoVertcoords)
 {
 
 	if (num_vert == 0)
@@ -244,18 +247,18 @@ void svd_calculate_sharpiso_vertex_using_lindstrom(
 	compute_B_normalize(vert_coords, vert_grads, vert_scalars, num_vert,
 			isovalue, B);
 
-	RowVectorXf eigen_cubecenter(DIM3);
-	eigen_cubecenter << cubecenter[0], cubecenter[1], cubecenter[2];
+	RowVectorXf eigen_pX(DIM3);
+	eigen_pX << pointX[0], pointX[1], pointX[2];
 	// check which one to use lindstrom2 or lindstrom
 	if (useLindstrom2 == false)
 		// Compute the cube vertex
 		compute_cube_vertex
 		(A, B, singular_values, err_tolerance,
-				num_singular_vals, eigen_cubecenter, isoVertcoords);
+				num_singular_vals, eigen_pX, isoVertcoords);
 	else
 		compute_cube_vertex_lind2
 		(A, B, singular_values, err_tolerance,
-				num_singular_vals, eigen_cubecenter, isoVertcoords);
+				num_singular_vals, eigen_pX, isoVertcoords);
 
 	//set up singular values. convert from eigen data type to floating type.
 	for (int i = 0; i < num_singular_vals; i++) {
@@ -266,14 +269,16 @@ void svd_calculate_sharpiso_vertex_using_lindstrom(
 
 // Calculate the sharp iso vertex using SVD and lindstrom approach.
 // Input is isosurface-edge intersections.
+/// @param pointX Compute vertex closest to pointX.
 void svd_calculate_sharpiso_vertex_using_lindstrom(
 		const bool useLindstrom2,
 		const COORD_TYPE * edgeI_coords, 
     const GRADIENT_COORD_TYPE * edgeI_normal_coord,
 		const NUM_TYPE num_intersections,
 		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
+		const COORD_TYPE * pointX, 
 		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE * cubecenter, COORD_TYPE * isoVertcoords)
+    COORD_TYPE * isoVertcoords)
 {
   std::vector<SCALAR_TYPE> edgeI_scalar(num_intersections);
 
@@ -283,8 +288,8 @@ void svd_calculate_sharpiso_vertex_using_lindstrom(
   svd_calculate_sharpiso_vertex_using_lindstrom
     (useLindstrom2, edgeI_coords, edgeI_normal_coord,
      &(edgeI_scalar[0]), num_intersections, isovalue,
-     err_tolerance, num_singular_vals, singular_vals,
-     cubecenter, isoVertcoords);
+     err_tolerance, pointX, 
+     num_singular_vals, singular_vals, isoVertcoords);
 }
 
 // calculate the sharp iso vertex using SVD, but normalize the

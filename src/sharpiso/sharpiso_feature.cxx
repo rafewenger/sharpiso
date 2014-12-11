@@ -59,7 +59,8 @@ void compute_central_point
 
 /// Compute sharp isosurface vertex using singular valued decomposition.
 /// Use Lindstrom's formula.
-/// Also post processes vertices.
+/// Compute vertex closest to cube center or centroid 
+///   of interpolated grid edge/isosurface intersections.
 void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 	(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 	const GRADIENT_GRID_BASE & gradient_grid,
@@ -67,6 +68,35 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 	const SCALAR_TYPE isovalue,
 	const SHARP_ISOVERT_PARAM & sharpiso_param,
 	const OFFSET_VOXEL & voxel,
+	COORD_TYPE sharp_coord[DIM3],
+	EIGENVALUE_TYPE eigenvalues[DIM3],
+	NUM_TYPE & num_large_eigenvalues,
+	SVD_INFO & svd_info)
+{
+
+	COORD_TYPE central_point[DIM3];
+	compute_central_point
+		(scalar_grid, gradient_grid, isovalue, cube_index,
+		sharpiso_param, central_point, svd_info);
+
+  svd_compute_sharp_vertex_for_cube_lindstrom
+    (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
+     voxel, central_point, sharp_coord, 
+     eigenvalues, num_large_eigenvalues, svd_info);
+}
+
+/// Compute sharp isosurface vertex using singular valued decomposition.
+/// Use Lindstrom's formula.
+/// @param pointX Compute vertex closest to pointX.
+/// Also post processes vertices.
+void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
+ (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+  const GRADIENT_GRID_BASE & gradient_grid,
+  const VERTEX_INDEX cube_index,
+  const SCALAR_TYPE isovalue,
+  const SHARP_ISOVERT_PARAM & sharpiso_param,
+  const OFFSET_VOXEL & voxel,
+  const COORD_TYPE pointX[DIM3],
 	COORD_TYPE sharp_coord[DIM3],
 	EIGENVALUE_TYPE eigenvalues[DIM3],
 	NUM_TYPE & num_large_eigenvalues,
@@ -104,30 +134,21 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 	svd_info.flag_conflict = false;
 	svd_info.flag_Linf_iso_vertex_location = false;
 
-	// svd_calculate_sharpiso vertex using lindstrom
-	COORD_TYPE central_point[DIM3];
-	compute_central_point
-		(scalar_grid, gradient_grid, isovalue, cube_index,
-		sharpiso_param, central_point, svd_info);
-
 	/// use the sharp version with the garlnd heckbert way of storing normals
 	if (sharpiso_param.use_lindstrom_fast)
 	{
 		svd_calculate_sharpiso_vertex_using_lindstrom_fast
 			(num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]), 
-			&(point_coord[0]), &(gradient_coord[0]), 
-			num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
-		//DEBUG
-		//cout <<"svd output "<< sharp_coord[0]<<" "<<sharp_coord[1]<<" "
-		//	<<sharp_coord[2]<<"\n ";
+       &(point_coord[0]), &(gradient_coord[0]), pointX,
+       num_large_eigenvalues, eigenvalues, sharp_coord);
 	}
 	else
 	{
 		svd_calculate_sharpiso_vertex_using_lindstrom
 			(sharpiso_param.use_lindstrom2, &(point_coord[0]),
-			&(gradient_coord[0]), &(scalar[0]),
-			num_gradients, isovalue, max_small_eigenvalue,
-			num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
+       &(gradient_coord[0]), &(scalar[0]),
+       num_gradients, isovalue, max_small_eigenvalue, pointX,
+       num_large_eigenvalues, eigenvalues, sharp_coord);
 	}
 
 	//post process the isovertex. 
@@ -197,16 +218,16 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_hermite
 
     svd_calculate_sharpiso_vertex_using_lindstrom_fast
       (num_gradients, max_small_eigenvalue, isovalue, &(scalar[0]), 
-       &(point_coord[0]), &(gradient_coord[0]), 
-       num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
+       &(point_coord[0]), &(gradient_coord[0]), central_point,
+       num_large_eigenvalues, eigenvalues, sharp_coord);
   }
   else{
 
     svd_calculate_sharpiso_vertex_using_lindstrom
       (sharpiso_param.use_lindstrom2, &(point_coord[0]),
        &(gradient_coord[0]), &(scalar[0]),
-       num_gradients, isovalue, max_small_eigenvalue,
-       num_large_eigenvalues, eigenvalues, central_point, sharp_coord);
+       num_gradients, isovalue, max_small_eigenvalue, central_point,
+       num_large_eigenvalues, eigenvalues, sharp_coord);
   }
 
   svd_info.cube_containing_coord = cube_index;
@@ -260,8 +281,8 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_interpolate_gradients
     svd_calculate_sharpiso_vertex_using_lindstrom
       (sharpiso_param.use_lindstrom2, &(edgeI_coord[0]),
        &(edgeI_normal_coord[0]), 
-       num_gradients, isovalue, max_small_eigenvalue,
-       num_large_eigenvalues, eigenvalues, central_point, 
+       num_gradients, isovalue, max_small_eigenvalue, central_point,
+       num_large_eigenvalues, eigenvalues,
        sharp_coord);
 
     svd_info.location = LOC_SVD;
@@ -312,9 +333,8 @@ void SHARPISO::svd_compute_sharp_vertex_edgeI_sharp_gradient
     svd_calculate_sharpiso_vertex_using_lindstrom
       (sharpiso_param.use_lindstrom2, &(edgeI_coord[0]),
        &(edgeI_normal_coord[0]), 
-       num_gradients, isovalue, max_small_eigenvalue,
-       num_large_eigenvalues, eigenvalues, central_point, 
-       sharp_coord);
+       num_gradients, isovalue, max_small_eigenvalue, central_point,
+       num_large_eigenvalues, eigenvalues, sharp_coord);
 
     svd_info.location = LOC_SVD;
   }
@@ -959,6 +979,21 @@ bool SHARPISO::cube_contains_point
   return(true);
 }
 
+/// Return true if cube contains point.
+bool SHARPISO::cube_contains_point
+(const SHARPISO_GRID & grid,
+ const VERTEX_INDEX cube_index,
+ const COORD_TYPE point_coord[DIM3])
+{
+  COORD_TYPE cube_coord[DIM3];
+
+  grid.ComputeScaledCoord(cube_index, cube_coord);
+  return(cube_contains_point
+         (cube_coord, point_coord, grid.SpacingPtrConst()));
+}
+
+
+/// *** INCORRECT FOR SPACING != (1,1,1) ***
 /// Return index of cube containing point.
 /// Set flag_boundary to true if point is on cube boundary.
 /// @pre Point is contained in grid.
@@ -990,6 +1025,7 @@ void SHARPISO::get_cube_containing_point
   cube_index = grid.ComputeVertexIndex(coord2);
 }
 
+/// *** INCORRECT FOR SPACING != (1,1,1) ***
 /// Return index of cube containing point.
 /// Set flag_boundary to true if point is on cube boundary.
 /// Set flag_active to true if cube is active.
@@ -1007,6 +1043,7 @@ void SHARPISO::get_cube_containing_point
 }
 
 
+/// *** INCORRECT FOR SPACING != (1,1,1) ***
 /// Return list of cubes containing point.
 /// Set flag_boundary to true if point is on cube boundary.
 /// @pre Point is contained in grid.
