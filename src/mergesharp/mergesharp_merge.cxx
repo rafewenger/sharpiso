@@ -554,6 +554,9 @@ namespace {
     VERTEX_INDEX cube1_index;
 
     cube1_index = grid.CubeNeighborE(cube0_index, k);
+    NUM_TYPE gcube1_index = isovert.GCubeIndex(cube1_index);
+
+    if (gcube1_index == ISOVERT::NO_INDEX) { return(false); }
 				
     // Check if edge is bipolar
     // Note: Computation of (iv0,iv1) relies on specific ordering
@@ -563,38 +566,25 @@ namespace {
     VERTEX_INDEX iv0 = grid.FacetVertex(cube0_index, edge_dir, k2);
     VERTEX_INDEX iv1 = grid.NextVertex(iv0, edge_dir);
 
-    // *** DEBUG ***
-    /*
-    using namespace std;
-    if (cube0_index == 56693) {
-      cerr << "*** Checking if cube " << cube0_index
-           << " is connected to edge cube " << cube1_index << " ";
-      ijkgrid_output_vertex_coord(cerr, grid, cube1_index);
-      cerr << endl;
-    }
-    */
-
     if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) 
       { return(true); }
 
-    // *** DEBUG ***
-    using namespace std;
-    /*
-    if (cube0_index == 56693) {
-      cerr << "   Checking adjacent cubes" << endl;
-    }
-    */
+		if (isovert.gcube_list[gcube1_index].boundary_bits == 0) {
 
-    // Check if some cube adjacent to cube1_index maps to cube0_index
-    NUM_TYPE gcube0_index = isovert.GCubeIndex(cube0_index);
+      // Check if some cube adjacent to cube1_index maps to cube0_index
+      NUM_TYPE gcube0_index = isovert.GCubeIndex(cube0_index);
 
-    for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsF(); j++) {
-      VERTEX_INDEX cube2_index = grid.CubeNeighborF(cube1_index, j);
-      INDEX_DIFF_TYPE gcube2_index = isovert.GCubeIndex(cube2_index);
+      for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsF(); j++) {
+        VERTEX_INDEX cube2_index = grid.CubeNeighborF(cube1_index, j);
+        INDEX_DIFF_TYPE gcube2_index = isovert.GCubeIndex(cube2_index);
 
-      if (gcube2_index != ISOVERT::NO_INDEX) {
-        if (gcube_map[gcube2_index] == gcube0_index) { return(true); }
+        if (gcube2_index != ISOVERT::NO_INDEX) {
+          if (gcube_map[gcube2_index] == gcube0_index) { return(true); }
+        }
       }
+    }
+    else {
+      // Handle boundary case.
     }
 
     return(false);
