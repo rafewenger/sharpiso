@@ -48,7 +48,7 @@ public:
 	COORD_TYPE isovert_coordB[DIM3];   ///< Substitute location.
 	unsigned char num_eigenvalues;     ///< Number of eigenvalues.
 	GRID_CUBE_FLAG flag;               ///< Type for this cube.
-	int boundary_bits;                 ///< Boundary bits for the cube
+  BOUNDARY_BITS_TYPE boundary_bits;  ///< Boundary bits for the cube
 	VERTEX_INDEX cube_index;           ///< Index of cube in scalar grid.
 
   /// Linf-dist from isovert_coord[] to cube-center.

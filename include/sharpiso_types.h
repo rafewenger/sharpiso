@@ -42,6 +42,7 @@ namespace SHARPISO {
 
   typedef int AXIS_SIZE_TYPE;
   typedef int GRADIENT_LENGTH_TYPE;
+  typedef int BOUNDARY_BITS_TYPE;
 
   /// Coordinate type which is guaranteed to be signed.
   /// (Note: COORD_TYPE may be signed or unsigned.)
