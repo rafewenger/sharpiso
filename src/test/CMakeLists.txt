@@ -27,5 +27,3 @@ INCLUDE_DIRECTORIES("../eigen")
 LINK_DIRECTORIES("${NRRD_LIBDIR}")
 LINK_LIBRARIES(ITKNrrdIO z)
 
-ADD_EXECUTABLE(test_voxel test_voxel.cxx sharpiso_get_gradients.cxx
-                          sharpiso_intersect.cxx)

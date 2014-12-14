@@ -69,11 +69,6 @@ namespace MERGESHARP {
     <ISO_VERTEX_INDEX, FACET_VERTEX_INDEX, IJKDUALTABLE::TABLE_INDEX>
     DUAL_ISOVERT;
 
-  /* OBSOLETE
-  typedef IJK::CUBE_ISOVERT_DATA<IJKDUALTABLE::TABLE_INDEX, NUM_TYPE> 
-    CUBE_ISOVERT_DATA;
-  */
-
   // **************************************************
   // DUAL CONTOURING ISOSURFACE CLASS
   // **************************************************

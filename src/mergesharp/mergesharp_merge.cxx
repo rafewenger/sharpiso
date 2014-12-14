@@ -200,18 +200,6 @@ namespace {
         if (gcube_list[from_gcube].boundary_bits == 0) {
           // Map gcube_list[from_gcube] to isosurface vertex in cube to_gcube.
           gcube_map[from_gcube] = to_gcube;
-
-          // *** DEBUG ***
-          /*
-            using namespace std;
-            VERTEX_INDEX to_cube = gcube_list[to_gcube].cube_index;
-            VERTEX_INDEX from_cube = gcube_list[from_gcube].cube_index;
-            if (to_cube == 51492 || to_cube == 51438 || to_cube == 56693) {
-              cerr << "Mapping " << from_cube << " ";
-              cerr << " to " << to_cube << endl;
-            }
-          */
-
         }
 			}
 		}
@@ -242,7 +230,7 @@ namespace {
         using namespace std;
         VERTEX_INDEX to_cube = gcube_list[to_gcube].cube_index;
         VERTEX_INDEX from_cube = gcube_list[from_gcube].cube_index;
-        if (to_cube == 51492 || to_cube == 51438 || to_cube == 56693) {
+        if (to_cube == 66733 || to_cube == 69485) {
           cerr << "Mapping " << from_cube << " ";
           ijkgrid_output_vertex_coord(cerr, scalar_grid, from_cube);
           cerr << " to " << to_cube << " ";
@@ -743,25 +731,7 @@ namespace {
                 (scalar_grid, cube_index0, cube_index2,
                  isovalue, isovert, gcube_map))
               { return(false); }
-
-            /* OLD VERSION
-            // Check that cube_index1 and cube_index2 are NOT connected.
-            if (are_connected
-                (scalar_grid, cube_index1, cube_index2, isovalue)) 
-                { return false; }
-
-            // Check that cube_index0 is connected to cube_index1.
-            if (!are_connected
-                (scalar_grid, cube_index0, cube_index1, isovalue))
-              { return(false); }
-
-            // Check that cube_index0 is connected to cube_index2.
-            if (!are_connected
-                (scalar_grid, cube_index0, cube_index2, isovalue))
-              { return(false); }
-            */
-
-
+            
             return true;
 					}
 				}
@@ -1295,6 +1265,18 @@ namespace {
       (scalar_grid, isovalue, neighbor_gcube_index, isovert, 
        gcube_map, connected_sharp);
 
+    // *** DEBUG ***
+    /*
+    using namespace std;
+    if (tocube_index == 166673 || tocube_index == 155632) {
+      cerr << "Connected to " << neighbor_gcube_index << ": ";
+      for (int i = 0; i < connected_sharp.size(); i++) {
+        cerr << " " << connected_sharp[i];
+      }
+      cerr << endl;
+    }
+    */
+
 		bool found_mapping = 
       find_good_mapping(scalar_grid, isovalue, isovert, gcube_map,
                         neighbor_gcube_index, 
@@ -1307,12 +1289,14 @@ namespace {
     // *** DEBUG ***
     /*
     using namespace std;
-    COORD_TYPE cc[DIM3] = {0.0,0.0,0.0};
-    scalar_grid.ComputeCoord(neighbor_cube_index, cc);
-    if (tocube_index == 170660) {
+    if (tocube_index == 166673 || tocube_index == 155632) {
       cerr << "Checking mapping " << neighbor_cube_index << " ";
-      IJK::print_coord3D(cerr, cc);
+      ijkgrid_output_vertex_coord(cerr, scalar_grid, neighbor_cube_index);
       cerr << " to " << tocube_index << endl;
+      cerr << "    found_mapping: " << int(found_mapping);
+      cerr << "  to_cube: " << tocube_gcube_index;
+      cerr << "  merge_permitted: " << int(flag_merge_permitted);
+      cerr << endl;
     }
     */
 
@@ -1327,7 +1311,7 @@ namespace {
       using namespace std;
 			COORD_TYPE cc[DIM3] = {0.0,0.0,0.0};
 			scalar_grid.ComputeCoord(neighbor_cube_index, cc);
-      if (tocube_cube_index == 51492) {
+    if (tocube_index == 166673 || tocube_index == 155632) {
         cerr << "  Mapping " << neighbor_cube_index << " ";
         IJK::print_coord3D(cerr, cc);
         cerr << " to " << tocube_cube_index << endl;
