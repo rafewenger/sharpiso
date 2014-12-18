@@ -94,9 +94,11 @@ namespace MERGESHARP {
     int subsample_resolution;
     bool flag_supersample;
     int supersample_resolution;
-    bool flag_color_alternating;  ///< Color simplices in alternating cubes
+    bool flag_color_alternating; ///< Color simplices in alternating cubes
     int region_length;
-    bool flag_output_param;
+    bool flag_output_param;      ///< Output algorithm parameters.
+    bool flag_output_selected;   ///< Output information about selected cubes.
+    bool flag_output_sharp;      ///< Output information about sharp cubes.
     std::vector<COORD_TYPE> minc;
     std::vector<COORD_TYPE> maxc;
 
@@ -284,7 +286,7 @@ namespace MERGESHARP {
   /// Output dual isosurface.
   void output_dual_isosurface
   (const OUTPUT_INFO & output_info, const MERGESHARP_DATA & mergesharp_data,
-   const DUAL_ISOSURFACE & dual_isosurface,
+   const DUAL_ISOSURFACE & dual_isosurface, const ISOVERT & isovert, 
    const MERGESHARP_INFO & mergesharp_info, IO_TIME & io_time);
 
   // **************************************************
@@ -388,6 +390,11 @@ namespace MERGESHARP {
   (const OUTPUT_INFO & output_info, const MERGESHARP_DATA & mergesharp_data,
    const DUAL_ISOSURFACE & dual_isosurface,
    const MERGESHARP_INFO & mergesharp_info);
+
+  /// Report information about isosurface vertices
+  void report_isovert_info
+    (const OUTPUT_INFO & output_info, const ISOVERT & isovert);
+
 
   // **************************************************
   // REPORT TIMING INFORMATION

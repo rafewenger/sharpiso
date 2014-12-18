@@ -1,15 +1,15 @@
 /// \file ijkisopoly.txx
 /// ijk templates for extracting an isosurface patch from a polyhedron
-/// Version 0.1.0
+/// Version 0.2.0
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2009-2013 Rephael Wenger
+  Copyright (C) 2009-2014 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  version 2.1 of the License, or any later version.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -653,6 +653,7 @@ namespace IJK {
           }
         }
 
+        mask = (1L << (d+dimension));
         if ((bit1 & mask) == 0) {
           for (NUM_TYPE k = 0; k < num_vertices_in_cube_ridge; k++) {
             VTYPE iv = scalar_grid.RidgeVertex(iv0, orth_dir, d, k);
@@ -900,7 +901,7 @@ namespace IJK {
               if (ambig_info.NumAmbiguousFacets(it1) == 1) {
 
                 NUM_TYPE num_neg_in_plane, num_pos_in_plane;
-                VTYPE iv0 = grid.FacetVertex(cube_index0, kf, 0);
+                VTYPE iv0 = grid.AdjacentVertex(cube_index0, orth_dir, side);
 
                 count_adjacent_vertices_in_facet_plane
                   (grid, isovalue, iv0, orth_dir, 
@@ -954,6 +955,115 @@ namespace IJK {
             table_index[i0] = isodual_table.Complement(it0);
             num_changed ++;
           }
+        }
+      }
+    }
+
+  }
+
+  /// Select configuration of ambiguous cubes to increase
+  ///   connectivity of the isosurface.
+  template <typename GRID_TYPE, typename ISODUAL_TABLE, typename AMBIG_INFO,
+            typename SCALAR_TYPE, 
+            typename CINDEX_TYPE, typename TABLE_INDEX_TYPE,  typename NTYPE>
+  void select_ambig_to_connect_isosurface
+  (const GRID_TYPE & grid,
+   const ISODUAL_TABLE & isodual_table,
+   const AMBIG_INFO & ambig_info,
+   const SCALAR_TYPE isovalue,
+   const std::vector<CINDEX_TYPE> & cube_list, 
+   std::vector<TABLE_INDEX_TYPE> & table_index,
+   NTYPE & num_changed)
+  {
+    typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
+    typedef typename GRID_TYPE::NUMBER_TYPE NUM_TYPE;
+    typedef typename GRID_TYPE::VERTEX_INDEX_TYPE VTYPE;
+    typedef typename std::vector<CINDEX_TYPE>::size_type SIZE_TYPE;
+
+    const DTYPE dimension = grid.Dimension();
+    const NUM_TYPE num_cube_vertices = compute_num_cube_vertices(dimension);
+    const NUM_TYPE num_cube_facets = compute_num_cube_facets(dimension);
+    const NUM_TYPE num_vertices = grid.NumVertices();
+    IJK::ARRAY<SIZE_TYPE> index_to_cube_list(num_vertices);
+
+    num_changed = 0;
+
+    // Set up index_to_cube_list.
+    for (SIZE_TYPE i = 0; i < cube_list.size(); i++) {
+      CINDEX_TYPE cube_index = cube_list[i];
+      index_to_cube_list[cube_index] = i;
+    }
+
+    for (SIZE_TYPE i0 = 0; i0 < cube_list.size(); i0++) {
+
+      TABLE_INDEX_TYPE it0 = table_index[i0];
+      NUM_TYPE num_isov0 = isodual_table.NumIsoVertices(it0);
+
+      if (ambig_info.NumAmbiguousFacets(it0) > 1 &&
+          num_isov0 > 1) {
+
+        CINDEX_TYPE cube_index0 = cube_list[i0];
+
+        // Check if possible to complement i0 and adjacent cubes.
+        bool flag_complement = true;
+        for (int kf = 0; kf < grid.NumCubeFacets(); kf++) {
+
+          if (ambig_info.IsFacetAmbiguous(it0, kf)) {
+
+            DTYPE orth_dir = IJK::cube_facet_orth_dir(dimension, kf);
+            NUM_TYPE side = IJK::cube_facet_side(dimension, kf);
+
+            if (!grid.IsCubeFacetOnGridBoundary(cube_index0, orth_dir, side)) {
+
+              VTYPE cube_index1 = 
+                grid.AdjacentVertex(cube_index0, orth_dir, side);
+              SIZE_TYPE i1 = index_to_cube_list[cube_index1];
+              TABLE_INDEX_TYPE it1 = table_index[i1];
+              NUM_TYPE num_isov1 = isodual_table.NumIsoVertices(it1);
+
+              if (ambig_info.NumAmbiguousFacets(it1) > 1) {
+                flag_complement = false;
+                break;
+              }
+              else if (ambig_info.NumAmbiguousFacets(it1) == 1 &&
+                       num_isov1 != 2) {
+                flag_complement = false;
+                break;
+              }
+            }
+          }
+        }
+
+        if (flag_complement) {
+
+          // Complement i0 and adjacent cubes.
+          table_index[i0] = isodual_table.Complement(it0);
+          num_changed++;
+
+          for (int kf = 0; kf < grid.NumCubeFacets(); kf++) {
+
+            if (ambig_info.IsFacetAmbiguous(it0, kf)) {
+
+              DTYPE orth_dir = IJK::cube_facet_orth_dir(dimension, kf);
+              NUM_TYPE side = IJK::cube_facet_side(dimension, kf);
+
+              if (!grid.IsCubeFacetOnGridBoundary(cube_index0, orth_dir, side)) {
+
+                VTYPE cube_index1 = 
+                  grid.AdjacentVertex(cube_index0, orth_dir, side);
+                SIZE_TYPE i1 = index_to_cube_list[cube_index1];
+                TABLE_INDEX_TYPE it1 = table_index[i1];
+                NUM_TYPE num_isov1 = isodual_table.NumIsoVertices(it1);
+
+                if (ambig_info.NumAmbiguousFacets(it1) == 1 &&
+                    num_isov1 == 2) {
+                  table_index[i1] = isodual_table.Complement(it1);
+                  num_changed++;
+                }
+              }
+            }
+          }
+
         }
       }
     }

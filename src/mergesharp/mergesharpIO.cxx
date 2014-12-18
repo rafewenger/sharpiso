@@ -2,12 +2,12 @@
 /// IO routines for mergesharp
 
 /*
-  Copyright (C) 2011-2013 Rephael Wenger
+  Copyright (C) 2011-2014 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  version 3 of the License, or any later version.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -33,6 +33,7 @@
 #include "ijkgrid_nrrd.txx"
 #include "ijkIO.txx"
 #include "ijkmesh.txx"
+#include "ijkprint.txx"
 #include "ijkstring.txx"
 
 using namespace IJK;
@@ -76,14 +77,17 @@ namespace {
     ROUND_PARAM, NO_ROUND_PARAM,
     KEEPV_PARAM,
     MINC_PARAM, MAXC_PARAM,
-	MAP_EXTENDED,
-    HELP_PARAM, OFF_PARAM, IV_PARAM, OUTPUT_PARAM_PARAM,
-    OUTPUT_FILENAME_PARAM, STDOUT_PARAM,
-    NOWRITE_PARAM, OUTPUT_INFO_PARAM, WRITE_ISOV_INFO_PARAM, SILENT_PARAM,
-    TIME_PARAM, UNKNOWN_PARAM} PARAMETER;
+    MAP_EXTENDED,
+    HELP_PARAM, OFF_PARAM, IV_PARAM, 
+    OUTPUT_FILENAME_PARAM, STDOUT_PARAM, NOWRITE_PARAM, 
+    OUTPUT_PARAM_PARAM, OUTPUT_INFO_PARAM, 
+    OUTPUT_SELECTED_PARAM, OUTPUT_SHARP_PARAM,
+    WRITE_ISOV_INFO_PARAM, SILENT_PARAM, TIME_PARAM, 
+    UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
     { "-subsample",
-      "-gradient", "-normal", "-position", "-pos", "-trimesh", "-uniform_trimesh",
+      "-gradient", "-normal", "-position", "-pos", 
+      "-trimesh", "-uniform_trimesh",
       "-grad2hermite", "-grad2hermiteI",
       "-max_eigen", "-max_dist", "-gradS_offset", "-max_mag", "-snap_dist",
       "-max_grad_dist",
@@ -103,10 +107,11 @@ namespace {
       "-round", "-no_round",
       "-keepv",
       "-minc", "-maxc",
-	  "-map_extended",
-      "-help", "-off", "-iv", "-out_param",
-      "-o", "-stdout",
-      "-nowrite", "-info", "-write_isov_info", "-s", "-time", "-unknown"};
+      "-map_extended",
+      "-help", "-off", "-iv", 
+      "-o", "-stdout", "-nowrite", 
+      "-out_param", "-info", "-out_selected", "-out_sharp",
+      "-write_isov_info", "-s", "-time", "-unknown"};
 
   PARAMETER get_parameter_token(const char * s)
   // convert string s into parameter token
@@ -400,6 +405,14 @@ namespace {
 
     case OUTPUT_PARAM_PARAM:
       input_info.flag_output_param = true;
+      break;
+
+    case OUTPUT_SELECTED_PARAM:
+      input_info.flag_output_selected = true;
+      break;
+
+    case OUTPUT_SHARP_PARAM:
+      input_info.flag_output_sharp = true;
       break;
 
     case STDOUT_PARAM:
@@ -891,12 +904,14 @@ void MERGESHARP::read_off_file
 
 void MERGESHARP::output_dual_isosurface
 (const OUTPUT_INFO & output_info, const MERGESHARP_DATA & mergesharp_data,
- const DUAL_ISOSURFACE & dual_isosurface,
+ const DUAL_ISOSURFACE & dual_isosurface, const ISOVERT & isovert, 
  const MERGESHARP_INFO & mergesharp_info, IO_TIME & io_time)
 {
   if (!output_info.use_stdout && !output_info.flag_silent) {
     report_iso_info3D
       (output_info, mergesharp_data, dual_isosurface, mergesharp_info);
+
+    report_isovert_info(output_info, isovert);
   }
 
   if (!output_info.nowrite_flag) {
@@ -1411,6 +1426,101 @@ void MERGESHARP::report_iso_info3D
   }
 }
 
+void output_yes_no(const char * s, const bool flag)
+{
+  if (flag) 
+    { cout << s << "yes"; }
+  else 
+    { cout << s << "no"; }
+}
+
+/// Report information about isosurface vertices
+void report_isovert_cube_info
+(const ISOVERT & isovert, const VERTEX_INDEX cube_index)
+{
+  const INDEX_DIFF_TYPE gcube_index = isovert.GCubeIndex(cube_index);
+  string s;
+
+  if (gcube_index == ISOVERT::NO_INDEX) { return; }
+
+  cout << "Cube " << cube_index << ": ";
+  ijkgrid_output_vertex_coord(cout, isovert.sharp_ind_grid, cube_index);
+  cout << "  Isovert coord A: ";
+  IJK::print_coord3D
+    (cout, isovert.gcube_list[gcube_index].isovert_coord);
+  cout << " B: ";
+  IJK::print_coord3D
+    (cout, isovert.gcube_list[gcube_index].isovert_coordB);
+  cout << endl;
+
+  convert2string(isovert.gcube_list[gcube_index].flag, s);
+  cout << "    Dist (Linf): " 
+       << isovert.gcube_list[gcube_index].linf_dist;
+  cout << "  Num eigenvalues: "
+       << int(isovert.gcube_list[gcube_index].num_eigenvalues);
+  cout << "  Type: " << s;
+  cout << "  Maps to: " 
+       << isovert.gcube_list[gcube_index].maps_to_cube
+       << endl;
+
+  output_yes_no("    Conflict? ", 
+                isovert.gcube_list[gcube_index].flag_conflict);
+  output_yes_no("  Coord from other? ", 
+                isovert.gcube_list[gcube_index].flag_coord_from_other);
+  output_yes_no("  Centroid coord?: ", 
+                isovert.gcube_list[gcube_index].flag_centroid_location);
+  cout << "  Isotable index: " 
+       << int(isovert.gcube_list[gcube_index].table_index);
+  cout << endl;
+}
+
+/// Report information about isosurface vertices
+void MERGESHARP::report_isovert_info
+(const OUTPUT_INFO & output_info, const ISOVERT & isovert)
+{
+  const VERTEX_POSITION_METHOD vpos_method = output_info.VertexPositionMethod();
+  std::vector<NUM_TYPE> sharp_gcube_list;
+
+
+  if (vpos_method != GRADIENT_POSITIONING &&
+      vpos_method != EDGEI_INTERPOLATE &&
+      vpos_method != EDGEI_GRADIENT &&
+      vpos_method != EDGEI_INPUT_DATA) { return; }
+
+  if (output_info.flag_output_selected || output_info.flag_output_sharp) {
+
+    // Get corner or edge cubes (in sorted order).
+    get_corner_or_edge_cubes(isovert.gcube_list, sharp_gcube_list);
+
+    if (output_info.flag_output_selected) {
+      cout << endl;
+      cout << "Selected cubes containing corners or edges: " << endl;
+      for (NUM_TYPE i = 0; i < sharp_gcube_list.size(); i++) {
+        NUM_TYPE gcube_index = sharp_gcube_list[i];
+
+        if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
+          VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
+          report_isovert_cube_info(isovert, cube_index);
+        }
+      }
+      cout << endl;
+    }
+
+    if (output_info.flag_output_sharp) {
+      cout << endl;
+      cout << "Cubes containing corners or edges: " << endl;
+      for (NUM_TYPE i = 0; i < sharp_gcube_list.size(); i++) {
+        NUM_TYPE gcube_index = sharp_gcube_list[i];
+        VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
+        report_isovert_cube_info(isovert, cube_index);
+      }
+      cout << endl;
+    }
+  }
+
+}
+
+
 // **************************************************
 // REPORT TIMING INFORMATION
 // **************************************************
@@ -1565,11 +1675,12 @@ namespace {
          << "              gradIE|gradIES|gradIEDir|gradCD|gradNIE|gradNIES|gradBIES"
          << endl
          << "              gradES|gradEC}]" << endl;
-    cerr << "  [-gradient {gradient_nrrd_filename}]" << endl;
-    cerr << "  [-normal {normal_off_filename}]" << endl;
+    cerr << "  [-gradient {gradient_nrrd_filename}]"
+         << " [-normal {normal_off_filename}]" << endl;
     cerr << "  [-merge_sharp | -no_merge_sharp] [-merge_linf_th <D>]" << endl;
     cerr << "  [-grad2hermite | -grad2hermiteI]" << endl;
     cerr << "  [-manifold] [-select_split]" << endl;
+    cerr << "  [-trimesh]" << endl;
     cerr << "  [-max_eigen {max}]" << endl;
     cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}] [-snap_dist {D}]" << endl;
     cerr << "  [-max_grad_dist {D}]" << endl;
@@ -1586,12 +1697,12 @@ namespace {
     cerr << "  [-Linf | -no_Linf]" << endl;
     cerr << "  [-dist2center | -dist2centroid]" << endl;
     cerr << "  [-no_round | -round <n>]" << endl;
-	cerr << "  [-map_extended]" <<endl;
+    cerr << "  [-map_extended]" <<endl;
     cerr << "  [-keepv]" << endl;
     cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
          << endl;
-    cerr << "  [-s] [-out_param] [-info] [-write_isov_info] [-nowrite] [-time]"
-         << endl;
+    cerr << "  [-s] [-out_param] [-info] [-out_selected] [-out_sharp]" << endl;
+    cerr << "  [-write_isov_info] [-nowrite] [-time]" << endl;
     cerr << "  [-help]" << endl;
   }
 
@@ -1773,6 +1884,8 @@ void MERGESHARP::help(const char * command_path)
   cout << "  -s: Silent mode." << endl;
   cout << "  -out_param: Print mergesharp parameters." << endl;
   cout << "  -info: Print algorithm information." << endl;
+  cout << "  -out_selected: Output list of selected cubes." << endl;
+  cout << "  -out_sharp: Output list of cubes containing corner or edge vertices." << endl;
   cout << "  -write_isov_info:  Write isosurface vertex information to file."
        << endl;
   cout << "     File format: isosurface vertex index, cube index," << endl;
@@ -1811,6 +1924,8 @@ void MERGESHARP::IO_INFO::Init()
   region_length = 1;
   max_small_eigenvalue = 0.1;
   flag_output_param = false;
+  flag_output_selected = false;
+  flag_output_sharp = false;
   flag_recompute_isovert = true; // recompute the isovert for unavailable cubes
   flag_check_triangle_angle = true;
   grid_spacing.resize(3,1);

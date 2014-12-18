@@ -36,7 +36,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 #include <iomanip>
 
-
 using namespace MERGESHARP;
 using namespace SHARPISO;
 using namespace std;
@@ -189,43 +188,26 @@ void MERGESHARP::position_merged_dual_isovertices_multi
 
       it = iso_vlist[i].table_index;
 
-      if (isodual_table.NumIsoVertices(it) == 1) 
-	  {
+      if (isodual_table.NumIsoVertices(it) == 1) {
 		  
-		  if (isovert.gcube_list[gcube_index].flag == SMOOTH_GCUBE ||
-			  isovert.gcube_list[gcube_index].flag == COVERED_POINT) 
-		{
+        if (isovert.gcube_list[gcube_index].flag == SMOOTH_GCUBE ||
+            isovert.gcube_list[gcube_index].flag == COVERED_POINT) {
 
           IJK::copy_coord_3D(isovert.gcube_list[gcube_index].isovert_coord,
-			  isov_coord+i*DIM3);
-		}
-		else 
-		{
-			//DEBUG
-			/*using namespace std;
-			cout <<"old vertex "<< isovert.gcube_list[gcube_index].isovert_coord[0]
-			<<" "<< isovert.gcube_list[gcube_index].isovert_coord[1] 
-			<<" "<<isovert.gcube_list[gcube_index].isovert_coord[2]
-			<<" flagfinal "<<int(isovert.gcube_list[gcube_index].flag) 
-			<<" gcubeindex "<<	gcube_index 
-			<<" cubeindex "<< isovert.gcube_list[gcube_index].cube_index <<endl;*/
+                             isov_coord+i*DIM3);
+        }
+        else {
+          compute_isosurface_grid_edge_centroid
+            (scalar_grid, isovalue, cube_index, isov_coord+i*DIM3);
+        }
+      }
+      else {
+        FACET_VERTEX_INDEX ipatch= iso_vlist[i].patch_index;
 
-
-			compute_isosurface_grid_edge_centroid
-				(scalar_grid, isovalue, cube_index, isov_coord+i*DIM3);
-			
-			
-			
-			//cout <<"new vertex "<< isov_coord[i*DIM3] <<" "<< isov_coord[i*DIM3+1]<<" "<< isov_coord[i*DIM3+2]<<endl;
-		}
-	  }
-	  else {
-		  FACET_VERTEX_INDEX ipatch= iso_vlist[i].patch_index;
-		 
-		  compute_isosurface_grid_edge_centroid
-			(scalar_grid, isodual_table, isovalue, cube_index, ipatch,
-			it, cube, isov_coord+i*DIM3);
-	  }
+        compute_isosurface_grid_edge_centroid
+          (scalar_grid, isodual_table, isovalue, cube_index, ipatch,
+           it, cube, isov_coord+i*DIM3);
+      }
     }
     else {
       IJK::copy_coord_3D(isovert.gcube_list[gcube_index].isovert_coord,

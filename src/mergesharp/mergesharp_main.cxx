@@ -3,12 +3,12 @@
 /// Version 0.1.1
 
 /*
-  Copyright (C) 2011-2013 Rephael Wenger
+  Copyright (C) 2011-2014 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  version 3 of the License, or any later version.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -184,6 +184,8 @@ void construct_isosurface
   io_time.write_time = 0;
   for (unsigned int i = 0; i < input_info.isovalue.size(); i++) {
 
+    ISOVERT isovert;
+
     const SCALAR_TYPE isovalue = input_info.isovalue[i];
 
     DUAL_ISOSURFACE dual_isosurface;
@@ -191,24 +193,19 @@ void construct_isosurface
     mergesharp_info.grid.num_cubes = num_cubes;
 
     dual_contouring
-      (mergesharp_data, isovalue, dual_isosurface, mergesharp_info);
+      (mergesharp_data, isovalue, dual_isosurface, isovert, mergesharp_info);
     mergesharp_time.Add(mergesharp_info.time);
 
-	OUTPUT_INFO output_info;
+    OUTPUT_INFO output_info;
     set_output_info(input_info, i, output_info);
 
-	int grow_factor = 1;
+    int grow_factor = 1;
     int shrink_factor = 1;
     if (input_info.flag_subsample)
       { grow_factor = input_info.subsample_resolution; }
     if (input_info.flag_supersample)
       { shrink_factor = input_info.supersample_resolution; }
 
-    /* SPACING NOW CHANGED WHEN ISO COORDINATES ARE COMPUTED
-    rescale_vertex_coord(grow_factor, shrink_factor, input_info.grid_spacing,
-                         dual_isosurface.vertex_coord);
-    */
-	
     if (mergesharp_data.flag_convert_quad_to_tri) {
 
       VERTEX_INDEX_ARRAY quad_vert(dual_isosurface.quad_vert);
@@ -234,12 +231,12 @@ void construct_isosurface
       }
 	   
       output_dual_isosurface
-        (output_info, mergesharp_data, isosurface_tri_mesh, 
+        (output_info, mergesharp_data, isosurface_tri_mesh, isovert,
          mergesharp_info, io_time);
     }
     else {
       output_dual_isosurface
-        (output_info, mergesharp_data, dual_isosurface, 
+        (output_info, mergesharp_data, dual_isosurface, isovert,
          mergesharp_info, io_time);
     }
   }

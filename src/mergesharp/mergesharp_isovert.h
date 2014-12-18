@@ -22,18 +22,15 @@ namespace MERGESHARP {
 // **************************************************
 
 typedef enum {
-	AVAILABLE_GCUBE,    ///< Cube is available. is a sharp vertex. 
-						/// num_large_eigenvalues > 1 && svd_info.location == LOC_SVD
-	SELECTED_GCUBE,     ///< Cube contains a sharp vertex.
-
-	COVERED_A_GCUBE,    ///< Cube is near a cube containing a sharp vertex.
-	COVERED_B_GCUBE,	///< Cube is near a covered cube, which has a sharp vertex.
-	COVERED_CORNER_GCUBE, /// Covers a cube with >3 eigen value
-	COVERED_POINT,      ///< The sharp vertex is in a covered cube.
-
-	UNAVAILABLE_GCUBE,  ///< Cube is within 3x3 of a 2 covering.
-	NON_DISK_GCUBE,     ///< Merging cube with neighbors creates non-disk patch.
-	SMOOTH_GCUBE		    ///< Cube contains smooth isosurface patch.
+	AVAILABLE_GCUBE,       ///< Cube is available for selection.
+	SELECTED_GCUBE,        ///< Cube contains a sharp vertex.
+	COVERED_A_GCUBE,       ///< Cube is near a cube containing a sharp vertex.
+	COVERED_B_GCUBE,	     ///< Cube is covered by extended mapping.
+	COVERED_CORNER_GCUBE,  ///< Covers a cube with >3 eigen value
+	COVERED_POINT,         ///< The sharp vertex is in a covered cube.
+	UNAVAILABLE_GCUBE,     ///< Cube is within 3x3 of a 2 covering.
+	NON_DISK_GCUBE,        ///< Merging cube creates non-disk patch.
+	SMOOTH_GCUBE		       ///< Cube contains smooth isosurface patch.
 } GRID_CUBE_FLAG;
 
 
@@ -77,6 +74,10 @@ public:
 
   /// Grid index of cube which covered this cube.
   VERTEX_INDEX covered_by;
+
+  /// Grid index of cube which this cube maps to.
+  /// Currently, only used for output information.
+  VERTEX_INDEX maps_to_cube;
 
   /// Return true if cube is covered or selected.
   bool IsCoveredOrSelected() const;
@@ -226,6 +227,10 @@ void select_non_smooth(ISOVERT & isovert);
 /// Get list of grid cubes from isovert.
 void get_cube_list
   (const ISOVERT & isovert, std::vector<VERTEX_INDEX> & cube_list);
+
+/// Transform GRID_CUBE_FLAG into a string
+void convert2string(const GRID_CUBE_FLAG & flag, std::string & s);
+
 
 // **************************************************
 // SUBROUTINES

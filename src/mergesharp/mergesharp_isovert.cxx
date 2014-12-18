@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <iostream>
 #include <algorithm>
 #include <iomanip>  
-#include <stdio.h>
+#include <string>  
 #include <stdio.h>
 
 #include "ijkcoord.txx"
@@ -123,10 +123,6 @@ namespace {
   void snap2cube_vertex
   (const SHARPISO_GRID & grid, const VERTEX_INDEX cube_index, 
    const COORD_TYPE pointA[DIM3], COORD_TYPE * pointB);
-
-  void output_gcube_list
-  (const SHARPISO_GRID & grid, const ISOVERT & isovert, 
-   const std::vector<NUM_TYPE> & gcube_index_list);
 
 }
 
@@ -1901,7 +1897,6 @@ void MERGESHARP::select_sharp_isovert
 
   // *** DEBUG ***
   if (flag_debug) {
-    //    output_gcube_list(scalar_grid, isovert, sharp_gcube_list);
     cerr << endl << "*** Selecting corner cubes." << endl;
   }
 
@@ -1917,7 +1912,6 @@ void MERGESHARP::select_sharp_isovert
 
   // *** DEBUG ***
   if (flag_debug) { 
-    //    output_gcube_list(scalar_grid, isovert, sharp_gcube_list);
     cerr << endl << "*** Selecting near corner cubes." << endl; 
   }
 
@@ -2075,6 +2069,61 @@ void MERGESHARP::store_table_index
 	for (NUM_TYPE i = 0; i < table_index.size(); i++) 
 	{ gcube_list[i].table_index = table_index[i]; }
 }
+
+// **************************************************
+// Convert GRID_CUBE_FLAG to string
+// **************************************************
+
+/// Transform GRID_CUBE_FLAG into a string
+void MERGESHARP::convert2string
+(const GRID_CUBE_FLAG & flag, std::string & s)
+{
+  switch(flag) {
+
+  case AVAILABLE_GCUBE:
+    s = "Available";
+    break;
+
+  case SELECTED_GCUBE:
+    s = "Selected";
+    break;
+
+  case COVERED_A_GCUBE:
+    s = "Covered (A)";
+    break;
+
+  case COVERED_B_GCUBE:
+    s = "Covered (B)";
+    break;
+
+  case COVERED_CORNER_GCUBE:
+    s = "Covered by corner";
+    break;
+
+  case COVERED_POINT:
+    s = "Isovert covered";
+    break;
+
+  case UNAVAILABLE_GCUBE:
+    s = "Unavailable";
+    break;
+
+  case NON_DISK_GCUBE:
+    s = "Non-disk patch";
+    break;
+
+  case SMOOTH_GCUBE:
+    s = "Smooth";
+    break;
+
+  default:
+    s = "Unidentified";
+    break;
+  }
+}
+
+
+
 
 // **************************************************
 // GRID_CUBE member functions
@@ -2641,37 +2690,6 @@ namespace {
         { pointB[d] = x0; }
       else 
         { pointB[d] = x1; }
-    }
-  }
-
-  // DEBUG routine
-  void output_gcube_list
-  (const SHARPISO_GRID & grid, const ISOVERT & isovert, 
-   const std::vector<NUM_TYPE> & gcube_index_list)
-  {
-    for (int i = 0; i < gcube_index_list.size(); i++) {
-      NUM_TYPE gcube_index = gcube_index_list[i];
-      VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
-      cerr << "Cube : " << cube_index << " ";
-      ijkgrid_output_vertex_coord(cerr, grid, cube_index);
-      cerr << "  isovert_coord: ";
-      IJK::print_coord3D(cerr, isovert.gcube_list[gcube_index].isovert_coord);
-      cerr << "  B: ";
-      IJK::print_coord3D(cerr, isovert.gcube_list[gcube_index].isovert_coordB);
-      cerr << endl;
-      cerr << "    linf dist: " << isovert.gcube_list[gcube_index].linf_dist;
-      cerr << "  flag conflict: " 
-           << int(isovert.gcube_list[gcube_index].flag_conflict);
-      cerr << "  flag_coord_from_other: "
-           << int(isovert.gcube_list[gcube_index].flag_coord_from_other);
-      cerr << "  num_eigen: "
-           << int(isovert.gcube_list[gcube_index].num_eigenvalues);
-      cerr << endl;
-      cerr << "    flag: "
-           << int(isovert.gcube_list[gcube_index].flag);
-      cerr << " flag_centroid_loc: " 
-           << int(isovert.gcube_list[gcube_index].flag_centroid_location)
-           << endl;
     }
   }
 

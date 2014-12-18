@@ -48,12 +48,12 @@ using namespace std;
 
 /// Dual Contouring Algorithm.
 void MERGESHARP::dual_contouring
-	(const MERGESHARP_DATA & mergesharp_data, const SCALAR_TYPE isovalue,
-	DUAL_ISOSURFACE & dual_isosurface, MERGESHARP_INFO & mergesharp_info)
+(const MERGESHARP_DATA & mergesharp_data, const SCALAR_TYPE isovalue,
+ DUAL_ISOSURFACE & dual_isosurface, ISOVERT & isovert, 
+ MERGESHARP_INFO & mergesharp_info)
 {
 	const int dimension = mergesharp_data.ScalarGrid().Dimension();
 	const AXIS_SIZE_TYPE * axis_size = mergesharp_data.ScalarGrid().AxisSize();
-	ISOVERT isovert;
 	PROCEDURE_ERROR error("dual_contouring");
 
 	clock_t t_start = clock();
@@ -128,6 +128,17 @@ void MERGESHARP::dual_contouring
 	clock2seconds(t_end-t_start, mergesharp_info.time.total);
 }
 
+/// Dual Contouring Algorithm.
+void MERGESHARP::dual_contouring
+(const MERGESHARP_DATA & mergesharp_data, const SCALAR_TYPE isovalue,
+ DUAL_ISOSURFACE & dual_isosurface, MERGESHARP_INFO & mergesharp_info)
+{
+  ISOVERT isovert;
+
+  dual_contouring
+    (mergesharp_data, isovalue, dual_isosurface, isovert, mergesharp_info);
+}
+
 
 // **************************************************
 // DUAL CONTOURING USING SCALAR DATA
@@ -161,11 +172,9 @@ void MERGESHARP::dual_contouring
 	else {
 		// Default: Position iso vertices at centroid.
 		if (mergesharp_param.allow_multiple_iso_vertices) {
-			cout <<"dual contouring centroid "<<endl;
 			dual_contouring_centroid_multiv
 				(scalar_grid, isovalue, mergesharp_param.flag_separate_neg,
 				isoquad_vert, vertex_coord, merge_data, mergesharp_info);
-			cout <<"return form dual contoruing centroid "<<endl;
 		}
 		else {
 
@@ -738,6 +747,7 @@ void MERGESHARP::dual_contouring_merge_sharp
 		bool flag_separate_opposite(true);
 		IJKDUALTABLE::ISODUAL_CUBE_TABLE 
 			isodual_table(dimension, flag_separate_neg, flag_separate_opposite);
+    IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO ambig_info(dimension);
 
 		std::vector<ISO_VERTEX_INDEX> isoquad_cube;
 		std::vector<FACET_VERTEX_INDEX> facet_vertex;
@@ -752,7 +762,6 @@ void MERGESHARP::dual_contouring_merge_sharp
 			(scalar_grid, isodual_table, isovalue, cube_list, table_index);
 
 		if (flag_split_non_manifold || flag_select_split) {
-			IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO ambig_info(dimension);
 
 			if (flag_split_non_manifold) {
 				int num_non_manifold_split;
@@ -783,7 +792,7 @@ void MERGESHARP::dual_contouring_merge_sharp
 		store_table_index(table_index, isovert.gcube_list);
 
 		merge_sharp_iso_vertices_multi
-			(scalar_grid, isodual_table, isovalue, iso_vlist, isovert, 
+			(scalar_grid, isodual_table, ambig_info, isovalue, iso_vlist, isovert, 
 			mergesharp_param, quad_vert, mergesharp_info.sharpiso);
 
 		IJK::get_non_degenerate_quad_btlr

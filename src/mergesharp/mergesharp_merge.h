@@ -29,6 +29,8 @@
 #include "mergesharp_types.h"
 #include "mergesharp_datastruct.h"
 
+#include "ijkdualtable.h"
+#include "ijkdualtable_ambig.h"
 
 namespace MERGESHARP {
 
@@ -69,6 +71,7 @@ namespace MERGESHARP {
   void merge_sharp_iso_vertices_multi
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
    const std::vector<DUAL_ISOVERT> & iso_vlist,
    ISOVERT & isovert,
@@ -81,6 +84,7 @@ namespace MERGESHARP {
   void merge_sharp_iso_vertices_multi
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
    const std::vector<DUAL_ISOVERT> & iso_vlist,
    ISOVERT & isovert,
