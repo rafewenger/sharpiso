@@ -1214,6 +1214,8 @@ void SHARPISO::postprocess_isovert_location
 				svd_info.cube_containing_coord = conflicting_cube;
 			}
 		}
+
+    svd_info.flag_far = false;
 	}
 	else 
 	{
@@ -1276,6 +1278,8 @@ void SHARPISO::process_far_point
       (scalar_grid, isovalue, cube_index, iso_coord);
     svd_info.location = CENTROID;
   }
+
+  svd_info.flag_far = true;
 }
 
 // **************************************************
@@ -1411,6 +1415,7 @@ void SVD_INFO::Init()
 {
   flag_conflict = false;
   flag_Linf_iso_vertex_location = false;
+  flag_far = false;
   location = LOC_SVD;
 }
 

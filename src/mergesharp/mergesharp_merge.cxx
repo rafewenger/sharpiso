@@ -2435,6 +2435,13 @@ namespace {
 		//setup the  sorted_gcube_list
 		get_corner_or_edge_cubes(isovert.gcube_list, sorted_gcube_list);
 
+    // *** DEBUG ***
+    /*
+    using namespace std;
+    cerr << endl << endl;
+    cerr << "*** EXTENDING MAPPING ***" << endl;
+    */
+
 		//FACE
 		for (NUM_TYPE i = 0; i < sorted_gcube_list.size(); i++) 
 		{
@@ -2788,7 +2795,7 @@ namespace {
 						VERTEX_INDEX cube1_index = connected_sharp[k1];
 						VERTEX_INDEX cube2_index = connected_sharp[k2];
 
-            // Check that cube0_index and cube1_index are NOT connected.
+            // Check that cube1_index and cube2_index are NOT connected.
             if (are_connected_by_iso_edge
                 (scalar_grid, cube1_index, cube2_index, 
                  isovalue, isovert, gcube_map))
@@ -3236,6 +3243,21 @@ namespace {
 
     if (isovert.gcube_list[from_gcube].IsCoveredOrSelected()) { return; }
 
+    // *** DEBUG ***
+    bool flag_debug = false;
+    using namespace std;
+    /*
+    if (from_cube == 68518) {
+      flag_debug = true;
+
+      cerr << "*** Checking mapping from " << from_cube << " ";
+      ijkgrid_output_vertex_coord(cerr, grid, from_cube);
+      cerr << " to " << to_cube << " ";
+      ijkgrid_output_vertex_coord(cerr, grid, to_cube);
+      cerr << endl;
+    }
+    */
+      
 		find_connected_sharp
       (scalar_grid, grid, isovalue, from_cube, isovert, 
        gcube_map, connected_sharp);
@@ -3243,19 +3265,46 @@ namespace {
     if (!check_extended_mapping
         (scalar_grid, grid, isovalue, isovert, gcube_map,
          from_cube, to_cube, connected_sharp))
-      { return; }
+      { 
+
+        /// *** DEBUG ***
+        if (flag_debug) {
+          cerr << "  Failed check_extended_mapping." << endl; 
+          cerr << "    connected_sharp: ";
+          for (int i = 0; i < connected_sharp.NumElements(); i++) {
+            cerr << connected_sharp[i] << " ";
+          }
+          cerr << endl;
+        }
+
+        return; }
 
     if (!is_cube_merge_permitted
         (scalar_grid, isovert, from_gcube, to_gcube, gcube_map))
-      { return; }
+      { 
+        /// *** DEBUG ***
+        if (flag_debug) 
+          { cerr << "  Failed is_cube_merge_permitted." << endl; }
+
+        return; }
 
     if (!check_map(scalar_grid, grid, isovalue, from_cube, to_cube,
                    isovert, gcube_map, true))
-      { return; }
+      { 
+        /// *** DEBUG ***
+        if (flag_debug) 
+          { cerr << "  Failed check_map." << endl; }
+
+        return; }
 
     if (!check_adjacent_cubes(scalar_grid, grid, isovalue, from_cube,
                               isovert, gcube_map))
-      { return; }
+      { 
+        /// *** DEBUG ***
+        if (flag_debug) 
+          { cerr << "  Failed check_adjacent_cubes." << endl; }
+        
+        return; }
 
     map_iso_vertex(scalar_grid, isovalue, isovert.gcube_list, 
                    from_gcube, to_gcube, gcube_map);

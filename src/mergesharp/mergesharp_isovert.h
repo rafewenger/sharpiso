@@ -69,6 +69,16 @@ public:
   /// If true, using replacement coordinate.
   bool flag_using_substitute_coord;
 
+  /// If true, coordinates have been recomputed.
+  bool flag_recomputed_coord;
+
+  /// If true, coordinates have been recomputed
+  ///   with min gradient cube offset.
+  bool flag_recomputed_coord_min_offset;
+
+  /// If true, svd coord were farther than max_dist.
+  bool flag_far;
+
   /// Index of cube configuration is isosurface lookup table.
   IJKDUALTABLE::TABLE_INDEX table_index;
 
@@ -161,8 +171,7 @@ void compute_dual_isovert
    const SCALAR_TYPE isovalue,
    const SHARP_ISOVERT_PARAM & isovert_param,
    const VERTEX_POSITION_METHOD vertex_position_method,
-   ISOVERT & isovert,
-   ISOVERT_INFO & isovert_info);
+   ISOVERT & isovert);
 
 /// Compute dual isosurface vertices.
 void compute_dual_isovert
@@ -180,6 +189,14 @@ void select_sharp_isovert(
 		const SHARP_ISOVERT_PARAM & isovert_param,
 		ISOVERT & isovertData);
 
+/// Select sharp isosurface vertices.
+void select_sharp_isovert(
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+    const GRADIENT_GRID_BASE & gradient_grid,
+		const SCALAR_TYPE isovalue,
+		const SHARP_ISOVERT_PARAM & isovert_param,
+		ISOVERT & isovertData);
+
 /// Recompute isosurface vertex positions for cubes 
 ///   which are not selected or covered.
 /// also takes isovert_info as parameter
@@ -188,8 +205,7 @@ void recompute_isovert_positions(
 	const GRADIENT_GRID_BASE & gradient_grid,
 	const SCALAR_TYPE isovalue,
 	const SHARP_ISOVERT_PARAM & isovert_param,
-	ISOVERT & isovertData,
-	ISOVERT_INFO & isovert_info);
+	ISOVERT & isovertData);
 
 
 /// Recompute isosurface vertex positions for cubes 

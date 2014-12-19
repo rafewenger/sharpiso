@@ -1445,7 +1445,10 @@ void report_isovert_cube_info
 
   cout << "Cube " << cube_index << ": ";
   ijkgrid_output_vertex_coord(cout, isovert.sharp_ind_grid, cube_index);
-  cout << "  Isovert coord A: ";
+  cout << "    Num eigenvalues: "
+       << int(isovert.gcube_list[gcube_index].num_eigenvalues);
+  cout << endl;
+  cout << "    Isovert coord A: ";
   IJK::print_coord3D
     (cout, isovert.gcube_list[gcube_index].isovert_coord);
   cout << " B: ";
@@ -1456,8 +1459,6 @@ void report_isovert_cube_info
   convert2string(isovert.gcube_list[gcube_index].flag, s);
   cout << "    Dist (Linf): " 
        << isovert.gcube_list[gcube_index].linf_dist;
-  cout << "  Num eigenvalues: "
-       << int(isovert.gcube_list[gcube_index].num_eigenvalues);
   cout << "  Type: " << s;
   cout << "  Maps to: " 
        << isovert.gcube_list[gcube_index].maps_to_cube
@@ -1469,8 +1470,29 @@ void report_isovert_cube_info
                 isovert.gcube_list[gcube_index].flag_coord_from_other);
   output_yes_no("  Centroid coord?: ", 
                 isovert.gcube_list[gcube_index].flag_centroid_location);
+  cout << endl;
+  output_yes_no("    SVD coord far?: ", 
+                isovert.gcube_list[gcube_index].flag_far);
   cout << "  Isotable index: " 
        << int(isovert.gcube_list[gcube_index].table_index);
+  cout << endl;
+}
+
+/// Report information about cubes containing corner or edge iso vertices.
+void MERGESHARP::report_sharp_cubes(const ISOVERT & isovert)
+{
+  std::vector<NUM_TYPE> sharp_gcube_list;
+
+  // Get corner or edge cubes (in sorted order).
+  get_corner_or_edge_cubes(isovert.gcube_list, sharp_gcube_list);
+
+  cout << endl;
+  cout << "Cubes containing corners or edges: " << endl;
+  for (NUM_TYPE i = 0; i < sharp_gcube_list.size(); i++) {
+    NUM_TYPE gcube_index = sharp_gcube_list[i];
+    VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
+    report_isovert_cube_info(isovert, cube_index);
+  }
   cout << endl;
 }
 
@@ -1487,36 +1509,26 @@ void MERGESHARP::report_isovert_info
       vpos_method != EDGEI_GRADIENT &&
       vpos_method != EDGEI_INPUT_DATA) { return; }
 
-  if (output_info.flag_output_selected || output_info.flag_output_sharp) {
+  if (output_info.flag_output_selected) {
 
     // Get corner or edge cubes (in sorted order).
     get_corner_or_edge_cubes(isovert.gcube_list, sharp_gcube_list);
 
-    if (output_info.flag_output_selected) {
-      cout << endl;
-      cout << "Selected cubes containing corners or edges: " << endl;
-      for (NUM_TYPE i = 0; i < sharp_gcube_list.size(); i++) {
-        NUM_TYPE gcube_index = sharp_gcube_list[i];
+    cout << endl;
+    cout << "Selected cubes containing corners or edges: " << endl;
+    for (NUM_TYPE i = 0; i < sharp_gcube_list.size(); i++) {
+      NUM_TYPE gcube_index = sharp_gcube_list[i];
 
-        if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
-          VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
-          report_isovert_cube_info(isovert, cube_index);
-        }
-      }
-      cout << endl;
-    }
-
-    if (output_info.flag_output_sharp) {
-      cout << endl;
-      cout << "Cubes containing corners or edges: " << endl;
-      for (NUM_TYPE i = 0; i < sharp_gcube_list.size(); i++) {
-        NUM_TYPE gcube_index = sharp_gcube_list[i];
+      if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
         VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
         report_isovert_cube_info(isovert, cube_index);
       }
-      cout << endl;
     }
+    cout << endl;
   }
+
+  if (output_info.flag_output_sharp) 
+    { report_sharp_cubes(isovert); }
 
 }
 
@@ -1835,6 +1847,7 @@ void MERGESHARP::help(const char * command_path)
   cerr << "  -max_grad_dist {D}: Max distance (integer) of gradients to cube. (Default 1.)" << endl;
   cerr << "  -gradS_offset {offset}: Set cube offset for gradient selection to offset."
        << endl;
+  cerr << "           Offset measures distance from cube boundary." << endl;
   cout << "  -lindstrom:   Use Lindstrom's equation to compute sharp point."
        << endl;
   cout << "  -allow_conflict:  Allow more than one isosurface vertex in a cube."

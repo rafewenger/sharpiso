@@ -454,13 +454,16 @@ namespace SHARPISO {
     void Init();
 
   public:
-    LOC_TYPE location;                       // location type
-    GRADIENT_COORD_TYPE ray_direction[DIM3]; // ray direction
-    COORD_TYPE ray_initial_point[DIM3];      // point on ray
+    LOC_TYPE location;                       ///< location type
+    GRADIENT_COORD_TYPE ray_direction[DIM3]; ///< ray direction
+    COORD_TYPE ray_initial_point[DIM3];      ///< point on ray
     COORD_TYPE ray_cube_intersection[DIM3];
     bool flag_conflict;
     VERTEX_INDEX cube_containing_coord;
     bool flag_Linf_iso_vertex_location;
+
+    ///< If true, svd point is farther than max_dist.
+    bool flag_far;
 
     /// Compute distance to this point.
     COORD_TYPE central_point[DIM3];

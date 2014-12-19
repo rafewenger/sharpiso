@@ -8,7 +8,7 @@ Copyright (C) 2011-2013 Rephael Wenger
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 (LGPL) as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+version 3 of the License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -361,7 +361,7 @@ void MERGESHARP::dual_contouring_sharp_from_grad
 
 	compute_dual_isovert
 		(scalar_grid, gradient_grid, isovalue, mergesharp_param, 
-		mergesharp_param.vertex_position_method, isovert, isovert_info);
+     mergesharp_param.vertex_position_method, isovert);
 
 	select_non_smooth(isovert);
 
@@ -613,11 +613,12 @@ void MERGESHARP::dual_contouring_merge_sharp_from_grad
 
 	compute_dual_isovert
 		(scalar_grid, gradient_grid, isovalue, mergesharp_param, 
-		mergesharp_param.vertex_position_method, isovert, isovert_info);
+     mergesharp_param.vertex_position_method, isovert);
 
 	t1 = clock();
 
-	select_sharp_isovert(scalar_grid, isovalue, mergesharp_param, isovert);
+	select_sharp_isovert
+    (scalar_grid, gradient_grid, isovalue, mergesharp_param, isovert);
 
 	t2 = clock();
 
