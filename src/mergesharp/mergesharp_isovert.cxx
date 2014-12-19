@@ -510,6 +510,7 @@ void recompute_covered_point_positions
 
 }
 
+
 /// Recompute isovert positions for cubes containing covered points.
 void recompute_covered_point_positions
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -540,6 +541,7 @@ void recompute_covered_point_positions
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param, 
      voxel, true, isovert);
 }
+
 
 /// Recompute isosurface vertex positions for cubes 
 /// which are not selected or covered using lindstrom
@@ -1483,18 +1485,17 @@ void select_corner_cubes	(
 
 	for (int ind=0; ind < sortd_ind2gcube_list.size(); ind++) {
 
-    NUM_TYPE gcube_index = sortd_ind2gcube_list[ind];
-
-		GRID_CUBE c;
-		c = isovert.gcube_list[gcube_index];
+    const NUM_TYPE gcube_index = sortd_ind2gcube_list[ind];
+    const BOUNDARY_BITS_TYPE boundary_bits =
+      isovert.gcube_list[gcube_index].boundary_bits;
 
 		// check boundary
-		if (c.boundary_bits == 0)
+		if (boundary_bits == 0)
 
 			// select corners first
-				if (isovert.isFlag
-            (cube_ind_frm_gc_ind(isovert, sortd_ind2gcube_list[ind]), AVAILABLE_GCUBE)
-            && c.linf_dist < linf_dist_threshold && c.num_eigenvalues > 2) 
+      if (isovert.gcube_list[gcube_index].flag == AVAILABLE_GCUBE &&
+          isovert.gcube_list[gcube_index].linf_dist < linf_dist_threshold &&
+          isovert.gcube_list[gcube_index].num_eigenvalues > 2)
 				{
 					check_and_select_cube
 						(scalar_grid, covered_grid, bin_grid, gridn, isovalue, 
@@ -1525,17 +1526,18 @@ void select_edge_cubes	(
 	for (int ind=0; ind < sortd_ind2gcube_list.size(); ind++) {
 
     NUM_TYPE gcube_index = sortd_ind2gcube_list[ind];
+    const BOUNDARY_BITS_TYPE boundary_bits =
+      isovert.gcube_list[gcube_index].boundary_bits;
 
     check_and_set_covered_point(covered_grid, isovert, gcube_index);
 
-		GRID_CUBE c;
-		c = isovert.gcube_list[gcube_index];
-
 		// check boundary
-		if (c.boundary_bits == 0)
-      if (c.flag == AVAILABLE_GCUBE &&
-          c.linf_dist < linf_dist  && c.num_eigenvalues == 2 &&
-          !c.flag_conflict)
+		if (boundary_bits == 0)
+
+      if (isovert.gcube_list[gcube_index].flag == AVAILABLE_GCUBE &&
+          isovert.gcube_list[gcube_index].linf_dist < linf_dist &&
+          isovert.gcube_list[gcube_index].num_eigenvalues == 2 &&
+          !isovert.gcube_list[gcube_index].flag_conflict)
 				{
 					check_and_select_cube
 						(scalar_grid, covered_grid, bin_grid, gridn, isovalue, 
