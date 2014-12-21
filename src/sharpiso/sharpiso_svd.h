@@ -1,11 +1,25 @@
+/// \file sharpiso_svd.h
+/// Compute sharp isosurface vertices and edges 
+///   using singular valued decomposition.
+
 /*
- *  SharpIso_findVert.h
- *  SHARPISO
- *
- *  Created by arindam bhattacharya on 11/28/11.
- *  Copyright 2011 Ohio State University. All rights reserved.
- *
- */
+ Copyright (C) 2011-2014 Arindam Bhattacharya
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public License
+ (LGPL) as published by the Free Software Foundation; either
+ version 2.1 of the License, or any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
 
 #include<iostream>
 #include <Eigen/Dense>
@@ -68,8 +82,8 @@ void svd_calculate_sharpiso_vertex_unit_normals
 		const EIGENVALUE_TYPE err_tolerance,
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE * isoVertcoords,
-		GRADIENT_COORD_TYPE *ray_direction);
+		COORD_TYPE isoVertcoords[DIM3],
+		GRADIENT_COORD_TYPE ray_direction[DIM3]);
 
 // Calculate the sharp iso vertex using SVD,
 // and the lindstrom approach
@@ -98,7 +112,7 @@ void svd_calculate_sharpiso_vertex_using_lindstrom(
 		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
 		const COORD_TYPE * pointX, 
 		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
-    COORD_TYPE * isoVertcoords);
+    COORD_TYPE isoVertcoords[DIM3]);
 
 void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		const NUM_TYPE num_vert,
@@ -110,7 +124,7 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		const COORD_TYPE * pointX,
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE * isoVertcoords);
+		COORD_TYPE isoVertcoords[DIM3]);
 
 // Calculate the svd based sharp isovertex but force it to have 2 singular values.
 void svd_calculate_sharpiso_vertex_2_svals_unit_normals
@@ -157,7 +171,6 @@ void calculate_w
 void normalize(const GRADIENT_COORD_TYPE *intial, GRADIENT_COORD_TYPE  *normalized);
 
 void svd_calculate_sharpiso_vertex_edge_based
-
 (const COORD_TYPE * vert_coords,
 		const GRADIENT_COORD_TYPE * vert_grads,
 		const SCALAR_TYPE * vert_scalars,

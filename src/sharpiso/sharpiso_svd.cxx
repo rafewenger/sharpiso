@@ -1,11 +1,25 @@
+/// \file sharpiso_svd.cxx
+/// Compute sharp isosurface vertices and edges 
+///   using singular valued decomposition.
+
 /*
- *  sharpiso_svd.cxx
- *  SHARPISO
- *
- *  Created by arindam bhattacharya on 11/28/11.
- *  Copyright 2011 Ohio State University. All rights reserved.
- *
- */
+ Copyright (C) 2011-2014 Arindam Bhattacharya
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public License
+ (LGPL) as published by the Free Software Foundation; either
+ version 2.1 of the License, or any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
 
 #include<iostream>
 #include<vector>
@@ -67,80 +81,76 @@ void normalize(
 
 // FUNCTION compute x which computes the position x
 //   based on x - Ainverse times B
-inline void compute_X(const MatrixXf &Inv_A, RowVectorXf &B, RowVectorXf &X) {
-	// compute the vector X
-	X = Inv_A * B.transpose();
+inline void compute_X(const MatrixXf &Inv_A, RowVectorXf &B, RowVectorXf &X) 
+{	X = Inv_A * B.transpose(); }
+
+
+/// Compute pseudo inverse sigma matrix.
+/// Set small singular values to zero.
+/// @pre max_small_singular_value >= 0.
+void compute_pseudo_inverse_sigma
+(const Vector3f & singVals, const int num_non_zero_singVals,
+ const COORD_TYPE max_small_singular_value_ratio,
+ COORD_TYPE singular_vals[DIM3],
+ Matrix3f & pseudo_inv_sigma,
+ int & num_non_zero_in_pseudo_inv_sigma)
+{
+ const COORD_TYPE max_small_singular_value =
+   max_small_singular_value_ratio * singVals[0];
+
+  num_non_zero_in_pseudo_inv_sigma = 0;
+
+  pseudo_inv_sigma = Matrix3f::Zero();
+  IJK::set_coord_3D(0, singular_vals);
+
+	for (int i=0; i < num_non_zero_singVals; i++)
+	{
+		if (singVals[i] > max_small_singular_value) {
+      singular_vals[i] = singVals[i];
+			pseudo_inv_sigma(i,i) =  1.0/singVals[i];
+			num_non_zero_in_pseudo_inv_sigma++;
+		}
+	}
 }
 
-
-
-/// @param pointX Compute vertex closest to pointX.
-void compute_cube_vertex_lindstrom_3x3
-(		SCALAR_TYPE *A,
+/// @param pointX Compute sharp point closest to pointX.
+void compute_sharp_point_lindstrom_3x3
+(		SCALAR_TYPE * A,
 		const SCALAR_TYPE _b[3],
 		const EIGENVALUE_TYPE err_tolerance,
 		const COORD_TYPE * pointX,
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE * isoVertCoords)
+		COORD_TYPE isoVertCoords[DIM3])
 {
-	Map<const Matrix3f >eigenA(A);
-	Map<const RowVector3f >eigen_pX(pointX);
-	Map<const RowVector3f>b(_b);
+	Map<const Matrix3f> eigenA(A);
+	Map<const RowVector3f> eigen_pX(pointX);
+	Map<const RowVector3f> b(_b);
+	Matrix3f pseudo_inv_sigma;
 	JacobiSVD<Matrix3f> svd(eigenA, ComputeFullU | ComputeFullV);
+
 	// compute the singular values
 	Vector3f singVals = svd.singularValues();
-	//set num of large singular values to zeros
-	num_singular_vals=0;
-	Matrix3f pseudo_inv_sigma = Matrix3f::Zero();
-	Matrix3f sigma = Matrix3f::Zero();
-	EIGENVALUE_TYPE scaled_error_tolerance = err_tolerance * singVals[0];
 
-	for (int i=0; i< svd.nonzeroSingularValues(); i++)
-	{
-
-		if (singVals[i] >= scaled_error_tolerance){
-			sigma(i,i) = singVals[i];
-			num_singular_vals++;
-			singular_vals[i] = singVals[i];
-			pseudo_inv_sigma(i,i) =  1.0/singVals[i];
-		}
-	}
-	//DEBUG
-	//if(svd.nonzeroSingularValues()){
-	//	sigma(0,0) = singVals[0];
-	//	num_singular_vals++;
-	//	singular_vals[0] = singVals[0];
-	//	pseudo_inv_sigma(0,0) =  1.0/singVals[0];
-	//}
-	////for scaled singular vals  less than 1.
-	//for (int i=1; i< svd.nonzeroSingularValues(); i++)
-	//{
-	//	if ( singVals[i] >= scaled_error_tolerance){
-	//		sigma(i,i) = singVals[i];
-	//		num_singular_vals++;
-	//		singular_vals[i] = singVals[i];
-	//		pseudo_inv_sigma(i,i) =  1.0 / singVals[i];
-	//	}
-	//}
+  compute_pseudo_inverse_sigma
+    (singVals, svd.nonzeroSingularValues(), err_tolerance,
+     singular_vals, pseudo_inv_sigma, num_singular_vals);
 
   // FORMULA CORRECTED: 12-11-2014 by R.W.
 	Vector3f sharpCoord = eigen_pX.transpose() +
 				svd.matrixV()*pseudo_inv_sigma*(svd.matrixU().transpose())*
 				(b.transpose() - eigenA*eigen_pX.transpose());
 
-	//set isoVertCoords
-	for(int d=0; d<DIM3; d++)
+	// set isoVertCoords
+	for (int d=0; d<DIM3; d++) 
     { isoVertCoords[d] = sharpCoord[d]; }
 }
 
 /// Calculate the sharp vertex using svd and the faster garland heckbert way
 /// of storing normals
-
-
 /// @param pointX Compute vertex closest to pointX.
-void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
-		const NUM_TYPE num_vert,
+void svd_calculate_sharpiso_vertex_using_lindstrom_fast
+(		const NUM_TYPE num_vert,
 		const EIGENVALUE_TYPE err_tolerance,
 		const SCALAR_TYPE isovalue,
 		const SCALAR_TYPE * vert_scalars,
@@ -149,9 +159,10 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		const COORD_TYPE * pointX,
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE * isoVertcoords)
+		COORD_TYPE isoVertcoords[DIM3])
 {
-	IJK::PROCEDURE_ERROR error ("svd_calculate_sharpiso_vertex_using_lindstrom_fast");
+	IJK::PROCEDURE_ERROR error 
+    ("svd_calculate_sharpiso_vertex_using_lindstrom_fast");
 
 	if (num_vert==0)
 	{
@@ -204,7 +215,7 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 			k++;
 		}
 
-	compute_cube_vertex_lindstrom_3x3
+	compute_sharp_point_lindstrom_3x3
     (linear_A, B, err_tolerance, pointX, 
      num_singular_vals, singular_vals, isoVertcoords);
 
@@ -215,14 +226,14 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 // and the lindstrom approach
 // this is called from svd_compute_sharp_vertex_for_cube in sharpiso_feature.cxx
 /// @param pointX Compute vertex closest to pointX.
-void svd_calculate_sharpiso_vertex_using_lindstrom(
-		const bool useLindstrom2,
+void svd_calculate_sharpiso_vertex_using_lindstrom
+(		const bool useLindstrom2,
 		const COORD_TYPE * vert_coords, const GRADIENT_COORD_TYPE * vert_grads,
 		const SCALAR_TYPE * vert_scalars, const NUM_TYPE num_vert,
 		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
 		const COORD_TYPE * pointX, 
 		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
-    COORD_TYPE * isoVertcoords)
+    COORD_TYPE isoVertcoords[DIM3])
 {
 
 	if (num_vert == 0)
@@ -294,12 +305,14 @@ void svd_calculate_sharpiso_vertex_using_lindstrom(
 
 // calculate the sharp iso vertex using SVD, but normalize the
 // gradients
-void svd_calculate_sharpiso_vertex_unit_normals(const COORD_TYPE * vert_coords,
-		const GRADIENT_COORD_TYPE * vert_grads,
-		const SCALAR_TYPE * vert_scalars, const NUM_TYPE num_vert,
-		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
-		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE * isoVertcoords, GRADIENT_COORD_TYPE * ray_direction) {
+void svd_calculate_sharpiso_vertex_unit_normals
+(const COORD_TYPE * vert_coords,
+ const GRADIENT_COORD_TYPE * vert_grads,
+ const SCALAR_TYPE * vert_scalars, const NUM_TYPE num_vert,
+ const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
+ NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
+ COORD_TYPE isoVertcoords[DIM3], GRADIENT_COORD_TYPE ray_direction[DIM3]) 
+{
 	if (num_vert == 0)
 		return;
 
@@ -444,12 +457,13 @@ void svd_calculate_sharpiso_vertex_2_svals(const COORD_TYPE * vert_coords,
 
 // normalized version
 // SVD calculate the sharp vertex using only top 2 singular values
-void svd_calculate_sharpiso_vertex_2_svals_unit_normals(
-		const COORD_TYPE * vert_coords, const GRADIENT_COORD_TYPE * vert_grads,
-		const SCALAR_TYPE * vert_scalars, const NUM_TYPE num_vert,
-		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
-		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE * isoVertcoords, GRADIENT_COORD_TYPE * ray_direction) {
+void svd_calculate_sharpiso_vertex_2_svals_unit_normals
+(const COORD_TYPE * vert_coords, const GRADIENT_COORD_TYPE * vert_grads,
+ const SCALAR_TYPE * vert_scalars, const NUM_TYPE num_vert,
+ const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
+ NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
+ COORD_TYPE * isoVertcoords, GRADIENT_COORD_TYPE * ray_direction) 
+{
 
 	if (num_vert == 0)
 		return;
@@ -772,8 +786,10 @@ SCALAR_TYPE calculate_mag(const RowVectorXf &res) {
 }
 
 // FUNCTION compute w
-void calculate_w(const MatrixXf & inA, const MatrixXf & A, const MatrixXf &I,
-		RowVectorXf& w) {
+void calculate_w
+(const MatrixXf & inA, const MatrixXf & A, const MatrixXf & I,
+ RowVectorXf & w) 
+{
 	vector<RowVectorXf> e;
 	RowVectorXf e1(3);
 	e1 << 1, 0, 0;
