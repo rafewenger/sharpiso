@@ -97,7 +97,7 @@ void svd_calculate_sharpiso_vertex_using_lindstrom
 		const NUM_TYPE  num_vert,
 		const SCALAR_TYPE isovalue,
 		const EIGENVALUE_TYPE err_tolerance,
-		const COORD_TYPE * pointX,
+		const COORD_TYPE pointX[DIM3],
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
 		COORD_TYPE * isoVertcoords);
@@ -110,7 +110,7 @@ void svd_calculate_sharpiso_vertex_using_lindstrom(
     const GRADIENT_COORD_TYPE * edgeI_normal_coord,
 		const NUM_TYPE num_intersections,
 		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
-		const COORD_TYPE * pointX, 
+		const COORD_TYPE pointX[DIM3], 
 		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
     COORD_TYPE isoVertcoords[DIM3]);
 
@@ -121,7 +121,7 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		const SCALAR_TYPE * vert_scalars,
 		const COORD_TYPE * vert_coords,
 		const GRADIENT_COORD_TYPE * vert_grads,
-		const COORD_TYPE * pointX,
+		const COORD_TYPE pointX[DIM3],
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
 		COORD_TYPE isoVertcoords[DIM3]);

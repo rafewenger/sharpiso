@@ -33,6 +33,9 @@ using namespace Eigen;
 #include "ijkcoord.txx"
 #include "ijk.txx"
 
+// *** DEBUG ***
+#include "ijkprint.txx"
+
 using namespace std;
 using namespace SHARPISO;
 using namespace IJK;
@@ -95,7 +98,7 @@ void compute_pseudo_inverse_sigma
  Matrix3f & pseudo_inv_sigma,
  int & num_non_zero_in_pseudo_inv_sigma)
 {
- const COORD_TYPE max_small_singular_value =
+ const GRADIENT_COORD_TYPE max_small_singular_value =
    max_small_singular_value_ratio * singVals[0];
 
   num_non_zero_in_pseudo_inv_sigma = 0;
@@ -113,12 +116,34 @@ void compute_pseudo_inverse_sigma
 	}
 }
 
+/// Compute edge direction.
+void compute_edge_direction
+(const MatrixXf & A_pseudo_inverse, const MatrixXf & A, 
+ RowVector3f & edge_dir) 
+{
+  Matrix3f I = Matrix3f::Identity();
+  Matrix3f M;
+  Vector3f magnitude_squared;
+
+  M = (I - A_pseudo_inverse*A);
+  for (int i = 0; i < DIM3; i++) {
+    magnitude_squared[i] = (M.row(i)).squaredNorm();
+  }
+
+  int index = 0;
+  for (int i = 1; i < DIM3; i++) 
+    if (magnitude_squared[i] > magnitude_squared[index])
+      { index = i; }
+
+  edge_dir = M.row(index);
+}
+
 /// @param pointX Compute sharp point closest to pointX.
 void compute_sharp_point_lindstrom_3x3
 (		SCALAR_TYPE * A,
 		const SCALAR_TYPE _b[3],
 		const EIGENVALUE_TYPE err_tolerance,
-		const COORD_TYPE * pointX,
+		const COORD_TYPE pointX[DIM3],
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
 		COORD_TYPE isoVertCoords[DIM3])
@@ -146,6 +171,161 @@ void compute_sharp_point_lindstrom_3x3
     { isoVertCoords[d] = sharpCoord[d]; }
 }
 
+/// @param pointX Compute sharp point closest to pointX.
+/// @param ray_direction If num_singular_vals = 2, return ray direction.
+void compute_sharp_point_lindstrom_3x3
+(		SCALAR_TYPE * A,
+		const SCALAR_TYPE _b[3],
+		const EIGENVALUE_TYPE err_tolerance,
+		const COORD_TYPE pointX[DIM3],
+		NUM_TYPE & num_singular_vals,
+		EIGENVALUE_TYPE singular_vals[DIM3],
+		COORD_TYPE isoVertCoords[DIM3],
+    COORD_TYPE ray_direction[DIM3])
+{
+	Map<const Matrix3f> eigenA(A);
+	Map<const RowVector3f> eigen_pX(pointX);
+	Map<const RowVector3f> b(_b);
+	Matrix3f pseudo_inv_sigma;
+	Matrix3f A_pseudo_inv;
+	JacobiSVD<Matrix3f> svd(eigenA, ComputeFullU | ComputeFullV);
+
+	// compute the singular values
+	Vector3f singVals = svd.singularValues();
+
+  compute_pseudo_inverse_sigma
+    (singVals, svd.nonzeroSingularValues(), err_tolerance,
+     singular_vals, pseudo_inv_sigma, num_singular_vals);
+
+  A_pseudo_inv = svd.matrixV()*pseudo_inv_sigma*(svd.matrixU().transpose());
+
+  // FORMULA CORRECTED: 12-11-2014 by R.W.
+	Vector3f sharpCoord = 
+    eigen_pX.transpose() + 
+    A_pseudo_inv*(b.transpose() - eigenA*eigen_pX.transpose());
+
+	// set isoVertCoords
+	for (int d=0; d<DIM3; d++) 
+    { isoVertCoords[d] = sharpCoord[d]; }
+
+  if (num_singular_vals == 2) {
+    RowVector3f edge_dir;
+    compute_edge_direction(A_pseudo_inv, eigenA, edge_dir);
+
+    for (int d = 0; d < DIM3; d++)
+      { ray_direction[d] = edge_dir[d]; }
+
+		normalize(ray_direction, ray_direction);
+  }
+  else {
+    IJK::set_coord_3D(0, ray_direction);
+  }
+}
+
+
+/// Compute sharp point closest to pointX.
+/// If num_singular_vals == 2, compute sharp point on plane
+///   through pointX with normal plan_normal
+/// @param ray_direction If num_singular_vals = 2, return ray direction.
+void compute_sharp_point_in_plane_lindstrom_3x3
+(		SCALAR_TYPE * A,
+		const SCALAR_TYPE _b[3],
+		const EIGENVALUE_TYPE err_tolerance,
+		const COORD_TYPE pointX[DIM3],
+		const COORD_TYPE plane_normal[DIM3],
+		NUM_TYPE & num_singular_vals,
+		EIGENVALUE_TYPE singular_vals[DIM3],
+		COORD_TYPE isovert_coord[DIM3],
+    bool & flag_coord_in_plane)
+{
+  const ANGLE_TYPE max_angle_normal_and_edge_dir = 10;
+  const COORD_TYPE min_cos_normal_and_edge_dir
+    = cos(max_angle_normal_and_edge_dir*M_PI/180.0);
+  COORD_TYPE ray_direction[DIM3];
+  COORD_TYPE diff[DIM3];
+
+  compute_sharp_point_lindstrom_3x3
+    (A, _b, err_tolerance, pointX, num_singular_vals, singular_vals,
+     isovert_coord, ray_direction);
+
+  flag_coord_in_plane = false;
+  if (num_singular_vals == 2) {
+
+    COORD_TYPE a1, a2;
+    IJK::compute_inner_product_3D(plane_normal, ray_direction, a1);
+
+    // Ignore plane if angle between plane_normal and ray_direction is large.
+    if (a1 >= min_cos_normal_and_edge_dir) {
+
+      IJK::subtract_coord_3D(isovert_coord, pointX, diff);
+      IJK::compute_inner_product_3D(plane_normal, diff, a2);
+      COORD_TYPE t = a1/a2;
+      IJK::add_scaled_coord_3D(t, ray_direction, isovert_coord, isovert_coord);
+
+      flag_coord_in_plane = true;
+    }
+  }
+}
+
+template <typename T1, typename T2>
+inline T1 M3x3_index(const T1 i, const T2 j)
+{
+  return(i*DIM3+j);
+}
+
+/// Compute 3x3 matrix A and vector B.
+void compute_A_B
+(const NUM_TYPE num_vert,
+ const EIGENVALUE_TYPE err_tolerance,
+ const SCALAR_TYPE isovalue,
+ const SCALAR_TYPE * vert_scalars,
+ const COORD_TYPE * vert_coords,
+ const GRADIENT_COORD_TYPE * vert_grads,
+ COORD_TYPE A[DIM3*DIM3],
+ COORD_TYPE B[DIM3])
+{
+	IJK::PROCEDURE_ERROR error("compute_A_B");
+
+	if (num_vert < 1) {
+		error.AddMessage("Programming error. Number of gradients is 0.");
+		throw error;
+	}
+
+  IJK::set_coord_3D(0, B);
+  IJK::set_coord(DIM3*DIM3, 0, A);
+
+	for (int i=0; i<num_vert; i++){
+
+		GRADIENT_COORD_TYPE tempN[DIM3];
+		normalize(vert_grads+i*DIM3, tempN);
+
+		A[M3x3_index(0,0)] += tempN[0]*tempN[0];
+		A[M3x3_index(1,1)] += tempN[1]*tempN[1];
+		A[M3x3_index(2,2)] += tempN[2]*tempN[2];
+
+		A[M3x3_index(0,1)] += (tempN[0]*tempN[1]);
+		A[M3x3_index(0,2)] += (tempN[0]*tempN[2]);
+		A[M3x3_index(1,2)] += (tempN[1]*tempN[2]);
+
+		// compute isovalue - s_i + g_i*p_i;
+		SCALAR_TYPE iprod, x;
+		compute_inner_product(DIM3, tempN, vert_coords+i*DIM3, iprod);
+		SCALAR_TYPE gradient_magnitude;
+
+		IJK::compute_magnitude_3D(vert_grads+i*DIM3, gradient_magnitude);
+	
+		x = -1.0*iprod + (vert_scalars[i] - isovalue)/gradient_magnitude;
+
+    IJK::add_scaled_coord_3D(-x, tempN, B, B);
+	}
+
+	A[M3x3_index(1,0)] = A[M3x3_index(0,1)];
+	A[M3x3_index(2,0)] = A[M3x3_index(0,2)];
+	A[M3x3_index(2,1)] = A[M3x3_index(1,2)];
+}
+
+
+
 /// Calculate the sharp vertex using svd and the faster garland heckbert way
 /// of storing normals
 /// @param pointX Compute vertex closest to pointX.
@@ -156,69 +336,19 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast
 		const SCALAR_TYPE * vert_scalars,
 		const COORD_TYPE * vert_coords,
 		const GRADIENT_COORD_TYPE * vert_grads,
-		const COORD_TYPE * pointX,
+		const COORD_TYPE pointX[DIM3],
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE isoVertcoords[DIM3])
+		COORD_TYPE isovert_coords[DIM3])
 {
-	IJK::PROCEDURE_ERROR error 
-    ("svd_calculate_sharpiso_vertex_using_lindstrom_fast");
-
-	if (num_vert==0)
-	{
-		error.AddMessage("Programming error, number of gradients is 0.");
-		throw error;
-	}
-	// A matrix
-	SCALAR_TYPE A[3][3]={0.0};
-	SCALAR_TYPE B[3]={0.0};
-	for (int i=0;i<num_vert;i++){
-		SCALAR_TYPE tempN[DIM3]={0.0};
-		normalize(&(vert_grads[DIM3 * i]),tempN);
-
-		A[0][0]+=tempN[0]*tempN[0];
-		A[1][1]+=tempN[1]*tempN[1];
-		A[2][2]+=tempN[2]*tempN[2];
-
-		SCALAR_TYPE temp;
-		temp = tempN[0]*tempN[1];
-		A[0][1] += temp;
-
-		temp = tempN[0]*tempN[2];
-		A[0][2] += temp;
-
-		temp = tempN[1]*tempN[2];
-		A[1][2] += temp;
-
-		// compute isovalue - s_i + g_i*p_i;
-		SCALAR_TYPE iprod,d;
-		compute_inner_product(DIM3, tempN,&(vert_coords[DIM3 * i]), iprod);
-		SCALAR_TYPE gradient_magnitude;
-
-		IJK::compute_magnitude(DIM3,&(vert_grads[DIM3 * i]),gradient_magnitude );
-	
-		d = -1.0*iprod + (vert_scalars[i] - isovalue)/gradient_magnitude;
-
-		for(int l=0;l<DIM3;l++)
-			B[l]+=  (tempN[l]*(-1.0)*d);
-	}
-	A[1][0]=A[0][1];
-	A[2][0]=A[0][2];
-	A[2][1]=A[1][2];
-
-	SCALAR_TYPE linear_A[9]={0.0};
-	int k=0;
-	for (int i=0;i<3;i++)
-		for (int j=0;j<3;j++)
-		{
-			linear_A[k]=A[i][j];
-			k++;
-		}
+  COORD_TYPE A[DIM3*DIM3];
+  COORD_TYPE B[DIM3];
+  compute_A_B(num_vert, err_tolerance, isovalue, vert_scalars, vert_coords,
+              vert_grads, A, B);
 
 	compute_sharp_point_lindstrom_3x3
-    (linear_A, B, err_tolerance, pointX, 
-     num_singular_vals, singular_vals, isoVertcoords);
-
+    (A, B, err_tolerance, pointX, num_singular_vals, 
+     singular_vals, isovert_coords);
 }
 
 
@@ -231,7 +361,7 @@ void svd_calculate_sharpiso_vertex_using_lindstrom
 		const COORD_TYPE * vert_coords, const GRADIENT_COORD_TYPE * vert_grads,
 		const SCALAR_TYPE * vert_scalars, const NUM_TYPE num_vert,
 		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
-		const COORD_TYPE * pointX, 
+		const COORD_TYPE pointX[DIM3], 
 		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
     COORD_TYPE isoVertcoords[DIM3])
 {
@@ -287,7 +417,7 @@ void svd_calculate_sharpiso_vertex_using_lindstrom(
     const GRADIENT_COORD_TYPE * edgeI_normal_coord,
 		const NUM_TYPE num_intersections,
 		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
-		const COORD_TYPE * pointX, 
+		const COORD_TYPE pointX[DIM3], 
 		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
     COORD_TYPE * isoVertcoords)
 {
@@ -315,6 +445,7 @@ void svd_calculate_sharpiso_vertex_unit_normals
 {
 	if (num_vert == 0)
 		return;
+
 
 	// Initialize variables
 	for (int i = 0; i < DIM3; i++) {
@@ -360,24 +491,12 @@ void svd_calculate_sharpiso_vertex_unit_normals
 	//if num of singular values is 2 then it must return a direction.
 	if (num_singular_vals == 2) {
 
-		RowVectorXf dir;
-		MatrixXf I(3, 3);
-		I << 1, 0, 0, 0, 1, 0, 0, 0, 1;
+    RowVector3f edge_dir;
+    compute_edge_direction(inA, A, edge_dir);
 
-		//Obtaining all solutions of a linear system
-		//x = A_pseudo_inv b + [I - A_pseudo_inv A ]w
+    for (int d = 0; d < DIM3; d++)
+      { ray_direction[d] = edge_dir[d]; }
 
-		//Calculate w
-		//RowVectorXf w = calculate_w (inA, A, I);
-		RowVectorXf w(DIM3);
-		calculate_w(inA, A, I, w);
-
-		//Calculate [I - A_pseudo_inv A ]w
-		dir = (I - inA * A) * w.transpose();
-
-		ray_direction[0] = dir[0];
-		ray_direction[1] = dir[1];
-		ray_direction[2] = dir[2];
 		normalize(ray_direction, ray_direction);
 	}
 }
@@ -838,6 +957,7 @@ void svd_calculate_sharpiso_vertex(const COORD_TYPE * vert_coords,
 		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
 		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
 		COORD_TYPE * isoVertcoords, GRADIENT_COORD_TYPE * ray_direction) {
+
 	if (num_vert == 0)
 		return;
 
