@@ -36,6 +36,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 // *** DEBUG ***
 #include "ijkprint.txx"
+extern bool flag_debug;
 
 // forward declarations
 namespace {
@@ -407,16 +408,16 @@ namespace {
         boundary_bits = gcube_list[from_gcube].boundary_bits;
 
         // *** DEBUG ***
-        /*
-        using namespace std;
-        VERTEX_INDEX to_cube = gcube_list[to_gcube].cube_index;
-        VERTEX_INDEX from_cube = gcube_list[from_gcube].cube_index;
+        if (flag_debug) {
+          using namespace std;
+          VERTEX_INDEX to_cube = gcube_list[to_gcube].cube_index;
+          VERTEX_INDEX from_cube = gcube_list[from_gcube].cube_index;
           cerr << "Mapping " << from_cube << " ";
           ijkgrid_output_vertex_coord(cerr, scalar_grid, from_cube);
           cerr << " to " << to_cube << " ";
           ijkgrid_output_vertex_coord(cerr, scalar_grid, to_cube);
           cerr << endl;
-        */
+        }
 
         if (boundary_bits == 0) {
           // Map gcube_list[from_gcube] to isosurface vertex in cube to_gcube.
@@ -993,9 +994,7 @@ namespace {
     if (gcube0_index == ISOVERT::NO_INDEX) { return; }
 
     // *** DEBUG ***
-    bool flag_debug = false;
-
-    // *** DEBUG ***
+    /*
     if (flag_debug) {
       using namespace std;
       cerr << endl;
@@ -1005,6 +1004,7 @@ namespace {
       ijkgrid_output_vertex_coord(cerr, grid, to_cube);
       cerr << endl;
     }
+    */
 
     BOUNDARY_BITS_TYPE boundary_bits = 
       isovert.gcube_list[gcube0_index].boundary_bits;
@@ -1036,6 +1036,7 @@ namespace {
                 does_cube_map_to(isovert, gcube_map, iv3, to_cube);
 
               // *** DEBUG ***
+              /*
               using namespace std;
               if (flag_debug) {
                 cerr << "Cube: " << cube0_index << " ";
@@ -1057,6 +1058,7 @@ namespace {
                 cerr << "  flag_v3: " << int(flag_v3);
                 cerr << endl;
               }
+              */
 
               if (flag_v1 != flag_v3) { num_count++; }
               if (flag_v2 != flag_v3) { num_count++; }
@@ -1655,8 +1657,8 @@ namespace {
       for (NUM_TYPE jfacet = 0; jfacet < NUM_CUBE_FACETS3D; jfacet++) {
 
         if (ambig_info.IsFacetAmbiguous(table_index, jfacet)) {
-          int orth_dir = jfacet%DIM3;
-          int side = int(jfacet/DIM3);
+          int orth_dir = IJK::cube_facet_orth_dir(DIM3, jfacet);
+          int side = IJK::cube_facet_side(DIM3, jfacet);
 
           const VERTEX_INDEX adj_cube_index = 
             scalar_grid.AdjacentVertex(from_cube, orth_dir, side);
@@ -1819,8 +1821,8 @@ namespace {
     for (NUM_TYPE jfacet = 0; jfacet < NUM_CUBE_FACETS3D; jfacet++) {
 
       if (ambig_info.IsFacetAmbiguous(table_index, jfacet)) {
-        int orth_dir = jfacet%DIM3;
-        int side = int(jfacet/DIM3);
+        int orth_dir = IJK::cube_facet_orth_dir(DIM3, jfacet);
+        int side = IJK::cube_facet_side(DIM3, jfacet);
 
         BOUNDARY_BITS_TYPE mask = (BOUNDARY_BITS_TYPE(1) << jfacet);
         if (boundary_bits & mask) { 
@@ -2440,6 +2442,7 @@ namespace {
     using namespace std;
     cerr << endl << endl;
     cerr << "*** EXTENDING MAPPING ***" << endl;
+    flag_debug = true;
     */
 
 		//FACE
@@ -3244,7 +3247,6 @@ namespace {
     if (isovert.gcube_list[from_gcube].IsCoveredOrSelected()) { return; }
 
     // *** DEBUG ***
-    bool flag_debug = false;
     using namespace std;
     /*
     if (from_cube == 68518) {
