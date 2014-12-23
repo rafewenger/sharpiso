@@ -33,8 +33,6 @@ using namespace Eigen;
 #include "ijkcoord.txx"
 #include "ijk.txx"
 
-// *** DEBUG ***
-#include "ijkprint.txx"
 
 using namespace std;
 using namespace SHARPISO;
@@ -227,7 +225,7 @@ void compute_sharp_point_lindstrom_3x3
 /// If num_singular_vals == 2, compute sharp point on plane
 ///   through pointX with normal plan_normal
 /// @param ray_direction If num_singular_vals = 2, return ray direction.
-void compute_sharp_point_in_plane_lindstrom_3x3
+void compute_sharp_point_on_plane_lindstrom_3x3
 (		SCALAR_TYPE * A,
 		const SCALAR_TYPE _b[3],
 		const EIGENVALUE_TYPE err_tolerance,
@@ -236,9 +234,9 @@ void compute_sharp_point_in_plane_lindstrom_3x3
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
 		COORD_TYPE isovert_coord[DIM3],
-    bool & flag_coord_in_plane)
+    bool & flag_coord_on_plane)
 {
-  const ANGLE_TYPE max_angle_normal_and_edge_dir = 10;
+  const ANGLE_TYPE max_angle_normal_and_edge_dir = 80;
   const COORD_TYPE min_cos_normal_and_edge_dir
     = cos(max_angle_normal_and_edge_dir*M_PI/180.0);
   COORD_TYPE ray_direction[DIM3];
@@ -248,21 +246,20 @@ void compute_sharp_point_in_plane_lindstrom_3x3
     (A, _b, err_tolerance, pointX, num_singular_vals, singular_vals,
      isovert_coord, ray_direction);
 
-  flag_coord_in_plane = false;
+  flag_coord_on_plane = false;
   if (num_singular_vals == 2) {
 
     COORD_TYPE a1, a2;
     IJK::compute_inner_product_3D(plane_normal, ray_direction, a1);
 
-    // Ignore plane if angle between plane_normal and ray_direction is large.
-    if (a1 >= min_cos_normal_and_edge_dir) {
-
-      IJK::subtract_coord_3D(isovert_coord, pointX, diff);
+    // Ignore plane if angle between line through plane_normal and line through ray_direction 
+    //   is near 90.
+    if (abs(a1) >= min_cos_normal_and_edge_dir) {
+      IJK::subtract_coord_3D(pointX, isovert_coord, diff);
       IJK::compute_inner_product_3D(plane_normal, diff, a2);
-      COORD_TYPE t = a1/a2;
+      COORD_TYPE t = a2/a1;
       IJK::add_scaled_coord_3D(t, ray_direction, isovert_coord, isovert_coord);
-
-      flag_coord_in_plane = true;
+      flag_coord_on_plane = true;
     }
   }
 }
@@ -349,6 +346,34 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast
 	compute_sharp_point_lindstrom_3x3
     (A, B, err_tolerance, pointX, num_singular_vals, 
      singular_vals, isovert_coords);
+}
+
+/// Calculate the sharp vertex using svd and the faster garland heckbert way
+/// of storing normals.
+/// If num_singular_vals is 2, position isovert_coords on plane.
+/// @param pointX Compute vertex closest to pointX.
+void svd_calculate_sharpiso_vertex_on_plane_using_lindstrom_fast
+(		const NUM_TYPE num_vert,
+		const EIGENVALUE_TYPE err_tolerance,
+		const SCALAR_TYPE isovalue,
+		const SCALAR_TYPE * vert_scalars,
+		const COORD_TYPE * vert_coords,
+		const GRADIENT_COORD_TYPE * vert_grads,
+		const COORD_TYPE pointX[DIM3],
+		const COORD_TYPE plane_normal[DIM3],
+		NUM_TYPE & num_singular_vals,
+		EIGENVALUE_TYPE singular_vals[DIM3],
+		COORD_TYPE isovert_coords[DIM3],
+    bool & flag_coord_on_plane)
+{
+  COORD_TYPE A[DIM3*DIM3];
+  COORD_TYPE B[DIM3];
+  compute_A_B(num_vert, err_tolerance, isovalue, vert_scalars, vert_coords,
+              vert_grads, A, B);
+
+	compute_sharp_point_on_plane_lindstrom_3x3
+    (A, B, err_tolerance, pointX, plane_normal, num_singular_vals, 
+     singular_vals, isovert_coords, flag_coord_on_plane);
 }
 
 

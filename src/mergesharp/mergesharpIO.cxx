@@ -1466,14 +1466,22 @@ void report_isovert_cube_info
 
   output_yes_no("    Conflict? ", 
                 isovert.gcube_list[gcube_index].flag_conflict);
-  output_yes_no("  Coord from other? ", 
-                isovert.gcube_list[gcube_index].flag_coord_from_other);
+  output_yes_no("  SVD coord far?: ", 
+                isovert.gcube_list[gcube_index].flag_far);
   output_yes_no("  Centroid coord?: ", 
                 isovert.gcube_list[gcube_index].flag_centroid_location);
   cout << endl;
-  output_yes_no("    SVD coord far?: ", 
-                isovert.gcube_list[gcube_index].flag_far);
-  cout << "  Isotable index: " 
+
+  cout << "    ";
+  if (isovert.gcube_list[gcube_index].flag_using_substitute_coord)
+    { cout << "Substitute coord.  "; }
+  if (isovert.gcube_list[gcube_index].flag_coord_from_other_cube)
+    { cout << "Coord from other cube.  "; }
+  else if (isovert.gcube_list[gcube_index].flag_coord_from_vertex)
+    { cout << "Coord from vertex.  "; }
+  else if (isovert.gcube_list[gcube_index].flag_coord_from_edge)
+    { cout << "Coord from edge.  "; }
+  cout << "Isotable index: " 
        << int(isovert.gcube_list[gcube_index].table_index);
   cout << endl;
 }

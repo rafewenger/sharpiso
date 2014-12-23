@@ -4,12 +4,12 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011-2013 Rephael Wenger
+  Copyright (C) 2011-2014 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  version 2.1 of the License, or any later version.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -155,6 +155,75 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 	postprocess_isovert_location
 		(scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
 		sharpiso_param, sharp_coord, svd_info);
+}
+
+/// Compute sharp isosurface vertex using singular valued decomposition.
+/// Use Lindstrom's formula.
+/// If num_large_eigenvalues == 2, position vertex on plane.
+/// @param pointX Compute vertex closest to pointX.
+/// Also post processes vertices.
+void SHARPISO::svd_compute_sharp_vertex_on_plane_lindstrom
+ (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+  const GRADIENT_GRID_BASE & gradient_grid,
+  const VERTEX_INDEX cube_index,
+  const SCALAR_TYPE isovalue,
+  const SHARP_ISOVERT_PARAM & sharpiso_param,
+  const OFFSET_VOXEL & voxel,
+  const COORD_TYPE pointX[DIM3],
+  const COORD_TYPE plane_normal[DIM3],
+	COORD_TYPE sharp_coord[DIM3],
+	EIGENVALUE_TYPE eigenvalues[DIM3],
+	NUM_TYPE & num_large_eigenvalues,
+	SVD_INFO & svd_info)
+{
+	const EIGENVALUE_TYPE max_small_eigenvalue =
+		sharpiso_param.max_small_eigenvalue;
+
+	NUM_TYPE num_gradients = 0;
+	std::vector<COORD_TYPE> point_coord;
+	std::vector<GRADIENT_COORD_TYPE> gradient_coord;
+	std::vector<SCALAR_TYPE> scalar;
+
+	// Scale cube coord by spacings
+	COORD_TYPE cube_coord[DIM3];
+	scalar_grid.ComputeScaledCoord(cube_index, cube_coord);
+
+	get_gradients
+		(scalar_grid, gradient_grid, cube_index, isovalue,
+		sharpiso_param, voxel, sharpiso_param.flag_sort_gradients,
+		point_coord, gradient_coord, scalar, num_gradients);
+
+	if (num_gradients == 0)
+	{
+		compute_edgeI_centroid
+			(scalar_grid, isovalue, cube_index, sharp_coord);
+
+		svd_info.location = CENTROID;
+		return;
+	}
+
+
+	svd_info.location = LOC_SVD;
+	svd_info.flag_conflict = false;
+	svd_info.flag_Linf_iso_vertex_location = false;
+
+  bool flag_coord_on_plane;
+  svd_calculate_sharpiso_vertex_on_plane_using_lindstrom_fast
+    (num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]), 
+     &(point_coord[0]), &(gradient_coord[0]), pointX, plane_normal,
+     num_large_eigenvalues, eigenvalues, sharp_coord, flag_coord_on_plane);
+
+  svd_info.flag_coord_on_plane = flag_coord_on_plane;
+
+	//post process the isovertex. 
+	postprocess_isovert_location
+		(scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
+     sharpiso_param, sharp_coord, svd_info);
+
+  if (svd_info.flag_far) {
+    // Far points may be moved off plane.
+    svd_info.flag_coord_on_plane = false;
+  }
 }
 
 // Compute sharp isosurface vertex using singular valued decomposition.
@@ -1416,6 +1485,7 @@ void SVD_INFO::Init()
   flag_conflict = false;
   flag_Linf_iso_vertex_location = false;
   flag_far = false;
+  flag_coord_on_plane = false;
   location = LOC_SVD;
 }
 

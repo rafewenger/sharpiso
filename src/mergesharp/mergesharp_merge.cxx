@@ -1,12 +1,13 @@
 /// \file mergesharp_merge.cxx
 /// Merge cubes containing sharp vertices.
 
-/*Copyright (C) 2012-2014 Rephael Wenger
+/*
+Copyright (C) 2012-2014 Arindam Bhattacharya and Rephael Wenger
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 (LGPL) as published by the Free Software Foundation; either
-version 3 of the License, or any later version.
+version 2.1 of the License, or any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,8 +17,8 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
 */
+
 
 #include <vector>
 #include <algorithm>
@@ -153,9 +154,6 @@ namespace {
 		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
     CUBE_CONNECTED_ARRAY & connected_sharp);
 
-  GRID_COORD_TYPE compute_linf_distance_between_cubes
-  (const SHARPISO_GRID & grid, 
-   const VERTEX_INDEX cube0_index, const VERTEX_INDEX cube1_index);
 }
 
 // **************************************************
@@ -1869,10 +1867,11 @@ namespace {
          isovert, gcube_map, flag_extended))
       { return(false); }
 
-    GRID_COORD_TYPE linf_distanceA = 
-      compute_linf_distance_between_cubes(grid, from_cube, to_cube);
-    GRID_COORD_TYPE linf_distanceB = 
-      compute_linf_distance_between_cubes(grid, adjacent_cube, to_cube);
+    GRID_COORD_TYPE linf_distanceA, linf_distanceB;
+    compute_Linf_distance_between_grid_vertices
+      (grid, from_cube, to_cube, linf_distanceA);
+    compute_Linf_distance_between_grid_vertices
+      (grid, adjacent_cube, to_cube, linf_distanceB);
 
     max_linf_distance = 1;
     if (flag_extended) { max_linf_distance = 2; }
@@ -2358,26 +2357,6 @@ namespace {
     return(result);
   }
 
-  GRID_COORD_TYPE compute_linf_distance_between_cubes
-  (const SHARPISO_GRID & grid, 
-   const VERTEX_INDEX cube0_index, const VERTEX_INDEX cube1_index)
-  {
-    GRID_COORD_TYPE coord0[DIM3], coord1[DIM3], diff[DIM3];
-    GRID_COORD_TYPE linf_distance;
-
-    grid.ComputeCoord(cube0_index, coord0);
-    grid.ComputeCoord(cube1_index, coord1);
-
-    IJK::subtract_coord_3D(coord0, coord1, diff);
-    linf_distance = 0;
-    for (int d = 0; d < DIM3; d++) {
-      if (diff[d] < 0) { diff[d] = -diff[d]; }
-      if (diff[d] > linf_distance)
-        { linf_distance = diff[d]; }
-    }
-
-    return(linf_distance);
-  }
 }
 
 // **************************************************

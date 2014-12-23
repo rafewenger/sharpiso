@@ -1,10 +1,10 @@
 /// \file ijkgrid.txx
 /// ijk templates defining regular grid classes and functions.
-/// Version 0.1.0
+/// Version 0.2.0
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2008-2013 Rephael Wenger
+  Copyright (C) 2008-2014 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -152,7 +152,27 @@ namespace IJK {
     (const CTYPE cube_index, const DTYPE2 facet_orth_dir, 
      const bool facet_side) const;
 
-    // check function
+    /// Print vertex coordinates (mainly for debugging).
+    template <typename OSTREAM_TYPE, typename VTYPE0>
+    void PrintCoord(OSTREAM_TYPE & out, const char * prefix, 
+                    const VTYPE0 iv, const char * suffix) const;
+
+    /// Print vertex coordinates (mainly for debugging).
+    template <typename OSTREAM_TYPE, typename VTYPE0>
+    void PrintCoord(OSTREAM_TYPE & out, const VTYPE0 iv) const
+    { PrintCoord(out, "", iv, ""); }
+
+    /// Print vertex index and coordinates (mainly for debugging).
+    template <typename OSTREAM_TYPE, typename VTYPE0>
+    void PrintIndexAndCoord(OSTREAM_TYPE & out, const char * prefix,
+                            const VTYPE0 iv, const char * suffix) const;
+
+    /// Print vertex index and coordinates (mainly for debugging).
+    template <typename OSTREAM_TYPE, typename VTYPE0>
+    void PrintIndexAndCoord(OSTREAM_TYPE & out, const VTYPE0 iv) const
+    { PrintIndexAndCoord(out, "", iv, ""); }
+
+    /// Check function
     template <typename DTYPE2, typename ATYPE2, typename VTYPE2, 
               typename NTYPE2>
     bool CheckDimension
@@ -809,15 +829,20 @@ namespace IJK {
     /// @param orth_dir Directional orthogonal to facet.
     /// @param allocate_max If true, allocate the list length
     ///            to be max number of interior vertices over all facets.
+    /// @param flag_dim1_facet_vertex If true, list the facet vertex
+    ///            if grid has dimension 1.
+    ///
     template <typename GCLASS>
     FACET_INTERIOR_VERTEX_LIST
     (const GCLASS & grid, const VTYPE orth_dir,
-     const bool allocate_max=true);
+     const bool allocate_max=true,
+     const bool flag_dim1_facet_vertex=false);
 
     /// Get vertices from grid and store in list.
     /// Reallocates list if (current list length < num vertices in facet)
     template <typename GCLASS>
-    void GetVertices(const GCLASS & grid, const VTYPE orth_dir);
+    void GetVertices(const GCLASS & grid, const VTYPE orth_dir,
+                     const bool flag_dim1_facet_vertex=false);
   };
 
   // **************************************************
@@ -1040,15 +1065,14 @@ namespace IJK {
   (const DTYPE dimension, const ATYPE * axis_size, const WTYPE boundary_width,
    NTYPE & num_vertices)
   {
-    //ATYPE interior_axis_size[dimension];
-	IJK:ARRAY <ATYPE> interior_axis_size ( dimension );
+    ATYPE interior_axis_size[dimension];
 
     num_vertices = 0;
     for (DTYPE d = 0; d < dimension; d++) {
       if (axis_size[d] <= 2*boundary_width) { return; };
       interior_axis_size[d] = axis_size[d]-2*boundary_width;
     }
-    compute_num_grid_vertices(dimension, &(interior_axis_size[0]), num_vertices);
+    compute_num_grid_vertices(dimension, interior_axis_size, num_vertices);
   }
 
   /// Return number of vertices in grid interior for boundary width 1.
@@ -2519,13 +2543,10 @@ namespace IJK {
   (const DTYPE dimension, const ATYPE * axis_size, 
    const VTYPE iv0, const ATYPE max_region_edge_length, VTYPE * vlist)
   {
-    //ATYPE coord[dimension];
-    //ATYPE region_size[dimension];
-	
-	IJK::ARRAY <ATYPE>  coord ( dimension );
-	IJK::ARRAY <ATYPE> region_size (dimension);
+    ATYPE coord[dimension];
+    ATYPE region_size[dimension];
 
-    compute_coord(iv0, dimension, axis_size, &(coord[0]));
+    compute_coord(iv0, dimension, axis_size, coord);
 
     for (DTYPE d = 0; d < dimension; d++) {
       if (coord[d] + max_region_edge_length < axis_size[d])
@@ -2538,7 +2559,7 @@ namespace IJK {
       }
     }
 
-    get_subgrid_vertices(dimension, axis_size, iv0, &(region_size[0]), vlist);
+    get_subgrid_vertices(dimension, axis_size, iv0, region_size, vlist);
   }
 
   /// Get grid cubes in region.
@@ -2986,8 +3007,7 @@ namespace IJK {
     // Precondition: vlist[] is preallocated to size 
     //   at least num_outer_vertices
   {
-   // VTYPE axis_increment[dimension];
-   IJK::ARRAY <VTYPE> axis_increment ( dimension ); 
+    VTYPE axis_increment[dimension];
 
     if (dimension < 1) { return; };
 
@@ -3007,7 +3027,7 @@ namespace IJK {
       VTYPE num_vertices; 
       compute_num_outer_vertices(d_last, axis_size, num_vertices);
 
-      compute_increment(dimension, axis_size, &(axis_increment[0]));
+      compute_increment(dimension, axis_size, axis_increment);
 
       for (VTYPE i = 1; i < axis_size[d_last]-1; i++) {
         VTYPE k = i*num_vertices;
@@ -3281,9 +3301,8 @@ namespace IJK {
       return;
     }
 
-    //ATYPE axis_increment[dimension];
-	IJK::ARRAY <ATYPE> axis_increment ( dimension );
-    compute_increment(dimension, axis_size, &(axis_increment[0]));
+    ATYPE axis_increment[dimension];
+    compute_increment(dimension, axis_size, axis_increment);
 
     // get vertices in lower facet
     VTYPE num_vertices_in_grid_facet;
@@ -3727,10 +3746,58 @@ namespace IJK {
     }
 
     if (k != num_neighbors*dimension) {
-      error.AddMessage("Programming error.  Wrong number of edge neighbors added to edge_neighborF2[].");
+      error.AddMessage
+        ("Programming error.  Wrong number of edge neighbors added to edge_neighborF2[].");
       throw error;
     }
 
+  }
+
+  // ********************************************************
+  // TEMPLATE FUNCTIONS: COMPUTING DISTANCE
+  // ********************************************************
+
+  /// Compute L-infinity distance between two grid vertices.
+  template <typename GTYPE, typename VTYPE0, typename VTYPE1,
+            typename DIST_TYPE, typename DIR_TYPE>
+  void compute_Linf_distance_between_grid_vertices
+  (const GTYPE & grid, const VTYPE0 iv0, const VTYPE1 iv1,
+   DIST_TYPE & Linf_distance, DIR_TYPE & axis)
+  {
+    typedef typename GTYPE::DIMENSION_TYPE DTYPE;
+
+    const DTYPE dimension = grid.Dimension();
+    IJK::ARRAY<DIST_TYPE> coord0(dimension), coord1(dimension);
+    DIST_TYPE diff;
+
+    grid.ComputeCoord(iv0, coord0.Ptr());
+    grid.ComputeCoord(iv1, coord1.Ptr());
+
+    Linf_distance = 0;
+    axis = 0;
+    for (DTYPE d = 0; d < dimension; d++) {
+      diff = coord0[d] - coord1[d];
+      if (diff < 0) { diff = -diff; }
+
+      if (diff > Linf_distance) {
+        Linf_distance = diff;
+        axis = d;
+      }
+    }
+  }
+
+  /// Compute L-infinity distance between two grid vertices.
+  template <typename GTYPE, typename VTYPE0, typename VTYPE1,
+            typename DIST_TYPE>
+  void compute_Linf_distance_between_grid_vertices
+  (const GTYPE & grid, const VTYPE0 iv0, const VTYPE1 iv1,
+   DIST_TYPE & Linf_distance)
+  {
+    typedef typename GTYPE::DIMENSION_TYPE DTYPE;
+
+    DTYPE axis;
+    compute_Linf_distance_between_grid_vertices
+      (grid, iv0, iv1, Linf_distance, axis);
   }
 
   // **************************************************
@@ -4124,6 +4191,37 @@ namespace IJK {
   {
     return(is_cube_facet_on_grid_boundary
            (Dimension(), AxisSize(), cube_index, facet_orth_dir, facet_side));
+  }
+
+  // Print vertex coordinates (mainly for debugging).
+  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
+  template <typename OSTREAM_TYPE, typename VTYPE0>
+  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  PrintCoord(OSTREAM_TYPE & out, const char * prefix,
+             const VTYPE0 iv, const char * suffix) const
+  {
+    const DTYPE dimension = this->Dimension();
+    IJK::ARRAY<ATYPE> coord(dimension);
+
+    this->ComputeCoord(iv, coord.Ptr());
+    
+    out << prefix << "(";
+    for (DTYPE d = 0; d < dimension; d++) {
+      out << coord[d];
+      if (d+1 < dimension) { out << ","; }
+    }
+    out << ")" << suffix;
+  }
+
+  // Print vertex index and coordiantes (mainly for debugging).
+  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
+  template <typename OSTREAM_TYPE, typename VTYPE0>
+  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  PrintIndexAndCoord(OSTREAM_TYPE & out, const char * prefix,
+                     const VTYPE0 iv, const char * suffix) const
+  {
+    out << prefix << iv;
+    PrintCoord(out, " ", iv, suffix);
   }
 
   template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
@@ -5034,7 +5132,7 @@ namespace IJK {
   template<typename GCLASS>
   FACET_INTERIOR_VERTEX_LIST<VTYPE>::FACET_INTERIOR_VERTEX_LIST
   (const GCLASS & grid, const VTYPE orth_dir,
-   const bool allocate_max)
+   const bool allocate_max, const bool flag_dim1_facet_vertex)
   {
     const VTYPE boundary_width = 1;
     VTYPE numv = 0;
@@ -5049,15 +5147,19 @@ namespace IJK {
          numv);
     }
 
+    if (grid.Dimension() == 1 && flag_dim1_facet_vertex)
+      { numv = std::max(numv, 1); };
+
     this->AllocateList(numv);
-    GetVertices(grid, orth_dir);
+    GetVertices(grid, orth_dir, flag_dim1_facet_vertex);
   }
 
   /// Get vertices in grid facet interior
   template <typename VTYPE>
   template<typename GCLASS>
   void FACET_INTERIOR_VERTEX_LIST<VTYPE>::GetVertices
-  (const GCLASS & grid, const VTYPE orth_dir)
+  (const GCLASS & grid, const VTYPE orth_dir, 
+   const bool flag_dim1_facet_vertex)
   {
     VTYPE numv;
     const VTYPE boundary_width = 1;
@@ -5067,13 +5169,21 @@ namespace IJK {
       (grid.Dimension(), grid.AxisSize(), orth_dir, boundary_width,
        numv);
 
+    if (grid.Dimension() == 1 && flag_dim1_facet_vertex)
+      { numv = std::max(numv, 1); };
+
     if (numv > this->ListLength()) 
       { this->AllocateList(numv); }
 
     if (numv > 0) {
-      get_vertices_in_grid_facet_interior
-        (grid.Dimension(), grid.AxisSize(), orth_dir, side,
-         boundary_width, this->vertex_list);
+      if (grid.Dimension() > 1) {
+        get_vertices_in_grid_facet_interior
+          (grid.Dimension(), grid.AxisSize(), orth_dir, side,
+           boundary_width, this->vertex_list);
+      }
+      else if (grid.Dimension() == 1 && flag_dim1_facet_vertex) {
+        this->vertex_list[0] = 0;
+      }
     }
 
     this->num_vertices = numv;

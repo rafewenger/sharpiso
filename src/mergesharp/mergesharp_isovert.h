@@ -1,8 +1,23 @@
 /// \file mergesharp_isovert.h
 /// Data structures for creating and processing sharp isosurface vertices.
-/// Created on: Oct 29, 2012
-/// Author: arindam
 
+/*
+Copyright (C) 2012-2014 Arindam Bhattacharya and Rephael Wenger
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public License
+(LGPL) as published by the Free Software Foundation; either
+version 2.1 of the License, or any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 
 #ifndef _MERGESHARP_ISOVERT_H_
 #define _MERGESHARP_ISOVERT_H_
@@ -64,7 +79,13 @@ public:
   VERTEX_INDEX cube_containing_isovert;
 
   /// If true, isovert_coord[] determined by an adjacent cube.
-  bool flag_coord_from_other;
+  bool flag_coord_from_other_cube;
+
+  /// If true, isovert_coord[] determined by a grid vertex.
+  bool flag_coord_from_vertex;
+
+  /// If true, isovert_coord[] determined by a grid edge.
+  bool flag_coord_from_edge;
 
   /// If true, using replacement coordinate.
   bool flag_using_substitute_coord;

@@ -82,6 +82,25 @@ namespace SHARPISO {
    SVD_INFO & svd_info);
 
   /// Compute sharp isosurface vertex using singular valued decomposition.
+  /// Use Lindstrom's formula.
+  /// If num_large_eigenvalues == 2, position vertex on plane.
+  /// @param pointX Compute vertex closest to pointX.
+  /// Also post processes vertices.
+  void svd_compute_sharp_vertex_on_plane_lindstrom
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const GRADIENT_GRID_BASE & gradient_grid,
+   const VERTEX_INDEX cube_index,
+   const SCALAR_TYPE isovalue,
+   const SHARP_ISOVERT_PARAM & sharpiso_param,
+   const OFFSET_VOXEL & voxel,
+   const COORD_TYPE pointX[DIM3],
+   const COORD_TYPE plane_normal[DIM3],
+   COORD_TYPE sharp_coord[DIM3],
+   EIGENVALUE_TYPE eigenvalues[DIM3],
+   NUM_TYPE & num_large_eigenvalues,
+   SVD_INFO & svd_info);
+
+  /// Compute sharp isosurface vertex using singular valued decomposition.
   /// Use input edge-isosurface intersections and normals
   ///   to position isosurface vertices on sharp features.
   void svd_compute_sharp_vertex_for_cube_hermite
@@ -462,8 +481,11 @@ namespace SHARPISO {
     VERTEX_INDEX cube_containing_coord;
     bool flag_Linf_iso_vertex_location;
 
-    ///< If true, svd point is farther than max_dist.
+    /// If true, svd point is farther than max_dist.
     bool flag_far;
+
+    /// If true, svd point is on plane.
+    bool flag_coord_on_plane;
 
     /// Compute distance to this point.
     COORD_TYPE central_point[DIM3];

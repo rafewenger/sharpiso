@@ -126,6 +126,24 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		EIGENVALUE_TYPE singular_vals[DIM3],
 		COORD_TYPE isoVertcoords[DIM3]);
 
+/// Calculate the sharp vertex using svd and the faster garland heckbert way
+/// of storing normals.
+/// If num_singular_vals is 2, position isovert_coords on plane.
+/// @param pointX Compute vertex closest to pointX.
+void svd_calculate_sharpiso_vertex_on_plane_using_lindstrom_fast
+(		const NUM_TYPE num_vert,
+		const EIGENVALUE_TYPE err_tolerance,
+		const SCALAR_TYPE isovalue,
+		const SCALAR_TYPE * vert_scalars,
+		const COORD_TYPE * vert_coords,
+		const GRADIENT_COORD_TYPE * vert_grads,
+		const COORD_TYPE pointX[DIM3],
+		const COORD_TYPE plane_normal[DIM3],
+		NUM_TYPE & num_singular_vals,
+		EIGENVALUE_TYPE singular_vals[DIM3],
+		COORD_TYPE isovert_coords[DIM3],
+    bool & flag_coord_on_plane);
+
 // Calculate the svd based sharp isovertex but force it to have 2 singular values.
 void svd_calculate_sharpiso_vertex_2_svals_unit_normals
 (const COORD_TYPE * vert_coords,
