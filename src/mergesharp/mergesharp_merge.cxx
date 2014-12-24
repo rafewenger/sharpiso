@@ -1074,14 +1074,9 @@ namespace {
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX cube0_index,
    const MERGESHARP::ISOVERT & isovert, 
-   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   const CUBE_CONNECTED_ARRAY & connected_sharp)
   {
-    static CUBE_CONNECTED_ARRAY connected_sharp;
-
-		find_connected_sharp
-      (scalar_grid, grid, isovalue, cube0_index, isovert, 
-       gcube_map, connected_sharp);
-
     for (NUM_TYPE i = 0; i < connected_sharp.NumElements(); i++) {
 
       NUM_TYPE num_count;
@@ -2703,11 +2698,70 @@ namespace {
 		}
 	}
 
+	// Return true if from_cube is facet adjacent to two cubes
+  //   which share an edge and map to two different selected cubes.
+  // One of the two cubes should be to_cube.
+	bool check_facet_adjacent_maps(
+    const SHARPISO_GRID & grid,
+		const MERGESHARP::ISOVERT & isovert, 
+    const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+    const VERTEX_INDEX from_cube,
+    const VERTEX_INDEX to_cube)
+	{
+    const INDEX_DIFF_TYPE from_gcube = isovert.GCubeIndex(from_cube);
+    const INDEX_DIFF_TYPE to_gcube = isovert.GCubeIndex(to_cube);
+    BOUNDARY_BITS_TYPE boundary_bits;
 
-	// Check extended mapping.
-	bool check_extended_mapping(
-		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-    const GRID_NEIGHBORS & grid,
+    if (from_gcube == ISOVERT::NO_INDEX) { return(false); }
+
+    boundary_bits = isovert.gcube_list[from_gcube].boundary_bits;
+
+    if (boundary_bits == 0) {
+
+      for (int edge_dir = 0; edge_dir < DIM3; edge_dir++) {
+
+        int d1 = (edge_dir+1)%DIM3;
+        int d2 = (edge_dir+2)%DIM3;
+
+        for (int j1 = 0; j1 < 2; j1++) {
+          VERTEX_INDEX cube1_index = grid.AdjacentVertex(from_cube, d1, j1);
+          INDEX_DIFF_TYPE gcube1_index = isovert.GCubeIndex(cube1_index);
+          if (gcube1_index == ISOVERT::NO_INDEX) { continue; }
+
+          if (!isovert.gcube_list[gcube1_index].IsCoveredOrSelected())
+            { continue; }
+
+          GRID_CUBE_FLAG flag1 = isovert.gcube_list[gcube1_index].flag;
+          if (flag1 == COVERED_B_GCUBE) { continue; }
+
+          for (int j2 = 0; j2 < 2; j2++) {
+            VERTEX_INDEX cube2_index = grid.AdjacentVertex(from_cube, d2, j2);
+            INDEX_DIFF_TYPE gcube2_index = isovert.GCubeIndex(cube2_index);
+
+            if (gcube2_index == ISOVERT::NO_INDEX) { continue; }
+            if (!isovert.gcube_list[gcube2_index].IsCoveredOrSelected())
+              { continue; }
+
+            GRID_CUBE_FLAG flag2 = isovert.gcube_list[gcube2_index].flag;
+            if (flag2 == COVERED_B_GCUBE) { continue; }
+
+            return(true);
+          }
+        }
+      }
+    }
+    else {
+      // Handle boundary case.
+    }
+
+    return(false);
+	}
+
+
+	/// Check that mapping does not create degenerate/thin triangle 
+  ///   between connected, selected cubes.
+	bool check_connected_sharp
+  ( const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
 		const SCALAR_TYPE isovalue,
 		const MERGESHARP::ISOVERT & isovert, 
     const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
@@ -2715,98 +2769,134 @@ namespace {
     const VERTEX_INDEX to_vertex,
     const CUBE_CONNECTED_ARRAY & connected_sharp)
 	{
-		if (connected_sharp.NumElements() < 1)
-      { return false;	}
+		if (connected_sharp.NumElements() == 3) {
 
-		else if (connected_sharp.NumElements() == 1) {
+      for (int k = 0; k < 3; k++) {
 
-      if (to_vertex == connected_sharp[0])
-        { return(true); }
-      else
-        { return(false); }
+        if (connected_sharp[k] == to_vertex) {
+						
+          VERTEX_INDEX k1 = (k+1)%3;
+          VERTEX_INDEX k2 = (k+2)%3;
+
+          VERTEX_INDEX cube0_index = connected_sharp[k];
+          VERTEX_INDEX cube1_index = connected_sharp[k1];
+          VERTEX_INDEX cube2_index = connected_sharp[k2];
+
+          // Check that cube1_index and cube2_index are NOT connected.
+          if (are_connected_by_iso_edge
+              (scalar_grid, cube1_index, cube2_index, 
+               isovalue, isovert, gcube_map))
+            { return(false); }
+        }
+      }
     }
 
-		else if (connected_sharp.NumElements() == 2)
-		{
-      // check that two vertices are connected
-      if (!are_connected_by_iso_edge
-          (scalar_grid, connected_sharp[0], connected_sharp[1], 
-           isovalue, isovert, gcube_map))
-        { return(false); }
-
-			for (int i = 0; i < connected_sharp.NumElements(); i++)
-			{
-				if (connected_sharp[i] == to_vertex)
-          { return(true); }
-			}
-
-			return(false);
-		}
-		else if (connected_sharp.NumElements() > 3)
-		{  
-			return false;
-		}
-		else
-		{
-			//check for degree 3
-			NUM_TYPE num_of_deg3 = 0;
-			int deg3_index = 0;
-			for (int i = 0; i < connected_sharp.NumElements(); i++)
-			{
-        NUM_TYPE gcube_index = isovert.GCubeIndex(connected_sharp[i]);
-				if (isovert.gcube_list[gcube_index].num_eigenvalues == 3)
-				{
-					num_of_deg3++;
-					deg3_index = i;
-				}
-			}
-
-      if ( num_of_deg3 > 1)
-        { return false;	}
-			else {
-				
-				for (int k = 0; k < 3; k++)
-				{
-					if (connected_sharp[k] == to_vertex)
-					{
-						
-						VERTEX_INDEX k1 = (k+1)%3;
-						VERTEX_INDEX k2 = (k+2)%3;
-
-            VERTEX_INDEX cube0_index = connected_sharp[k];
-						VERTEX_INDEX cube1_index = connected_sharp[k1];
-						VERTEX_INDEX cube2_index = connected_sharp[k2];
-
-            // Check that cube1_index and cube2_index are NOT connected.
-            if (are_connected_by_iso_edge
-                (scalar_grid, cube1_index, cube2_index, 
-                 isovalue, isovert, gcube_map))
-              { return(false); }
-
-            // Check that cube0_index is connected to cube1_index.
-            if (!are_connected_by_iso_edge
-                (scalar_grid, cube0_index, cube1_index,
-                 isovalue, isovert, gcube_map))
-              { return(false); }
-
-            // Check that cube0_index is connected to cube2_index.
-            if (!are_connected_by_iso_edge
-                (scalar_grid, cube0_index, cube2_index,
-                 isovalue, isovert, gcube_map))
-              { return(false); }
-            
-            return true;
-					}
-				}
-
-				return false;
-			}
-		}
+    return(true);
 	}
+
+  // Return true if array contains x.
+  template <const int MAX_NUM_ELEMENTS, typename ETYPE, typename NTYPE>
+  bool array_contains(const ETYPE x, const ETYPE array[MAX_NUM_ELEMENTS], 
+                      const NTYPE num_elements)
+  {
+    for (NTYPE i = 0; i < num_elements; i++)
+      { if (array[i] == x) { return(true); } }
+    
+    return(false);
+  }
+
+  // Insert x into array.
+  // @pre num_elements < MAX_NUM_ELEMENTS
+  template <const int MAX_NUM_ELEMENTS, typename ETYPE, typename NTYPE>
+  bool array_insert(const ETYPE x,ETYPE array[MAX_NUM_ELEMENTS], 
+                    NTYPE & num_elements)
+  {
+    array[num_elements] = x;
+    num_elements++;
+  }
+  
+  // *** NOT TESTED ***
+	// Check that cube is near two selected cubes.
+	bool check_near_two_selected(
+    const GRID_NEIGHBORS & grid,
+		const MERGESHARP::ISOVERT & isovert, 
+    const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+    const VERTEX_INDEX cube0_index)
+  {
+    BOUNDARY_BITS_TYPE boundary_bits;
+    const NUM_TYPE MAX_NEAR = 2;
+    NUM_TYPE near_gcube_index[MAX_NEAR];
+    NUM_TYPE num_near;
+    const INDEX_DIFF_TYPE gcube0_index = isovert.GCubeIndex(cube0_index);
+
+    if (gcube0_index == ISOVERT::NO_INDEX) { return(false); }
+
+    boundary_bits = isovert.gcube_list[gcube0_index].boundary_bits;
+
+    if (boundary_bits == 0) {
+
+      num_near = 0;
+      for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsF(); j++) {
+
+        VERTEX_INDEX cube1_index = grid.CubeNeighborF(cube0_index, j);
+        INDEX_DIFF_TYPE gcube1_index = isovert.GCubeIndex(cube1_index);
+        if (gcube1_index != ISOVERT::NO_INDEX) {
+          NUM_TYPE to_gcube = gcube_map[gcube1_index];
+
+          GRID_CUBE_FLAG gcube_flag =
+            isovert.gcube_list[gcube1_index].flag;
+
+          if (gcube_flag == COVERED_A_GCUBE ||
+              gcube_flag == COVERED_CORNER_GCUBE) {
+
+            if (!array_contains<MAX_NEAR>
+                (to_gcube, near_gcube_index, num_near)) {
+
+              if (num_near >= MAX_NEAR) { return(false); }
+
+              array_insert<MAX_NEAR>(to_gcube, near_gcube_index, num_near);
+            }
+          }
+        }
+      }
+
+      for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsE(); j++) {
+
+        VERTEX_INDEX cube1_index = grid.CubeNeighborE(cube0_index, j);
+        INDEX_DIFF_TYPE gcube1_index = isovert.GCubeIndex(cube1_index);
+        if (gcube1_index != ISOVERT::NO_INDEX) {
+          NUM_TYPE to_gcube = gcube_map[gcube1_index];
+
+          GRID_CUBE_FLAG gcube_flag =
+            isovert.gcube_list[gcube1_index].flag;
+
+          if (gcube_flag == COVERED_A_GCUBE ||
+              gcube_flag == COVERED_CORNER_GCUBE) {
+
+            if (!array_contains<MAX_NEAR>
+                (to_gcube, near_gcube_index, num_near)) {
+
+              if (num_near >= MAX_NEAR) { return(false); }
+
+              array_insert<MAX_NEAR>(to_gcube, near_gcube_index, num_near);
+            }
+          }
+        }
+      }
+    }
+    else {
+      // Handle boundary case.
+    }
+
+    if (num_near == 2) { return(true); }
+    
+    return(false);
+  }
 
 	/*
 	* Check merge Against edge neighbors
 	*/
+  // *** NOT CURRENTLY USED ***
 	bool is_cube_merge_permitted_edge_neighbors(
 		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		MERGESHARP::ISOVERT & isovert,
@@ -3156,6 +3246,221 @@ namespace {
 		return false;
 	}
 
+  /// Check if merge maps cube to same axis coordinate as some facet neighbor.
+  ///   Ignore neighbors which map to the same vertex as cube.
+	bool does_merge_identify_facet_adjacent_axis_coord(
+		const SHARPISO::SHARPISO_GRID & grid,
+		const MERGESHARP::ISOVERT & isovert,
+		const INDEX_DIFF_TYPE from_gcube,
+		const INDEX_DIFF_TYPE to_gcube,
+		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+	{
+		COORD_TYPE to_coord[DIM3], to_coordB[DIM3];
+		VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
+		VERTEX_INDEX from_cube = isovert.CubeIndex(from_gcube);
+
+		grid.ComputeCoord(to_cube, to_coord);
+
+		if (isovert.gcube_list[from_gcube].boundary_bits == 0) {
+			for (int d = 0; d < DIM3; d++)
+			{
+				VERTEX_INDEX prev_cube = grid.PrevVertex(from_cube, d);
+				INDEX_DIFF_TYPE prev_gcube = isovert.GCubeIndex(prev_cube);
+
+				if (prev_gcube != ISOVERT::NO_INDEX) {
+
+          NUM_TYPE to_gcubeB = gcube_map[prev_gcube];
+					if (to_gcubeB != to_gcube) {
+
+            VERTEX_INDEX to_cubeB = isovert.CubeIndex(to_gcubeB);
+            grid.ComputeCoord(to_cubeB, to_coordB);
+						if (to_coord[d] <= to_coordB[d])
+              { return true;	}
+					}
+				}
+
+				VERTEX_INDEX next_cube = grid.NextVertex(from_cube, d);
+				INDEX_DIFF_TYPE next_gcube = isovert.GCubeIndex(next_cube);
+
+				if (next_gcube != ISOVERT::NO_INDEX) {
+
+          NUM_TYPE to_gcubeB = gcube_map[next_gcube];
+					if (to_gcubeB != to_gcube) {
+
+            VERTEX_INDEX to_cubeB = isovert.CubeIndex(to_gcubeB);
+            grid.ComputeCoord(to_cubeB, to_coordB);
+						if (to_coord[d] >= to_coordB[d])
+              { return true;	}
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
+
+  /// Return true if order of coordA[d] and coordB[d] is correct.
+  /// @param j If -1, coordA[d] should precede coordB[d].
+  ///          If 1, coordA[d] should follow coordB[d].
+  bool is_order_correct
+  (const int d, const int j, 
+   const COORD_TYPE coordA[DIM3], const COORD_TYPE coordB[DIM3])
+  {
+    if (j < 0)
+      { return((coordA[d] < coordB[d])); }
+    else
+      { return((coordA[d] > coordB[d])); }
+  }
+
+  /// Check if merge maps cube to same axis coordinate as some edge neighbor.
+  ///   Ignore neighbors which map to the same vertex as cube.
+	bool does_merge_identify_edge_adjacent_axis_coord(
+		const SHARPISO::SHARPISO_GRID & grid,
+		const MERGESHARP::ISOVERT & isovert,
+		const INDEX_DIFF_TYPE from_gcube,
+		const INDEX_DIFF_TYPE to_gcube,
+		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+	{
+    const VERTEX_INDEX * axis_increment = grid.AxisIncrement();
+		COORD_TYPE to_coord[DIM3], to_coordB[DIM3];
+		VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
+		VERTEX_INDEX from_cube = isovert.CubeIndex(from_gcube);
+
+		grid.ComputeCoord(to_cube, to_coord);
+
+    // *** DEBUG ***
+    /* OBSOLETE
+    using namespace std;
+    bool flag_debug = false;
+    if (from_cube == 187303) {
+      flag_debug = true; 
+
+      cerr << "In " << __func__ << endl;
+      grid.PrintIndexAndCoord(cerr, "  From cube: ", from_cube, "\n");
+      grid.PrintIndexAndCoord(cerr, "  To cube: ", to_cube, "\n");
+    }
+    */
+
+		if (isovert.gcube_list[from_gcube].boundary_bits == 0) {
+			for (int edge_dir = 0; edge_dir < DIM3; edge_dir++) {
+
+        int d1 = (edge_dir+1)%DIM3;
+        int d2 = (edge_dir+2)%DIM3;
+
+        for (int j1 = -1; j1 < 2; j1+=2) {
+          for (int j2 = -1; j2 < 2; j2+=2) {
+            VERTEX_INDEX cubeB_index =
+              from_cube + j1*axis_increment[d1] + j2*axis_increment[d2];
+            INDEX_DIFF_TYPE gcubeB_index = isovert.GCubeIndex(cubeB_index);
+
+            if (gcubeB_index == ISOVERT::NO_INDEX) { continue; }
+
+            // *** DEBUG ***
+            /*
+            if (flag_debug) {
+              grid.PrintIndexAndCoord
+                (cerr, "  Adjacent cube: ", cubeB_index, "\n");
+            }
+            */
+
+            NUM_TYPE to_gcubeB = gcube_map[gcubeB_index];
+            if (to_gcubeB != to_gcube) {
+
+              VERTEX_INDEX to_cubeB = isovert.CubeIndex(to_gcubeB);
+              grid.ComputeCoord(to_cubeB, to_coordB);
+              if (!is_order_correct(d1, j1, to_coordB, to_coord))
+                { return(true); }
+              if (!is_order_correct(d2, j2, to_coordB, to_coord))
+                { return(true); }
+            }
+          }
+        }
+			}
+		}
+		
+		return false;
+	}
+
+  /// Check if merge maps cube to same axis coordinate as some vertex neighbor.
+  ///   Ignore neighbors which map to the same vertex as cube.
+	bool does_merge_identify_vertex_adjacent_axis_coord(
+		const SHARPISO::SHARPISO_GRID & grid,
+		const MERGESHARP::ISOVERT & isovert,
+		const INDEX_DIFF_TYPE from_gcube,
+		const INDEX_DIFF_TYPE to_gcube,
+		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+	{
+    const VERTEX_INDEX * axis_increment = grid.AxisIncrement();
+		COORD_TYPE to_coord[DIM3], to_coordB[DIM3];
+		VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
+		VERTEX_INDEX from_cube = isovert.CubeIndex(from_gcube);
+
+		grid.ComputeCoord(to_cube, to_coord);
+
+    // *** DEBUG ***
+    /*
+    using namespace std;
+    bool flag_debug = false;
+    if (from_cube == 187303) {
+      flag_debug = true; 
+
+      cerr << "In " << __func__ << endl;
+      grid.PrintIndexAndCoord(cerr, "  From cube: ", from_cube, "\n");
+      grid.PrintIndexAndCoord(cerr, "  To cube: ", to_cube, "\n");
+    }
+    */
+
+		if (isovert.gcube_list[from_gcube].boundary_bits == 0) {
+
+      for (int j0 = -1; j0 < 2; j0+=2) {
+        for (int j1 = -1; j1 < 2; j1+=2) {
+          for (int j2 = -1; j2 < 2; j2+=2) {
+            VERTEX_INDEX cubeB_index =
+              from_cube + j0*axis_increment[0] +
+              j1*axis_increment[1] + j2*axis_increment[2];
+            INDEX_DIFF_TYPE gcubeB_index = isovert.GCubeIndex(cubeB_index);
+
+            if (gcubeB_index == ISOVERT::NO_INDEX) { continue; }
+
+            // *** DEBUG ***
+            /*
+            if (flag_debug) {
+              grid.PrintIndexAndCoord
+                (cerr, "  Adjacent cube: ", cubeB_index, "\n");
+            }
+            */
+
+            NUM_TYPE to_gcubeB = gcube_map[gcubeB_index];
+            if (to_gcubeB != to_gcube) {
+
+              VERTEX_INDEX to_cubeB = isovert.CubeIndex(to_gcubeB);
+              grid.ComputeCoord(to_cubeB, to_coordB);
+
+              // *** DEBUG ***
+              /*
+              if (flag_debug) {
+                grid.PrintIndexAndCoord
+                  (cerr, "    Maps to: ", to_cubeB, "\n");
+                cerr << "     j0: " << j0 << "  j1: " << j1
+                     << "  j2: " << j2 << endl;
+              }
+              */
+
+              if (!is_order_correct(0, j0, to_coordB, to_coord))
+                { return(true); }
+              if (!is_order_correct(1, j1, to_coordB, to_coord))
+                { return(true); }
+              if (!is_order_correct(2, j2, to_coordB, to_coord))
+                { return(true); }
+            }
+          }
+        }
+			}
+		}
+		
+		return false;
+	}
+
 	/*
 	* check if mapping of vertex in from_cube to to_cube is permitted.
 	*/
@@ -3166,7 +3471,15 @@ namespace {
 		const INDEX_DIFF_TYPE to_gcube_index,
 		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
-    if (does_merge_reverse_isovert_order
+    if (does_merge_identify_facet_adjacent_axis_coord
+        (scalar_grid, isovert, from_gcube_index, to_gcube_index, gcube_map))
+      { return(false); }
+
+    if (does_merge_identify_edge_adjacent_axis_coord
+        (scalar_grid, isovert, from_gcube_index, to_gcube_index, gcube_map))
+      { return(false); }
+
+    if (does_merge_identify_vertex_adjacent_axis_coord
         (scalar_grid, isovert, from_gcube_index, to_gcube_index, gcube_map))
       { return(false); }
 
@@ -3228,7 +3541,7 @@ namespace {
     // *** DEBUG ***
     using namespace std;
     /*
-    if (from_cube == 68518) {
+    if (from_cube == 72375) {
       flag_debug = true;
 
       cerr << "*** Checking mapping from " << from_cube << " ";
@@ -3243,14 +3556,14 @@ namespace {
       (scalar_grid, grid, isovalue, from_cube, isovert, 
        gcube_map, connected_sharp);
 
-    if (!check_extended_mapping
-        (scalar_grid, grid, isovalue, isovert, gcube_map,
-         from_cube, to_cube, connected_sharp))
+
+    if (!check_facet_adjacent_maps
+        (scalar_grid, isovert, gcube_map, from_cube, to_cube))
       { 
 
         /// *** DEBUG ***
         if (flag_debug) {
-          cerr << "  Failed check_extended_mapping." << endl; 
+          cerr << "  Failed check_facet_adjacent_maps." << endl; 
           cerr << "    connected_sharp: ";
           for (int i = 0; i < connected_sharp.NumElements(); i++) {
             cerr << connected_sharp[i] << " ";
@@ -3279,12 +3592,26 @@ namespace {
         return; }
 
     if (!check_adjacent_cubes(scalar_grid, grid, isovalue, from_cube,
-                              isovert, gcube_map))
+                              isovert, gcube_map, connected_sharp))
       { 
         /// *** DEBUG ***
         if (flag_debug) 
           { cerr << "  Failed check_adjacent_cubes." << endl; }
         
+        return; }
+
+    if (!check_connected_sharp
+        (scalar_grid, isovalue, isovert, gcube_map, from_cube, to_cube,
+         connected_sharp))
+      { 
+        // *** DEBUG ***
+        if (flag_debug) {
+          scalar_grid.PrintIndexAndCoord
+            (cerr, "*** Failed check_connected_sharp. Cube: ", from_cube, "");
+          scalar_grid.PrintIndexAndCoord
+            (cerr, " to ", to_cube, "\n");
+        }
+
         return; }
 
     map_iso_vertex(scalar_grid, isovalue, isovert.gcube_list, 

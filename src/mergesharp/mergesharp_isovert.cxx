@@ -2051,6 +2051,13 @@ void check_and_select_cube
 
   // *** SHOULD ADD CHECK FOR flag_conflict HERE ***
 
+  // *** DEBUG ***
+  if (cube_index == 72375) {
+    cerr << "In " << __func__ << endl;
+    scalar_grid.PrintIndexAndCoord
+      (cerr, "    Checking cube ", cube_index, ".\n");
+  }
+
 	// Check if the sharp vertex is inside a covered cube.
 	if (check_covered_point(covered_grid, isovert, gcube_index)) {
 		isovert.gcube_list[gcube_index].flag = COVERED_POINT;
@@ -2060,6 +2067,13 @@ void check_and_select_cube
 	bool triangle_flag =
     creates_triangle_new(scalar_grid, isovert, cube_index,
                          isovalue, bin_grid, bin_width, v1, v2);
+
+  // *** DEBUG ***
+  if (cube_index == 72375) {
+    cerr << "In " << __func__ << endl;
+    scalar_grid.PrintIndexAndCoord(cerr, "    Cube ", cube_index, "");
+    cerr << "  triangle_flag: " << int(triangle_flag) << endl;
+  }
 
   if (!triangle_flag) {
     select_cube
@@ -2686,6 +2700,7 @@ void MERGESHARP::select_sharp_isovert
 	covered_grid.SetAll(false);
 
   // *** DEBUG ***
+  flag_debug = false;
   if (flag_debug) {
     cerr << endl << "*** Selecting corner cubes." << endl;
   }
@@ -2731,6 +2746,10 @@ void MERGESHARP::select_sharp_isovert
     (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param,
      sharp_gcube_list, isovert);
 
+  // *** DEBUG ***
+  if (flag_debug) 
+    { cerr << endl << "*** Recomputing covered point positions." << endl; }
+
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
@@ -2740,23 +2759,46 @@ void MERGESHARP::select_sharp_isovert
   // Resort sharp gcube_list
   sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
 
+  // *** DEBUG ***
+  if (flag_debug) 
+    { cerr << endl << "*** Reselecting edge cubes." << endl; }
+
   // reselect edge cubes
 	reselect_edge_cubes
     (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param, 
      sharp_gcube_list, isovert);
 
+  // *** DEBUG ***
+  if (flag_debug) {
+    cerr << endl << "*** Computing isovert coord around vertices." << endl; 
+  }
+
   recompute_isovert_position_around_vertex
     (scalar_grid, gradient_grid, covered_grid, isovalue,
      isovert_param, isovert);
   
+  // *** DEBUG ***
+  if (flag_debug) {
+    cerr << endl << "*** Computing isovert coord around edges." << endl; 
+  }
+
   recompute_isovert_position_around_edge
     (scalar_grid, gradient_grid, covered_grid, isovalue, 
      isovert_param, isovert);
+
+  // *** DEBUG ***
+  if (flag_debug) {
+    cerr << endl << "*** Selecting edge cubes (again.)" << endl; 
+  }
 
 	// Retry selecting edge cubes.
 	select_edge_cubes
     (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param,
      sharp_gcube_list, isovert);
+
+  // *** DEBUG ***
+  if (flag_debug) 
+    { cerr << endl << "*** Recomputing covered point positions." << endl; }
 
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,

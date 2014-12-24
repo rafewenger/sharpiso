@@ -99,6 +99,7 @@ namespace MERGESHARP {
     bool flag_output_param;      ///< Output algorithm parameters.
     bool flag_output_selected;   ///< Output information about selected cubes.
     bool flag_output_sharp;      ///< Output information about sharp cubes.
+    bool flag_output_active;     ///< Output information about active cubes.
     std::vector<COORD_TYPE> minc;
     std::vector<COORD_TYPE> maxc;
 
@@ -397,6 +398,10 @@ namespace MERGESHARP {
 
   /// Report information about cubes containing corner or edge iso vertices.
   void report_sharp_cubes(const ISOVERT & isovert);
+
+  /// Report information about active cubes.
+  /// A cube is active if it has some bipolar edge.
+  void report_active_cubes(const ISOVERT & isovert);
 
 
   // **************************************************

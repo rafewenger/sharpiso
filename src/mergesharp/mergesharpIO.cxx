@@ -81,7 +81,7 @@ namespace {
     HELP_PARAM, OFF_PARAM, IV_PARAM, 
     OUTPUT_FILENAME_PARAM, STDOUT_PARAM, NOWRITE_PARAM, 
     OUTPUT_PARAM_PARAM, OUTPUT_INFO_PARAM, 
-    OUTPUT_SELECTED_PARAM, OUTPUT_SHARP_PARAM,
+    OUTPUT_SELECTED_PARAM, OUTPUT_SHARP_PARAM, OUTPUT_ACTIVE_PARAM,
     WRITE_ISOV_INFO_PARAM, SILENT_PARAM, TIME_PARAM, 
     UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
@@ -110,7 +110,7 @@ namespace {
       "-map_extended",
       "-help", "-off", "-iv", 
       "-o", "-stdout", "-nowrite", 
-      "-out_param", "-info", "-out_selected", "-out_sharp",
+      "-out_param", "-info", "-out_selected", "-out_sharp", "-out_active",
       "-write_isov_info", "-s", "-time", "-unknown"};
 
   PARAMETER get_parameter_token(const char * s)
@@ -413,6 +413,10 @@ namespace {
 
     case OUTPUT_SHARP_PARAM:
       input_info.flag_output_sharp = true;
+      break;
+
+    case OUTPUT_ACTIVE_PARAM:
+      input_info.flag_output_active = true;
       break;
 
     case STDOUT_PARAM:
@@ -1504,6 +1508,19 @@ void MERGESHARP::report_sharp_cubes(const ISOVERT & isovert)
   cout << endl;
 }
 
+/// Report information about active cubes.
+/// A cube is active if it has some bipolar edge.
+void MERGESHARP::report_active_cubes(const ISOVERT & isovert)
+{
+  cout << endl;
+  cout << "Active cubes (containing bipolar edges): " << endl;
+  for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
+    VERTEX_INDEX cube_index = isovert.CubeIndex(i);
+    report_isovert_cube_info(isovert, cube_index);
+  }
+  cout << endl;
+}
+
 /// Report information about isosurface vertices
 void MERGESHARP::report_isovert_info
 (const OUTPUT_INFO & output_info, const ISOVERT & isovert)
@@ -1537,6 +1554,9 @@ void MERGESHARP::report_isovert_info
 
   if (output_info.flag_output_sharp) 
     { report_sharp_cubes(isovert); }
+
+  if (output_info.flag_output_active) 
+    { report_active_cubes(isovert); }
 
 }
 
@@ -1947,6 +1967,7 @@ void MERGESHARP::IO_INFO::Init()
   flag_output_param = false;
   flag_output_selected = false;
   flag_output_sharp = false;
+  flag_output_active = false;
   flag_recompute_isovert = true; // recompute the isovert for unavailable cubes
   flag_check_triangle_angle = true;
   grid_spacing.resize(3,1);
