@@ -489,15 +489,16 @@ void recompute_covered_point_positions
       GRID_CUBE_FLAG cube_flag = isovert.gcube_list[i].flag;
       bool flag_recomputed_coord_min_offset =
         isovert.gcube_list[i].flag_recomputed_coord_min_offset;
-      if (cube_flag == COVERED_POINT &&
-          !flag_recomputed_coord_min_offset) {
+      if (cube_flag == COVERED_POINT || isovert.gcube_list[i].flag_far) {
+        if (!flag_recomputed_coord_min_offset) {
 
-        recompute_isovert_position_lindstrom
-          (scalar_grid, gradient_grid, isovalue,
-           isovert_param, voxel, flag_min_offset, i, isovert);
+          recompute_isovert_position_lindstrom
+            (scalar_grid, gradient_grid, isovalue,
+             isovert_param, voxel, flag_min_offset, i, isovert);
 
-        check_covered_and_substitute
-          (scalar_grid, covered_grid, isovalue, i, isovert);
+          check_covered_and_substitute
+            (scalar_grid, covered_grid, isovalue, i, isovert);
+        }
       }
 		}
 	}
@@ -508,20 +509,22 @@ void recompute_covered_point_positions
       GRID_CUBE_FLAG cube_flag = isovert.gcube_list[i].flag;
       bool flag_recomputed_coord_min_offset =
         isovert.gcube_list[i].flag_recomputed_coord_min_offset;
-      if (cube_flag == COVERED_POINT &&
-          !flag_recomputed_coord_min_offset) {
 
-        VERTEX_INDEX cube_index = isovert.CubeIndex(i);
-        compute_isovert_position_lc_intersection
-          (scalar_grid, gradient_grid, isovalue, isovert_param, voxel,
-           cube_index, isovert);
+      if (cube_flag == COVERED_POINT || isovert.gcube_list[i].flag_far) {
+        if (!flag_recomputed_coord_min_offset) {
 
-        isovert.gcube_list[i].flag_recomputed_coord = true;
-        isovert.gcube_list[i].flag_recomputed_coord_min_offset = 
-          flag_min_offset;
-        set_cube_containing_isovert(scalar_grid, isovalue, i, isovert);
+          VERTEX_INDEX cube_index = isovert.CubeIndex(i);
+          compute_isovert_position_lc_intersection
+            (scalar_grid, gradient_grid, isovalue, isovert_param, voxel,
+             cube_index, isovert);
 
-        /// *** NEED TO DO SAME AS FOR LINDSTROM.
+          isovert.gcube_list[i].flag_recomputed_coord = true;
+          isovert.gcube_list[i].flag_recomputed_coord_min_offset = 
+            flag_min_offset;
+          set_cube_containing_isovert(scalar_grid, isovalue, i, isovert);
+
+          // *** NEED TO DO SAME AS FOR LINDSTROM.
+        }
       }
 		}
   }
