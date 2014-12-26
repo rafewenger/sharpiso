@@ -61,6 +61,7 @@ namespace SHARPISO {
    const OFFSET_VOXEL & voxel,
    const COORD_TYPE pointX[DIM3],
    COORD_TYPE sharp_coord[DIM3],
+   COORD_TYPE edge_direction[DIM3],
    EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
@@ -77,6 +78,7 @@ namespace SHARPISO {
    const SHARP_ISOVERT_PARAM & sharpiso_param,
    const OFFSET_VOXEL & voxel,
    COORD_TYPE sharp_coord[DIM3],
+   COORD_TYPE edge_direction[DIM3],
    EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
@@ -437,6 +439,10 @@ namespace SHARPISO {
 
     /// Maximum (Linf) distance from cube to isosurface vertex
     SIGNED_COORD_TYPE max_dist;
+
+    /// Maximum (Linf) distance from cube center to isosurface vertex
+    ///   used in setting other active cube.
+    COORD_TYPE max_dist_to_set_other;
 
     /// Snap points within snap distance to cube.
     COORD_TYPE snap_dist;

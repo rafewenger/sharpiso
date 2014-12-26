@@ -65,10 +65,13 @@ namespace {
     CHECK_TRIANGLE_ANGLE, NO_CHECK_TRIANGLE_ANGLE,
     DIST2CENTER_PARAM, DIST2CENTROID_PARAM,
     LINF_PARAM, NO_LINF_PARAM,
+
+    // DEPRECATED
     USE_LINDSTROM_PARAM,
     USE_LINDSTROM2_PARAM,
     USE_LINDSTROM_FAST,
     NO_LINDSTROM_PARAM,
+
     SINGLE_ISOV_PARAM, MULTI_ISOV_PARAM,
     SPLIT_NON_MANIFOLD_PARAM, SELECT_SPLIT_PARAM,
     SEP_NEG_PARAM, SEP_POS_PARAM, RESOLVE_AMBIG_PARAM,
@@ -99,7 +102,10 @@ namespace {
       "-check_triangle_angle", "-no_check_triangle_angle",
       "-dist2center", "-dist2centroid",
       "-Linf", "-no_Linf",
+
+      // DEPRECATED
       "-lindstrom", "-lindstrom2","-lindstrom_fast", "-no_lindstrom",
+
       "-single_isov", "-multi_isov", "-split_non_manifold", "-select_split",
       "-sep_neg", "-sep_pos", "-resolve_ambig", 
       "-check_disk", "-no_check_disk",
@@ -214,6 +220,14 @@ namespace {
     }
   }
 
+  void lindstrom_deprecated()
+  {
+    cerr << "*** Warning: Options -lindstrom -lindstrom2 -lindstrom_fast -no_lindstrom are all deprecated." << endl;
+    cerr << "   Program mergesharp now always uses creates 3x3 matrix from the gradients"
+         << "   and applies lindstrom's algorithm to this matrix."
+         << endl;
+  }
+
   // Set flag in input_info based on param.
   // Return false if param is not valid or not a flag.
   bool set_input_info_flag
@@ -262,22 +276,26 @@ namespace {
 
     case USE_LINDSTROM_PARAM:
       input_info.use_lindstrom =true;
+      lindstrom_deprecated();
       break;
 
     case USE_LINDSTROM2_PARAM:
       input_info.use_lindstrom = true;
       input_info.use_lindstrom2 = true;
+      lindstrom_deprecated();
       break;
 
     case USE_LINDSTROM_FAST:
       input_info.use_lindstrom = true;
       input_info.use_lindstrom_fast = true;
+      lindstrom_deprecated();
       break;
 
     case NO_LINDSTROM_PARAM:
       input_info.use_lindstrom = false;
       input_info.use_lindstrom2 = false;
       input_info.use_lindstrom_fast = false;
+      lindstrom_deprecated();
       break;
 
     case SINGLE_ISOV_PARAM:
@@ -1443,14 +1461,15 @@ void report_isovert_cube_info
 (const ISOVERT & isovert, const VERTEX_INDEX cube_index)
 {
   const INDEX_DIFF_TYPE gcube_index = isovert.GCubeIndex(cube_index);
+  const NUM_TYPE num_eigenvalues = 
+    isovert.gcube_list[gcube_index].num_eigenvalues;
   string s;
 
   if (gcube_index == ISOVERT::NO_INDEX) { return; }
 
   cout << "Cube " << cube_index << ": ";
   ijkgrid_output_vertex_coord(cout, isovert.sharp_ind_grid, cube_index);
-  cout << "    Num eigenvalues: "
-       << int(isovert.gcube_list[gcube_index].num_eigenvalues);
+  cout << "    Num eigenvalues: " << num_eigenvalues;
   cout << endl;
   cout << "    Isovert coord A: ";
   IJK::print_coord3D
@@ -1459,6 +1478,13 @@ void report_isovert_cube_info
   IJK::print_coord3D
     (cout, isovert.gcube_list[gcube_index].isovert_coordB);
   cout << endl;
+
+  if (num_eigenvalues == 2) {
+    cout << "    Sharp edge direction: ";
+    IJK::print_coord3D
+      (cout, isovert.gcube_list[gcube_index].edge_dir);
+    cout << endl;
+  }
 
   convert2string(isovert.gcube_list[gcube_index].flag, s);
   cout << "    Dist (Linf): " 
@@ -1479,7 +1505,7 @@ void report_isovert_cube_info
   cout << "    ";
   if (isovert.gcube_list[gcube_index].flag_using_substitute_coord)
     { cout << "Substitute coord.  "; }
-  if (isovert.gcube_list[gcube_index].flag_coord_from_other_cube)
+  if (isovert.gcube_list[gcube_index].flag_coord_from_other_cube) 
     { cout << "Coord from other cube.  "; }
   else if (isovert.gcube_list[gcube_index].flag_coord_from_vertex)
     { cout << "Coord from vertex.  "; }

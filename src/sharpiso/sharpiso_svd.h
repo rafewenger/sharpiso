@@ -126,6 +126,19 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
 		EIGENVALUE_TYPE singular_vals[DIM3],
 		COORD_TYPE isoVertcoords[DIM3]);
 
+void svd_calculate_sharpiso_vertex_using_lindstrom_fast(
+		const NUM_TYPE num_vert,
+		const EIGENVALUE_TYPE err_tolerance,
+		const SCALAR_TYPE isovalue,
+		const SCALAR_TYPE * vert_scalars,
+		const COORD_TYPE * vert_coords,
+		const GRADIENT_COORD_TYPE * vert_grads,
+		const COORD_TYPE pointX[DIM3],
+		NUM_TYPE & num_singular_vals,
+		EIGENVALUE_TYPE singular_vals[DIM3],
+		COORD_TYPE isoVertcoords[DIM3],
+    COORD_TYPE edge_directin[DIM3]);
+
 /// Calculate the sharp vertex using svd and the faster garland heckbert way
 /// of storing normals.
 /// If num_singular_vals is 2, position isovert_coords on plane.

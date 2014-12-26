@@ -69,6 +69,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 	const SHARP_ISOVERT_PARAM & sharpiso_param,
 	const OFFSET_VOXEL & voxel,
 	COORD_TYPE sharp_coord[DIM3],
+  COORD_TYPE edge_direction[DIM3],
 	EIGENVALUE_TYPE eigenvalues[DIM3],
 	NUM_TYPE & num_large_eigenvalues,
 	SVD_INFO & svd_info)
@@ -81,7 +82,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 
   svd_compute_sharp_vertex_for_cube_lindstrom
     (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
-     voxel, central_point, sharp_coord, 
+     voxel, central_point, sharp_coord, edge_direction,
      eigenvalues, num_large_eigenvalues, svd_info);
 }
 
@@ -98,6 +99,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
   const OFFSET_VOXEL & voxel,
   const COORD_TYPE pointX[DIM3],
 	COORD_TYPE sharp_coord[DIM3],
+  COORD_TYPE edge_direction[DIM3],
 	EIGENVALUE_TYPE eigenvalues[DIM3],
 	NUM_TYPE & num_large_eigenvalues,
 	SVD_INFO & svd_info)
@@ -134,22 +136,10 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 	svd_info.flag_conflict = false;
 	svd_info.flag_Linf_iso_vertex_location = false;
 
-	/// use the sharp version with the garlnd heckbert way of storing normals
-	if (sharpiso_param.use_lindstrom_fast)
-	{
-		svd_calculate_sharpiso_vertex_using_lindstrom_fast
-			(num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]), 
-       &(point_coord[0]), &(gradient_coord[0]), pointX,
-       num_large_eigenvalues, eigenvalues, sharp_coord);
-	}
-	else
-	{
-		svd_calculate_sharpiso_vertex_using_lindstrom
-			(sharpiso_param.use_lindstrom2, &(point_coord[0]),
-       &(gradient_coord[0]), &(scalar[0]),
-       num_gradients, isovalue, max_small_eigenvalue, pointX,
-       num_large_eigenvalues, eigenvalues, sharp_coord);
-	}
+  svd_calculate_sharpiso_vertex_using_lindstrom_fast
+    (num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]), 
+     &(point_coord[0]), &(gradient_coord[0]), pointX,
+     num_large_eigenvalues, eigenvalues, sharp_coord, edge_direction);
 
 	//post process the isovertex. 
 	postprocess_isovert_location
@@ -283,21 +273,10 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_hermite
   IJK::copy_coord(DIM3, central_point, svd_info.central_point);
 
   // use the sharp version with the Garland-Heckbert way of storing normals
-  if (sharpiso_param.use_lindstrom_fast){
-
-    svd_calculate_sharpiso_vertex_using_lindstrom_fast
-      (num_gradients, max_small_eigenvalue, isovalue, &(scalar[0]), 
-       &(point_coord[0]), &(gradient_coord[0]), central_point,
-       num_large_eigenvalues, eigenvalues, sharp_coord);
-  }
-  else{
-
-    svd_calculate_sharpiso_vertex_using_lindstrom
-      (sharpiso_param.use_lindstrom2, &(point_coord[0]),
-       &(gradient_coord[0]), &(scalar[0]),
-       num_gradients, isovalue, max_small_eigenvalue, central_point,
-       num_large_eigenvalues, eigenvalues, sharp_coord);
-  }
+  svd_calculate_sharpiso_vertex_using_lindstrom_fast
+    (num_gradients, max_small_eigenvalue, isovalue, &(scalar[0]), 
+     &(point_coord[0]), &(gradient_coord[0]), central_point,
+     num_large_eigenvalues, eigenvalues, sharp_coord);
 
   svd_info.cube_containing_coord = cube_index;
 
@@ -1454,7 +1433,8 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   flag_check_disk = false;
   use_sharp_edgeI = false;
   use_Linf_dist = true;
-  max_dist = 1.0;
+  max_dist = 1.0;                  // Note: Distance from cube boundary.
+  max_dist_to_set_other = 1.0;     // Note: Distance from cube center.
   snap_dist = 1.0/16.0;
   max_small_eigenvalue = 0.1;
   round_denominator = 16;

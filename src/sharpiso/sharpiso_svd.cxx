@@ -170,7 +170,7 @@ void compute_sharp_point_lindstrom_3x3
 }
 
 /// @param pointX Compute sharp point closest to pointX.
-/// @param ray_direction If num_singular_vals = 2, return ray direction.
+/// @param edge_direction If num_singular_vals = 2, return sharp edge direction.
 void compute_sharp_point_lindstrom_3x3
 (		SCALAR_TYPE * A,
 		const SCALAR_TYPE _b[3],
@@ -179,7 +179,7 @@ void compute_sharp_point_lindstrom_3x3
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
 		COORD_TYPE isoVertCoords[DIM3],
-    COORD_TYPE ray_direction[DIM3])
+    COORD_TYPE edge_direction[DIM3])
 {
 	Map<const Matrix3f> eigenA(A);
 	Map<const RowVector3f> eigen_pX(pointX);
@@ -211,12 +211,12 @@ void compute_sharp_point_lindstrom_3x3
     compute_edge_direction(A_pseudo_inv, eigenA, edge_dir);
 
     for (int d = 0; d < DIM3; d++)
-      { ray_direction[d] = edge_dir[d]; }
+      { edge_direction[d] = edge_dir[d]; }
 
-		normalize(ray_direction, ray_direction);
+		normalize(edge_direction, edge_direction);
   }
   else {
-    IJK::set_coord_3D(0, ray_direction);
+    IJK::set_coord_3D(0, edge_direction);
   }
 }
 
@@ -224,7 +224,7 @@ void compute_sharp_point_lindstrom_3x3
 /// Compute sharp point closest to pointX.
 /// If num_singular_vals == 2, compute sharp point on plane
 ///   through pointX with normal plan_normal
-/// @param ray_direction If num_singular_vals = 2, return ray direction.
+/// @param edge_direction If num_singular_vals = 2, return sharp edge direction.
 void compute_sharp_point_on_plane_lindstrom_3x3
 (		SCALAR_TYPE * A,
 		const SCALAR_TYPE _b[3],
@@ -239,26 +239,26 @@ void compute_sharp_point_on_plane_lindstrom_3x3
   const ANGLE_TYPE max_angle_normal_and_edge_dir = 80;
   const COORD_TYPE min_cos_normal_and_edge_dir
     = cos(max_angle_normal_and_edge_dir*M_PI/180.0);
-  COORD_TYPE ray_direction[DIM3];
+  COORD_TYPE edge_direction[DIM3];
   COORD_TYPE diff[DIM3];
 
   compute_sharp_point_lindstrom_3x3
     (A, _b, err_tolerance, pointX, num_singular_vals, singular_vals,
-     isovert_coord, ray_direction);
+     isovert_coord, edge_direction);
 
   flag_coord_on_plane = false;
   if (num_singular_vals == 2) {
 
     COORD_TYPE a1, a2;
-    IJK::compute_inner_product_3D(plane_normal, ray_direction, a1);
+    IJK::compute_inner_product_3D(plane_normal, edge_direction, a1);
 
-    // Ignore plane if angle between line through plane_normal and line through ray_direction 
+    // Ignore plane if angle between line through plane_normal and line through edge_direction 
     //   is near 90.
     if (abs(a1) >= min_cos_normal_and_edge_dir) {
       IJK::subtract_coord_3D(pointX, isovert_coord, diff);
       IJK::compute_inner_product_3D(plane_normal, diff, a2);
       COORD_TYPE t = a2/a1;
-      IJK::add_scaled_coord_3D(t, ray_direction, isovert_coord, isovert_coord);
+      IJK::add_scaled_coord_3D(t, edge_direction, isovert_coord, isovert_coord);
       flag_coord_on_plane = true;
     }
   }
@@ -346,6 +346,31 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast
 	compute_sharp_point_lindstrom_3x3
     (A, B, err_tolerance, pointX, num_singular_vals, 
      singular_vals, isovert_coords);
+}
+
+/// Calculate the sharp vertex using svd and the faster garland heckbert way
+/// of storing normals
+/// @param pointX Compute vertex closest to pointX.
+void svd_calculate_sharpiso_vertex_using_lindstrom_fast
+(		const NUM_TYPE num_vert,
+		const EIGENVALUE_TYPE err_tolerance,
+		const SCALAR_TYPE isovalue,
+		const SCALAR_TYPE * vert_scalars,
+		const COORD_TYPE * vert_coords,
+		const GRADIENT_COORD_TYPE * vert_grads,
+		const COORD_TYPE pointX[DIM3],
+		NUM_TYPE & num_singular_vals,
+		EIGENVALUE_TYPE singular_vals[DIM3],
+		COORD_TYPE isovert_coords[DIM3],
+    COORD_TYPE edge_direction[DIM3])
+{
+  COORD_TYPE A[DIM3*DIM3];
+  COORD_TYPE B[DIM3];
+  compute_A_B(num_vert, err_tolerance, isovalue, vert_scalars, vert_coords,
+              vert_grads, A, B);
+	compute_sharp_point_lindstrom_3x3
+    (A, B, err_tolerance, pointX, num_singular_vals, 
+     singular_vals, isovert_coords, edge_direction);
 }
 
 /// Calculate the sharp vertex using svd and the faster garland heckbert way
@@ -466,7 +491,7 @@ void svd_calculate_sharpiso_vertex_unit_normals
  const SCALAR_TYPE * vert_scalars, const NUM_TYPE num_vert,
  const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
  NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
- COORD_TYPE isoVertcoords[DIM3], GRADIENT_COORD_TYPE ray_direction[DIM3]) 
+ COORD_TYPE isoVertcoords[DIM3], GRADIENT_COORD_TYPE edge_direction[DIM3]) 
 {
 	if (num_vert == 0)
 		return;
@@ -520,9 +545,9 @@ void svd_calculate_sharpiso_vertex_unit_normals
     compute_edge_direction(inA, A, edge_dir);
 
     for (int d = 0; d < DIM3; d++)
-      { ray_direction[d] = edge_dir[d]; }
+      { edge_direction[d] = edge_dir[d]; }
 
-		normalize(ray_direction, ray_direction);
+		normalize(edge_direction, edge_direction);
 	}
 }
 
@@ -532,7 +557,7 @@ void svd_calculate_sharpiso_vertex_2_svals(const COORD_TYPE * vert_coords,
 		const SCALAR_TYPE * vert_scalars, const NUM_TYPE num_vert,
 		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
 		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE * isoVertcoords, GRADIENT_COORD_TYPE * ray_direction) {
+		COORD_TYPE * isoVertcoords, GRADIENT_COORD_TYPE * edge_direction) {
 
 	if (num_vert == 0)
 		return;
@@ -592,10 +617,10 @@ void svd_calculate_sharpiso_vertex_2_svals(const COORD_TYPE * vert_coords,
 		//Calculate [I - A_pseudo_inv A ]w
 		dir = (I - inverseA * A) * w.transpose();
 
-		ray_direction[0] = dir[0];
-		ray_direction[1] = dir[1];
-		ray_direction[2] = dir[2];
-		normalize(ray_direction, ray_direction);
+		edge_direction[0] = dir[0];
+		edge_direction[1] = dir[1];
+		edge_direction[2] = dir[2];
+		normalize(edge_direction, edge_direction);
 	}
 }
 
@@ -606,7 +631,7 @@ void svd_calculate_sharpiso_vertex_2_svals_unit_normals
  const SCALAR_TYPE * vert_scalars, const NUM_TYPE num_vert,
  const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
  NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
- COORD_TYPE * isoVertcoords, GRADIENT_COORD_TYPE * ray_direction) 
+ COORD_TYPE * isoVertcoords, GRADIENT_COORD_TYPE * edge_direction) 
 {
 
 	if (num_vert == 0)
@@ -666,10 +691,10 @@ void svd_calculate_sharpiso_vertex_2_svals_unit_normals
 		//Calculate [I - A_pseudo_inv A ]w
 		dir = (I - inverseA * A) * w.transpose();
 
-		ray_direction[0] = dir[0];
-		ray_direction[1] = dir[1];
-		ray_direction[2] = dir[2];
-		normalize(ray_direction, ray_direction);
+		edge_direction[0] = dir[0];
+		edge_direction[1] = dir[1];
+		edge_direction[2] = dir[2];
+		normalize(edge_direction, edge_direction);
 	}
 }
 
@@ -971,7 +996,7 @@ void calculate_w
 
 ///This function calculates the
 //singular values and the isovert predicted by the singular value.
-//if the number of singular values is 2 , it also calculates the direction of the ray.
+//if the number of singular values is 2 , it also calculates the direction of the sharp edge.
 //It does NOT compute the final vertex, which is computed under
 //'svd_compute_sharp_vertex_neighborhood_S'
 ///
@@ -981,7 +1006,7 @@ void svd_calculate_sharpiso_vertex(const COORD_TYPE * vert_coords,
 		const SCALAR_TYPE * vert_scalars, const NUM_TYPE num_vert,
 		const SCALAR_TYPE isovalue, const EIGENVALUE_TYPE err_tolerance,
 		NUM_TYPE & num_singular_vals, EIGENVALUE_TYPE singular_vals[DIM3],
-		COORD_TYPE * isoVertcoords, GRADIENT_COORD_TYPE * ray_direction) {
+		COORD_TYPE * isoVertcoords, GRADIENT_COORD_TYPE * edge_direction) {
 
 	if (num_vert == 0)
 		return;
@@ -1041,10 +1066,10 @@ void svd_calculate_sharpiso_vertex(const COORD_TYPE * vert_coords,
 		//Calculate [I - A_pseudo_inv A ]w
 		dir = (I - inA * A) * w.transpose();
 
-		ray_direction[0] = dir[0];
-		ray_direction[1] = dir[1];
-		ray_direction[2] = dir[2];
-		normalize(ray_direction, ray_direction);
+		edge_direction[0] = dir[0];
+		edge_direction[1] = dir[1];
+		edge_direction[2] = dir[2];
+		normalize(edge_direction, edge_direction);
 	}
 
 }
