@@ -293,11 +293,11 @@ namespace IJK {
   }
 
   /*! 
-   *  Compute signed distance from coord0[] to hyperplane through coord1[].
+   *  Compute signed (L2) distance from coord0[] to hyperplane through coord1[].
    *  @tparam DIST_TYPE Distance type.  DIST_TYPE should be a signed type.
    *  @param dimension Coordinate and vector dimensions.
    *  @param coord0[] Compute distance from coord0[].
-   *  @param coord1[] Hypeplane passes through coord1[].
+   *  @param coord1[] Hyperplane passes through coord1[].
    *  @param orth_dir[] Direction orthogonal to hyperplane.
    *  @param[out] distance Signed distance to hyperplane.
    *    - distance = inner product of (coord0[]-coord1[]) and orth_dir[].
@@ -316,10 +316,11 @@ namespace IJK {
   }
 
   /*!
-   *  Compute (unsigned) distance from coord0[] to hyperplane through coord1[].
+   *  Compute (unsigned L2) distance from coord0[] 
+   *     to hyperplane through coord1[].
    *  @param dimension Coordinate dimension (= number of coordinates.)
    *  @param coord0[] Compute distance from coord0[].
-   *  @param coord1[] Hypeplane passes through coord1[].
+   *  @param coord1[] Hyperplane passes through coord1[].
    *  @param orth_dir[] Direction orthogonal to hyperplane.
    *  @param[out] distance Distance to hyperplane.
    *     - distance = the absolute value of inner product of 
@@ -344,7 +345,7 @@ namespace IJK {
   }
 
   /*!
-   *  Compute distance squared from coord0[] to line through coord1[].
+   *  Compute (L2) distance squared from coord0[] to line through coord1[].
    *  @param dimension Coordinate dimension (= number of coordinates.)
    *  @param coord0[] Compute distance from coord0[].
    *  @param coord1[] Line passes through coord1[].
@@ -377,7 +378,7 @@ namespace IJK {
   }
 
   /*!
-   *  Compute (unsigned) distance from coord0[] to line through coord1[].
+   *  Compute (unsigned, L2) distance from coord0[] to line through coord1[].
    *  @param dimension Coordinate dimension (= number of coordinates.)
    *  @param coord0[] Compute distance from coord0[].
    *  @param coord1[] Line passes through coord1[].
@@ -1151,6 +1152,101 @@ namespace IJK {
     const int DIM3 = 3;
     return(is_coord_less_than_or_equal(DIM3, coord0, coord1)); 
   }
+
+  // **************************************************
+  // 3D distances
+  // **************************************************
+
+  /*! 
+   *  Compute signed (L2) distance from coord0[] to hyperplane through coord1[].
+   *  @tparam DIST_TYPE Distance type.  DIST_TYPE should be a signed type.
+   *  @param coord0[] Compute distance from coord0[].
+   *  @param coord1[] Plane passes through coord1[].
+   *  @param orth_dir[] Direction orthogonal to hyperplane.
+   *  @param[out] distance Signed distance to hyperplane.
+   *    - distance = inner product of (coord0[]-coord1[]) and orth_dir[].
+   *  @pre orth_dir[] is a unit vector.
+   */
+  template <typename CTYPE0, typename CTYPE1, 
+            typename VTYPE, typename DIST_TYPE>
+  void compute_signed_distance_to_plane_3D
+  (const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const VTYPE orth_dir[], DIST_TYPE & distance)
+  {
+    const int DIM3 = 3;
+    compute_signed_distance_to_hyperplane
+      (DIM3, coord0, coord1, orth_dir, distance);
+  }
+
+  /*!
+   *  Compute (unsigned, L2) distance from coord0[] to plane through coord1[].
+   *  @param coord0[] Compute distance from coord0[].
+   *  @param coord1[] Plane passes through coord1[].
+   *  @param orth_dir[] Direction orthogonal to hyperplane.
+   *  @param[out] distance Distance to hyperplane.
+   *     - distance = the absolute value of inner product of 
+   *                 (coord0[]-coord1[]) and orth_dir[].
+   *  @pre orth_dir[] is a unit vector.
+   */
+  template <typename CTYPE0, typename CTYPE1, 
+            typename VTYPE, typename DIST_TYPE>
+  void compute_distance_to_plane_3D
+  (const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const VTYPE orth_dir[], DIST_TYPE & distance)
+  {
+    const int DIM3 = 3;
+    compute_distance_to_hyperplane
+      (DIM3, coord0, coord1, orth_dir, distance);
+  }
+
+  /*!
+   *  Compute (L2) distance squared from coord0[] to line through coord1[].
+   *  @param coord0[] Compute distance from coord0[].
+   *  @param coord1[] Line passes through coord1[].
+   *  @param dir[] Line direction.
+   *  @param[out] distance_squared
+   *    Distance squared from coord0[] to line through coord1[].
+   *    - distance_squared = Magnitude squared of w where w is the component
+   *       of (coord0[]-coord1[]) orthogonal to dir[].
+   *    - w = (coord0[]-coord1[]) - x*dir[] where x is the inner product
+   *       of (coord0[]-coord1[]) and dir[].
+   *  @pre dir[] is a unit vector.
+   */
+  template <typename CTYPE0, typename CTYPE1, 
+            typename VTYPE, typename DIST_TYPE>
+  void compute_distance_squared_to_line_3D
+  (const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const VTYPE dir[], DIST_TYPE & distance_squared)
+  {
+    const int DIM3 = 3;
+    compute_distance_squared_to_line
+      (DIM3, coord0, coord1, dir, distance_squared);
+  }
+
+  /*!
+   *  Compute (unsigned, L2) distance from coord0[] to line through coord1[].
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param coord0[] Compute distance from coord0[].
+   *  @param coord1[] Line passes through coord1[].
+   *  @param dir[] Line direction.
+   *  @param[out] distance Distance from coord0[] to line through coord1[].
+   *    - distance = Magnitude of w where w is the component
+   *       of (coord0[]-coord1[]) orthogonal to dir[].
+   *    - w = (coord0[]-coord1[]) - x*dir[] where x is the inner product
+   *       of (coord0[]-coord1[]) and dir[].
+   *  @pre dir[] is a unit vector.
+   */
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename VTYPE, typename DIST_TYPE>
+  void compute_distance_to_line_3D
+  (const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const VTYPE dir[], DIST_TYPE & distance)
+  {
+    const int DIM3 = 3;
+    compute_distance_to_line(DIM3, coord0, coord1, dir, distance);
+  }
+
+
 
   // **************************************************
   // 3D cross product
