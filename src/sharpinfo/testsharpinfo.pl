@@ -12,16 +12,16 @@ my $temp1 = "temp1.out";
 
 parse_command_line(@ARGV);
 
-compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -isovalue 3.2");
-compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradCS -isovalue 3.2");
-compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradN -isovalue 3.2");
-compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradNS -isovalue 3.2");
-compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradES -isovalue 3.2");
-compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradEC -isovalue 3.2");
-compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradIE -isovalue 3.2");
-compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradNIE -isovalue 3.2");
-compare_executables("data/corner3D.B.0.5x.nrrd", "data/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradIEDir -isovalue 3.2");
-compare_executables("data/corner3D.0.5x.nrrd", "data/corner3D.0.5x.grad.nrrd", "-listg -cube 86 -gradIEDir -isovalue 3.2");
+compare_executables("dataB/corner3D.B.0.5x.nrrd", "dataB/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -isovalue 3.2 -lindstrom_fast");
+compare_executables("dataB/corner3D.B.0.5x.nrrd", "dataB/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradCS -isovalue 3.2 -lindstrom_fast");
+compare_executables("dataB/corner3D.B.0.5x.nrrd", "dataB/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradN -isovalue 3.2 -lindstrom_fast");
+compare_executables("dataB/corner3D.B.0.5x.nrrd", "dataB/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradNS -isovalue 3.2 -lindstrom_fast");
+compare_executables("dataB/corner3D.B.0.5x.nrrd", "dataB/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradES -isovalue 3.2 -lindstrom_fast");
+compare_executables("dataB/corner3D.B.0.5x.nrrd", "dataB/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradEC -isovalue 3.2 -lindstrom_fast");
+compare_executables("dataB/corner3D.B.0.5x.nrrd", "dataB/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradIE -isovalue 3.2 -lindstrom_fast");
+compare_executables("dataB/corner3D.B.0.5x.nrrd", "dataB/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradNIE -isovalue 3.2 -lindstrom_fast");
+compare_executables("dataB/corner3D.B.0.5x.nrrd", "dataB/corner3D.B.0.5x.grad.nrrd", "-listg -cube 86 -gradIEDir -isovalue 3.2 -lindstrom_fast");
+compare_executables("dataB/corner3D.0.5x.nrrd", "dataB/corner3D.0.5x.grad.nrrd", "-listg -cube 86 -gradIEDir -isovalue 3.2 -lindstrom_fast");
 
 
 # *********************************************

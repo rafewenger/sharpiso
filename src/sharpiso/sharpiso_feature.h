@@ -185,40 +185,6 @@ namespace SHARPISO {
    const SHARP_ISOVERT_PARAM & sharpiso_param,
    NUM_TYPE & sharp_vertex_location);
 
-  // *****************************************************************
-  // COMPUTE SHARP VERTEX/EDGE USING SVD & LINE-CUBE INTERSECTIONS
-  // *****************************************************************
-
-  /// Compute sharp isosurface vertex using singular valued decomposition.
-  /// Use line-cube intersection to compute sharp isosurface vertex
-  ///    when number of eigenvalues is 2.
-  /// Use centroid to compute isosurface vertex when number of eigenvalues is 1.
-  void svd_compute_sharp_vertex_for_cube_lc_intersection
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const VERTEX_INDEX cube_index,
-   const SCALAR_TYPE isovalue,
-   const SHARP_ISOVERT_PARAM & sharpiso_param,
-   const OFFSET_VOXEL & voxel,
-   COORD_TYPE sharp_coord[DIM3],
-   EIGENVALUE_TYPE eigenvalues[DIM3],
-   NUM_TYPE & num_large_eigenvalues,
-   SVD_INFO & svd_info);
-
-  /// Compute sharp isosurface vertex on the line
-  /// @param flag_conflict True if sharp_coord conflicts with other cube.
-  void compute_vertex_on_line
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const GRADIENT_GRID_BASE & gradient_grid,
-   const VERTEX_INDEX cube_index,
-   const COORD_TYPE scaled_cube_coord[DIM3],
-   const SCALAR_TYPE isovalue,
-   const SHARP_ISOVERT_PARAM & sharpiso_param,
-   const COORD_TYPE line_origin[DIM3],
-   const COORD_TYPE line_direction[DIM3],
-   COORD_TYPE sharp_coord[DIM3],
-   SVD_INFO & svd_info);
-
 
   // **************************************************
   // SUBGRID ROUTINES TO COMPUTE SHARP VERTEX/EDGE

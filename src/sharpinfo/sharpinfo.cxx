@@ -9,7 +9,7 @@
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public License
  (LGPL) as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.
+ version 2.1 of the License, or any later version.
 
  This library is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -85,9 +85,12 @@ void compute_iso_vertex_using_svd
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
- COORD_TYPE coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
+ COORD_TYPE coord[DIM3], 
+ COORD_TYPE edge_direction[DIM3],
+ EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_nonzero_eigenvalues,
  SVD_INFO & svd_info);
+
 void compute_iso_vertex_using_subgrid
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -138,6 +141,7 @@ void output_svd_results
  const SHARPISO_GRID & grid,
  const GRID_COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE sharp_coord[DIM3],
+ const COORD_TYPE edge_direction[DIM3],
  const EIGENVALUE_TYPE eigenvalues[DIM3], const NUM_TYPE num_large_eigenvalues,
  const EIGENVALUE_TYPE eigenvalue_tolerance, SVD_INFO & svd_info);
 void output_subgrid_results
@@ -334,7 +338,8 @@ int main(int argc, char **argv)
       if (flag_isovalue_set) {
 
         COORD_TYPE sharp_coord[DIM3];
-        EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
+        COORD_TYPE edge_direction[DIM3];
+        EIGENVALUE_TYPE eigenvalues[DIM3];
         NUM_TYPE num_large_eigenvalues(0);
 
         output_cube_coordinates(cout, scalar_grid, cube_index);
@@ -376,13 +381,13 @@ int main(int argc, char **argv)
 
             compute_iso_vertex_using_svd
               (scalar_grid, gradient_grid, cube_index, isovalue,
-               sharp_coord, eigenvalues,
+               sharp_coord, edge_direction, eigenvalues,
                num_large_eigenvalues, svd_info);
 
             scalar_grid.ComputeCoord(cube_index, cube_coord);
 
             output_svd_results
-              (cout, scalar_grid, cube_coord, sharp_coord, 
+              (cout, scalar_grid, cube_coord, sharp_coord, edge_direction,
                eigenvalues, num_large_eigenvalues,
                max_small_eigenvalue, svd_info);
             cout << endl;
@@ -471,7 +476,9 @@ void compute_iso_vertex_using_svd
  const GRADIENT_GRID_BASE & gradient_grid,
  const VERTEX_INDEX cube_index,
  const SCALAR_TYPE isovalue,
- COORD_TYPE sharp_coord[DIM3], EIGENVALUE_TYPE eigenvalues[DIM3],
+ COORD_TYPE sharp_coord[DIM3], 
+ COORD_TYPE edge_direction[DIM3],
+ EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info)
 {
@@ -481,7 +488,6 @@ void compute_iso_vertex_using_svd
     sharpiso_param.max_small_magnitude;
   GRADIENT_COORD_TYPE max_small_eigenvalue =
     sharpiso_param.max_small_eigenvalue;
-
 
   if (flag_edge_intersect_interpolate) {
     svd_compute_sharp_vertex_edgeI_interpolate_gradients
@@ -500,26 +506,19 @@ void compute_iso_vertex_using_svd
       (scalar_grid.SpacingPtrConst(), 
        sharpiso_param.grad_selection_cube_offset);
 
-    if (sharpiso_param.use_lindstrom) {
-
-      if (pointX.size() > 0) {
-        svd_compute_sharp_vertex_for_cube_lindstrom
-          (scalar_grid, gradient_grid, cube_index, isovalue,
-           sharpiso_param, offset_voxel, &(pointX[0]),
-           sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
-      }
-      else {
-        svd_compute_sharp_vertex_for_cube_lindstrom
-          (scalar_grid, gradient_grid, cube_index, isovalue,
-           sharpiso_param, offset_voxel,
-           sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
-      }
+    if (pointX.size() > 0) {
+      svd_compute_sharp_vertex_for_cube_lindstrom
+        (scalar_grid, gradient_grid, cube_index, isovalue,
+         sharpiso_param, offset_voxel, &(pointX[0]),
+         sharp_coord, edge_direction, eigenvalues, num_large_eigenvalues, 
+         svd_info);
     }
     else {
-      svd_compute_sharp_vertex_for_cube_lc_intersection
+      svd_compute_sharp_vertex_for_cube_lindstrom
         (scalar_grid, gradient_grid, cube_index, isovalue,
          sharpiso_param, offset_voxel,
-         sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
+         sharp_coord, edge_direction, eigenvalues, num_large_eigenvalues, 
+         svd_info);
     }
   }
 
@@ -620,6 +619,7 @@ void output_svd_results
  const SHARPISO_GRID & grid,
  const GRID_COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE sharp_coord[DIM3],
+ const COORD_TYPE edge_direction[DIM3],
  const EIGENVALUE_TYPE eigenvalues[DIM3],
  const NUM_TYPE num_large_eigenvalues,
  const EIGENVALUE_TYPE eigenvalue_tolerance,
@@ -664,32 +664,29 @@ void output_svd_results
          << "): "
          << num_large_eigenvalues << endl;
 
-  if(num_large_eigenvalues == 2 && !flag_use_lindstrom) {
+  if(num_large_eigenvalues == 2 && flag_use_lindstrom) {
     output << "Ray: ";
-    print_coord3D(output, svd_info.ray_initial_point);
+    print_coord3D(output, sharp_coord);
     output << " + t";
-    print_coord3D(output, svd_info.ray_direction);
+    print_coord3D(output, edge_direction);
     output << endl;
 
     compute_closest_point_on_line
-      (svd_info.central_point, 
-       svd_info.ray_initial_point, svd_info.ray_direction,
+      (svd_info.central_point, sharp_coord, edge_direction,
        sharpiso_param.zero_tolerance, closest_point);
     output <<"  Closest (L2) point on ray to central point: ";
     print_coord3D(output, closest_point);
     output << endl;
 
     compute_closest_point_on_line_linf
-      (svd_info.central_point, 
-       svd_info.ray_initial_point, svd_info.ray_direction,
+      (svd_info.central_point, sharp_coord, edge_direction,
        sharpiso_param.zero_tolerance, closest_point);
     output <<"  Closest (Linf) point on ray to central point: ";
     print_coord3D(output, closest_point);
     output << endl;
 
     compute_closest_point_on_line
-      (svd_info.central_point, 
-       svd_info.ray_initial_point, svd_info.ray_direction,
+      (svd_info.central_point, sharp_coord, edge_direction,
        sharpiso_param.zero_tolerance, closest_point);
   }
 
@@ -1028,6 +1025,7 @@ void output_cube_eigenvalues
  const SHARP_ISOVERT_PARAM & sharpiso_param)
 {
   COORD_TYPE sharp_coord[DIM3];
+  COORD_TYPE edge_direction[DIM3];
   EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
   NUM_TYPE num_large_eigenvalues(0);
   SVD_INFO svd_info;
@@ -1042,18 +1040,11 @@ void output_cube_eigenvalues
 
   IJK_FOR_EACH_GRID_CUBE(icube, scalar_grid, VERTEX_INDEX) {
 
-    if (sharpiso_param.use_lindstrom) {
-      svd_compute_sharp_vertex_for_cube_lindstrom
-        (scalar_grid, gradient_grid, icube, isovalue,
-         sharpiso_param, offset_voxel,
-         sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
-    }
-    else {
-      svd_compute_sharp_vertex_for_cube_lc_intersection
-        (scalar_grid, gradient_grid, icube, isovalue,
-         sharpiso_param, offset_voxel,
-         sharp_coord, eigenvalues, num_large_eigenvalues, svd_info);
-    }
+    svd_compute_sharp_vertex_for_cube_lindstrom
+      (scalar_grid, gradient_grid, icube, isovalue,
+       sharpiso_param, offset_voxel,
+       sharp_coord, edge_direction, eigenvalues, num_large_eigenvalues,
+       svd_info);
 
     output_cube_coordinates(output, scalar_grid, icube);
 
