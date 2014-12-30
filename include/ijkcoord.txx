@@ -1,6 +1,6 @@
 /// \file ijkcoord.txx
 /// ijk templates for coordinate arithmetic
-/// Version 0.1.0
+/// Version 0.2.0
 
 /*
   IJK: Isosurface Jeneration Kode
@@ -35,10 +35,14 @@ namespace IJK {
   /* \ingroup coordinates */
   /* \{ */
 
+  // **************************************************
+  // Basic coordinate operations
+  // **************************************************
+
   /// Set all vertex coordinates to \a c.
-  /// @param dimension = Coordinate dimension (= number of coordinates.)
-  /// @param c = Scalar constant.  Set vertex coordinates to \a c.
-  /// @param[out] coord[] = Output coordinates.
+  /// @param dimension Coordinate dimension (= number of coordinates.)
+  /// @param c Scalar constant.  Set vertex coordinates to \a c.
+  /// @param[out] coord[] Output coordinates.
   template <typename DTYPE, typename STYPE, typename CTYPE>
   void set_coord(const DTYPE dimension, const STYPE c, CTYPE coord[])
   {
@@ -47,9 +51,9 @@ namespace IJK {
   }
 
   /// Copy \a coord0[] to \a coord1[].
-  /// @param dimension = Coordinate dimension (= number of coordinates.)
-  /// @param coord0 = Input coordinates.
-  /// @param[out] coord1 = Output coordinates.
+  /// @param dimension Coordinate dimension (= number of coordinates.)
+  /// @param coord0[] Input coordinates.
+  /// @param[out] coord1[] Output coordinates.
   template <typename DTYPE, typename CTYPE0, typename CTYPE1>
   void copy_coord(const DTYPE dimension, 
                   const CTYPE0 coord0[], CTYPE1 coord1[])
@@ -58,9 +62,11 @@ namespace IJK {
       { coord1[d] = coord0[d]; };
   }
 
-  /// Copy \a coord0[] to \a coord1[].
+  /// Copy \a coord0[] to \a coord1[]. \n
   /// Faster algorithm when \a coord0[] and \a coord1[] are both type float.
-  /// @param[out] coord1 = Output coordinates.
+  /// @param dimension Coordinate dimension (= number of coordinates.)
+  /// @param coord0[] Input coordinates.
+  /// @param[out] coord1[] Output coordinates.
   template <typename DTYPE>
   void copy_coord(const DTYPE dimension, 
                   const float * coord0[], const float * coord1[])
@@ -68,9 +74,11 @@ namespace IJK {
     std::copy(coord0, coord0+dimension, coord1);
   }
 
-  /// Copy \a coord0[] to \a coord1[].
+  /// Copy \a coord0[] to \a coord1[]. \n
   /// Faster algorithm when \a coord0[] and \a coord1[] are both type double.
-  /// @param[out] coord1 = Output coordinates.
+  /// @param dimension Coordinate dimension (= number of coordinates.)
+  /// @param coord0[] Input coordinates.
+  /// @param[out] coord1[] Output coordinates.
   template <typename DTYPE>
   void copy_coord(const DTYPE dimension, 
                   const double * coord0[], const double * coord1[])
@@ -79,10 +87,11 @@ namespace IJK {
   }
 
   /// Add \a coord0[] to \a coord1[].
-  /// @param dimension = Coordinate dimension (= number of coordinates.)
-  /// @param coord0 = Input coordinates.
-  /// @param coord1 = Input coordinates.
-  /// @param[out] coord2 = Output coordinate equal to (\a coord0[] + \a coord1[]).
+  /// @param dimension Coordinate dimension (= number of coordinates.)
+  /// @param coord0[] Input coordinates.
+  /// @param coord1[] Input coordinates.
+  /// @param[out] coord2[] Output coordinate.
+  ///   - coord2[] = (\a coord0[] + \a coord1[]).
   template <typename DTYPE, typename CTYPE0, typename CTYPE1, typename CTYPE2>
   void add_coord(const DTYPE dimension, const CTYPE0 coord0[],
                  const CTYPE1 coord1[], CTYPE2 coord2[])
@@ -134,12 +143,14 @@ namespace IJK {
       { coord1[d] = coord0[d]/s; };
   }
 
-  /// Scale each \a coord0[d] by \a scale[d].
-  /// @param dimension = Coordinate dimension (= number of coordinates.)
-  /// @param coord0 = Input coordinates.
-  /// @param scale = Scale factors.
-  /// @param[out] coord1 = Output coordinate equal 
-  ///    to (\a scale[d] * \a coord0[]).
+  /*!
+   * Scale each \a coord0[d] by \a scale[d].
+   * @param dimension Coordinate dimension (= number of coordinates.)
+   * @param coord0[] Input coordinates.
+   * @param scale[] Scale factors.
+   * @param[out] coord1[] Output coordinates.
+   *   - coord1[d] =  (\a scale[d] * \a coord0[d]).
+   */
   template <typename DTYPE, typename STYPE, typename CTYPE0, typename CTYPE1>
   inline void scale_coord
   (const DTYPE dimension, const STYPE scale[], const CTYPE0 coord0[],
@@ -149,12 +160,15 @@ namespace IJK {
       { coord1[d] = scale[d]*coord0[d]; };
   }
 
-  /// Add \a s * \a coord0[] to \a coord1[]).
-  /// @param dimension = Coordinate dimension (= number of coordinates.)
-  /// @param coord0 = Input coordinates.
-  /// @param coord1 = Input coordinates.
-  /// @param[out] coord2 = Output coordinate.
-  ///                      Equals (\a s * \a coord0[] + \a coord1[]).
+  /*!
+   *  Add \a s * \a coord0[] to \a coord1[]).
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param s Scaling factor.
+   *  @param coord0[] Input coordinates.
+   *  @param coord1[] Input coordinates.
+   *  @param[out] coord2 Output coordinate.
+   *    - coord2[] = \a s* \a coord[0] + \a coord1[].
+   */
   template <typename DTYPE, typename STYPE, 
             typename CTYPE0, typename CTYPE1, typename CTYPE2>
   void add_scaled_coord
@@ -191,6 +205,7 @@ namespace IJK {
   }
 
   /// Compute sum of squares of coordinates.
+  /// Equivalent to computing the square of the magnitude.
   /// @param dimension = Coordinate dimension (= number of coordinates.)
   /// @param coord0 = Input coordinates.
   /// @param[out] sum = sum of squares
@@ -204,6 +219,8 @@ namespace IJK {
   }
 
   /// Compute magnitude of coordinate vector.
+  /// Equivalent to computing the square root of the sum 
+  ///   of squares of the coordinates.
   /// Fast implementation, but returns 0 when the value of (magnitude^2) 
   /// is less than the machine epsilon of CTYPE0 or CTYPE1.
   /// @param dimension = Coordinate dimension (= number of coordinates.)
@@ -275,15 +292,124 @@ namespace IJK {
     scaled_distance = std::sqrt(scaled_distance);
   }
 
+  /*! 
+   *  Compute signed distance from coord0[] to hyperplane through coord1[].
+   *  @tparam DIST_TYPE Distance type.  DIST_TYPE should be a signed type.
+   *  @param dimension Coordinate and vector dimensions.
+   *  @param coord0[] Compute distance from coord0[].
+   *  @param coord1[] Hypeplane passes through coord1[].
+   *  @param orth_dir[] Direction orthogonal to hyperplane.
+   *  @param[out] distance Signed distance to hyperplane.
+   *    - distance = inner product of (coord0[]-coord1[]) and orth_dir[].
+   *  @pre orth_dir[] is a unit vector.
+   */
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename VTYPE, typename DIST_TYPE>
+  void compute_signed_distance_to_hyperplane
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const VTYPE orth_dir[], DIST_TYPE & distance)
+  {
+    // Compute inner product of (coord0[]-coord1[]) and orth_dir[].
+    distance = 0;
+    for (DTYPE d = 0; d < dimension; d++) 
+      { distance = distance + (coord0[d]-coord1[d])*orth_dir[d]; }
+  }
+
+  /*!
+   *  Compute (unsigned) distance from coord0[] to hyperplane through coord1[].
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param coord0[] Compute distance from coord0[].
+   *  @param coord1[] Hypeplane passes through coord1[].
+   *  @param orth_dir[] Direction orthogonal to hyperplane.
+   *  @param[out] distance Distance to hyperplane.
+   *     - distance = the absolute value of inner product of 
+   *                 (coord0[]-coord1[]) and orth_dir[].
+   *  @pre orth_dir[] is a unit vector.
+   */
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename VTYPE, typename DIST_TYPE>
+  void compute_distance_to_hyperplane
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const VTYPE orth_dir[], DIST_TYPE & distance)
+  {
+    VTYPE signed_distance;
+
+    compute_signed_distance_to_hyperplane
+      (dimension, coord0, coord1, orth_dir, signed_distance);
+
+    if (signed_distance >= 0) 
+      { distance = signed_distance; }
+    else
+      { distance = -signed_distance; }
+  }
+
+  /*!
+   *  Compute distance squared from coord0[] to line through coord1[].
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param coord0[] Compute distance from coord0[].
+   *  @param coord1[] Line passes through coord1[].
+   *  @param dir[] Line direction.
+   *  @param[out] distance_squared
+   *    Distance squared from coord0[] to line through coord1[].
+   *    - distance_squared = Magnitude squared of w where w is the component
+   *       of (coord0[]-coord1[]) orthogonal to dir[].
+   *    - w = (coord0[]-coord1[]) - x*dir[] where x is the inner product
+   *       of (coord0[]-coord1[]) and dir[].
+   *  @pre dir[] is a unit vector.
+   */
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename VTYPE, typename DIST_TYPE>
+  void compute_distance_squared_to_line
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const VTYPE dir[], DIST_TYPE & distance_squared)
+  {
+    // Compute inner product of (coord0[]-coord1[]) and dir[].
+    DIST_TYPE x = 0;
+    for (DTYPE d = 0; d < dimension; d++) 
+      { x = x + (coord0[d]-coord1[d])*dir[d]; }
+
+    // Compute magnitude squared of ((coord0[]-coord1[])-x*dir[]).
+    distance_squared = 0;
+    for (DTYPE d = 0; d < dimension; d++) {
+      DIST_TYPE y = (coord0[d]-coord1[d]) - x*dir[d];
+      distance_squared = distance_squared + (y*y);
+    }
+  }
+
+  /*!
+   *  Compute (unsigned) distance from coord0[] to line through coord1[].
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param coord0[] Compute distance from coord0[].
+   *  @param coord1[] Line passes through coord1[].
+   *  @param dir[] Line direction.
+   *  @param[out] distance Distance from coord0[] to line through coord1[].
+   *    - distance = Magnitude of w where w is the component
+   *       of (coord0[]-coord1[]) orthogonal to dir[].
+   *    - w = (coord0[]-coord1[]) - x*dir[] where x is the inner product
+   *       of (coord0[]-coord1[]) and dir[].
+   *  @pre dir[] is a unit vector.
+   */
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename VTYPE, typename DIST_TYPE>
+  void compute_distance_to_line
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const VTYPE dir[], DIST_TYPE & distance)
+  {
+    compute_distance_squared_to_line
+      (dimension, coord0, coord1, dir, distance);
+    distance = std::sqrt(distance);
+  }
+
+
   // **************************************************
   // Vector operations
   // **************************************************
 
   /// Compute inner product of \a coord0[] and \a coord1[].
-  /// @param dimension = Coordinate dimension (= number of coordinates.)
-  /// @param coord0 = Input coordinates.
-  /// @param coord1 = Input coordinates.
-  /// @param[out] product = Inner product.
+  /// @param dimension Coordinate dimension (= number of coordinates.)
+  /// @param coord0[] Input coordinates.
+  /// @param coord1[] Input coordinates.
+  /// @param[out] product Inner product.
   template <typename DTYPE, typename CTYPE0, typename CTYPE1, typename STYPE>
   void compute_inner_product(const DTYPE dimension, const CTYPE0 coord0[],
                              const CTYPE1 coord1[], STYPE & product)
@@ -293,9 +419,15 @@ namespace IJK {
       { product = product + coord0[d]*coord1[d]; }
   }
 
-
-  /// Project vector v onto direction dir.
-  /// @pre dir is a unit vector.
+  /*!
+   *  Project vector \a v onto direction \a dir[].
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param v[] Input vector coordinates.
+   *  @param dir[] Direction.
+   *  @param[out] v_proj[] Projection of \a v onto \a dir[].
+   *     - v_proj[] = inner_product(v[],dir[]) * dir[].
+   *  @pre dir[] is a unit vector.
+   */
   template <typename DTYPE, typename VTYPE0, typename VTYPE1,
             typename VTYPE2>
   void project_vector(const DTYPE dimension, const VTYPE0 v[], 
@@ -307,8 +439,16 @@ namespace IJK {
       { v_proj[d] = dir[d]*inner_product; }
   }
 
-  /// Compute component of vector orthogonal to given direction
-  /// @pre dir is a unit vector.
+  /*!
+   *  Compute component of vector orthogonal to given direction
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param v[] Input vector coordinates.
+   *  @param dir[] Direction.
+   *  @param[out] v_orth[] Component of \a v orthogonal to \a dir[].
+   *     - v_orth[] = (\a v - v_proj[]) where v_proj[] is the projection
+   *                  of \a v onto \a dir[].
+   * @pre dir[] is a unit vector.
+   */
   template <typename DTYPE, typename VTYPE0, typename VTYPE1,
             typename VTYPE2>
   void compute_orthogonal_vector(const DTYPE dimension, const VTYPE0 v[], 
@@ -416,48 +556,19 @@ namespace IJK {
     return(flag);
   }
 
-  /// Compute magnitude of coordinate vector.
-  /// If magnitude is less than or equal to max_small_magnitude,
-  ///   set coord1[] to the zero vector.
-  /// @param coord0 = Input coordinates.
-  /// @param[out] coord1[] Normalized coordinates or the zero vector.
-  /// @pre max_small_magnitude >= 0.
-  template <typename DTYPE, typename CTYPE0, typename MTYPE0, 
-            typename CTYPE1, typename MTYPE1>
-  void normalize_vector
-  (const DTYPE dimension, const CTYPE0 coord0[], 
-   const MTYPE0 max_small_magnitude, CTYPE1 coord1[],
-   MTYPE1 & magnitude)
-  { 
-    compute_magnitude(dimension, coord0, magnitude); 
-    if (magnitude > max_small_magnitude) {
-      multiply_coord(dimension, 1.0/magnitude, coord0, coord1);
-    }
-    else {
-      set_coord(dimension, 0, coord1);
-    }
-  }
-
-  /// Compute magnitude of coordinate vector.
-  /// Version which does not return magnitude.
-  template <typename DTYPE, typename CTYPE0, typename MTYPE, 
-            typename CTYPE1>
-  void normalize_vector
-  (const DTYPE dimension, const CTYPE0 coord0[], 
-   const MTYPE max_small_magnitude, CTYPE1 coord1[])
-  { 
-    double magnitude;
-    normalize_vector
-      (dimension, coord0, max_small_magnitude, coord1, magnitude);
-  }
-
-  /// Compute magnitude of coordinate vector.
-  /// If magnitude is less than or equal to max_small_magnitude,
-  ///   set coord1[] to the zero vector.
-  /// @param coord0 = Input coordinates.
-  /// @param[out] coord1[] Normalized coordinates or the zero vector.
-  /// @pre max_small_magnitude >= 0.
-  /// @param[out] flag_zero True if coord1[] is set to zero vector.
+  /*!
+   *  Normalize vector.\n
+   *  If magnitude of \a coord0[] is less than or equal 
+   *     to \a max_small_magnitude, then \a coord1[] is set to the zero vector.
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param coord0[] Input vector coordinates.
+   *  @param max_small_magnitude If magnitude is less than or equal 
+   *     to \a max_small_magnitude, then \a coord1[] is set to the zero vector.
+   *  @param[out] coord1[] Normalized coordinates or the zero vector.
+   *  @param[out] magnitude Magnitude of \a coord0[].
+   *  @param[out] flag_zero True if \a coord1[] is set to the zero vector.
+   *  @pre max_small_magnitude >= 0.
+   */
   template <typename DTYPE, typename CTYPE0, typename MTYPE0, 
             typename CTYPE1, typename MTYPE1>
   void normalize_vector
@@ -476,13 +587,74 @@ namespace IJK {
     }
   }
 
-  /// Compute magnitude of coordinate vector.
-  /// Robust, more numerically stable, but more expensive, computation.
-  /// If magnitude is less than or equal to max_small_magnitude,
-  ///   set coord1[] to the zero vector.
-  /// @param coord0 = Input coordinates.
-  /// @param[out] coord1[] Normalized coordinates or the zero vector.
-  /// @pre max_small_magnitude >= 0.
+
+  /*!
+   *  Normalize vector.\n
+   *  If magnitude of \a coord0[] is less than or equal 
+   *     to \a max_small_magnitude, then \a coord1[] is set 
+   *     to the zero vector. \n
+   *  Version which does not return \a flag_zero.
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param coord0[] Input vector coordinates.
+   *  @param max_small_magnitude If magnitude is less than or equal 
+   *     to \a max_small_magnitude, then \a coord1[] is set to the zero vector.
+   *  @param[out] coord1[] Normalized coordinates or the zero vector.
+   *  @param[out] magnitude Magnitude of \a coord0[].
+   *  @pre max_small_magnitude >= 0.
+   */
+  template <typename DTYPE, typename CTYPE0, typename MTYPE0, 
+            typename CTYPE1, typename MTYPE1>
+  void normalize_vector
+  (const DTYPE dimension, const CTYPE0 coord0[], 
+   const MTYPE0 max_small_magnitude, CTYPE1 coord1[],
+   MTYPE1 & magnitude)
+  { 
+    compute_magnitude(dimension, coord0, magnitude); 
+    if (magnitude > max_small_magnitude) {
+      multiply_coord(dimension, 1.0/magnitude, coord0, coord1);
+    }
+    else {
+      set_coord(dimension, 0, coord1);
+    }
+  }
+
+  /*!
+   *  Normalize vector.\n
+   *  If magnitude of \a coord0[] is less than or equal 
+   *     to \a max_small_magnitude, then \a coord1[] is set 
+   *     to the zero vector. \n
+   *  Version which does not return \a magnitude or \a flag_zero.
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param coord0[] Input vector coordinates.
+   *  @param max_small_magnitude If magnitude is less than or equal 
+   *     to \a max_small_magnitude, then \a coord1[] is set to the zero vector.
+   *  @param[out] coord1[] Normalized coordinates or the zero vector.
+   *  @pre max_small_magnitude >= 0.
+   */
+  template <typename DTYPE, typename CTYPE0, typename MTYPE, 
+            typename CTYPE1>
+  void normalize_vector
+  (const DTYPE dimension, const CTYPE0 coord0[], 
+   const MTYPE max_small_magnitude, CTYPE1 coord1[])
+  { 
+    double magnitude;
+    normalize_vector
+      (dimension, coord0, max_small_magnitude, coord1, magnitude);
+  }
+
+  /*!
+   *  Compute magnitude of coordinate vector.\n
+   *  Robust, more numerically stable, but more expensive, computation. \n
+   *  If magnitude of \a coord0[] is less than or equal 
+   *     to \a max_small_magnitude, then \a coord1[] is set to the zero vector.
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param coord0[] Input vector coordinates.
+   *  @param max_small_magnitude If magnitude is less than or equal 
+   *    to \a max_small_magnitude, set coord1[] to the zero vector.
+   *  @param[out] coord1[] Normalized coordinates or the zero vector.
+   *  @param[out] magnitude Magnitude of \a coord0[].
+   *  @pre max_small_magnitude >= 0.
+   */
   template <typename DTYPE, typename CTYPE0, typename MTYPE0, 
             typename CTYPE1, typename MTYPE1>
   void normalize_vector_robust
@@ -521,13 +693,18 @@ namespace IJK {
     }
   }
 
-  /// Compute cosine of the angle between two vectors.
-  /// If either vector has (near) zero magnitude, return zero
-  ///   and set flag_zero to true.
-  /// @param[out] cos_angle Cosine of angle between coord0[] and coord1[].
-  /// @param[out] flag_zero True, if coord0[] or coord1[]
-  ///   have zero magnitude. False, otherwise.
-  ///   Note: Computed magnitude may be zero even if vectors are not zero.
+  /*!
+   *  Compute cosine of the angle between two vectors. \n
+   *    If either vector has (near) zero magnitude, return zero
+   *      and set flag_zero to true.
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param coord0[] Input coordinates.
+   *  @param coord1[] Input coordinates.
+   *  @param[out] cos_angle Cosine of angle between coord0[] and coord1[].
+   *  @param[out] flag_zero True, if coord0[] or coord1[]
+   *    have zero magnitude. False, otherwise.
+   *    - Note: Computed magnitude may be zero even if vectors are not zero.
+   */
   template <typename DTYPE, typename CTYPE0, typename CTYPE1,
             typename COS_TYPE>
   void compute_cos_angle
@@ -585,7 +762,8 @@ namespace IJK {
   // **************************************************
   // Rounding operators
   // **************************************************
-  
+
+  /// Round x to nearest integer.  
   template <typename T>
   T round(const T x)
   {
@@ -718,6 +896,11 @@ namespace IJK {
   // Clamp operator
   // **************************************************
 
+  /*!
+   * Clamp x to interval [0,1].
+   * - If (x < 0), then x = 0.
+   * - If (x > 1), then x = 1.
+   */
   template <typename T>
   T clamp01_coord(const T x)
   {
@@ -745,6 +928,66 @@ namespace IJK {
   (const DTYPE dimension, const CTYPE0 coord0, const CTYPE1 coord1)
   {
     return(is_coord_less_than_or_equal(dimension, coord0, coord1));
+  }
+
+  // **************************************************
+  // 2D and 3D Determinants
+  // **************************************************
+
+  /// Return determinant of a 2x2 matrix.
+  template <typename COORD_TYPE, typename RESULT_TYPE>
+  inline void determinant_2x2
+  (const COORD_TYPE a00, const COORD_TYPE a01,
+   const COORD_TYPE a10, const COORD_TYPE a11,
+   RESULT_TYPE & result)
+  {
+    result = a00*a11 - a01*a10;
+  }
+
+  /// Return determinant of a 3x3 matrix.
+  template <typename COORD_TYPE, typename RESULT_TYPE>
+  inline void determinant_3x3
+  (const COORD_TYPE p0[3], const COORD_TYPE p1[3],
+   const COORD_TYPE p2[3], RESULT_TYPE & result)
+  {
+    RESULT_TYPE D;
+    determinant_2x2(p1[1], p1[2], p2[1], p2[2], D);
+    result = p0[0] * D;
+    determinant_2x2(p2[1], p2[2], p0[1], p0[2], D);
+    result += p1[0] * D;
+    determinant_2x2(p0[1], p0[2], p1[1], p1[2], D);
+    result += p2[0] * D;
+  }
+
+
+  /// Return determinant of three 2D points.
+  template <typename COORD_TYPE, typename RESULT_TYPE>
+  inline void determinant_point_2D
+  (const COORD_TYPE p0[2], const COORD_TYPE p1[2], const COORD_TYPE p2[2],
+   RESULT_TYPE & result)
+  {
+    RESULT_TYPE v1[2], v2[2];
+
+    subtract_coord_2D(p1, p0, v1);
+    subtract_coord_2D(p2, p0, v2);
+
+    determinant_2x2(v1[0], v1[1], v2[0], v2[1], result);
+  }
+
+  /// Return determinant of four 3D points.
+  template <typename COORD_TYPE, typename RESULT_TYPE>
+  inline void determinant_point_3D
+  (const COORD_TYPE p0[3], const COORD_TYPE p1[3],
+   const COORD_TYPE p2[3], const COORD_TYPE p3[3],
+   RESULT_TYPE & result)
+  {
+    RESULT_TYPE v1[3], v2[3], v3[3];
+
+    subtract_coord_3D(p1, p0, v1);
+    subtract_coord_3D(p2, p0, v2);
+    subtract_coord_3D(p3, p0, v3);
+
+    determinant_3x3(v1, v2, v3, result);
   }
 
   // **************************************************
@@ -825,11 +1068,14 @@ namespace IJK {
     multiply_coord(DIM3, s, coord0, coord1); 
   }
 
-  /// Add \a s * \a coord0[] to \a coord1[]).
-  /// @param coord0 = Input coordinates.
-  /// @param coord1 = Input coordinates.
-  /// @param[out] coord2 = Output coordinate.
-  ///                      Equals (\a s * \a coord0[] + \a coord1[]).
+  /*!
+   *  Add \a s * \a coord0[] to \a coord1[]).
+   *  @param s Scaling factor.
+   *  @param coord0[] Input coordinates.
+   *  @param coord1[] Input coordinates.
+   *  @param[out] coord2[] Output coordinate.
+   *     - coord2[] = (\a s * \a coord0[] + \a coord1[]).
+   */
   template <typename STYPE, typename CTYPE0, typename CTYPE1, typename CTYPE2>
   void add_scaled_coord_3D
   (const STYPE s, 
@@ -906,68 +1152,6 @@ namespace IJK {
     return(is_coord_less_than_or_equal(DIM3, coord0, coord1)); 
   }
 
-  /* \} */
-
-  // **************************************************
-  // 2D and 3D Determinants
-  // **************************************************
-
-  /// Return determinant of a 2x2 matrix.
-  template <typename COORD_TYPE, typename RESULT_TYPE>
-  inline void determinant_2x2
-  (const COORD_TYPE a00, const COORD_TYPE a01,
-   const COORD_TYPE a10, const COORD_TYPE a11,
-   RESULT_TYPE & result)
-  {
-    result = a00*a11 - a01*a10;
-  }
-
-  /// Return determinant of a 3x3 matrix.
-  template <typename COORD_TYPE, typename RESULT_TYPE>
-  inline void determinant_3x3
-  (const COORD_TYPE p0[3], const COORD_TYPE p1[3],
-   const COORD_TYPE p2[3], RESULT_TYPE & result)
-  {
-    RESULT_TYPE D;
-    determinant_2x2(p1[1], p1[2], p2[1], p2[2], D);
-    result = p0[0] * D;
-    determinant_2x2(p2[1], p2[2], p0[1], p0[2], D);
-    result += p1[0] * D;
-    determinant_2x2(p0[1], p0[2], p1[1], p1[2], D);
-    result += p2[0] * D;
-  }
-
-
-  /// Return determinant of three 2D points.
-  template <typename COORD_TYPE, typename RESULT_TYPE>
-  inline void determinant_point_2D
-  (const COORD_TYPE p0[2], const COORD_TYPE p1[2], const COORD_TYPE p2[2],
-   RESULT_TYPE & result)
-  {
-    RESULT_TYPE v1[2], v2[2];
-
-    subtract_coord_2D(p1, p0, v1);
-    subtract_coord_2D(p2, p0, v2);
-
-    determinant_2x2(v1[0], v1[1], v2[0], v2[1], result);
-  }
-
-  /// Return determinant of four 3D points.
-  template <typename COORD_TYPE, typename RESULT_TYPE>
-  inline void determinant_point_3D
-  (const COORD_TYPE p0[3], const COORD_TYPE p1[3],
-   const COORD_TYPE p2[3], const COORD_TYPE p3[3],
-   RESULT_TYPE & result)
-  {
-    RESULT_TYPE v1[3], v2[3], v3[3];
-
-    subtract_coord_3D(p1, p0, v1);
-    subtract_coord_3D(p2, p0, v2);
-    subtract_coord_3D(p3, p0, v3);
-
-    determinant_3x3(v1, v2, v3, result);
-  }
-
   // **************************************************
   // 3D cross product
   // **************************************************
@@ -982,6 +1166,8 @@ namespace IJK {
     v2[1] = -v2[1];
     determinant_2x2(v0[0], v0[1], v1[0], v1[1], v2[2]);
   }
+
+  /* \} */
 
 }
 
