@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011-2014 Rephael Wenger
+ Copyright (C) 2012-2014 Arindam Bhattacharya and Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -1435,6 +1435,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   use_Linf_dist = true;
   max_dist = 1.0;                  // Note: Distance from cube boundary.
   max_dist_to_set_other = 1.0;     // Note: Distance from cube center.
+  max_dist_to_sharp_edge = 2.0;    // Note: L2 distance from isover coord.
   snap_dist = 1.0/16.0;
   max_small_eigenvalue = 0.1;
   round_denominator = 16;

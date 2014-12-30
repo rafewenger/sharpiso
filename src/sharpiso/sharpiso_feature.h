@@ -4,12 +4,12 @@
 
 /*
  IJK: Isosurface Jeneration Code
- Copyright (C) 2011-2013 Rephael Wenger
+ Copyright (C) 2012-2014 Arindam Bhattacharya and Rephael Wenger
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public License
  (LGPL) as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.
+ version 2.1 of the License, or any later version.
  
  This library is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -443,6 +443,10 @@ namespace SHARPISO {
     /// Maximum (Linf) distance from cube center to isosurface vertex
     ///   used in setting other active cube.
     COORD_TYPE max_dist_to_set_other;
+
+    /// Maximum (L2) distance from sharp vertex to sharp edge 
+    ///   determined by nearby cube.
+    COORD_TYPE max_dist_to_sharp_edge;
 
     /// Snap points within snap distance to cube.
     COORD_TYPE snap_dist;

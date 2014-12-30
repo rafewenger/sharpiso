@@ -1452,6 +1452,10 @@ void apply_secondary_isovert_positions
             if (flag_debug) {
               const COORD_TYPE * isovert_coordA =
                 isovert.gcube_list[gcubeA_index].isovert_coord;
+              const COORD_TYPE * edge_dirA =
+                isovert.gcube_list[gcubeA_index].edge_dir;
+              const COORD_TYPE * edge_dirB =
+                isovert.gcube_list[gcubeB_index].edge_dir;
               cerr << "*** Copying substitute isovert_coord from " 
                    << cubeA_index << " ";
               ijkgrid_output_vertex_coord(cerr, grid, cubeA_index);
@@ -2352,6 +2356,41 @@ void reselect_edge_cubes (
   }
   else {
 
+    INDEX_DIFF_TYPE gcubeB_index = isovert.GCubeIndex(max_overlap_cube);
+    if (gcubeB_index == ISOVERT::NO_INDEX) { return; }
+
+    const COORD_TYPE * isovert_coordA =
+      isovert.gcube_list[gcube_index].isovert_coord;
+    const COORD_TYPE * edge_dirA =
+      isovert.gcube_list[gcube_index].edge_dir;
+    const COORD_TYPE * isovert_coordB =
+      isovert.gcube_list[gcubeB_index].isovert_coord;
+    const COORD_TYPE * edge_dirB =
+      isovert.gcube_list[gcubeB_index].edge_dir;
+    COORD_TYPE diff[DIM3], tempA[DIM3], tempB[DIM3], magA, magB;
+
+    IJK::subtract_coord_3D(isovert_coordA, isovert_coordB, diff);
+
+    // Check that line containing sharp edges in each cube pass
+    //   through/near other cube.
+
+    if (isovert.gcube_list[gcube_index].num_eigenvalues == 2) {
+      // Compute distance of isovert_coordB to line
+      //   containing sharp edge in gcube_index.
+      IJK::compute_orthogonal_vector(DIM3, diff, edge_dirA, tempA);
+      IJK::compute_magnitude(DIM3, tempA, magA);
+      if (magA > isovert_param.max_dist_to_sharp_edge) { return; }
+    };
+
+
+    if (isovert.gcube_list[gcubeB_index].num_eigenvalues == 2) {
+      // Compute distance of isovert_coordA to line
+      //   containing sharp edge in gcubeB.
+      IJK::compute_orthogonal_vector(DIM3, diff, edge_dirB, tempB);
+      IJK::compute_magnitude(DIM3, tempB, magB);
+      if (magB > isovert_param.max_dist_to_sharp_edge) { return; }
+    }
+
     // *** DEBUG ***
     using namespace std;
     if (flag_debug) {
@@ -2362,6 +2401,22 @@ void reselect_edge_cubes (
       cerr << "  Overlaps cube: " << max_overlap_cube << "  ";
       ijkgrid_output_vertex_coord(cerr, gridn, max_overlap_cube);
       cerr << "  overlap_dim: " << max_overlap_dim << endl;
+
+      cerr << "  Cube isovertex: ";
+      IJK::print_coord3D(cerr, isovert_coordA);
+      cerr << "  edge dir: ";
+      IJK::print_coord3D(cerr, edge_dirA);
+      cerr << endl;
+      cerr << "  Overlap cube isovertex: ";
+      IJK::print_coord3D(cerr, isovert_coordB);
+      cerr << "  edge dir: ";
+      IJK::print_coord3D(cerr, edge_dirB);
+      cerr << endl;
+
+      cerr << "  Distance cube isovert to overlap cube edge: "
+           << magA << endl;
+      cerr << "  Distance overlap cube edge to cube isovert: "
+           << magB << endl;
     }
 
     if (isovert.gcube_list[gcube_index].boundary_bits == 0) {
@@ -2757,6 +2812,9 @@ void MERGESHARP::select_sharp_isovert
      isovert);
 
   reset_covered_isovert_positions(gridn, covered_grid, isovert);
+
+  // *** DEBUG ***
+  flag_debug = false;
 }
 
 
