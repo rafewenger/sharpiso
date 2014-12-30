@@ -2367,28 +2367,25 @@ void reselect_edge_cubes (
       isovert.gcube_list[gcubeB_index].isovert_coord;
     const COORD_TYPE * edge_dirB =
       isovert.gcube_list[gcubeB_index].edge_dir;
-    COORD_TYPE diff[DIM3], tempA[DIM3], tempB[DIM3], magA, magB;
-
-    IJK::subtract_coord_3D(isovert_coordA, isovert_coordB, diff);
 
     // Check that line containing sharp edges in each cube pass
     //   through/near other cube.
 
     if (isovert.gcube_list[gcube_index].num_eigenvalues == 2) {
-      // Compute distance of isovert_coordB to line
-      //   containing sharp edge in gcube_index.
-      IJK::compute_orthogonal_vector(DIM3, diff, edge_dirA, tempA);
-      IJK::compute_magnitude(DIM3, tempA, magA);
-      if (magA > isovert_param.max_dist_to_sharp_edge) { return; }
-    };
+      COORD_TYPE distB_to_lineA;
+      IJK::compute_distance_to_line_3D
+        (isovert_coordB, isovert_coordA, edge_dirA, distB_to_lineA);
+      if (distB_to_lineA > isovert_param.max_dist_to_sharp_edge)
+        { return; };
+    }
 
 
     if (isovert.gcube_list[gcubeB_index].num_eigenvalues == 2) {
-      // Compute distance of isovert_coordA to line
-      //   containing sharp edge in gcubeB.
-      IJK::compute_orthogonal_vector(DIM3, diff, edge_dirB, tempB);
-      IJK::compute_magnitude(DIM3, tempB, magB);
-      if (magB > isovert_param.max_dist_to_sharp_edge) { return; }
+      COORD_TYPE distA_to_lineB;
+      IJK::compute_distance_to_line_3D
+        (isovert_coordA, isovert_coordB, edge_dirB, distA_to_lineB);
+      if (distA_to_lineB > isovert_param.max_dist_to_sharp_edge)
+        { return; };
     }
 
     // *** DEBUG ***
@@ -2412,11 +2409,6 @@ void reselect_edge_cubes (
       cerr << "  edge dir: ";
       IJK::print_coord3D(cerr, edge_dirB);
       cerr << endl;
-
-      cerr << "  Distance cube isovert to overlap cube edge: "
-           << magA << endl;
-      cerr << "  Distance overlap cube edge to cube isovert: "
-           << magB << endl;
     }
 
     if (isovert.gcube_list[gcube_index].boundary_bits == 0) {

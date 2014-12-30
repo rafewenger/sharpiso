@@ -1236,7 +1236,7 @@ namespace IJK {
    *       of (coord0[]-coord1[]) and dir[].
    *  @pre dir[] is a unit vector.
    */
-  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+  template <typename CTYPE0, typename CTYPE1, 
             typename VTYPE, typename DIST_TYPE>
   void compute_distance_to_line_3D
   (const CTYPE0 coord0[], const CTYPE1 coord1[],
