@@ -1379,14 +1379,14 @@ void swap_isovert_positions
     NUM_TYPE gcubeA_index = gcube_sharp_list[i];
     if (isovert.gcube_list[gcubeA_index].flag_conflict) {
 
+      if (isovert.gcube_list[gcubeA_index].linf_dist > 
+          max_dist_to_set_other) { continue; }
+
       VERTEX_INDEX conflicting_cube = 
         isovert.gcube_list[gcubeA_index].cube_containing_isovert;
       INDEX_DIFF_TYPE gcubeB_index = isovert.GCubeIndex(conflicting_cube);
 
       if (gcubeB_index != ISOVERT::NO_INDEX) {
-
-        if (isovert.gcube_list[gcubeB_index].linf_dist > 
-            max_dist_to_set_other) { continue; }
 
         if (isovert.gcube_list[gcubeB_index].flag_conflict ||
             isovert.gcube_list[gcubeB_index].flag_centroid_location) {
