@@ -62,6 +62,7 @@ namespace SHARPISO {
    const COORD_TYPE pointX[DIM3],
    COORD_TYPE sharp_coord[DIM3],
    COORD_TYPE edge_direction[DIM3],
+   COORD_TYPE orth_direction[DIM3],
    EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);
@@ -79,6 +80,7 @@ namespace SHARPISO {
    const OFFSET_VOXEL & voxel,
    COORD_TYPE sharp_coord[DIM3],
    COORD_TYPE edge_direction[DIM3],
+   COORD_TYPE orth_direction[DIM3],
    EIGENVALUE_TYPE eigenvalues[DIM3],
    NUM_TYPE & num_large_eigenvalues,
    SVD_INFO & svd_info);

@@ -32,9 +32,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ijkgrid_macros.h"
 #include "ijkscalar_grid.txx"
 
+
 #include "mergesharp_types.h"
 #include "mergesharp_isovert.h"
 #include "mergesharp_position.h"
+
+#include "sharpiso_closest.h"
 
 using namespace std;
 using namespace SHARPISO;
@@ -188,6 +191,8 @@ void compute_isovert_position_lindstrom
 {
   const INDEX_DIFF_TYPE gcube_index = 
     isovert.sharp_ind_grid.Scalar(cube_index);
+  const GRADIENT_COORD_TYPE max_small_magnitude =
+    isovert_param.max_small_magnitude;
 	SVD_INFO svd_info;
 
   if (gcube_index != ISOVERT::NO_INDEX) {
@@ -197,75 +202,68 @@ void compute_isovert_position_lindstrom
 
     // compute the sharp vertex for this cube
     EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
+    COORD_TYPE edge_dir[DIM3], orth_dir[DIM3];
     NUM_TYPE num_large_eigenvalues;
 
     svd_compute_sharp_vertex_for_cube_lindstrom
       (scalar_grid, gradient_grid, cube_index, isovalue, isovert_param, 
        voxel, isovert.gcube_list[gcube_index].isovert_coord,
-       isovert.gcube_list[gcube_index].edge_dir,
-       eigenvalues, num_large_eigenvalues, svd_info);
+       edge_dir, orth_dir, eigenvalues, num_large_eigenvalues, svd_info);
 
-    // *** INEFFICIENT: NEEDS TO BE REPLACED ***
+    if (num_large_eigenvalues == 1) {
+      IJK::copy_coord_3D(orth_dir, isovert.gcube_list[gcube_index].direction);
+    }
+    else if (num_large_eigenvalues == 2) {
+      IJK::copy_coord_3D(edge_dir, isovert.gcube_list[gcube_index].direction);
+    }
+    else {
+      IJK::set_coord_3D(0, isovert.gcube_list[gcube_index].direction);
+    }
+
     const COORD_TYPE * isovert_coord =
       isovert.gcube_list[gcube_index].isovert_coord;
+    const COORD_TYPE * direction =
+      isovert.gcube_list[gcube_index].direction;
+
     if (num_large_eigenvalues > 2 ||
         cube_contains_point(scalar_grid, cube_index, isovert_coord)) {
 
       IJK::copy_coord_3D
         (isovert_coord, isovert.gcube_list[gcube_index].isovert_coordB);
     }
-    else {
-      COORD_TYPE pointX[DIM3];
-      EIGENVALUE_TYPE eigenvaluesB[DIM3]={0.0};
-      NUM_TYPE num_large_eigenvaluesB;
-      SVD_INFO svd_infoB;
+    else if (num_large_eigenvalues == 2) {
+      COORD_TYPE cube_center_coord[DIM3];
+      COORD_TYPE closest_point[DIM3];
 
-      snap2cube_vertex(scalar_grid, cube_index, isovert_coord, pointX);
+      scalar_grid.ComputeCubeCenterScaledCoord
+        (cube_index, cube_center_coord);
 
-      svd_compute_sharp_vertex_for_cube_lindstrom
-        (scalar_grid, gradient_grid, cube_index, isovalue, isovert_param, 
-         voxel, pointX, isovert.gcube_list[gcube_index].isovert_coordB,
-         isovert.gcube_list[gcube_index].edge_dir,
-         eigenvaluesB, num_large_eigenvaluesB, svd_infoB);
+      // Compute point on line closest (L2) to cube center.
+      compute_closest_point_on_line
+        (cube_center_coord, isovert_coord, direction, max_small_magnitude, 
+         closest_point);
 
-      if (svd_infoB.location != LOC_SVD) {
+      if (cube_contains_point(scalar_grid, cube_index, isovert_coord)) {
         IJK::copy_coord_3D
-          (isovert_coord, isovert.gcube_list[gcube_index].isovert_coordB);
+          (closest_point, isovert.gcube_list[gcube_index].isovert_coordB);
       }
+      else {
+        // Compute point on line closest (Linf) to cube center.
+        compute_closest_point_on_line_linf
+          (cube_center_coord, isovert_coord,  direction, max_small_magnitude, 
+           isovert.gcube_list[gcube_index].isovert_coordB);
+      }
+    }
+    else if (num_large_eigenvalues == 1) {
+      COORD_TYPE cube_center_coord[DIM3];
 
-      // *** DEBUG ***
-      /*
-        const COORD_TYPE * isovert_coordB =
-        isovert.gcube_list[gcube_index].isovert_coordB;
+      scalar_grid.ComputeCubeCenterScaledCoord
+        (cube_index, cube_center_coord);
 
-        COORD_TYPE distance;
-        IJK::compute_distance(DIM3, isovert_coord, isovert_coordB, distance);
-        VERTEX_INDEX cubeA, cubeB;
-        bool flag_boundary;
-        get_cube_containing_point
-        (scalar_grid, isovert_coord, cubeA, flag_boundary);
-        get_cube_containing_point
-        (scalar_grid, isovert_coordB, cubeB, flag_boundary);
-
-        // *** DEBUG ***
-        if (cubeA != cubeB) {
-        cerr << "Recomputed isovert for cube: " << cube_index << " ";
-        ijkgrid_output_vertex_coord(cerr, scalar_grid, cube_index);
-        cerr << "  pointX: ";
-        IJK::print_coord3D(cerr, pointX);
-        cerr << endl;
-        cerr << "  isovert_coord: ";
-        IJK::print_coord3D(cerr, isovert_coord);
-        cerr << "  isovert_coordB: ";
-        IJK::print_coord3D(cerr, isovert_coordB);
-        cerr << endl;
-        cerr << "  eigenvalues: ";
-        IJK::print_coord3D(cerr, eigenvaluesB);
-        cerr << "  num eigen: " << num_large_eigenvaluesB;
-        cerr << endl;
-        }
-      */
-      
+      // Compute point on plane closest (L2) to cube center.
+      compute_closest_point_on_plane
+        (cube_center_coord, isovert_coord, direction, 
+         isovert.gcube_list[gcube_index].isovert_coordB);
     }
 
     store_svd_info(scalar_grid, cube_index, gcube_index, 
@@ -394,6 +392,8 @@ void recompute_isovert_position_lindstrom
     IJK::print_coord3D(cerr, isovert.gcube_list[gcube_index].isovert_coord);
     cerr << " num eigenvalues: " 
          << int(isovert.gcube_list[gcube_index].num_eigenvalues);
+    cerr << "  flag: "
+         << int(isovert.gcube_list[gcube_index].flag);
     cerr << endl;
   }
 
@@ -416,8 +416,70 @@ void recompute_isovert_position_lindstrom
     IJK::print_coord3D(cerr, isovert.gcube_list[gcube_index].isovert_coordB);
     cerr << " num eigenvalues: " 
          << int(isovert.gcube_list[gcube_index].num_eigenvalues);
+    cerr << "  flag: "
+         << int(isovert.gcube_list[gcube_index].flag);
     cerr << endl;
   }
+}
+
+/// Recompute isovert positions for cubes containing far points.
+/// Use voxel for gradient cube offset, 
+///   not isovert_param.grad_selection_cube_offset.
+/// @param flag_min_offset If true, voxel uses minimum gradient cube offset.
+void recompute_far_points
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ const OFFSET_VOXEL & voxel,
+ const bool flag_min_offset,
+ ISOVERT & isovert)
+{
+  for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
+
+    GRID_CUBE_FLAG cube_flag = isovert.gcube_list[i].flag;
+    bool flag_recomputed_coord_min_offset =
+      isovert.gcube_list[i].flag_recomputed_coord_min_offset;
+    if (isovert.gcube_list[i].flag_far) {
+      if (!flag_recomputed_coord_min_offset) {
+
+        recompute_isovert_position_lindstrom
+          (scalar_grid, gradient_grid, isovalue,
+           isovert_param, voxel, flag_min_offset, i, isovert);
+      }
+    }
+  }
+
+}
+
+/// Recompute isovert positions for cubes with far points.
+void recompute_far_points
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ ISOVERT & isovert)
+{
+	const SIGNED_COORD_TYPE grad_selection_cube_offset =
+		isovert_param.grad_selection_cube_offset;
+	OFFSET_VOXEL voxel;
+
+  if (grad_selection_cube_offset > 0.5) {
+
+    voxel.SetVertexCoord
+      (scalar_grid.SpacingPtrConst(), 0.5);
+
+    recompute_far_points
+      (scalar_grid, gradient_grid, isovalue, isovert_param, 
+       voxel, false, isovert);
+  }
+
+  voxel.SetVertexCoord
+    (scalar_grid.SpacingPtrConst(), 0.0);
+
+  recompute_far_points
+    (scalar_grid, gradient_grid, isovalue, isovert_param, 
+     voxel, true, isovert);
 }
 
 
@@ -440,7 +502,7 @@ void recompute_covered_point_positions
     GRID_CUBE_FLAG cube_flag = isovert.gcube_list[i].flag;
     bool flag_recomputed_coord_min_offset =
       isovert.gcube_list[i].flag_recomputed_coord_min_offset;
-    if (cube_flag == COVERED_POINT || isovert.gcube_list[i].flag_far) {
+    if (cube_flag == COVERED_POINT) {
       if (!flag_recomputed_coord_min_offset) {
 
         recompute_isovert_position_lindstrom
@@ -646,23 +708,26 @@ void set_isovert_position_from_face
       isovert.gcube_list[gcube_index].flag == SMOOTH_GCUBE) {
 
     // *** DEBUG ***
-    /*
     using namespace std;
-    cerr << "*** In " << __func__ << ".  Cube: " << cube_index << " ";
-    ijkgrid_output_vertex_coord(cerr, grid, cube_index);
-    cerr << endl;
-    cerr << "    New coord: ";
-    IJK::print_coord3D(cerr, isovert_coord);
-    cerr << " num eigen: " << num_large_eigenvalues;
-    if (flag_from_vertex) 
-      { cerr << "  From vertex."; }
-    else
-      { cerr << "  From edge."; }
-    cerr << endl;
-    */
+    if (flag_debug) {
+      cerr << "*** In " << __func__ << ".  Cube: " << cube_index << " ";
+      ijkgrid_output_vertex_coord(cerr, grid, cube_index);
+      cerr << endl;
+      cerr << "    New coord: ";
+      IJK::print_coord3D(cerr, isovert_coord);
+      cerr << " num eigen: " << num_large_eigenvalues;
+      if (flag_from_vertex) 
+        { cerr << "  From vertex."; }
+      else
+        { cerr << "  From edge."; }
+      cerr << endl;
+    }
+
 
     set_isovert_position
       (grid, gcube_index, isovert_coord, num_large_eigenvalues, isovert);
+
+    isovert.gcube_list[gcube_index].flag_using_substitute_coord = false;
 
     if (flag_from_vertex) 
       { isovert.gcube_list[gcube_index].flag_coord_from_vertex = true; }
@@ -672,12 +737,12 @@ void set_isovert_position_from_face
     flag_set = true;
 
     // *** DEBUG ***
-    /*
-    using namespace std;
-    string s;
-    convert2string(isovert.gcube_list[gcube_index].flag, s);
-    cerr << "    flag: " << s << endl;
-    */
+    if (flag_debug) {
+      using namespace std;
+      string s;
+      convert2string(isovert.gcube_list[gcube_index].flag, s);
+      cerr << "    flag: " << s << endl;
+    }
   }
 }
 
@@ -1391,9 +1456,8 @@ void replace_with_substitute_coord
     VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
     const COORD_TYPE * isovert_coordA =
       isovert.gcube_list[gcube_index].isovert_coord;
-    cerr << "    Using substitute isovert_coord for " << cube_index;
-    ijkgrid_output_vertex_coord(cerr, grid, cube_index);
-    cerr << endl;
+    cerr << "    Using substitute isovert_coord for ";
+    grid.PrintIndexAndCoord(cerr, "", cube_index, "\n");
     cerr << "      Old coord: ";
     IJK::print_coord3D(cerr, isovert_coordA);
     cerr << ".  New coord: ";
@@ -1452,10 +1516,10 @@ void apply_secondary_isovert_positions
             if (flag_debug) {
               const COORD_TYPE * isovert_coordA =
                 isovert.gcube_list[gcubeA_index].isovert_coord;
-              const COORD_TYPE * edge_dirA =
-                isovert.gcube_list[gcubeA_index].edge_dir;
-              const COORD_TYPE * edge_dirB =
-                isovert.gcube_list[gcubeB_index].edge_dir;
+              const COORD_TYPE * directionA =
+                isovert.gcube_list[gcubeA_index].direction;
+              const COORD_TYPE * directionB =
+                isovert.gcube_list[gcubeB_index].direction;
               cerr << "*** Copying substitute isovert_coord from " 
                    << cubeA_index << " ";
               ijkgrid_output_vertex_coord(cerr, grid, cubeA_index);
@@ -1464,7 +1528,10 @@ void apply_secondary_isovert_positions
               cerr << endl;
               cerr << "  Old coord: ";
               IJK::print_coord3D(cerr, isovert_coordA);
-              cerr << ".  New coord: ";
+              cerr << "  Old direction: ";
+              IJK::print_coord3D(cerr, directionA);
+              cerr << endl;
+              cerr << "  New coord: ";
               IJK::print_coord3D(cerr, isovert_coordB);
               cerr << endl;
             }
@@ -2132,7 +2199,7 @@ void select_edge_cubes	(
     check_and_set_covered_point(covered_grid, isovert, gcube_index);
 
 		// check boundary
-		if (boundary_bits == 0)
+		if (boundary_bits == 0) {
 
       if (isovert.gcube_list[gcube_index].flag == AVAILABLE_GCUBE &&
           isovert.gcube_list[gcube_index].linf_dist < linf_dist &&
@@ -2143,6 +2210,7 @@ void select_edge_cubes	(
 						(scalar_grid, covered_grid, bin_grid, gridn, isovalue, 
              isovert_param, gcube_index, COVERED_A_GCUBE, isovert);
 				}
+    }
 	}
 }
 
@@ -2361,12 +2429,12 @@ void reselect_edge_cubes (
 
     const COORD_TYPE * isovert_coordA =
       isovert.gcube_list[gcube_index].isovert_coord;
-    const COORD_TYPE * edge_dirA =
-      isovert.gcube_list[gcube_index].edge_dir;
+    const COORD_TYPE * directionA =
+      isovert.gcube_list[gcube_index].direction;
     const COORD_TYPE * isovert_coordB =
       isovert.gcube_list[gcubeB_index].isovert_coord;
-    const COORD_TYPE * edge_dirB =
-      isovert.gcube_list[gcubeB_index].edge_dir;
+    const COORD_TYPE * directionB =
+      isovert.gcube_list[gcubeB_index].direction;
 
     // Check that line containing sharp edges in each cube pass
     //   through/near other cube.
@@ -2374,7 +2442,7 @@ void reselect_edge_cubes (
     if (isovert.gcube_list[gcube_index].num_eigenvalues == 2) {
       COORD_TYPE distB_to_lineA;
       IJK::compute_distance_to_line_3D
-        (isovert_coordB, isovert_coordA, edge_dirA, distB_to_lineA);
+        (isovert_coordB, isovert_coordA, directionA, distB_to_lineA);
       if (distB_to_lineA > isovert_param.max_dist_to_sharp_edge)
         { return; };
     }
@@ -2383,7 +2451,7 @@ void reselect_edge_cubes (
     if (isovert.gcube_list[gcubeB_index].num_eigenvalues == 2) {
       COORD_TYPE distA_to_lineB;
       IJK::compute_distance_to_line_3D
-        (isovert_coordA, isovert_coordB, edge_dirB, distA_to_lineB);
+        (isovert_coordA, isovert_coordB, directionB, distA_to_lineB);
       if (distA_to_lineB > isovert_param.max_dist_to_sharp_edge)
         { return; };
     }
@@ -2402,12 +2470,12 @@ void reselect_edge_cubes (
       cerr << "  Cube isovertex: ";
       IJK::print_coord3D(cerr, isovert_coordA);
       cerr << "  edge dir: ";
-      IJK::print_coord3D(cerr, edge_dirA);
+      IJK::print_coord3D(cerr, directionA);
       cerr << endl;
       cerr << "  Overlap cube isovertex: ";
       IJK::print_coord3D(cerr, isovert_coordB);
       cerr << "  edge dir: ";
-      IJK::print_coord3D(cerr, edge_dirB);
+      IJK::print_coord3D(cerr, directionB);
       cerr << endl;
     }
 
@@ -2576,7 +2644,8 @@ void select_cubes_near_corners	(
 		GRID_CUBE c;
 		c = isovert.gcube_list[gcube_index];
 
-    if (isovert.isFlag(cube_ind_frm_gc_ind(isovert, sortd_ind2gcube_list[ind]), AVAILABLE_GCUBE)) {
+    if (isovert.isFlag
+        (cube_ind_frm_gc_ind(isovert, sortd_ind2gcube_list[ind]), AVAILABLE_GCUBE)) {
 
       // check boundary
       if(c.boundary_bits == 0 && c.linf_dist <= 0.5 ) {
@@ -2632,7 +2701,7 @@ void MERGESHARP::select_sharp_isovert
 
   // *** DEBUG ***
   if (flag_debug) { 
-    cerr << endl << "*** Selecting near corner cubes." << endl; 
+    cerr << endl << "*** Selecting corner cubes." << endl; 
   }
 
 	// select corner cubes
@@ -2881,6 +2950,8 @@ void MERGESHARP::compute_dual_isovert
 			(scalar_grid, gradient_grid, isovalue, isovert_param, 
        isovert);
 
+    recompute_far_points
+      (scalar_grid, gradient_grid, isovalue, isovert_param, isovert);
     swap_isovert_positions(scalar_grid, max_dist_to_set_other, isovert);
     apply_secondary_isovert_positions
       (scalar_grid, max_dist_to_set_other, isovert);
@@ -3636,6 +3707,7 @@ namespace {
       check_and_set_covered_point(covered_grid, isovert, gcube_index);
     }
   }
+
 
   /// Return true if sharp vertex is in a cube which is covered.
   bool check_covered_point

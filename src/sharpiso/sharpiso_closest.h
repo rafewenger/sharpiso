@@ -35,6 +35,17 @@ namespace SHARPISO {
    const COORD_TYPE ray_direction[],
    COORD_TYPE closest_point[DIM3]);
 
+  /// Compute the point on a plane closest (L2) to point p.
+  /// @param pcoord[] Coordinates of point p.
+  /// @param qcoord[] Coordinates of some point on the plane.
+  /// @param orth_dir[] Direction orthogonal to the plane.
+  /// @pre orth_dir[] is a unit vector.
+  void compute_closest_point_on_plane
+  (const COORD_TYPE pcoord[DIM3],
+   const COORD_TYPE qcoord[DIM3],
+   const COORD_TYPE orth_dir[DIM3],
+   COORD_TYPE closest_point[DIM3]);
+
   /// Intersect a line and a square cylinder
   /// @param[out] end[][] end[i][d] is coordinate d of endpoint i.
   /// @param[flag_intersect] True if line intersects cylinder.

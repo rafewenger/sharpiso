@@ -58,11 +58,15 @@ protected:
 public:
 	COORD_TYPE isovert_coord[DIM3];    ///< Location of the sharp isovertex.
 	COORD_TYPE isovert_coordB[DIM3];   ///< Substitute location.
-	COORD_TYPE edge_dir[DIM3];         ///< Direction of isosurface edge.
 	unsigned char num_eigenvalues;     ///< Number of eigenvalues.
 	GRID_CUBE_FLAG flag;               ///< Type for this cube.
   BOUNDARY_BITS_TYPE boundary_bits;  ///< Boundary bits for the cube
 	VERTEX_INDEX cube_index;           ///< Index of cube in scalar grid.
+
+  /// If num_eigenvalues == 2, then direction = direction of isosurface edge.
+  /// If num_eigenvalues == 1, then 
+  ///   direction = direction orthogonal to isosurface.
+	COORD_TYPE direction[DIM3];         
 
   /// Linf-dist from isovert_coord[] to cube-center.
   COORD_TYPE linf_dist;

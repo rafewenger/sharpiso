@@ -87,6 +87,7 @@ void compute_iso_vertex_using_svd
  const SCALAR_TYPE isovalue,
  COORD_TYPE coord[DIM3], 
  COORD_TYPE edge_direction[DIM3],
+ COORD_TYPE orth_direction[DIM3],
  EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_nonzero_eigenvalues,
  SVD_INFO & svd_info);
@@ -142,6 +143,7 @@ void output_svd_results
  const GRID_COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE sharp_coord[DIM3],
  const COORD_TYPE edge_direction[DIM3],
+ const COORD_TYPE orth_direction[DIM3],
  const EIGENVALUE_TYPE eigenvalues[DIM3], const NUM_TYPE num_large_eigenvalues,
  const EIGENVALUE_TYPE eigenvalue_tolerance, SVD_INFO & svd_info);
 void output_subgrid_results
@@ -339,6 +341,7 @@ int main(int argc, char **argv)
 
         COORD_TYPE sharp_coord[DIM3];
         COORD_TYPE edge_direction[DIM3];
+        COORD_TYPE orth_direction[DIM3];
         EIGENVALUE_TYPE eigenvalues[DIM3];
         NUM_TYPE num_large_eigenvalues(0);
 
@@ -381,13 +384,14 @@ int main(int argc, char **argv)
 
             compute_iso_vertex_using_svd
               (scalar_grid, gradient_grid, cube_index, isovalue,
-               sharp_coord, edge_direction, eigenvalues,
-               num_large_eigenvalues, svd_info);
+               sharp_coord, edge_direction, orth_direction,
+               eigenvalues, num_large_eigenvalues, svd_info);
 
             scalar_grid.ComputeCoord(cube_index, cube_coord);
 
             output_svd_results
-              (cout, scalar_grid, cube_coord, sharp_coord, edge_direction,
+              (cout, scalar_grid, cube_coord, 
+               sharp_coord, edge_direction, orth_direction,
                eigenvalues, num_large_eigenvalues,
                max_small_eigenvalue, svd_info);
             cout << endl;
@@ -478,6 +482,7 @@ void compute_iso_vertex_using_svd
  const SCALAR_TYPE isovalue,
  COORD_TYPE sharp_coord[DIM3], 
  COORD_TYPE edge_direction[DIM3],
+ COORD_TYPE orth_direction[DIM3],
  EIGENVALUE_TYPE eigenvalues[DIM3],
  NUM_TYPE & num_large_eigenvalues,
  SVD_INFO & svd_info)
@@ -510,15 +515,15 @@ void compute_iso_vertex_using_svd
       svd_compute_sharp_vertex_for_cube_lindstrom
         (scalar_grid, gradient_grid, cube_index, isovalue,
          sharpiso_param, offset_voxel, &(pointX[0]),
-         sharp_coord, edge_direction, eigenvalues, num_large_eigenvalues, 
-         svd_info);
+         sharp_coord, edge_direction, orth_direction,
+         eigenvalues, num_large_eigenvalues, svd_info);
     }
     else {
       svd_compute_sharp_vertex_for_cube_lindstrom
         (scalar_grid, gradient_grid, cube_index, isovalue,
          sharpiso_param, offset_voxel,
-         sharp_coord, edge_direction, eigenvalues, num_large_eigenvalues, 
-         svd_info);
+         sharp_coord, edge_direction, orth_direction,
+         eigenvalues, num_large_eigenvalues, svd_info);
     }
   }
 
@@ -620,6 +625,7 @@ void output_svd_results
  const GRID_COORD_TYPE cube_coord[DIM3],
  const COORD_TYPE sharp_coord[DIM3],
  const COORD_TYPE edge_direction[DIM3],
+ const COORD_TYPE orth_direction[DIM3],
  const EIGENVALUE_TYPE eigenvalues[DIM3],
  const NUM_TYPE num_large_eigenvalues,
  const EIGENVALUE_TYPE eigenvalue_tolerance,
@@ -664,7 +670,14 @@ void output_svd_results
          << "): "
          << num_large_eigenvalues << endl;
 
-  if(num_large_eigenvalues == 2 && flag_use_lindstrom) {
+  if (num_large_eigenvalues == 1 && flag_use_lindstrom) {
+
+    output << "Plane normal: ";
+    print_coord3D(output, orth_direction);
+    output << endl;
+  }
+
+  if (num_large_eigenvalues == 2 && flag_use_lindstrom) {
     output << "Ray: ";
     print_coord3D(output, sharp_coord);
     output << " + t";
@@ -1026,6 +1039,7 @@ void output_cube_eigenvalues
 {
   COORD_TYPE sharp_coord[DIM3];
   COORD_TYPE edge_direction[DIM3];
+  COORD_TYPE orth_direction[DIM3];
   EIGENVALUE_TYPE eigenvalues[DIM3]={0.0};
   NUM_TYPE num_large_eigenvalues(0);
   SVD_INFO svd_info;
@@ -1043,8 +1057,8 @@ void output_cube_eigenvalues
     svd_compute_sharp_vertex_for_cube_lindstrom
       (scalar_grid, gradient_grid, icube, isovalue,
        sharpiso_param, offset_voxel,
-       sharp_coord, edge_direction, eigenvalues, num_large_eigenvalues,
-       svd_info);
+       sharp_coord, edge_direction, orth_direction,
+       eigenvalues, num_large_eigenvalues, svd_info);
 
     output_cube_coordinates(output, scalar_grid, icube);
 

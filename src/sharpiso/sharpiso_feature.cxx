@@ -70,6 +70,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 	const OFFSET_VOXEL & voxel,
 	COORD_TYPE sharp_coord[DIM3],
   COORD_TYPE edge_direction[DIM3],
+  COORD_TYPE orth_direction[DIM3],
 	EIGENVALUE_TYPE eigenvalues[DIM3],
 	NUM_TYPE & num_large_eigenvalues,
 	SVD_INFO & svd_info)
@@ -81,8 +82,9 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
 		sharpiso_param, central_point, svd_info);
 
   svd_compute_sharp_vertex_for_cube_lindstrom
-    (scalar_grid, gradient_grid, cube_index, isovalue, sharpiso_param,
-     voxel, central_point, sharp_coord, edge_direction,
+    (scalar_grid, gradient_grid, cube_index, isovalue, 
+     sharpiso_param, voxel, central_point, 
+     sharp_coord, edge_direction, orth_direction,
      eigenvalues, num_large_eigenvalues, svd_info);
 }
 
@@ -100,6 +102,7 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
   const COORD_TYPE pointX[DIM3],
 	COORD_TYPE sharp_coord[DIM3],
   COORD_TYPE edge_direction[DIM3],
+  COORD_TYPE orth_direction[DIM3],
 	EIGENVALUE_TYPE eigenvalues[DIM3],
 	NUM_TYPE & num_large_eigenvalues,
 	SVD_INFO & svd_info)
@@ -139,9 +142,10 @@ void SHARPISO::svd_compute_sharp_vertex_for_cube_lindstrom
   svd_calculate_sharpiso_vertex_using_lindstrom_fast
     (num_gradients, max_small_eigenvalue,isovalue, &(scalar[0]), 
      &(point_coord[0]), &(gradient_coord[0]), pointX,
-     num_large_eigenvalues, eigenvalues, sharp_coord, edge_direction);
+     num_large_eigenvalues, eigenvalues, 
+     sharp_coord, edge_direction, orth_direction);
 
-	//post process the isovertex. 
+	// post process the isovertex. 
 	postprocess_isovert_location
 		(scalar_grid, gradient_grid, cube_index, cube_coord, isovalue,
 		sharpiso_param, sharp_coord, svd_info);

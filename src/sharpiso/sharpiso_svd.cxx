@@ -96,8 +96,8 @@ void compute_pseudo_inverse_sigma
  Matrix3f & pseudo_inv_sigma,
  int & num_non_zero_in_pseudo_inv_sigma)
 {
- const GRADIENT_COORD_TYPE max_small_singular_value =
-   max_small_singular_value_ratio * singVals[0];
+  const GRADIENT_COORD_TYPE max_small_singular_value =
+    max_small_singular_value_ratio * singVals[0];
 
   num_non_zero_in_pseudo_inv_sigma = 0;
 
@@ -170,7 +170,8 @@ void compute_sharp_point_lindstrom_3x3
 }
 
 /// @param pointX Compute sharp point closest to pointX.
-/// @param edge_direction If num_singular_vals = 2, return sharp edge direction.
+/// @param edge_direction[] If num_singular_vals = 2, return sharp edge direction.
+/// @param orth_direction[] If num_singular_vals = 1, return direction orthogonal to surface.
 void compute_sharp_point_lindstrom_3x3
 (		SCALAR_TYPE * A,
 		const SCALAR_TYPE _b[3],
@@ -179,7 +180,8 @@ void compute_sharp_point_lindstrom_3x3
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
 		COORD_TYPE isoVertCoords[DIM3],
-    COORD_TYPE edge_direction[DIM3])
+    COORD_TYPE edge_direction[DIM3],
+    COORD_TYPE orth_direction[DIM3])
 {
 	Map<const Matrix3f> eigenA(A);
 	Map<const RowVector3f> eigen_pX(pointX);
@@ -206,7 +208,15 @@ void compute_sharp_point_lindstrom_3x3
 	for (int d=0; d<DIM3; d++) 
     { isoVertCoords[d] = sharpCoord[d]; }
 
-  if (num_singular_vals == 2) {
+  if (num_singular_vals == 1) {
+    
+    for (int d = 0; d < DIM3; d++) 
+      { orth_direction[d] = svd.matrixU()(d,0); }
+		normalize(orth_direction, orth_direction);
+
+    IJK::set_coord_3D(0, edge_direction);
+  }
+  else if (num_singular_vals == 2) {
     RowVector3f edge_dir;
     compute_edge_direction(A_pseudo_inv, eigenA, edge_dir);
 
@@ -214,9 +224,11 @@ void compute_sharp_point_lindstrom_3x3
       { edge_direction[d] = edge_dir[d]; }
 
 		normalize(edge_direction, edge_direction);
+    IJK::set_coord_3D(0, orth_direction);
   }
   else {
     IJK::set_coord_3D(0, edge_direction);
+    IJK::set_coord_3D(0, orth_direction);
   }
 }
 
@@ -240,11 +252,12 @@ void compute_sharp_point_on_plane_lindstrom_3x3
   const COORD_TYPE min_cos_normal_and_edge_dir
     = cos(max_angle_normal_and_edge_dir*M_PI/180.0);
   COORD_TYPE edge_direction[DIM3];
+  COORD_TYPE orth_direction[DIM3];
   COORD_TYPE diff[DIM3];
 
   compute_sharp_point_lindstrom_3x3
     (A, _b, err_tolerance, pointX, num_singular_vals, singular_vals,
-     isovert_coord, edge_direction);
+     isovert_coord, edge_direction, orth_direction);
 
   flag_coord_on_plane = false;
   if (num_singular_vals == 2) {
@@ -362,7 +375,8 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast
 		NUM_TYPE & num_singular_vals,
 		EIGENVALUE_TYPE singular_vals[DIM3],
 		COORD_TYPE isovert_coords[DIM3],
-    COORD_TYPE edge_direction[DIM3])
+    COORD_TYPE edge_direction[DIM3],
+    COORD_TYPE orth_direction[DIM3])
 {
   COORD_TYPE A[DIM3*DIM3];
   COORD_TYPE B[DIM3];
@@ -370,7 +384,7 @@ void svd_calculate_sharpiso_vertex_using_lindstrom_fast
               vert_grads, A, B);
 	compute_sharp_point_lindstrom_3x3
     (A, B, err_tolerance, pointX, num_singular_vals, 
-     singular_vals, isovert_coords, edge_direction);
+     singular_vals, isovert_coords, edge_direction, orth_direction);
 }
 
 /// Calculate the sharp vertex using svd and the faster garland heckbert way

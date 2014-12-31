@@ -1479,10 +1479,16 @@ void report_isovert_cube_info
     (cout, isovert.gcube_list[gcube_index].isovert_coordB);
   cout << endl;
 
+  if (num_eigenvalues == 1) {
+    cout << "    Orthogonal direction: ";
+    IJK::print_coord3D
+      (cout, isovert.gcube_list[gcube_index].direction);
+    cout << endl;
+  }
   if (num_eigenvalues == 2) {
     cout << "    Sharp edge direction: ";
     IJK::print_coord3D
-      (cout, isovert.gcube_list[gcube_index].edge_dir);
+      (cout, isovert.gcube_list[gcube_index].direction);
     cout << endl;
   }
 

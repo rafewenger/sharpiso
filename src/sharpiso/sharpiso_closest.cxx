@@ -181,6 +181,20 @@ void SHARPISO::compute_closest_point_to_cube_center_linf
 }
 
 
+// Compute the point on a plane closest (L2) to point p.
+// @pre orth_dir[] is a unit vector.
+void SHARPISO::compute_closest_point_on_plane
+(const COORD_TYPE pcoord[DIM3],
+ const COORD_TYPE qcoord[DIM3],
+ const COORD_TYPE orth_dir[DIM3],
+ COORD_TYPE closest_point[DIM3])
+{
+  COORD_TYPE v_diff[DIM3], v_proj[DIM3];
+
+  IJK::subtract_coord_3D(qcoord, pcoord, v_diff);
+  IJK::project_vector(DIM3, v_diff, orth_dir, v_proj);
+  IJK::add_coord_3D(pcoord, v_proj, closest_point);
+}
 
 // **************************************************
 // INTERSECT LINE AND SQUARE CYLINDER
