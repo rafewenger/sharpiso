@@ -153,6 +153,10 @@ public:
   INDEX_DIFF_TYPE GCubeIndex(const int cube_index) const
   { return(sharp_ind_grid.Scalar(cube_index)); }
 
+  /// Return number of eigenvalues.
+  NUM_TYPE NumEigenvalues(const int gcube_index) const
+  { return(gcube_list[gcube_index].num_eigenvalues); }
+
   /// Return pointer to isovert_coord[].
   const COORD_TYPE * IsoVertCoord(const int gcube_index) const
   { return(gcube_list[gcube_index].isovert_coord); }

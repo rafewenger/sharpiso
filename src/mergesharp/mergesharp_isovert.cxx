@@ -833,6 +833,135 @@ void set_isovert_position_from_face_new
      flag_from_vertex, isovert, flag_set);
 }
 
+/// Return true if sharp edge in cube0 points to cube1.
+/// Return false if cube0 has no sharp edge.
+bool does_sharp_edge_point_to_cube
+(const SHARPISO_GRID & grid, const ISOVERT & isovert,
+ const VERTEX_INDEX cube0_index, const VERTEX_INDEX cube1_index)
+{
+  NUM_TYPE gcube0_index = isovert.GCubeIndex(cube0_index);
+  COORD_TYPE cube1_center_coord[DIM3];
+  COORD_TYPE distance;
+
+  if (isovert.NumEigenvalues(gcube0_index) != 2) 
+    { return(false); }
+
+  // Check that sharp edge points to the other cube.
+  const COORD_TYPE * isovert_coord = isovert.IsoVertCoord(gcube0_index);
+  const COORD_TYPE * edge_dir =
+    isovert.gcube_list[gcube0_index].direction;
+
+  grid.ComputeCubeCenterScaledCoord(cube1_index, cube1_center_coord);
+
+  IJK::compute_distance_to_line_3D
+    (cube1_center_coord, isovert_coord, edge_dir, distance);
+
+  // *** SCALE DEPENDENT ***
+  if (distance > 0.5) { 
+    // Sharp edge does not intersect cube 
+    //   (or only intersects cube near its boundary)
+    return(false);
+  }
+
+  return(true);
+}
+
+/// Compute isovert coordinate on plane from sharp edges.
+/// If no sharp edges or intersections are not near pointX,
+///   intersect plane and line containing isovertex coordinates.
+/// If isovertices are too close, compute point on plane closest
+///   to midpoint of line segment between isovert coordinates.
+void compute_isovert_on_plane_from_sharp_edges
+(const SHARPISO_GRID & grid, const ISOVERT & isovert,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ const VERTEX_INDEX cube_index[2],
+ const COORD_TYPE pointX[DIM3], const COORD_TYPE plane_normal[DIM3],
+ COORD_TYPE new_isovert_coord[DIM3])
+{
+  const ANGLE_TYPE max_angle_LO = 80;
+  const COORD_TYPE min_abs_cos_angle_LO = cos(max_angle_LO*M_PI/180.0);
+  const COORD_TYPE min_significant_distance =
+    isovert_param.min_significant_distance;
+  COORD_TYPE intersection_point[DIM3];
+
+  IJK::set_coord_3D(0, new_isovert_coord);
+  NUM_TYPE num_added = 0;
+  for (int i = 0; i < 2; i++) {
+    NUM_TYPE gcube_index = isovert.GCubeIndex(cube_index[i]);
+
+    if (isovert.NumEigenvalues(gcube_index) == 2) {
+
+      const COORD_TYPE * isovert_coord = isovert.IsoVertCoord(gcube_index);
+      const COORD_TYPE * edge_dir =
+        isovert.gcube_list[gcube_index].direction;
+
+      bool flag_succeeded;
+      IJK::intersect_line_plane_3D
+        (isovert_coord, edge_dir, pointX, plane_normal, 
+         min_abs_cos_angle_LO, intersection_point, flag_succeeded);
+
+      if (flag_succeeded) {
+        COORD_TYPE distance;
+
+        IJK::compute_distance(DIM3, pointX, intersection_point, distance);
+        // *** SCALE DEPENDENT ***
+        if (distance < 1) {
+
+          IJK::add_coord_3D
+            (new_isovert_coord, intersection_point, new_isovert_coord);
+          num_added++;
+        }
+      }
+    }
+  }
+
+  if (num_added > 0) {
+    IJK::divide_coord(DIM3, COORD_TYPE(num_added), new_isovert_coord,
+                      new_isovert_coord);
+  }
+  else {
+    // Intersect the plane and the line through the isovert coordinates
+    //   in cubes fixed_cube[0] and fixed_cube[1].
+    const NUM_TYPE gcube0_index = isovert.GCubeIndex(cube_index[0]);
+    const NUM_TYPE gcube1_index = isovert.GCubeIndex(cube_index[1]);
+    const COORD_TYPE * isovert_coord0 = isovert.IsoVertCoord(gcube0_index);
+    const COORD_TYPE * isovert_coord1 = isovert.IsoVertCoord(gcube1_index);
+    COORD_TYPE line_dir[DIM3], magnitude;
+
+    IJK::subtract_coord_3D(isovert_coord1, isovert_coord0, line_dir);
+    bool flag_zero;
+    IJK::normalize_vector(DIM3, line_dir, min_significant_distance, 
+                          line_dir, magnitude, flag_zero);
+
+    if (flag_zero) {
+      // Two vertices are close together.
+      COORD_TYPE midpoint[DIM3];
+      IJK::compute_midpoint(DIM3, isovert_coord0, isovert_coord1, midpoint);
+
+      // Use point on plane closest to midpoint
+      compute_closest_point_on_plane
+        (midpoint, pointX, plane_normal, new_isovert_coord);
+    }
+    else {
+      bool flag_succeeded;
+      IJK::intersect_line_plane_3D
+        (isovert_coord0, line_dir, pointX, plane_normal, 
+         min_abs_cos_angle_LO, new_isovert_coord, flag_succeeded);
+
+      if (!flag_succeeded) {
+        // Just in case...
+        COORD_TYPE midpoint[DIM3];
+        IJK::compute_midpoint(DIM3, isovert_coord0, isovert_coord1, midpoint);
+
+        // Use point on plane closest to midpoint
+        compute_closest_point_on_plane
+          (midpoint, pointX, plane_normal, new_isovert_coord);
+      }
+    }
+  }
+
+}
+
 /// Recompute isovert position around vertices.
 /// Use voxel for gradient cube offset, 
 ///   not isovert_param.grad_selection_cube_offset.
@@ -1132,25 +1261,11 @@ void recompute_isovert_position_around_edge
   for (int i = 0; i < 2; i++) {
     NUM_TYPE gcube_index = isovert.GCubeIndex(fixed_cube[i]);
 
-    if (isovert.gcube_list[gcube_index].num_eigenvalues == 2) {
-      // Check that sharp edge points to the other cube.
+    if (isovert.NumEigenvalues(gcube_index) == 2) {
 
-      const COORD_TYPE * isovert_coord =
-        isovert.gcube_list[gcube_index].isovert_coord;
-      const COORD_TYPE * edge_dir =
-        isovert.gcube_list[gcube_index].direction;
-      const NUM_TYPE i2 = (1-i);
-      COORD_TYPE cube_center_coord[DIM3];
-      COORD_TYPE distance;
-
-      scalar_grid.ComputeCubeCenterScaledCoord
-        (fixed_cube[i2], cube_center_coord);
-
-      IJK::compute_distance_to_line_3D
-        (cube_center_coord, isovert_coord, edge_dir, distance);
-      if (distance > 0.5) { 
-        // Sharp edge does not intersect cube 
-        //   (or only intersects cube near its boundary)
+      if (!does_sharp_edge_point_to_cube
+          (scalar_grid, isovert, fixed_cube[i], fixed_cube[1-i])) {
+        // Sharp edge in fixed_cube[i] does not point to fixed_cube[1-i].
         return;
       }
     }
@@ -1164,83 +1279,9 @@ void recompute_isovert_position_around_edge
   scalar_grid.ComputeScaledCoord(iend0, pointX);
   pointX[edge_dir] += scalar_grid.Spacing(edge_dir)/2.0;
 
-  IJK::set_coord_3D(0, new_isovert_coord);
-  NUM_TYPE num_added = 0;
-  for (int i = 0; i < 2; i++) {
-    NUM_TYPE gcube_index = isovert.GCubeIndex(fixed_cube[i]);
-
-    if (isovert.gcube_list[gcube_index].num_eigenvalues == 2) {
-
-      const COORD_TYPE * isovert_coord =
-        isovert.gcube_list[gcube_index].isovert_coord;
-      const COORD_TYPE * edge_dir =
-        isovert.gcube_list[gcube_index].direction;
-
-      bool flag_succeeded;
-      IJK::intersect_line_plane_3D
-        (isovert_coord, edge_dir, pointX, plane_normal, 
-         min_abs_cos_angle_LO, intersection_point, flag_succeeded);
-
-      if (flag_succeeded) {
-        COORD_TYPE distance;
-
-        IJK::compute_distance(DIM3, pointX, intersection_point, distance);
-        if (distance < 1) {
-
-          IJK::add_coord_3D
-            (new_isovert_coord, intersection_point, new_isovert_coord);
-          num_added++;
-        }
-      }
-    }
-  }
-
-  if (num_added > 0) {
-    IJK::divide_coord(DIM3, COORD_TYPE(num_added), new_isovert_coord,
-                      new_isovert_coord);
-  }
-  else {
-    // Intersect the plane and the line through the isovert coordinates
-    //   in cubes fixed_cube[0] and fixed_cube[1].
-    const NUM_TYPE gcube0_index = isovert.GCubeIndex(fixed_cube[0]);
-    const NUM_TYPE gcube1_index = isovert.GCubeIndex(fixed_cube[1]);
-    const COORD_TYPE * isovert_coord0 =
-      isovert.gcube_list[gcube0_index].isovert_coord;
-    const COORD_TYPE * isovert_coord1 =
-      isovert.gcube_list[gcube1_index].isovert_coord;
-    COORD_TYPE line_dir[DIM3], magnitude;
-
-    IJK::subtract_coord_3D(isovert_coord1, isovert_coord0, line_dir);
-    bool flag_zero;
-    IJK::normalize_vector(DIM3, line_dir, min_significant_distance, 
-                          line_dir, magnitude, flag_zero);
-
-    if (flag_zero) {
-      // Two vertices are close together.
-      COORD_TYPE midpoint[DIM3];
-      IJK::compute_midpoint(DIM3, isovert_coord0, isovert_coord1, midpoint);
-
-      // Use point on plane closest to midpoint
-      compute_closest_point_on_plane
-        (midpoint, pointX, plane_normal, new_isovert_coord);
-    }
-    else {
-      bool flag_succeeded;
-      IJK::intersect_line_plane_3D
-        (isovert_coord0, line_dir, pointX, plane_normal, 
-         min_abs_cos_angle_LO, new_isovert_coord, flag_succeeded);
-
-      if (!flag_succeeded) {
-        // Just in case...
-        COORD_TYPE midpoint[DIM3];
-        IJK::compute_midpoint(DIM3, isovert_coord0, isovert_coord1, midpoint);
-
-        // Use point on plane closest to midpoint
-        compute_closest_point_on_plane
-          (midpoint, pointX, plane_normal, new_isovert_coord);
-      }
-    }
-  }
+  compute_isovert_on_plane_from_sharp_edges
+    (scalar_grid, isovert, isovert_param, fixed_cube, pointX, plane_normal,
+     new_isovert_coord);
 
   // *** DEBUG ***
   if (flag_debug) {
