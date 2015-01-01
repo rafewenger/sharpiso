@@ -1165,7 +1165,7 @@ void recompute_isovert_position_around_edge
   pointX[edge_dir] += scalar_grid.Spacing(edge_dir)/2.0;
 
   IJK::set_coord_3D(0, new_isovert_coord);
-  NUM_TYPE num_added;
+  NUM_TYPE num_added = 0;
   for (int i = 0; i < 2; i++) {
     NUM_TYPE gcube_index = isovert.GCubeIndex(fixed_cube[i]);
 
@@ -1189,6 +1189,7 @@ void recompute_isovert_position_around_edge
 
           IJK::add_coord_3D
             (new_isovert_coord, intersection_point, new_isovert_coord);
+          num_added++;
         }
       }
     }
@@ -1286,8 +1287,9 @@ void recompute_isovert_position_around_edge
   }
 
   if (!flag_set) {
-    // Cube containing point is not active or is UNAVAILABLE.
-    // Assign point to all AVAILABLE or SMOOTH cubes around vertex.
+    // Cube containing point is not active.
+    // Assign point to all active cubes around vertex 
+    //   other than fixed_cube[0] and fixed_cube[1].
 
     for (int j1 = 0; j1 < 2; j1++) {
       for (int j2 = 0; j2 < 2; j2++) {
@@ -1319,6 +1321,9 @@ void recompute_isovert_position_around_edge
  const bool flag_min_offset,
  ISOVERT & isovert)
 {
+  // *** DEBUG ***
+  flag_debug = false;
+
   for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
 
     VERTEX_INDEX cube_index = isovert.CubeIndex(i);
@@ -2238,13 +2243,6 @@ void check_and_select_cube
 
   // *** SHOULD ADD CHECK FOR flag_conflict HERE ***
 
-  // *** DEBUG ***
-  if (cube_index == 72375) {
-    cerr << "In " << __func__ << endl;
-    scalar_grid.PrintIndexAndCoord
-      (cerr, "    Checking cube ", cube_index, ".\n");
-  }
-
 	// Check if the sharp vertex is inside a covered cube.
 	if (check_covered_point(covered_grid, isovert, gcube_index)) {
 		isovert.gcube_list[gcube_index].flag = COVERED_POINT;
@@ -2254,13 +2252,6 @@ void check_and_select_cube
 	bool triangle_flag =
     creates_triangle_new(scalar_grid, isovert, cube_index,
                          isovalue, bin_grid, bin_width, v1, v2);
-
-  // *** DEBUG ***
-  if (cube_index == 72375) {
-    cerr << "In " << __func__ << endl;
-    scalar_grid.PrintIndexAndCoord(cerr, "    Cube ", cube_index, "");
-    cerr << "  triangle_flag: " << int(triangle_flag) << endl;
-  }
 
   if (!triangle_flag) {
     select_cube
