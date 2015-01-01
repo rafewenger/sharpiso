@@ -234,173 +234,6 @@ namespace IJK {
     magnitude = std::sqrt(magnitude);
   }
 
-  // **************************************************
-  // Distance operations
-  // **************************************************
-
-  /// Compute square of distance between two points.
-  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
-            typename DIST_TYPE>
-  void compute_distance_squared
-  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
-   DIST_TYPE & distance_squared)
-  {
-    distance_squared = 0.0;
-    for (DTYPE d = 0; d < dimension; d++) {
-      CTYPE0 diff = coord0[d] - coord1[d];
-      distance_squared += diff*diff;
-    }
-  }
-
-  /// Compute distance between two points.
-  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
-            typename DIST_TYPE>
-  void compute_distance
-  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
-   DIST_TYPE & distance)
-  {
-    compute_distance_squared(dimension, coord0, coord1, distance);
-    distance = std::sqrt(distance);
-  }
-
-  /// Compute square of scaled distance between two points.
-  /// Scale by coordinate-wise divide.
-  /// @pre scale[d]>0 for all d in range [0,dimension-1].
-  template <typename DTYPE, typename CTYPE0, typename CTYPE1,
-            typename SCALE_TYPE, typename DIST_TYPE>
-  void compute_scaled_distance_squared_divide
-  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
-   const SCALE_TYPE scale, DIST_TYPE & scaled_distance_squared)
-  {
-    scaled_distance_squared = 0.0;
-    for (DTYPE d = 0; d < dimension; d++) {
-      CTYPE0 diff = (coord0[d] - coord1[d])/scale[d];
-      scaled_distance_squared += diff*diff;
-    }
-  }
-
-  /// Compute scaled distance between two points.
-  /// Scale by coordinate-wise divide.
-  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
-            typename SCALE_TYPE, typename DIST_TYPE>
-  void compute_scaled_distance_divide
-  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
-   const SCALE_TYPE scale, DIST_TYPE & scaled_distance)
-  {
-    compute_scaled_distance_squared_divide
-      (dimension, coord0, coord1, scale, scaled_distance);
-    scaled_distance = std::sqrt(scaled_distance);
-  }
-
-  /*! 
-   *  Compute signed (L2) distance from coord0[] to hyperplane through coord1[].
-   *  @tparam DIST_TYPE Distance type.  DIST_TYPE should be a signed type.
-   *  @param dimension Coordinate and vector dimensions.
-   *  @param coord0[] Compute distance from coord0[].
-   *  @param coord1[] Hyperplane passes through coord1[].
-   *  @param orth_dir[] Direction orthogonal to hyperplane.
-   *  @param[out] distance Signed distance to hyperplane.
-   *    - distance = inner product of (coord0[]-coord1[]) and orth_dir[].
-   *  @pre orth_dir[] is a unit vector.
-   */
-  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
-            typename VTYPE, typename DIST_TYPE>
-  void compute_signed_distance_to_hyperplane
-  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
-   const VTYPE orth_dir[], DIST_TYPE & distance)
-  {
-    // Compute inner product of (coord0[]-coord1[]) and orth_dir[].
-    distance = 0;
-    for (DTYPE d = 0; d < dimension; d++) 
-      { distance = distance + (coord0[d]-coord1[d])*orth_dir[d]; }
-  }
-
-  /*!
-   *  Compute (unsigned L2) distance from coord0[] 
-   *     to hyperplane through coord1[].
-   *  @param dimension Coordinate dimension (= number of coordinates.)
-   *  @param coord0[] Compute distance from coord0[].
-   *  @param coord1[] Hyperplane passes through coord1[].
-   *  @param orth_dir[] Direction orthogonal to hyperplane.
-   *  @param[out] distance Distance to hyperplane.
-   *     - distance = the absolute value of inner product of 
-   *                 (coord0[]-coord1[]) and orth_dir[].
-   *  @pre orth_dir[] is a unit vector.
-   */
-  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
-            typename VTYPE, typename DIST_TYPE>
-  void compute_distance_to_hyperplane
-  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
-   const VTYPE orth_dir[], DIST_TYPE & distance)
-  {
-    VTYPE signed_distance;
-
-    compute_signed_distance_to_hyperplane
-      (dimension, coord0, coord1, orth_dir, signed_distance);
-
-    if (signed_distance >= 0) 
-      { distance = signed_distance; }
-    else
-      { distance = -signed_distance; }
-  }
-
-  /*!
-   *  Compute (L2) distance squared from coord0[] to line through coord1[].
-   *  @param dimension Coordinate dimension (= number of coordinates.)
-   *  @param coord0[] Compute distance from coord0[].
-   *  @param coord1[] Line passes through coord1[].
-   *  @param dir[] Line direction.
-   *  @param[out] distance_squared
-   *    Distance squared from coord0[] to line through coord1[].
-   *    - distance_squared = Magnitude squared of w where w is the component
-   *       of (coord0[]-coord1[]) orthogonal to dir[].
-   *    - w = (coord0[]-coord1[]) - x*dir[] where x is the inner product
-   *       of (coord0[]-coord1[]) and dir[].
-   *  @pre dir[] is a unit vector.
-   */
-  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
-            typename VTYPE, typename DIST_TYPE>
-  void compute_distance_squared_to_line
-  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
-   const VTYPE dir[], DIST_TYPE & distance_squared)
-  {
-    // Compute inner product of (coord0[]-coord1[]) and dir[].
-    DIST_TYPE x = 0;
-    for (DTYPE d = 0; d < dimension; d++) 
-      { x = x + (coord0[d]-coord1[d])*dir[d]; }
-
-    // Compute magnitude squared of ((coord0[]-coord1[])-x*dir[]).
-    distance_squared = 0;
-    for (DTYPE d = 0; d < dimension; d++) {
-      DIST_TYPE y = (coord0[d]-coord1[d]) - x*dir[d];
-      distance_squared = distance_squared + (y*y);
-    }
-  }
-
-  /*!
-   *  Compute (unsigned, L2) distance from coord0[] to line through coord1[].
-   *  @param dimension Coordinate dimension (= number of coordinates.)
-   *  @param coord0[] Compute distance from coord0[].
-   *  @param coord1[] Line passes through coord1[].
-   *  @param dir[] Line direction.
-   *  @param[out] distance Distance from coord0[] to line through coord1[].
-   *    - distance = Magnitude of w where w is the component
-   *       of (coord0[]-coord1[]) orthogonal to dir[].
-   *    - w = (coord0[]-coord1[]) - x*dir[] where x is the inner product
-   *       of (coord0[]-coord1[]) and dir[].
-   *  @pre dir[] is a unit vector.
-   */
-  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
-            typename VTYPE, typename DIST_TYPE>
-  void compute_distance_to_line
-  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
-   const VTYPE dir[], DIST_TYPE & distance)
-  {
-    compute_distance_squared_to_line
-      (dimension, coord0, coord1, dir, distance);
-    distance = std::sqrt(distance);
-  }
-
 
   // **************************************************
   // Vector operations
@@ -729,15 +562,233 @@ namespace IJK {
     else 
       { flag_zero = true; }
   }
-  
+
+
+  // **************************************************
+  // Distance operations
+  // **************************************************
+
+  /// Compute square of distance between two points.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename DIST_TYPE>
+  void compute_distance_squared
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   DIST_TYPE & distance_squared)
+  {
+    distance_squared = 0.0;
+    for (DTYPE d = 0; d < dimension; d++) {
+      CTYPE0 diff = coord0[d] - coord1[d];
+      distance_squared += diff*diff;
+    }
+  }
+
+  /// Compute distance between two points.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename DIST_TYPE>
+  void compute_distance
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   DIST_TYPE & distance)
+  {
+    compute_distance_squared(dimension, coord0, coord1, distance);
+    distance = std::sqrt(distance);
+  }
+
+  /// Compute square of scaled distance between two points.
+  /// Scale by coordinate-wise divide.
+  /// @pre scale[d]>0 for all d in range [0,dimension-1].
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1,
+            typename SCALE_TYPE, typename DIST_TYPE>
+  void compute_scaled_distance_squared_divide
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const SCALE_TYPE scale, DIST_TYPE & scaled_distance_squared)
+  {
+    scaled_distance_squared = 0.0;
+    for (DTYPE d = 0; d < dimension; d++) {
+      CTYPE0 diff = (coord0[d] - coord1[d])/scale[d];
+      scaled_distance_squared += diff*diff;
+    }
+  }
+
+  /// Compute scaled distance between two points.
+  /// Scale by coordinate-wise divide.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename SCALE_TYPE, typename DIST_TYPE>
+  void compute_scaled_distance_divide
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const SCALE_TYPE scale, DIST_TYPE & scaled_distance)
+  {
+    compute_scaled_distance_squared_divide
+      (dimension, coord0, coord1, scale, scaled_distance);
+    scaled_distance = std::sqrt(scaled_distance);
+  }
+
+  /*! 
+   *  Compute signed (L2) distance from coord0[] to hyperplane through coord1[].
+   *  @tparam DIST_TYPE Distance type.  DIST_TYPE should be a signed type.
+   *  @param dimension Coordinate and vector dimensions.
+   *  @param coord0[] Compute distance from coord0[].
+   *  @param coord1[] Hyperplane passes through coord1[].
+   *  @param orth_dir[] Direction orthogonal to hyperplane.
+   *  @param[out] distance Signed distance to hyperplane.
+   *    - distance = inner product of (coord0[]-coord1[]) and orth_dir[].
+   *  @pre orth_dir[] is a unit vector.
+   */
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename VTYPE, typename DIST_TYPE>
+  void compute_signed_distance_to_hyperplane
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const VTYPE orth_dir[], DIST_TYPE & distance)
+  {
+    // Compute inner product of (coord0[]-coord1[]) and orth_dir[].
+    distance = 0;
+    for (DTYPE d = 0; d < dimension; d++) 
+      { distance = distance + (coord0[d]-coord1[d])*orth_dir[d]; }
+  }
+
+  /*!
+   *  Compute (unsigned L2) distance from coord0[] 
+   *     to hyperplane through coord1[].
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param coord0[] Compute distance from coord0[].
+   *  @param coord1[] Hyperplane passes through coord1[].
+   *  @param orth_dir[] Direction orthogonal to hyperplane.
+   *  @param[out] distance Distance to hyperplane.
+   *     - distance = the absolute value of inner product of 
+   *                 (coord0[]-coord1[]) and orth_dir[].
+   *  @pre orth_dir[] is a unit vector.
+   */
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename VTYPE, typename DIST_TYPE>
+  void compute_distance_to_hyperplane
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const VTYPE orth_dir[], DIST_TYPE & distance)
+  {
+    VTYPE signed_distance;
+
+    compute_signed_distance_to_hyperplane
+      (dimension, coord0, coord1, orth_dir, signed_distance);
+
+    if (signed_distance >= 0) 
+      { distance = signed_distance; }
+    else
+      { distance = -signed_distance; }
+  }
+
+  /*!
+   *  Compute (L2) distance squared from coord0[] to line through coord1[].
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param coord0[] Compute distance from coord0[].
+   *  @param coord1[] Line passes through coord1[].
+   *  @param dir[] Line direction.
+   *  @param[out] distance_squared
+   *    Distance squared from coord0[] to line through coord1[].
+   *    - distance_squared = Magnitude squared of w where w is the component
+   *       of (coord0[]-coord1[]) orthogonal to dir[].
+   *    - w = (coord0[]-coord1[]) - x*dir[] where x is the inner product
+   *       of (coord0[]-coord1[]) and dir[].
+   *  @pre dir[] is a unit vector.
+   */
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename VTYPE, typename DIST_TYPE>
+  void compute_distance_squared_to_line
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const VTYPE dir[], DIST_TYPE & distance_squared)
+  {
+    // Compute inner product of (coord0[]-coord1[]) and dir[].
+    DIST_TYPE x = 0;
+    for (DTYPE d = 0; d < dimension; d++) 
+      { x = x + (coord0[d]-coord1[d])*dir[d]; }
+
+    // Compute magnitude squared of ((coord0[]-coord1[])-x*dir[]).
+    distance_squared = 0;
+    for (DTYPE d = 0; d < dimension; d++) {
+      DIST_TYPE y = (coord0[d]-coord1[d]) - x*dir[d];
+      distance_squared = distance_squared + (y*y);
+    }
+  }
+
+  /*!
+   *  Compute (unsigned, L2) distance from coord0[] to line through coord1[].
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param coord0[] Compute distance from coord0[].
+   *  @param coord1[] Line passes through coord1[].
+   *  @param dir[] Line direction.
+   *  @param[out] distance Distance from coord0[] to line through coord1[].
+   *    - distance = Magnitude of w where w is the component
+   *       of (coord0[]-coord1[]) orthogonal to dir[].
+   *    - w = (coord0[]-coord1[]) - x*dir[] where x is the inner product
+   *       of (coord0[]-coord1[]) and dir[].
+   *  @pre dir[] is a unit vector.
+   */
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename VTYPE, typename DIST_TYPE>
+  void compute_distance_to_line
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const VTYPE dir[], DIST_TYPE & distance)
+  {
+    compute_distance_squared_to_line
+      (dimension, coord0, coord1, dir, distance);
+    distance = std::sqrt(distance);
+  }
+
+  // **************************************************
+  // Intersection operations
+  // **************************************************  
+
+  /// Compute the intersection of a line and a hyperplane.
+  /// Line contains \a coord0[] and has direction \a line_dir[].
+  /// Hyperplane contains \a coord1[] 
+  ///   and has orthogonal direction \a orth_dir[].
+  /// @param dimension Coordinate dimension (= number of coordinates.)
+  /// @param coord0[] Coordinates of point contained by line. 
+  /// @param line_dir[] Line direction.
+  /// @param coord1[] Coordinates of point contained by hyperplane.
+  /// @param orth_dir[] Direction orthgonal to \a line_dir[].
+  /// @param min_abs_cos_angle_LO Minimum value of the absolute value
+  ///     of the cosine of the angle between \a line_dir[] and \a orth_dir[].
+  /// @param[out] intersection_point[] 
+  ///               Intersection point of line and hyperplane.
+  /// @param[out] flag_succeeded True if computation succeeded.
+  ///    Computations succeeds if:
+  ///      abs(inner_product(line_dir[],orth_dir[])) > min_abs_cos_angle_LO.
+  /// @pre \a line_dir[] is a unit vector.
+  /// @pre \a orth_dir[] is a unit vector.
+  /// @pre \a min_abs_cos_angle_LO >= 0.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename VTYPE0, typename VTYPE1, typename MTYPE,
+            typename CTYPE2>
+  void intersect_line_hyperplane
+  (const DTYPE dimension, const CTYPE0 coord0[], const VTYPE0 line_dir[],
+   const CTYPE1 coord1[], const VTYPE1 orth_dir[],
+   const MTYPE min_abs_cos_angle_LO,
+   CTYPE2 intersection_point[], bool & flag_succeeded)
+  {
+    VTYPE0 cos_angle;
+    compute_inner_product(dimension, line_dir, orth_dir, cos_angle);
+
+    if (abs(cos_angle) > min_abs_cos_angle_LO) {
+      VTYPE0 distance, t;
+      flag_succeeded = true;
+
+      compute_signed_distance_to_hyperplane
+        (dimension, coord0, coord1, orth_dir, distance);
+      t = -distance/cos_angle;
+      add_scaled_coord(dimension, t, line_dir, coord0, intersection_point);
+    }
+    else {
+      flag_succeeded = false;
+      IJK::copy_coord(dimension, coord1, intersection_point);
+    }
+  }
+
   // **************************************************
   // Comparison operators
   // **************************************************
 
   /// Return true if coordinates are the same.
-  /// @param dimension = Coordinate dimension (= number of coordinates.)
-  /// @param coord0 = Input coordinates.
-  /// @param coord1 = Input coordinates.
+  /// @param dimension Coordinate dimension (= number of coordinates.)
+  /// @param coord0[] Input coordinates.
+  /// @param coord1[] Input coordinates.
   template <typename DTYPE, typename CTYPE0, typename CTYPE1>
   bool is_coord_equal(const DTYPE dimension, 
                       const CTYPE0 coord0[], const CTYPE1 coord1[])
@@ -1246,6 +1297,41 @@ namespace IJK {
     compute_distance_to_line(DIM3, coord0, coord1, dir, distance);
   }
 
+  // **************************************************
+  // 3D intersections
+  // **************************************************
+
+  /// Compute the intersection of a line and a plane.
+  /// Line contains \a coord0[] and has direction \a line_dir[].
+  /// Plane contains \a coord1[] and has orthogonal direction \a orth_dir[].
+  /// @param coord0[] Coordinates of point contained by line. 
+  /// @param line_dir[] Line direction.
+  /// @param coord1[] Coordinates of point contained by hyperplane.
+  /// @param orth_dir[] Direction orthgonal to \a line_dir[].
+  /// @param min_abs_cos_angle_LO Minimum value of the absolute value
+  ///     of the cosine of the angle between \a line_dir[] and \a orth_dir[].
+  /// @param[out] intersection_point[] 
+  ///               Intersection point of line and hyperplane.
+  /// @param[out] flag_succeeded True if computation succeeded.
+  ///    Computations succeeds if:
+  ///      abs(inner_product(line_dir[],orth_dir[])) > min_abs_cos_angle_LO.
+  /// @pre \a line_dir[] is a unit vector.
+  /// @pre \a orth_dir[] is a unit vector.
+  /// @pre \a min_abs_cos_angle_LO >= 0.
+  template <typename CTYPE0, typename CTYPE1, 
+            typename VTYPE0, typename VTYPE1, typename MTYPE,
+            typename CTYPE2>
+  void intersect_line_plane_3D
+  (const CTYPE0 coord0[], const VTYPE0 line_dir[],
+   const CTYPE1 coord1[], const VTYPE1 orth_dir[],
+   const MTYPE min_abs_cos_angle_LO,
+   CTYPE2 intersection_point[], bool & flag_succeeded)
+  {
+    const int DIM3 = 3;
+    intersect_line_hyperplane
+      (DIM3, coord0, line_dir, coord1, orth_dir, min_abs_cos_angle_LO,
+       intersection_point, flag_succeeded);
+  }
 
 
   // **************************************************

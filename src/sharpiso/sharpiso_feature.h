@@ -416,6 +416,12 @@ namespace SHARPISO {
     ///   determined by nearby cube.
     COORD_TYPE max_dist_to_sharp_edge;
 
+    /// Min significant distance in isosurface vertex locations.
+    /// Differences in locations under this distance are insignificant.
+    /// Should be some positive value.
+    /// Suggested value: (0.01)*(minimum grid spacing).
+    COORD_TYPE min_significant_distance;
+
     /// Snap points within snap distance to cube.
     COORD_TYPE snap_dist;
     

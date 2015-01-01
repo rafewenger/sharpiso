@@ -1244,6 +1244,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   max_dist = 1.0;                  // Note: Distance from cube boundary.
   max_dist_to_set_other = 1.0;     // Note: Distance from cube center.
   max_dist_to_sharp_edge = 2.0;    // Note: L2 distance from isovert coord.
+  min_significant_distance = 0.01;
   snap_dist = 1.0/16.0;
   max_small_eigenvalue = 0.1;
   round_denominator = 16;
