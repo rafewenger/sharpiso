@@ -478,7 +478,7 @@ void MERGESHARP::DUAL_ISOVERT_INFO::Set(const MERGESHARP::DUAL_ISOVERT & isov)
 
 void MERGESHARP::set_isovert_info
 (const std::vector<MERGESHARP::DUAL_ISOVERT> & iso_vlist,
- const std::vector<GRID_CUBE> & gcube_list,
+ const GRID_CUBE_DATA_ARRAY & gcube_list,
  std::vector<DUAL_ISOVERT_INFO> & isovert_info)
 {
   IJK::PROCEDURE_ERROR error("set_isovert_info");

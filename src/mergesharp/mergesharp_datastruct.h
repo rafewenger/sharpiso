@@ -600,7 +600,7 @@ namespace MERGESHARP {
   /// Store isosurface vertex information in isovert_info.
   void set_isovert_info
     (const std::vector<MERGESHARP::DUAL_ISOVERT> & iso_vlist,
-     const std::vector<GRID_CUBE> & gcube_list,
+     const GRID_CUBE_DATA_ARRAY & gcube_list,
      std::vector<DUAL_ISOVERT_INFO> & isovert_info);
 
   /// Delete vertices i where flag_keep[i] = false.

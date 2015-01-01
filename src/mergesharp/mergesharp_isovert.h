@@ -33,7 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 namespace MERGESHARP {
 
 // **************************************************
-// GRID CUBES INFORMATION
+// GRID CUBE DATA
 // **************************************************
 
 typedef enum {
@@ -49,7 +49,7 @@ typedef enum {
 } GRID_CUBE_FLAG;
 
 
-class GRID_CUBE {
+class GRID_CUBE_DATA {
 
 protected:
 
@@ -118,10 +118,11 @@ public:
   /// Return true if cube is covered or selected.
   bool IsCoveredOrSelected() const;
 
-  GRID_CUBE() { Init(); }
+  GRID_CUBE_DATA() { Init(); }
 };
 
-typedef std::vector<GRID_CUBE> GRID_CUBE_ARRAY;
+typedef std::vector<GRID_CUBE_DATA> GRID_CUBE_DATA_ARRAY;
+
 
 // **************************************************
 // ISOSURFACE VERTEX DATA
@@ -131,7 +132,7 @@ class ISOVERT {
 public:
 
 	/// gcube_list containing the active cubes and their vertices.
-	std::vector<GRID_CUBE> gcube_list;
+	std::vector<GRID_CUBE_DATA> gcube_list;
 
 	static const int NO_INDEX = -1;       ///< Flag for no index.
 
@@ -326,17 +327,17 @@ void bin_grid_remove
 ///    List is sorted by decreasing number of eigenvalues and then by
 ///      increasing linf_dist.
 void get_corner_or_edge_cubes
-(const std::vector<GRID_CUBE> & gcube_list,
+(const std::vector<GRID_CUBE_DATA> & gcube_list,
  std::vector<NUM_TYPE> & gcube_index_list);
 
 /// Store boundary bits for each cube in gcube_list.
 void store_boundary_bits
-(const SHARPISO_GRID & grid, GRID_CUBE_ARRAY & gcube_list);
+(const SHARPISO_GRID & grid, GRID_CUBE_DATA_ARRAY & gcube_list);
 
 /// Store isosurface lookup table index in gcube_list.
 void store_table_index
 (const std::vector<IJKDUALTABLE::TABLE_INDEX> & table_index,
- GRID_CUBE_ARRAY & gcube_list);
+ GRID_CUBE_DATA_ARRAY & gcube_list);
  
 }
 

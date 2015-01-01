@@ -368,10 +368,10 @@ namespace {
    const MERGESHARP::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
-	void map_iso_vertex(const std::vector<GRID_CUBE> & gcube_list,
-		const INDEX_DIFF_TYPE from_gcube,
-		const INDEX_DIFF_TYPE to_gcube,
-		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+	void map_iso_vertex
+  (const GRID_CUBE_DATA_ARRAY & gcube_list,
+   const INDEX_DIFF_TYPE from_gcube, const INDEX_DIFF_TYPE to_gcube,
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
 	{
 		if (from_gcube != ISOVERT::NO_INDEX) {
       if (gcube_list[from_gcube].flag != SELECTED_GCUBE && 
@@ -391,7 +391,7 @@ namespace {
 	void map_iso_vertex
   (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
-   const std::vector<GRID_CUBE> & gcube_list,
+   const GRID_CUBE_DATA_ARRAY & gcube_list,
    const INDEX_DIFF_TYPE from_gcube,
    const INDEX_DIFF_TYPE to_gcube,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
@@ -786,7 +786,7 @@ namespace {
 		}
 	}
 
-  // Store map in GRID_CUBE
+  // Store map in GRID_CUBE_DATA
   void store_map(const std::vector<VERTEX_INDEX> & gcube_map,
                  MERGESHARP::ISOVERT & isovert)
   {

@@ -901,8 +901,7 @@ void MERGESHARP::full_split_dual_isovert
 
 /// Copy isovert position from data structure isovert
 void MERGESHARP::copy_isovert_positions
-(const std::vector<GRID_CUBE> & gcube_list,
- COORD_ARRAY & vertex_coord)
+(const GRID_CUBE_DATA_ARRAY & gcube_list, COORD_ARRAY & vertex_coord)
 {
   VERTEX_INDEX num_isovert = gcube_list.size();
 

@@ -1801,9 +1801,9 @@ void reset_covered_isovert_positions
 class GCUBE_COMPARE {
 
 public:
-	const std::vector<GRID_CUBE> * gcube_list;
+	const std::vector<GRID_CUBE_DATA> * gcube_list;
 
-	GCUBE_COMPARE(const std::vector<GRID_CUBE> & gcube_list)
+	GCUBE_COMPARE(const std::vector<GRID_CUBE_DATA> & gcube_list)
 	{ this->gcube_list = &gcube_list; };
 
 	bool operator () (int i,int j)
@@ -1837,7 +1837,7 @@ public:
 ///    sorted by number of large eigenvalues and by distance 
 ///    of sharp coord from cube center.
 void MERGESHARP::get_corner_or_edge_cubes
-(const std::vector<GRID_CUBE> & gcube_list,
+(const std::vector<GRID_CUBE_DATA> & gcube_list,
  std::vector<NUM_TYPE> & gcube_index_list)
 {
   GCUBE_COMPARE gcube_compare(gcube_list);
@@ -1853,7 +1853,7 @@ void MERGESHARP::get_corner_or_edge_cubes
 }
 
 void MERGESHARP::store_boundary_bits
-	(const SHARPISO_GRID & grid, GRID_CUBE_ARRAY & gcube_list)
+	(const SHARPISO_GRID & grid, GRID_CUBE_DATA_ARRAY & gcube_list)
 {
 	for (NUM_TYPE i = 0; i < gcube_list.size(); i++) {
 		grid.ComputeBoundaryCubeBits
@@ -2404,7 +2404,7 @@ bool select_one_edge_cube	(
 
     NUM_TYPE gcube_index = from_list[ind];
 
-		GRID_CUBE c;
+		GRID_CUBE_DATA c;
 		c = isovert.gcube_list[gcube_index];
 
 		if (c.boundary_bits == 0)
@@ -2720,7 +2720,7 @@ void reselect_edge_cubes (
 * is th neighbor of type flag
 */
 bool is_neighbor(	
-	GRID_CUBE c,
+	GRID_CUBE_DATA c,
 	const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 	SHARPISO_GRID_NEIGHBORS & gridn,
 	ISOVERT &isovert,
@@ -2807,7 +2807,7 @@ void select_cubes_near_corners	(
 
     NUM_TYPE gcube_index = sortd_ind2gcube_list[ind];
 
-		GRID_CUBE c;
+		GRID_CUBE_DATA c;
 		c = isovert.gcube_list[gcube_index];
 
     if (isovert.isFlag
@@ -3049,7 +3049,7 @@ void create_active_cubes (
 		{
 			index = isovert.gcube_list.size();
 			isovert.sharp_ind_grid.Set(iv,index);
-			GRID_CUBE gc;
+			GRID_CUBE_DATA gc;
 			gc.cube_index = iv;
 			isovert.gcube_list.push_back(gc);
 		}
@@ -3156,7 +3156,7 @@ void MERGESHARP::get_cube_list
 // Store isosurface lookup table index in gcube_list.
 void MERGESHARP::store_table_index
 	(const std::vector<IJKDUALTABLE::TABLE_INDEX> & table_index,
-	GRID_CUBE_ARRAY & gcube_list)
+	GRID_CUBE_DATA_ARRAY & gcube_list)
 {
 	IJK::PROCEDURE_ERROR error("store_table_index");
 
@@ -3227,10 +3227,10 @@ void MERGESHARP::convert2string
 
 
 // **************************************************
-// GRID_CUBE member functions
+// GRID_CUBE_DATA member functions
 // **************************************************
 
-void GRID_CUBE::Init()
+void GRID_CUBE_DATA::Init()
 {
   num_eigenvalues = 0;
   flag = AVAILABLE_GCUBE;
@@ -3252,7 +3252,7 @@ void GRID_CUBE::Init()
   covered_by = 0;
 }
 
-bool GRID_CUBE::IsCoveredOrSelected() const
+bool GRID_CUBE_DATA::IsCoveredOrSelected() const
 {
   if (flag == COVERED_A_GCUBE || flag == COVERED_B_GCUBE ||
       flag == COVERED_CORNER_GCUBE || flag == SELECTED_GCUBE) 
