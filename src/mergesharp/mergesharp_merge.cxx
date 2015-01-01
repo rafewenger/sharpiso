@@ -46,28 +46,28 @@ namespace {
   CUBE_CONNECTED_ARRAY;
 
 	void determine_gcube_map
-		(const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-		const SCALAR_TYPE isovalue,
-		MERGESHARP::ISOVERT & isovert, 
-		const SHARP_ISOVERT_PARAM & sharp_isovert_param,
-		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map, 
-		MERGESHARP::SHARPISO_INFO & sharpiso_info);
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SCALAR_TYPE isovalue,
+   MERGESHARP::ISOVERT & isovert, 
+   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map, 
+   MERGESHARP::SHARPISO_INFO & sharpiso_info);
 
 	void map_adjacent_cubes
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const SCALAR_TYPE isovalue,
    const MERGESHARP::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
 	void unmap_non_disk_isopatches
-		(const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-		const SCALAR_TYPE isovalue,
-		MERGESHARP::ISOVERT & isovert, 
-		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map, 
-		MERGESHARP::SHARPISO_INFO & sharpiso_info);
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SCALAR_TYPE isovalue,
+   MERGESHARP::ISOVERT & isovert, 
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map, 
+   MERGESHARP::SHARPISO_INFO & sharpiso_info);
 
 	void determine_gcube_map_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -77,7 +77,7 @@ namespace {
    MERGESHARP::SHARPISO_INFO & sharpiso_info);
 
 	void map_adjacent_cubes_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -85,7 +85,7 @@ namespace {
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
 	void unmap_non_disk_isopatches
-		(const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+		(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
 		const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
 		const SCALAR_TYPE isovalue,
 		MERGESHARP::ISOVERT & isovert, 
@@ -113,13 +113,13 @@ namespace {
 		std::vector<VERTEX_INDEX> & new_vlist);
 
 	void extend_mapping
-    (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+    (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
 		const SCALAR_TYPE isovalue,
 		MERGESHARP::ISOVERT & isovert, 
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
 	void extend_mapping
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX extend_from_cube,
@@ -137,7 +137,7 @@ namespace {
 
 	bool are_connected_by_iso_quad
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const GRID_NEIGHBORS & grid,
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const VERTEX_INDEX & cube0_index,
    const VERTEX_INDEX & cube1_index,
    const SCALAR_TYPE isovalue,
@@ -146,7 +146,7 @@ namespace {
    const bool flag_extended);
 
 	void find_connected_sharp(
-		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
     const SHARPISO_GRID_NEIGHBORS & gridn,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX cube0_index,
@@ -209,7 +209,7 @@ namespace {
 	using namespace MERGESHARP;
 
 	void determine_gcube_map
-		(const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+		(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
 		const SCALAR_TYPE isovalue,
 		MERGESHARP::ISOVERT & isovert, 
 		const SHARP_ISOVERT_PARAM & sharp_isovert_param,
@@ -305,7 +305,7 @@ namespace {
 	using namespace MERGESHARP;
 
 	void determine_gcube_map_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -360,8 +360,8 @@ namespace {
    const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
   void check_and_map_iso_vertex
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX from_cube,
    const VERTEX_INDEX to_cube,
@@ -389,7 +389,7 @@ namespace {
   // Map boundary cubes if isosurface patch in cube does not 
   //   intersect the grid boundary.
 	void map_iso_vertex
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    const GRID_CUBE_DATA_ARRAY & gcube_list,
    const INDEX_DIFF_TYPE from_gcube,
@@ -540,8 +540,8 @@ namespace {
 
   // Map cubes which are facet adjacent to cube to_cube.
 	void map_facet_adjacent_cubes
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO::SHARPISO_GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const MERGESHARP::ISOVERT & isovert, 
    const VERTEX_INDEX to_cube,
@@ -593,8 +593,8 @@ namespace {
 
   // Map cubes which are edge adjacent to cube to_cube.
 	void map_edge_adjacent_cubes
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO::SHARPISO_GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const MERGESHARP::ISOVERT & isovert, 
    const VERTEX_INDEX to_cube,
@@ -633,8 +633,8 @@ namespace {
 
   // Map cubes which are vertex adjacent to cube to_cube.
 	void map_vertex_adjacent_cubes
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO::SHARPISO_GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const MERGESHARP::ISOVERT & isovert, 
    const VERTEX_INDEX to_cube,
@@ -682,7 +682,7 @@ namespace {
   // @param Map to cubes with the given number of eigenvalues.
   // Handles SOME boundary cases.
 	void map_adjacent_cubes
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    const MERGESHARP::ISOVERT & isovert, 
    const int num_eigenvalues,
@@ -739,7 +739,7 @@ namespace {
 	//  to the isosurface vertex in the selected cube.
   // Handles SOME boundary cases.
 	void map_adjacent_cubes
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const SCALAR_TYPE isovalue,
    const MERGESHARP::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
@@ -880,7 +880,7 @@ namespace {
   /// Determine if some isosurface quad dual to an edge of cube0
   ///   maps to both cube1 and cube2.
   void determine_if_some_quad_maps_to_both_cubes
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX cube0_index,
@@ -976,8 +976,8 @@ namespace {
   /// Count the number of edges around cube cube0_index
   ///   where one vertex maps to to_cube and the other does not.
   void count_edge_mappings_around_cube
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX cube0_index,
    const VERTEX_INDEX to_cube,
@@ -1069,8 +1069,8 @@ namespace {
 
   /// Returns true if mapping of adjacent cubes causes possible non-manifold.
   bool check_adjacent_cubes
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX cube0_index,
    const MERGESHARP::ISOVERT & isovert, 
@@ -1104,8 +1104,8 @@ namespace {
 
   // check for manifold violations caused by edges between sharp cubes.
   bool check_edges_between_sharp_cubes
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX from_cube,
    const VERTEX_INDEX to_cube,
@@ -1162,8 +1162,8 @@ namespace {
   // check for some violations of manifold conditions by map
   // (Does not catch all violations.)
   bool check_map
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX from_cube,
    const VERTEX_INDEX to_cube,
@@ -1197,8 +1197,8 @@ namespace {
   }
 
   void check_and_map_iso_vertex
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX from_cube,
    const VERTEX_INDEX to_cube,
@@ -1242,8 +1242,8 @@ namespace {
 
   // forward declarations
   void check_and_map_iso_vertex_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1254,8 +1254,8 @@ namespace {
    bool & flag_map);
 
   void check_and_map_ambig_pair
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1270,8 +1270,8 @@ namespace {
 
   /// Map cubes which share a facet with cube to_cube.
 	void map_facet_adjacent_cubes_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO::SHARPISO_GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1340,8 +1340,8 @@ namespace {
 
   /// Map cubes which share facets with selected cubes.
 	void map_facet_adjacent_cubes_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO::SHARPISO_GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1366,8 +1366,8 @@ namespace {
 
   /// Map cubes which share an edge with cube to_cube.
 	void map_edge_adjacent_cubes_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO::SHARPISO_GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1412,8 +1412,8 @@ namespace {
 
   /// Map cubes which share edges with selected cubes.
 	void map_edge_adjacent_cubes_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO::SHARPISO_GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1436,8 +1436,8 @@ namespace {
 
   /// Map cubes which share a vertex with cube to_cube.
 	void map_vertex_adjacent_cubes_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO::SHARPISO_GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1482,8 +1482,8 @@ namespace {
 
   /// Map cubes which share vertices with selected cubes.
 	void map_vertex_adjacent_cubes_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO::SHARPISO_GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1509,7 +1509,7 @@ namespace {
   // @param Map to cubes with the given number of eigenvalues.
   // Handles SOME boundary cases.
 	void map_adjacent_cubes_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1586,7 +1586,7 @@ namespace {
 	//  to the isosurface vertex in the selected cube.
   // Handles SOME boundary cases.
 	void map_adjacent_cubes_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1625,7 +1625,7 @@ namespace {
   // Check cubes with multiple isosurface vertices
   // Return true if passed check.
   bool check_cubes_with_multi_isov
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1689,8 +1689,8 @@ namespace {
   // check for some violations of manifold conditions by map
   // (Does not catch all violations.)
   bool check_map_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1700,12 +1700,6 @@ namespace {
    const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
    const bool flag_extended)
   {
-
-    if (!check_edges_between_sharp_cubes
-        (scalar_grid, grid, isovalue, from_cube, to_cube, 
-         isovert, gcube_map, flag_extended))
-      { return(false); }
-
     if (!is_unselected_cube_connected_to
         (scalar_grid, grid, isovalue, isovert, from_cube, to_cube, gcube_map))
       {
@@ -1739,13 +1733,17 @@ namespace {
       return(false);
     }
 
+    if (!check_edges_between_sharp_cubes
+        (scalar_grid, grid, isovalue, from_cube, to_cube, 
+         isovert, gcube_map, flag_extended))
+      { return(false); }
 
     return(true);
   }
 
   void check_and_map_iso_vertex_multi
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1832,8 +1830,8 @@ namespace {
 
   // Check if ambig pair maps to to_cube.
   bool check_map_ambig_pair
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -1910,8 +1908,8 @@ namespace {
   }
 
   void check_and_map_ambig_pair
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -2179,7 +2177,7 @@ namespace {
 	// Return true if two cubes are connected by an isosurface quadrilaterals.
 	bool are_connected_by_iso_quad
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-   const GRID_NEIGHBORS & grid,
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const VERTEX_INDEX & cube0_index,
    const VERTEX_INDEX & cube1_index,
    const SCALAR_TYPE isovalue,
@@ -2365,27 +2363,27 @@ namespace {
 	void check_face_neighbors(
 		const VERTEX_INDEX covered_gcube_index,
 		const SCALAR_TYPE isovalue,
-		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const SHARPISO_GRID_NEIGHBORS &gridn,
 		MERGESHARP::ISOVERT & isovert,
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 	void check_edge_neighbors(
 		const VERTEX_INDEX covered_gcube_index,
 		const SCALAR_TYPE isovalue,
-		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const SHARPISO_GRID_NEIGHBORS &gridn,
 		MERGESHARP::ISOVERT & isovert,
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 	void check_vertex_neighbors(
 		const VERTEX_INDEX covered_gcube_index,
 		const SCALAR_TYPE isovalue,
-		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const SHARPISO_GRID_NEIGHBORS &gridn,
 		MERGESHARP::ISOVERT & isovert,
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 	void check_extended_and_map
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX from_cube,
    const VERTEX_INDEX to_cube,
@@ -2394,7 +2392,7 @@ namespace {
 
   /// Extend mapping of isosurface vertices
 	void extend_mapping
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    MERGESHARP::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
@@ -2507,7 +2505,7 @@ namespace {
   /// @param extend_from Extend mapping from cube extend_from_cube.
   /// @param to_cube Extend mapping to cube to_cube.
 	void extend_mapping
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX extend_from_cube,
@@ -2546,7 +2544,7 @@ namespace {
 	void check_face_neighbors(
 		const VERTEX_INDEX covered_gcube_index,
 		const SCALAR_TYPE isovalue,
-		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const SHARPISO_GRID_NEIGHBORS &gridn,
 		MERGESHARP::ISOVERT & isovert,
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
@@ -2575,7 +2573,7 @@ namespace {
 	void check_edge_neighbors(
 		const VERTEX_INDEX covered_gcube_index,
 		const SCALAR_TYPE isovalue,
-		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const SHARPISO_GRID_NEIGHBORS &gridn,
 		MERGESHARP::ISOVERT & isovert,
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
@@ -2604,7 +2602,7 @@ namespace {
 	void check_vertex_neighbors(
 		const VERTEX_INDEX covered_gcube_index,
 		const SCALAR_TYPE isovalue,
-		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const SHARPISO_GRID_NEIGHBORS & gridn,
 		MERGESHARP::ISOVERT & isovert,
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
@@ -2629,7 +2627,7 @@ namespace {
 	// Find selected cubes whose vertices are "connected" to vertex in cube0_index
 	//[out] connected_sharp List of selected cubes.
 	void find_connected_sharp(
-		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
     const SHARPISO_GRID_NEIGHBORS & grid,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX cube0_index,
@@ -2667,6 +2665,7 @@ namespace {
 				}
 			}//for_end
 
+
 			//edges
 			for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsE(); j++) 
 			{
@@ -2697,6 +2696,7 @@ namespace {
 			}
 		}
 	}
+
 
 	// Return true if cubeA_index is facet adjacent to two cubes
   //   which share an edge and map to two different selected cubes.
@@ -2772,7 +2772,7 @@ namespace {
 	/// Check that mapping does not create degenerate/thin triangle 
   ///   between connected, selected cubes.
 	bool check_connected_sharp
-  ( const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+  ( const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
 		const SCALAR_TYPE isovalue,
 		const MERGESHARP::ISOVERT & isovert, 
     const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
@@ -2829,7 +2829,7 @@ namespace {
   // *** NOT TESTED ***
 	// Check that cube is near two selected cubes.
 	bool check_near_two_selected(
-    const GRID_NEIGHBORS & grid,
+    const SHARPISO_GRID_NEIGHBORS & grid,
 		const MERGESHARP::ISOVERT & isovert, 
     const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
     const VERTEX_INDEX cube0_index)
@@ -2909,7 +2909,7 @@ namespace {
 	*/
   // *** NOT CURRENTLY USED ***
 	bool is_cube_merge_permitted_edge_neighbors(
-		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		MERGESHARP::ISOVERT & isovert,
 		const VERTEX_INDEX from_cube_gcube_index,
 		const VERTEX_INDEX to_cube_gcube_index,
@@ -3051,7 +3051,7 @@ namespace {
 	* Check if merge distorts triangles
 	*/
 	bool does_cube_merge_distort_triangles
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const MERGESHARP::ISOVERT & isovert,
    const VERTEX_INDEX from_gcube_index,
    const VERTEX_INDEX to_gcube_index,
@@ -3194,7 +3194,7 @@ namespace {
 	* check if merge reverses order of isosurface vertices along grid axes
 	*/
 	bool does_merge_reverse_isovert_order(
-		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const MERGESHARP::ISOVERT & isovert,
 		const INDEX_DIFF_TYPE from_cube_gcube_index,
 		const INDEX_DIFF_TYPE to_cube_gcube_index,
@@ -3261,7 +3261,7 @@ namespace {
   ///   *** MAYBE CHANGED ***
   ///   Ignore neighbors which map to the same vertex as cube.
 	bool does_merge_identify_facet_adjacent_axis_coord(
-		const SHARPISO::SHARPISO_GRID & grid,
+		const SHARPISO_GRID & grid,
 		const MERGESHARP::ISOVERT & isovert,
 		const INDEX_DIFF_TYPE from_gcube,
 		const INDEX_DIFF_TYPE to_gcube,
@@ -3349,7 +3349,7 @@ namespace {
   /// Check if merge maps cube to same axis coordinate as some edge neighbor.
   ///   Ignore neighbors which map to the same vertex as cube.
 	bool does_merge_identify_edge_adjacent_axis_coord(
-		const SHARPISO::SHARPISO_GRID & grid,
+		const SHARPISO_GRID & grid,
 		const MERGESHARP::ISOVERT & isovert,
 		const INDEX_DIFF_TYPE from_gcube,
 		const INDEX_DIFF_TYPE to_gcube,
@@ -3428,7 +3428,7 @@ namespace {
   /// Check if merge maps cube to same axis coordinate as some vertex neighbor.
   ///   Ignore neighbors which map to the same vertex as cube.
 	bool does_merge_identify_vertex_adjacent_axis_coord(
-		const SHARPISO::SHARPISO_GRID & grid,
+		const SHARPISO_GRID & grid,
 		const MERGESHARP::ISOVERT & isovert,
 		const INDEX_DIFF_TYPE from_gcube,
 		const INDEX_DIFF_TYPE to_gcube,
@@ -3516,7 +3516,7 @@ namespace {
 	* check if mapping of vertex in from_cube to to_cube is permitted.
 	*/
 	bool is_cube_merge_permitted(
-		const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const MERGESHARP::ISOVERT & isovert,
 		const INDEX_DIFF_TYPE from_gcube_index,
 		const INDEX_DIFF_TYPE to_gcube_index,
@@ -3572,7 +3572,7 @@ namespace {
   /// @param[out] num_diff1 Number of coordinates with difference 1.
   /// @param[out] num_diff2_or_more Number of coordinates at least 2.
   void count_num_coord_diff
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const VERTEX_INDEX icube0, const VERTEX_INDEX icube1,
    NUM_TYPE & num_diff1, NUM_TYPE & num_diff2_or_more)
   {
@@ -3597,8 +3597,8 @@ namespace {
 
   /// Check extended mapping and map from cube from_cube to cube to_cube.
 	void check_extended_and_map
-  (const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX from_cube,
    const VERTEX_INDEX to_cube,
@@ -3735,7 +3735,7 @@ namespace {
 
 	// Reverse merges which create isopatches which are not disks.
 	void unmap_non_disk_isopatches
-		(const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+		(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
 		const SCALAR_TYPE isovalue,
 		MERGESHARP::ISOVERT & isovert, 
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map, 
@@ -3796,7 +3796,7 @@ namespace {
 
 	// Reverse merges which create isopatches which are not disks.
 	void unmap_non_disk_isopatches
-		(const SHARPISO::SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+		(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
 		const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
 		const SCALAR_TYPE isovalue,
 		MERGESHARP::ISOVERT & isovert, 
