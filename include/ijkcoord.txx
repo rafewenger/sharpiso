@@ -622,6 +622,50 @@ namespace IJK {
     scaled_distance = std::sqrt(scaled_distance);
   }
 
+  /// Compute Linf distance between two points.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename DIST_TYPE, typename AXIS_TYPE>
+  void compute_Linf_distance
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   DIST_TYPE & distance, AXIS_TYPE & axis)
+  {
+    DIST_TYPE x;
+
+    distance = 0;
+    axis = 0;
+    for (DTYPE d = 0; d < dimension; d++) {
+      if (coord0[d] < coord1[d])
+        { x = coord1[d] - coord0[d]; }
+      else
+        { x = coord0[d] - coord1[d]; }
+
+      if (x > distance) {
+        distance = x; 
+        axis = d;
+      }
+    }
+  }
+
+  /// Compute Linf distance between two points.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1, 
+            typename DIST_TYPE>
+  void compute_Linf_distance
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   DIST_TYPE & distance)
+  {
+    DIST_TYPE x;
+
+    distance = 0;
+    for (DTYPE d = 0; d < dimension; d++) {
+      if (coord0[d] < coord1[d])
+        { x = coord1[d] - coord0[d]; }
+      else
+        { x = coord0[d] - coord1[d]; }
+
+      if (x > distance) { distance = x; }
+    }
+  }
+
   /*! 
    *  Compute signed (L2) distance from coord0[] to hyperplane through coord1[].
    *  @tparam DIST_TYPE Distance type.  DIST_TYPE should be a signed type.
@@ -766,7 +810,7 @@ namespace IJK {
     VTYPE0 cos_angle;
     compute_inner_product(dimension, line_dir, orth_dir, cos_angle);
 
-    if (abs(cos_angle) > min_abs_cos_angle_LO) {
+    if (std::abs(cos_angle) > min_abs_cos_angle_LO) {
       VTYPE0 distance, t;
       flag_succeeded = true;
 

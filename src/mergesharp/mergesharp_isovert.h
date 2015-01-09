@@ -56,6 +56,7 @@ protected:
   void Init();
 
 public:
+	GRID_COORD_TYPE cube_coord[DIM3];  ///< Cube coordinates (unscaled).
 	COORD_TYPE isovert_coord[DIM3];    ///< Location of the sharp isovertex.
 	COORD_TYPE isovert_coordB[DIM3];   ///< Substitute location.
 	unsigned char num_eigenvalues;     ///< Number of eigenvalues.
@@ -228,6 +229,14 @@ void select_sharp_isovert(
 		const SHARP_ISOVERT_PARAM & isovert_param,
 		ISOVERT & isovertData);
 
+/// Select sharp isosurface vertices using mod3 algorithm.
+void select_sharp_isovert_mod3(
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+    const GRADIENT_GRID_BASE & gradient_grid,
+		const SCALAR_TYPE isovalue,
+		const SHARP_ISOVERT_PARAM & isovert_param,
+		ISOVERT & isovertData);
+
 /// Recompute isosurface vertex positions for cubes 
 ///   which are not selected or covered.
 /// also takes isovert_info as parameter
@@ -280,6 +289,35 @@ void convert2string(const GRID_CUBE_FLAG & flag, std::string & s);
 
 
 // **************************************************
+// BIN_GRID ROUTINES
+// **************************************************
+
+/// Initialize bin_grid.
+/// @param bin_width = number of cubes along each axis.
+void init_bin_grid
+(const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
+ BIN_GRID<VERTEX_INDEX> & bin_grid);
+
+/// Insert cube cube_index into the bin_grid.
+void bin_grid_insert
+(const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
+ const VERTEX_INDEX cube_index, BIN_GRID<int> & bin_grid);
+
+/// Remove cube cube_index into the bin_grid.
+void bin_grid_remove
+(const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
+ const VERTEX_INDEX cube_index, BIN_GRID<int> & bin_grid);
+
+/// Get the selected vertices around iv.
+void get_selected
+(const SHARPISO_GRID & grid,
+ const VERTEX_INDEX iv,
+ const BIN_GRID<VERTEX_INDEX> & bin_grid,
+ const AXIS_SIZE_TYPE bin_width,
+ std::vector<VERTEX_INDEX> & selected_list);
+
+
+// **************************************************
 // SUBROUTINES
 // **************************************************
 
@@ -297,22 +335,6 @@ bool creates_triangle (
 		const AXIS_SIZE_TYPE bin_width,
 		VERTEX_INDEX & v1,
 		VERTEX_INDEX & v2);
-
-/// Initialize bin_grid.
-/// @param bin_width = number of cubes along each axis.
-void init_bin_grid
-(const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
- BIN_GRID<VERTEX_INDEX> & bin_grid);
-
-/// Insert cube cube_index into the bin_grid.
-void bin_grid_insert
-(const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
- const VERTEX_INDEX cube_index, BIN_GRID<int> & bin_grid);
-
-/// Remove cube cube_index into the bin_grid.
-void bin_grid_remove
-(const SHARPISO_GRID & grid, const AXIS_SIZE_TYPE bin_width,
- const VERTEX_INDEX cube_index, BIN_GRID<int> & bin_grid);
 
 /// Select and sort cubes with more than one eigenvalue.
 ///   Store references to cubes sorted by number of large eigenvalues

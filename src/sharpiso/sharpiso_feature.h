@@ -385,8 +385,13 @@ namespace SHARPISO {
     bool use_lindstrom2;
     bool use_lindstrom_fast;       /// use the garland heckbert approach
     bool use_Linf_dist;            ///< If true, use Linf dist.
-	bool flag_map_extended;        ///< If true, then the extended version of mapping used.
 
+
+    /// If true, then the extended version of mapping used.
+    bool flag_map_extended;        
+
+    /// If true, then use mod3 cube selection.
+    bool flag_select_mod3;        
 
     /// Merge sharp vertices which are within this threshold distance.
     COORD_TYPE linf_dist_thresh_merge_sharp;

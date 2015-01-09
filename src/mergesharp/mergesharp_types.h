@@ -100,7 +100,7 @@ namespace MERGESHARP {
 // CLASSES
 // **************************************************
 
-  typedef IJK::BOX<VERTEX_INDEX> GRID_BOX;  ///< Grid box type.
+  typedef IJK::BOX<GRID_COORD_TYPE> GRID_BOX;  ///< Grid box type.
 
   typedef IJK::CUBE_FACE_INFO<int,int,int> MERGESHARP_CUBE_FACE_INFO;
 

@@ -1252,6 +1252,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   linf_dist_thresh_merge_sharp = 1.5;
   bin_width = 5;
   flag_map_extended = false;
+  flag_select_mod3 = false;
 }
 
 // **************************************************

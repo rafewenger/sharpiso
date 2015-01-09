@@ -80,7 +80,7 @@ namespace {
     ROUND_PARAM, NO_ROUND_PARAM,
     KEEPV_PARAM,
     MINC_PARAM, MAXC_PARAM,
-    MAP_EXTENDED,
+    MAP_EXTENDED_PARAM, SELECT_MOD3_PARAM,
     HELP_PARAM, OFF_PARAM, IV_PARAM, 
     OUTPUT_FILENAME_PARAM, STDOUT_PARAM, NOWRITE_PARAM, 
     OUTPUT_PARAM_PARAM, OUTPUT_INFO_PARAM, 
@@ -113,7 +113,7 @@ namespace {
       "-round", "-no_round",
       "-keepv",
       "-minc", "-maxc",
-      "-map_extended",
+      "-map_extended", "-select_mod3",
       "-help", "-off", "-iv", 
       "-o", "-stdout", "-nowrite", 
       "-out_param", "-info", "-out_selected", "-out_sharp", "-out_active",
@@ -380,9 +380,14 @@ namespace {
       input_info.flag_check_triangle_angle = false;
       break;
 
-	  	case MAP_EXTENDED:
-		input_info.flag_map_extended = true;
-		break;
+    case MAP_EXTENDED_PARAM:
+      input_info.flag_map_extended = true;
+      break;
+
+    case SELECT_MOD3_PARAM:
+      input_info.flag_select_mod3 = true;
+      break;
+
     case DIST2CENTER_PARAM:
       input_info.flag_dist2centroid = false;
       break;

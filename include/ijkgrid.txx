@@ -3776,8 +3776,11 @@ namespace IJK {
     Linf_distance = 0;
     axis = 0;
     for (DTYPE d = 0; d < dimension; d++) {
-      diff = coord0[d] - coord1[d];
-      if (diff < 0) { diff = -diff; }
+
+      if (coord0[d] < coord1[d])
+        { diff = coord1[d] - coord0[d]; }
+      else
+        { diff = coord0[d] - coord1[d]; }
 
       if (diff > Linf_distance) {
         Linf_distance = diff;
@@ -3795,9 +3798,25 @@ namespace IJK {
   {
     typedef typename GTYPE::DIMENSION_TYPE DTYPE;
 
-    DTYPE axis;
-    compute_Linf_distance_between_grid_vertices
-      (grid, iv0, iv1, Linf_distance, axis);
+    const DTYPE dimension = grid.Dimension();
+    IJK::ARRAY<DIST_TYPE> coord0(dimension), coord1(dimension);
+    DIST_TYPE diff;
+
+    grid.ComputeCoord(iv0, coord0.Ptr());
+    grid.ComputeCoord(iv1, coord1.Ptr());
+
+    Linf_distance = 0;
+    for (DTYPE d = 0; d < dimension; d++) {
+
+      if (coord0[d] < coord1[d])
+        { diff = coord1[d] - coord0[d]; }
+      else
+        { diff = coord0[d] - coord1[d]; }
+
+      if (diff > Linf_distance) {
+        Linf_distance = diff;
+      }
+    }
   }
 
   // **************************************************
