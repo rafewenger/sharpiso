@@ -20,7 +20,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 #define _USE_MATH_DEFINES
-#include <cmath>
+//#include <cmath>
+#include <math.h>
 #include <iostream>
 #include <algorithm>
 #include <iomanip>  
@@ -39,13 +40,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "sharpiso_closest.h"
 
+#include "mergesharp_debug.h"
+
 using namespace std;
 using namespace SHARPISO;
 using namespace MERGESHARP;
 using namespace IJK;
 
 
-// *** DEBUG ***
+MSDEBUG()
 #include "ijkprint.txx"
 bool flag_debug(false);
 
@@ -395,7 +398,7 @@ void recompute_isovert_position_lindstrom
 {
   VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
 
-  // *** DEBUG ***
+MSDEBUG()
   if (flag_debug) {
     using namespace std;
     cerr << "  Recomputing isovert coord for: " << cube_index << " ";
@@ -420,7 +423,7 @@ void recompute_isovert_position_lindstrom
 
   set_cube_containing_isovert(scalar_grid, isovalue, gcube_index, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) {
     using namespace std;
     cerr << "    New coord: ";
@@ -717,23 +720,24 @@ void set_isovert_position_from_face
 
   if (gcube_index == ISOVERT::NO_INDEX) { return; }
 
-  // *** DEBUG ***
-  using namespace std;
+	MSDEBUG()
   if (flag_debug) {
-    cerr << "*** In " << __func__ << ".  Cube: " << cube_index << " ";
-    ijkgrid_output_vertex_coord(cerr, grid, cube_index);
-    cerr << endl;
-    cerr << "    Old coord: ";
-    IJK::print_coord3D(cerr, isovert.gcube_list[gcube_index].isovert_coord);
-    cerr << "  num eigen: " << isovert.NumEigenvalues(gcube_index) << endl;
-    cerr << "    New coord: ";
-    IJK::print_coord3D(cerr, isovert_coord);
-    cerr << " num eigen: " << num_large_eigenvalues;
-    if (flag_from_vertex) 
-      { cerr << "  From vertex."; }
-    else
-      { cerr << "  From edge."; }
-    cerr << endl;
+	  //DEBUG
+	  //cerr << "*** In " << __func__ << ".  Cube: " << cube_index << " ";
+	  cerr << "*** In " << __FUNCTION__ << ".  Cube: " << cube_index << " ";
+	  ijkgrid_output_vertex_coord(cerr, grid, cube_index);
+	  cerr << endl;
+	  cerr << "    Old coord: ";
+	  IJK::print_coord3D(cerr, isovert.gcube_list[gcube_index].isovert_coord);
+	  cerr << "  num eigen: " << isovert.NumEigenvalues(gcube_index) << endl;
+	  cerr << "    New coord: ";
+	  IJK::print_coord3D(cerr, isovert_coord);
+	  cerr << " num eigen: " << num_large_eigenvalues;
+	  if (flag_from_vertex) 
+	  { cerr << "  From vertex."; }
+	  else
+	  { cerr << "  From edge."; }
+	  cerr << endl;
   }
 
 
@@ -937,7 +941,7 @@ void compute_isovert_on_plane_from_sharp_edges_B
         (isovert_coord, edge_dir, pointX, plane_normal, 
          min_abs_cos_angle_LO, intersection_point, flag_succeeded_B);
 
-      // *** DEBUG ***
+      MSDEBUG()
       if (flag_debug) {
         cerr << endl;
         grid.PrintIndexAndCoord
@@ -959,7 +963,7 @@ void compute_isovert_on_plane_from_sharp_edges_B
 
         IJK::compute_distance(DIM3, pointX, intersection_point, distance);
 
-        // *** DEBUG ***
+        MSDEBUG()
         if (flag_debug) {
           cerr << "     Intersection point: ";
           print_coord3D(cerr, intersection_point);
@@ -982,9 +986,8 @@ void compute_isovert_on_plane_from_sharp_edges_B
                       new_isovert_coord);
 
     flag_succeeded = true;
-
+	MSDEBUG()
     if (flag_debug) {
-      // *** DEBUG *** 
       cerr << "   *** Computed intersection of plane and edge dir." << endl;
     }
   }
@@ -1108,7 +1111,7 @@ void recompute_isovert_position_around_vertex
     (scalar_grid, isovert, isovert_param, fixed_cube, pointX, plane_normal,
      new_isovert_coord);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) {
     cerr << "--- Function: " << __func__ << endl;
     scalar_grid.PrintIndexAndCoord(cerr, "  Vertex: ", iv, "\n");
@@ -1207,14 +1210,14 @@ void recompute_isovert_position_around_vertex
 	voxel.SetVertexCoord
 		(scalar_grid.SpacingPtrConst(), grad_selection_cube_offset);
 
-  // *** DEBUG ***
+  MSDEBUG()
   flag_debug = false;
 
   recompute_isovert_position_around_vertex
     (scalar_grid, gradient_grid, isovalue, isovert_param, voxel, 
      false, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   flag_debug = false;
 }
 
@@ -1344,7 +1347,7 @@ void recompute_isovert_position_around_edge
     (scalar_grid, isovert, isovert_param, fixed_cube, pointX, plane_normal,
      new_isovert_coord);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) {
     cerr << "--- Function: " << __func__ << endl;
     scalar_grid.PrintIndexAndCoord(cerr, "  Edge endpoint: ", iend0, "");
@@ -1423,7 +1426,7 @@ void recompute_isovert_position_around_edge
  const bool flag_min_offset,
  ISOVERT & isovert)
 {
-  // *** DEBUG ***
+  MSDEBUG()
   flag_debug = false;
 
   for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
@@ -1448,7 +1451,7 @@ void recompute_isovert_position_around_edge
 		}
 	}
 
-  // *** DEBUG ***
+  MSDEBUG()
   flag_debug = false;
 }
 
@@ -1571,7 +1574,7 @@ void recompute_isovert_position_around_edge_B
 
   if (!flag_succeeded) { return; }
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) {
     cerr << "--- Function: " << __func__ << endl;
     scalar_grid.PrintIndexAndCoord(cerr, "  Edge endpoint: ", iend0, "");
@@ -1617,7 +1620,7 @@ void recompute_isovert_position_around_edge_B
     // Cube containing point is not active.
     // Assign point to all active orthogonal_cubes around vertex 
 
-    // *** DEBUG ***
+    MSDEBUG()
     if (flag_debug)
       { cerr << "  Cube containing the point is NOT active." << endl; }
 
@@ -1672,7 +1675,7 @@ void recompute_isovert_position_around_edge_B
 {
   const VERTEX_INDEX * axis_increment = scalar_grid.AxisIncrement();
 
-  // *** DEBUG ***
+ MSDEBUG()
   flag_debug = false;
 
   IJK_FOR_EACH_INTERIOR_GRID_EDGE(iend0, edge_dir, scalar_grid, VERTEX_INDEX) {
@@ -1700,7 +1703,7 @@ void recompute_isovert_position_around_edge_B
     }
   }
 
-  // *** DEBUG ***
+ MSDEBUG()
   flag_debug = false;
 }
 
@@ -1943,7 +1946,7 @@ void swap_isovert_positions
           }
           else {
 
-            // *** DEBUG ***
+            MSDEBUG()
             if (flag_debug) {
               grid.PrintIndexAndCoord
                 (cerr, "*** Setting cube: ", conflicting_cube, "");
@@ -1993,7 +1996,7 @@ void replace_with_substitute_coord
   const COORD_TYPE * isovert_coordB =
     isovert.gcube_list[gcube_index].isovert_coordB;
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) {
     VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
     const COORD_TYPE * isovert_coordA =
@@ -2054,7 +2057,7 @@ void apply_secondary_isovert_positions
 
           if (isovert.gcube_list[gcubeB_index].flag_conflict) {
 
-            // *** DEBUG ***
+            MSDEBUG()
             if (flag_debug) {
               const COORD_TYPE * isovert_coordA =
                 isovert.gcube_list[gcubeA_index].isovert_coord;
@@ -2125,7 +2128,7 @@ void reset_covered_isovert_positions
 
             if (covered_grid.Scalar(cubeC_index)) {
 
-              // *** DEBUG ***
+              MSDEBUG()
               if (flag_debug) {
                 using namespace std;
                 VERTEX_INDEX cubeA_index = isovert.CubeIndex(gcubeA_index);
@@ -2271,8 +2274,7 @@ bool MERGESHARP::creates_triangle
 	// get the list of vertices connected to the vertex iv
 	get_connected(scalar_grid, isovalue, iv, selected_list, connected_list);
 
-  // *** DEBUG ***
-  using namespace std;
+  MSDEBUG()
   bool flag_debug = false;
 
 	int limit = connected_list.size();
@@ -2407,7 +2409,7 @@ void select_cube
 
   covered_grid.Set(cube_index, true);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) {
     using namespace std;
     cerr << "*** Selecting cube " << cube_index << "  ";
@@ -2768,8 +2770,7 @@ bool is_nearby_not_mod3_selected
 
   if (!flag_zero_mod3) {
 
-    // *** DEBUG ***
-    using namespace std;
+    MSDEBUG()
     grid.PrintIndexAndCoord(cerr, "Error. Cube: ", cube0_index, "\n");
     cerr << "  Coord: ";
     print_coord3D(cerr, cube0_coord);
@@ -2803,7 +2804,7 @@ bool is_nearby_not_mod3_selected
 
         if (isovert.gcube_list[gcube1_index].flag == SELECTED_GCUBE) {
 
-          // *** DEBUG ***
+          MSDEBUG()
           if (flag_debug) {
             grid.PrintIndexAndCoord
               (cerr, "  Cube ", cube0_index, " is near not mod 3 ");
@@ -2834,7 +2835,7 @@ void select_cubes_cong_zero_mod3
 {
   GRID_COORD_TYPE cube_coord_mod3[DIM3];
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug)
     { cerr << endl << "--- Selecting cubes cong to 0 mod 3." << endl; }
 
@@ -2878,7 +2879,7 @@ void select_cubes_not_cong_zero_mod3_A
 {
   GRID_COORD_TYPE cube_coord_mod3[DIM3];
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) {
     cerr << endl 
          << "--- Selecting cubes not cong to 0 mod 3 near a selected mod 3 cube." << endl; 
@@ -2929,7 +2930,7 @@ void select_cubes_not_cong_zero_mod3_B
 {
   GRID_COORD_TYPE cube_coord_mod3[DIM3];
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) {
     cerr << endl 
          << "--- Selecting cubes not cong to 0 mod 3 whose isovert edge dir does not point to an adjacent mod 3 cube." << endl; 
@@ -2979,7 +2980,7 @@ void select_cubes_with_one_coord_cong_zero_mod3_A
 {
   GRID_COORD_TYPE cube_coord_mod3[DIM3];
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug)
     { cerr << endl << "--- Selecting cubes with 1 coord cong to 0 mod 3 near a selected mod 3 cube." << endl; }
 
@@ -3026,7 +3027,7 @@ void select_cubes_with_one_coord_cong_zero_mod3_B
 {
   GRID_COORD_TYPE cube_coord_mod3[DIM3];
 
-  // *** DEBUG ***
+ MSDEBUG()
   if (flag_debug)
     { cerr << endl << "--- Selecting cubes with 1 coord cong to 0 mod 3 near a selected NOT mod 3 cube." << endl; }
 
@@ -3068,7 +3069,7 @@ void select_cubes_with_two_coord_cong_zero_mod3_A
 {
   GRID_COORD_TYPE cube_coord_mod3[DIM3];
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug)
     { cerr << endl << "--- Selecting cubes with 2 coord closest to isovert edge direction cong to 0 mod 3." << endl; }
 
@@ -3156,7 +3157,7 @@ void select_edge_cubes_mod3
      isovert_param, sharp_gcube_list, isovert);
   */
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug)
     { cerr << endl << "--- Selecting cubes with coord not cong to 0 mod 3 adjacent to a covered cube." 
            << endl; }
@@ -3189,7 +3190,7 @@ void select_edge_cubes_mod3
      isovert);
   reset_covered_isovert_positions(gridn, covered_grid, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug)
     { cerr << endl << "--- Selecting cubes with coord not cong to 0 mod 3." << endl; }
 
@@ -3218,7 +3219,7 @@ void select_edge_cubes_mod3
      isovert);
   reset_covered_isovert_positions(gridn, covered_grid, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug)
     { cerr << endl << "--- Selecting cubes with 1 coord cong to 0 mod 3 adjacent to a covered cube." << endl; }
 
@@ -3253,7 +3254,7 @@ void select_edge_cubes_mod3
      isovert);
   reset_covered_isovert_positions(gridn, covered_grid, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug)
     { cerr << endl << "--- Selecting cubes with 1 coord cong to 0 mod 3." << endl; }
 
@@ -3281,7 +3282,7 @@ void select_edge_cubes_mod3
     }
 	}
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug)
     { cerr << endl << "--- Selecting cubes with 2 coord cong to 0 mod 3." << endl; }
 
@@ -3314,7 +3315,7 @@ void select_edge_cubes_mod3
      isovert);
   reset_covered_isovert_positions(gridn, covered_grid, isovert);
 
-  // *** DEBUG ***
+ MSDEBUG()
   if (flag_debug)
     { cerr << endl << "--- Selecting cubes containing isovert coord." << endl; }
 
@@ -3339,7 +3340,7 @@ void select_edge_cubes_mod3
      isovert);
   reset_covered_isovert_positions(gridn, covered_grid, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug)
     { cerr << endl << "--- Selecting from any cube." << endl; }
 
@@ -3394,7 +3395,7 @@ bool select_one_edge_cube	(
 
           if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
 
-            // *** DEBUG ***
+            MSDEBUG()
             if (flag_debug) {
               cerr << "  Selected new cube: " << c.cube_index << "  ";
               ijkgrid_output_vertex_coord(cerr, scalar_grid, c.cube_index);
@@ -3466,8 +3467,7 @@ void reselect_two_edge_cubes (
     (gridn, isovert, gcube_index, neighbor_list);
   sort(neighbor_list.begin(), neighbor_list.end(), gcube_compare);
 
-  // *** DEBUG ***
-  using namespace std;
+  MSDEBUG()
   if (flag_debug) {
     scalar_grid.PrintIndexAndCoord
       (cerr, "  From list: ", isovert.CubeIndex(gcube_index), ": ");
@@ -3598,8 +3598,7 @@ void reselect_edge_cubes (
         { return; };
     }
 
-    // *** DEBUG ***
-    using namespace std;
+    MSDEBUG()
     if (flag_debug) {
       cerr << "Reselecting around cube " << cube_index << ".  ";
       IJK::print_coord3D(cerr, cube_coord);
@@ -3841,7 +3840,7 @@ void MERGESHARP::select_sharp_isovert
 	covered_grid.SetSize(scalar_grid);
 	covered_grid.SetAll(false);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) { 
     cerr << endl << "*** Selecting corner cubes." << endl; 
   }
@@ -3856,7 +3855,7 @@ void MERGESHARP::select_sharp_isovert
   // Resort sharp gcube_list
   sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) { 
     cerr << endl << "*** Selecting near corner cubes." << endl; 
   }
@@ -3866,7 +3865,7 @@ void MERGESHARP::select_sharp_isovert
     (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param, 
      sharp_gcube_list, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) { cerr << endl << "*** Selecting edge cubes." << endl; }
 
 	// select edge cubes.
@@ -3909,7 +3908,7 @@ void MERGESHARP::select_sharp_isovert
 	covered_grid.SetSize(scalar_grid);
 	covered_grid.SetAll(false);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) {
     cerr << endl << "*** Selecting corner cubes." << endl;
   }
@@ -3928,7 +3927,7 @@ void MERGESHARP::select_sharp_isovert
   // Resort sharp gcube_list
   sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) { 
     cerr << endl << "*** Selecting near corner cubes." << endl; 
   }
@@ -3947,7 +3946,7 @@ void MERGESHARP::select_sharp_isovert
   // Resort sharp gcube_list
   sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) { cerr << endl << "*** Selecting edge cubes." << endl; }
 
 	// select edge cubes.
@@ -3955,7 +3954,7 @@ void MERGESHARP::select_sharp_isovert
     (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param,
      sharp_gcube_list, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) 
     { cerr << endl << "*** Recomputing covered point positions." << endl; }
 
@@ -3968,7 +3967,7 @@ void MERGESHARP::select_sharp_isovert
   // Resort sharp gcube_list
   sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) 
     { cerr << endl << "*** Reselecting edge cubes." << endl; }
 
@@ -3977,7 +3976,7 @@ void MERGESHARP::select_sharp_isovert
     (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param, 
      sharp_gcube_list, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) {
     cerr << endl << "*** Selecting edge cubes (again.)" << endl; 
   }
@@ -3987,7 +3986,7 @@ void MERGESHARP::select_sharp_isovert
     (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param,
      sharp_gcube_list, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) 
     { cerr << endl << "*** Recomputing covered point positions." << endl; }
 
@@ -3997,7 +3996,7 @@ void MERGESHARP::select_sharp_isovert
 
   reset_covered_isovert_positions(gridn, covered_grid, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   flag_debug = false;
 }
 
@@ -4030,7 +4029,7 @@ void MERGESHARP::select_sharp_isovert_mod3
 	covered_grid.SetSize(scalar_grid);
 	covered_grid.SetAll(false);
 
-  // *** DEBUG ***
+  MSDEBUG()
   flag_debug = false;
   if (flag_debug) {
     cerr << endl << "*** Selecting corner cubes." << endl;
@@ -4050,7 +4049,7 @@ void MERGESHARP::select_sharp_isovert_mod3
   // Resort sharp gcube_list
   sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) {
     cerr << endl << "*** Selecting edge cubes (mod3)." 
          << endl;
@@ -4061,7 +4060,7 @@ void MERGESHARP::select_sharp_isovert_mod3
     (scalar_grid, gradient_grid, covered_grid, bin_grid, gridn, 
      isovalue, isovert_param, sharp_gcube_list, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   if (flag_debug) 
     { cerr << endl << "*** Recomputing covered point positions." << endl; }
 
@@ -4085,7 +4084,7 @@ void MERGESHARP::select_sharp_isovert_mod3
 
   reset_covered_isovert_positions(gridn, covered_grid, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   flag_debug = false;
 }
 
@@ -4156,7 +4155,7 @@ void MERGESHARP::compute_dual_isovert
 
 	create_active_cubes(scalar_grid, isovalue, isovert);
 
-  // *** DEBUG ***
+  MSDEBUG()
   flag_debug = false;
 
 	if (vertex_position_method == GRADIENT_POSITIONING) {
@@ -4178,7 +4177,7 @@ void MERGESHARP::compute_dual_isovert
       (scalar_grid, gradient_grid, isovalue, isovert_param, isovert);
     */
 
-    // *** DEBUG ***
+    MSDEBUG()
     recompute_isovert_position_around_edge
       (scalar_grid, gradient_grid, isovalue, isovert_param, isovert);
 	}

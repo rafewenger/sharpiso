@@ -35,9 +35,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "mergesharp_merge.h"
 #include "mergesharp_extract.h"
 
+#include "mergesharp_debug.h"
+
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 // *** DEBUG ***
 #include "ijkprint.txx"
-extern bool flag_debug;
 
 // forward declarations
 namespace {
@@ -486,7 +490,8 @@ namespace {
 
         boundary_bits = gcube_list[from_gcube].boundary_bits;
 
-        // *** DEBUG ***
+
+		MSDEBUG()
         if (flag_debug) {
           using namespace std;
           VERTEX_INDEX to_cube = gcube_list[to_gcube].cube_index;
@@ -999,8 +1004,8 @@ namespace {
               (grid, iend0, edge_dir, cube1_index, cube2_index,
                isovert, gcube_map, flagB_maps_to_cube1, flagB_maps_to_cube2);
 
-            // *** DEBUG ***
-            using namespace std;
+            MSDEBUG()
+				//using namespace std;
             if (flag_debug) {
 
               cerr << "  Quad dual to edge (" << iend0 
@@ -1163,7 +1168,7 @@ namespace {
         (scalar_grid, grid, isovalue, cube0_index, connected_sharp[i],
          isovert, gcube_map, num_count);
 
-      // *** DEBUG ***
+      MSDEBUG()
       if (flag_debug) {
         using namespace std;
         if (num_count > 2) {
@@ -1198,8 +1203,7 @@ namespace {
       (scalar_grid, grid, isovalue, from_cube, isovert, 
        gcube_map, connected_sharp);
 
-    // *** DEBUG ***
-    using namespace std;
+    MSDEBUG()
     if(flag_debug) {
       if (to_cube == 38270 || to_cube == 43370) {
         cerr << endl;
@@ -1225,8 +1229,7 @@ namespace {
         (scalar_grid, grid, isovalue, from_cube, cubeA_index, to_cube,
          isovert, gcube_map, flag_maps_to_cubeA, flag_maps_to_both_cubes);
 
-      // *** DEBUG ***
-      using namespace std;
+      MSDEBUG()
       if (flag_debug) {
         if (to_cube == 38270 || to_cube == 43370) {
           cerr << "   flag_maps_to_cubeA: " << int(flag_maps_to_cubeA)
@@ -1241,12 +1244,11 @@ namespace {
             (scalar_grid, grid, cubeA_index, to_cube,
              isovalue, isovert, gcube_map, flag_extended)) {
 
-          // *** DEBUG ***
-          using namespace std;
-          if (flag_debug) {
-            cerr << "  Cubes " << cubeA_index << " and " 
-                 << to_cube << " are connected by isoquad." << endl;
-          }
+				 MSDEBUG()
+					 if (flag_debug) {
+						 cerr << "  Cubes " << cubeA_index << " and " 
+							 << to_cube << " are connected by isoquad." << endl;
+					 }
 
           return(false); 
         }
@@ -3825,7 +3827,7 @@ namespace {
   // Insert x into array.
   // @pre num_elements < MAX_NUM_ELEMENTS
   template <const int MAX_NUM_ELEMENTS, typename ETYPE, typename NTYPE>
-  bool array_insert(const ETYPE x,ETYPE array[MAX_NUM_ELEMENTS], 
+  void array_insert(const ETYPE x,ETYPE array[MAX_NUM_ELEMENTS], 
                     NTYPE & num_elements)
   {
     array[num_elements] = x;
