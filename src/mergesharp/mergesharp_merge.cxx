@@ -2690,6 +2690,78 @@ namespace {
 
   }
 
+  // Check if cube pair (cube0, cube1) maps to cube to_cube.
+  bool check_pair_map
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SHARPISO_GRID_NEIGHBORS & grid,
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX cube0,
+   const VERTEX_INDEX cube1,
+   const VERTEX_INDEX to_cube,
+   const MERGESHARP::ISOVERT & isovert, 
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   const bool flag_extended)
+  {
+    const NUM_TYPE gcube0 = isovert.GCubeIndex(cube0);
+    const NUM_TYPE gcube1 = isovert.GCubeIndex(cube1);
+    const NUM_TYPE to_gcube = isovert.GCubeIndex(to_cube);
+    NUM_TYPE store_map[2];
+    GRID_COORD_TYPE max_linf_distance;
+
+    if (gcube0 == ISOVERT::NO_INDEX || gcube1 == ISOVERT::NO_INDEX)
+      { return(false); }
+
+    GRID_COORD_TYPE linf_distanceA, linf_distanceB;
+    compute_Linf_distance_between_grid_vertices
+      (grid, cube0, to_cube, linf_distanceA);
+    compute_Linf_distance_between_grid_vertices
+      (grid, cube1, to_cube, linf_distanceB);
+
+    max_linf_distance = 1;
+    if (flag_extended) { max_linf_distance = 2; }
+    else { max_linf_distance = 1; }
+
+    if (linf_distanceA > max_linf_distance ||
+        linf_distanceB > max_linf_distance)
+      { return(false); }
+
+    bool flag_connectedA =
+      is_unselected_cube_connected_to
+      (scalar_grid, grid, isovalue, isovert, cube0, to_cube, gcube_map);
+
+    bool flag_connectedB =
+      is_unselected_cube_connected_to
+      (scalar_grid, grid, isovalue, isovert, cube1, to_cube, gcube_map);
+
+    if (!flag_connectedA && !flag_connectedB) { return(false); }
+
+    // Store gcube_map[gcube0] and gcube_map[gcube1]
+    store_map[0] = gcube_map[gcube0];
+    store_map[1] = gcube_map[gcube1];
+
+    // Temporarily set gcube_map[gcube1] to to_gcube.
+    gcube_map[gcube1] = to_gcube;
+    if (!check_edges_between_sharp_cubes
+        (scalar_grid, grid, isovalue, cube0, to_cube,
+         isovert, gcube_map, flag_extended)) {
+
+      gcube_map[gcube1] = store_map[1];
+      return(false); 
+    }
+    gcube_map[gcube1] = store_map[1];
+
+    // Temporarily set gcube_map[gcube1] to to_gcube.
+    gcube_map[gcube0] = to_gcube;
+    if (!check_edges_between_sharp_cubes
+        (scalar_grid, grid, isovalue, cube1, to_cube,
+         isovert, gcube_map, flag_extended)) {
+
+      gcube_map[gcube0] = store_map[1];
+      return(false); 
+    }
+    gcube_map[gcube0] = store_map[1];
+  }
+
   // Check if ambig pair maps to to_cube.
   bool check_map_ambig_pair
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
@@ -2707,62 +2779,10 @@ namespace {
     const NUM_TYPE from_gcube = isovert.GCubeIndex(from_cube);
     const NUM_TYPE to_gcube = isovert.GCubeIndex(to_cube);
     const NUM_TYPE adjacent_gcube = isovert.GCubeIndex(adjacent_cube);
-    NUM_TYPE store_map[2];
-    GRID_COORD_TYPE max_linf_distance;
 
-    if (from_gcube == ISOVERT::NO_INDEX ||
-        adjacent_gcube == ISOVERT::NO_INDEX)
+    if (!(check_pair_map(scalar_grid, grid, isovalue, from_cube, adjacent_cube,
+                         to_cube, isovert, gcube_map, flag_extended))) 
       { return(false); }
-
-    GRID_COORD_TYPE linf_distanceA, linf_distanceB;
-    compute_Linf_distance_between_grid_vertices
-      (grid, from_cube, to_cube, linf_distanceA);
-    compute_Linf_distance_between_grid_vertices
-      (grid, adjacent_cube, to_cube, linf_distanceB);
-
-    max_linf_distance = 1;
-    if (flag_extended) { max_linf_distance = 2; }
-    else { max_linf_distance = 1; }
-
-    if (linf_distanceA > max_linf_distance ||
-        linf_distanceB > max_linf_distance)
-      { return(false); }
-
-    bool flag_connectedA =
-      is_unselected_cube_connected_to
-      (scalar_grid, grid, isovalue, isovert, from_cube, to_cube, gcube_map);
-
-    bool flag_connectedB =
-      is_unselected_cube_connected_to
-      (scalar_grid, grid, isovalue, isovert, adjacent_cube, to_cube, gcube_map);
-
-    if (!flag_connectedA && !flag_connectedB) { return(false); }
-
-    // Store gcube_map[from_gcube] and gcube_map[adjacent_gcube]
-    store_map[0] = gcube_map[from_gcube];
-    store_map[1] = gcube_map[adjacent_gcube];
-
-    // Temporarily set gcube_map[adjacent_gcube] to to_gcube.
-    gcube_map[adjacent_gcube] = to_gcube;
-    if (!check_edges_between_sharp_cubes
-        (scalar_grid, grid, isovalue, from_cube, to_cube,
-         isovert, gcube_map, flag_extended)) {
-
-      gcube_map[adjacent_gcube] = store_map[1];
-      return(false); 
-    }
-    gcube_map[adjacent_gcube] = store_map[1];
-
-    // Temporarily set gcube_map[adjacent_gcube] to to_gcube.
-    gcube_map[from_gcube] = to_gcube;
-    if (!check_edges_between_sharp_cubes
-        (scalar_grid, grid, isovalue, adjacent_cube, to_cube,
-         isovert, gcube_map, flag_extended)) {
-
-      gcube_map[from_gcube] = store_map[1];
-      return(false); 
-    }
-    gcube_map[from_gcube] = store_map[1];
 
     IJKDUALTABLE::TABLE_INDEX table_indexA =
       isovert.gcube_list[from_gcube].table_index;
