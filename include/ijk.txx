@@ -4,7 +4,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2008-2013 Rephael Wenger
+  Copyright (C) 2008-2014 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -35,26 +35,36 @@
 namespace IJK {
 
   // **************************************************
+  // CLASSES
+  // **************************************************
+
+  class ERROR;
+
+  // **************************************************
   // TEMPLATE CLASS BOX
   // **************************************************
 
   /// \brief Axis-parallel box data structure.  
   /// Represents box by minimum and maximum coordinates.
-  template <typename COORD_TYPE> class BOX {
+  template <typename COORD_TYPE, int INIT_DIM=0> class BOX {
   protected:
     int dimension;
     COORD_TYPE * min_coord;
     COORD_TYPE * max_coord;
 
-    void Init();
+    void Init(const int dim);
     void FreeAll();
     
   public:
-    BOX() { Init(); };
+    BOX() { Init(INIT_DIM); };
     BOX(const int dimension);
     ~BOX() { FreeAll(); };
-    BOX(const BOX & box);                 // copy constructor
-    const BOX & operator = (const BOX &); // copy assignment
+
+    /// Copy constructor.
+    BOX(const BOX<COORD_TYPE,INIT_DIM> & box);  
+
+    /// Copy assignment.
+    const BOX & operator = (const BOX<COORD_TYPE,INIT_DIM> &); 
 
     // get functions
     int Dimension() const { return(dimension); };
@@ -86,6 +96,23 @@ namespace IJK {
     void SetCoord(const CTYPE2 * minc, const CTYPE3 * maxc);
     void SetAllMinCoord(const COORD_TYPE c);  // set all min coord to c
     void SetAllMaxCoord(const COORD_TYPE c);  // set all max coord to c
+
+    /// Set both min and max coordinate d.
+    void SetMinMaxCoord
+    (const int d, const COORD_TYPE minc, const COORD_TYPE maxc)
+    {
+      SetMinCoord(d, minc);
+      SetMaxCoord(d, maxc);
+    }
+
+    /// Extend the min/max coords so box includes coord.
+    template <typename CTYPE2>
+    void Extend(const CTYPE2 * coord);
+
+    /// Return true if min coordinates are at most max coordinates.
+    /// Return false and add messages to error, if min coordinates
+    ///   are greater than max coordinates.
+    bool CheckCoord(ERROR & error) const;
   };
 
   // **************************************************
@@ -229,10 +256,21 @@ namespace IJK {
   // **************************************************
 
   /// \brief Returns C++ pointer to C array storing in vector data.
-  /// If vector is empty, returns NULL pointser.
+  /// If vector is empty, returns NULL pointer.
   /// If vector is not empty, returns pointer to a C array.
   template <typename T>
   const T * vector2pointer(const std::vector<T> & v)
+  {
+    if (v.empty()) { return(NULL); }
+    else { return(&(v.front())); }
+  }
+
+  /// \brief Returns non const C++ pointer to C array storing in vector data.
+  /// If vector is empty, returns NULL pointer.
+  /// If vector is not empty, returns pointer to a C array.
+  /// @pre vector v is not const.
+  template <typename T>
+  T * vector2pointerNC(std::vector<T> & v)
   {
     if (v.empty()) { return(NULL); }
     else { return(&(v.front())); }
@@ -713,14 +751,15 @@ namespace IJK {
   // TEMPLATE CLASS BOX MEMBER FUNCTIONS
   // **************************************************
 
-  template <typename T> void BOX<T>::Init()
+  template <typename T, int INIT_DIM> void BOX<T,INIT_DIM>::Init(const int dim)
   {
-    dimension = 0;
-    min_coord = 0;
-    max_coord = 0;
+    dimension = dim;
+    min_coord = NULL;
+    max_coord = NULL;
+    if (dim > 0) { SetDimension(dimension); }
   }
 
-  template <typename T> void BOX<T>::FreeAll()
+  template <typename T, int INIT_DIM> void BOX<T,INIT_DIM>::FreeAll()
   {
     dimension = 0;
     if (min_coord != NULL) { delete [] min_coord; }
@@ -729,12 +768,13 @@ namespace IJK {
     max_coord = NULL;
   }
 
-  template <typename T> BOX<T>::BOX(const int dimension)
-  { Init(); SetDimension(dimension); }
+  template <typename T, int INIT_DIM> BOX<T,INIT_DIM>::
+  BOX(const int dimension)
+  { Init(dimension); }
 
-  template <typename COORD_TYPE>
+  template <typename COORD_TYPE, int INIT_DIM>
   template <typename CTYPE2>
-  bool BOX<COORD_TYPE>::Contains(const CTYPE2 * coord) const
+  bool BOX<COORD_TYPE,INIT_DIM>::Contains(const CTYPE2 * coord) const
   {
     for (int d = 0; d < dimension; d++) {
       if (coord[d] < min_coord[d]) { return(false); }
@@ -743,64 +783,75 @@ namespace IJK {
     return(true);
   }
 
-  template <typename COORD_TYPE> 
-  void BOX<COORD_TYPE>::SetDimension(const int d)
+  template <typename COORD_TYPE, int INIT_DIM> 
+  void BOX<COORD_TYPE,INIT_DIM>::SetDimension(const int d)
   {
     FreeAll();
-    Init();
-    if (d <= 0) return;
+    if (d <= 0) { return; }
     min_coord = new COORD_TYPE[d];
     max_coord = new COORD_TYPE[d];
     dimension = d;
   }
 
-  template <typename COORD_TYPE>
+  template <typename COORD_TYPE, int INIT_DIM>
   template <typename CTYPE2>
-  void BOX<COORD_TYPE>::
+  void BOX<COORD_TYPE,INIT_DIM>::
   SetMinCoord(const CTYPE2 * coord)
   {
     for (int d = 0; d < dimension; d++)
       SetMinCoord(d, coord[d]);
   }
 
-  template <typename COORD_TYPE>
+  template <typename COORD_TYPE, int INIT_DIM>
   template <typename CTYPE2>
-  void BOX<COORD_TYPE>::
+  void BOX<COORD_TYPE,INIT_DIM>::
   SetMaxCoord(const CTYPE2 * coord)
   {
     for (int d = 0; d < dimension; d++)
       SetMaxCoord(d, coord[d]);
   }
 
-  template <typename COORD_TYPE>
+  template <typename COORD_TYPE, int INIT_DIM>
   template <typename CTYPE2, typename CTYPE3>
-  void BOX<COORD_TYPE>::SetCoord
+  void BOX<COORD_TYPE,INIT_DIM>::SetCoord
   (const CTYPE2 * minc, const CTYPE3 * maxc)
   {
     SetMinCoord(minc);
     SetMaxCoord(maxc);
   }
 
-  template <typename COORD_TYPE>
-  void BOX<COORD_TYPE>::SetAllMinCoord(const COORD_TYPE c)
+  template <typename COORD_TYPE, int INIT_DIM>
+  void BOX<COORD_TYPE,INIT_DIM>::SetAllMinCoord(const COORD_TYPE c)
   {
     for (int d = 0; d < dimension; d++)
       SetMinCoord(d, c);
   }
 
-  template <typename COORD_TYPE>
-  void BOX<COORD_TYPE>::SetAllMaxCoord(const COORD_TYPE c)
+  template <typename COORD_TYPE,int INIT_DIM>
+  void BOX<COORD_TYPE,INIT_DIM>::SetAllMaxCoord(const COORD_TYPE c)
   {
     for (int d = 0; d < dimension; d++)
       SetMaxCoord(d, c);
   }
 
-  // copy constructor template
-  template <typename COORD_TYPE> 
-  BOX<COORD_TYPE>::BOX(const BOX<COORD_TYPE> & box)
+  // Extend the min/max coords so box includes coord.
+  template <typename COORD_TYPE, int INIT_DIM>
+  template <typename CTYPE2>
+  void BOX<COORD_TYPE,INIT_DIM>::Extend(const CTYPE2 * coord)
   {
-    Init();
-    SetDimension(box.Dimension());
+    for (int d = 0; d < dimension; d++) {
+      if (coord[d] < MinCoord(d))
+        { SetMinCoord(d, coord[d]); }
+      if (coord[d] > MaxCoord(d))
+        { SetMaxCoord(d, coord[d]); }
+    }
+  }
+
+  // copy constructor template
+  template <typename COORD_TYPE, int INIT_DIM> 
+  BOX<COORD_TYPE,INIT_DIM>::BOX(const BOX<COORD_TYPE,INIT_DIM> & box)
+  {
+    Init(box.Dimension());
     for (int d = 0; d < box.Dimension(); d++) {
       SetMinCoord(d, box.MinCoord(d));
       SetMaxCoord(d, box.MaxCoord(d));
@@ -808,9 +859,9 @@ namespace IJK {
   }
 
   // copy assigment template
-  template <typename COORD_TYPE> 
-  const BOX<COORD_TYPE> & BOX<COORD_TYPE>::operator = 
-  (const BOX<COORD_TYPE> & right)
+  template <typename COORD_TYPE, int INIT_DIM> 
+  const BOX<COORD_TYPE,INIT_DIM> & BOX<COORD_TYPE,INIT_DIM>::operator = 
+  (const BOX<COORD_TYPE,INIT_DIM> & right)
   {
     if (&right != this) {         // avoid self-assignment
       FreeAll();
@@ -821,6 +872,27 @@ namespace IJK {
       }
     }
     return *this;
+  }
+
+  // copy constructor template
+  template <typename COORD_TYPE, int INIT_DIM> 
+  bool BOX<COORD_TYPE,INIT_DIM>::CheckCoord(ERROR & error) const
+  {
+    for (int d = 0; d < Dimension(); d++) {
+      if (MinCoord(d) > MaxCoord(d)) {
+        error.AddMessage
+          ("Error.  Minimum coordinate[", d, 
+           "] > Maximum coordinate[", d, ".");
+        error.AddMessage
+          ("  Minimum coordinate[", d, "] = ", MinCoord(d), ".");
+        error.AddMessage
+          ("  Maximum coordinate[", d, "] = ", MaxCoord(d), ".");
+
+        return(false);
+      }
+    }
+
+    return(true);
   }
 
   // **************************************************
