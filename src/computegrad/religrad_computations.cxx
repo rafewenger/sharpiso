@@ -893,6 +893,7 @@ void compute_phi(const VERTEX_INDEX v, const VERTEX_INDEX v1,
 
 /*
 * lambda computations
+* Returns an angle
 */
 float lambda_computations(const VERTEX_INDEX iv, 
 						  const VERTEX_INDEX v1, const VERTEX_INDEX v2,
@@ -901,22 +902,23 @@ float lambda_computations(const VERTEX_INDEX iv,
 						  const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid)
 {
 	float  phi_vector[DIM3]={0.0,0.0,0.0};
-	compute_phi(iv, v1, scalar_grid, gradient_grid, grad_mag_grid,
+	
+	compute_phi (iv, v1, scalar_grid, gradient_grid, grad_mag_grid,
 		&(phi_vector[0]));
 
 	GRADIENT_COORD_TYPE magv2 = grad_mag_grid.Scalar(v2);
-	COORD_TYPE gradv2[DIM3]={0.0,0.0,0.0};
+	COORD_TYPE gradv2[DIM3] = {0.0,0.0,0.0};
 	for (int d = 0; d < DIM3; d++) 
 	{
 		COORD_TYPE spacing_d = scalar_grid.Spacing(d);
 		gradv2[d] = magv2*spacing_d*gradient_grid.Vector(v1,d);
 	}
-	IJK::normalize_vector
-		(DIM3, gradv2, 0.0, gradv2);
+	IJK::normalize_vector (DIM3, gradv2, 0.0, gradv2);
 
 	//
 	float inn_pdt = 0.0;
 	IJK::compute_inner_product(DIM3, gradv2, phi_vector, inn_pdt);
+
 	//DEBUG
 	if(debug){
 		cout <<"gradV2 "<< gradv2[0]<<","<<gradv2[1]<<","<<gradv2[2]
@@ -1049,10 +1051,13 @@ void compute_v2(
 {
 	COORD_TYPE civ[DIM3] = {0.0,0.0,0.0};
 	scalar_grid.ComputeCoord(iv, civ);
+
 	COORD_TYPE cv1[DIM3] = {0.0,0.0,0.0};
 	scalar_grid.ComputeCoord(v1, cv1);
+	
 	COORD_TYPE cdiff[DIM3] = {0.0,0.0,0.0};
 	IJK::subtract_coord_3D(cv1,civ,cdiff);
+	
 	COORD_TYPE cv2[DIM3] = {0.0,0.0,0.0};
 	IJK::add_coord_3D(cdiff,cv1,cv2);
 	//
@@ -1078,8 +1083,6 @@ void compute_v2(
 			<<" diff"<<cdiff[0]<<","<<cdiff[1]<<","<<cdiff[2]<<"\n";
 	}
 	//DEBUG end 
-
-
 }
 /*
 * Tangent neighbor based computations
@@ -1097,8 +1100,9 @@ bool Nt_based_computations_for_iv(
 	{
 		VERTEX_INDEX v1 = tangent_neighbor_set[v];
 		VERTEX_INDEX v2 = 0;
-		compute_v2(iv,v1,scalar_grid,v2);	
-		if(lambda_computations
+		compute_v2(iv, v1, scalar_grid, v2);	
+		if(
+			lambda_computations
 			(iv,v1,v2, scalar_grid, 
 			gradient_grid, grad_mag_grid) > alpha)
 		{
@@ -1142,6 +1146,8 @@ bool No_based_computations_for_iv(
 
 // Curvature based computations for vertex iv, 
 // @param iv , grid vertex
+// Called by compute_reliable_gradients_curvature_based.
+
 void curvature_based_per_vertex(
 	const VERTEX_INDEX iv,
 	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
@@ -1153,7 +1159,7 @@ void curvature_based_per_vertex(
 {
 	GRADIENT_COORD_TYPE grad_iv[DIM3];  // unscaled gradient vector
 	GRADIENT_COORD_TYPE normalized_grad_iv[DIM3]; // normalized grad_iv
-	// only run the test if gradient at vertex iv is reliable
+	// Only run the test if gradient at vertex iv is reliable
 	if (reliable_grid.Scalar(iv)) {
 		GRADIENT_COORD_TYPE mag_iv = grad_mag_grid.Scalar(iv);
 		if (mag_iv > io_info.min_gradient_mag) {
@@ -1169,10 +1175,10 @@ void curvature_based_per_vertex(
 				(DIM3, grad_iv, io_info.min_gradient_mag, normalized_grad_iv);
 
 
-			// tangent neighbor set
+			// Tangent neighbor set
 			vector<VERTEX_INDEX> tangent_neighbor_set_iv;
 			vector <VERTEX_INDEX> ortho_neighbor_set_iv;
-			compute_Nt_and_No_iv(iv, grad_iv, scalar_grid, tangent_neighbor_set_iv,
+			compute_Nt_and_No_iv (iv, grad_iv, scalar_grid, tangent_neighbor_set_iv,
 				ortho_neighbor_set_iv, io_info);
 
 			//DEBUG
@@ -1199,10 +1205,13 @@ void curvature_based_per_vertex(
 					scalar_grid.ComputeCoord(ortho_neighbor_set_iv[k],c);
 					cout <<c[0]<<" "<<c[1]<<" "<<c[2]<<endl;
 				}
-				cout <<"}"<<endl;}
-
-			//DEBUG_END
-			float  alpha = 5; //degrees
+				cout <<"}"<<endl;
+			}//DEBUG_END
+			
+			
+			float alpha = 5;
+			alpha = io_info.param_angle;
+			
 			bool flag_nt = Nt_based_computations_for_iv(iv, alpha, scalar_grid,
 				gradient_grid, grad_mag_grid, tangent_neighbor_set_iv);
 			bool flag_no = No_based_computations_for_iv(iv, alpha, scalar_grid,
@@ -1232,7 +1241,7 @@ void compute_reliable_gradients_curvature_based(
 
 	for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) 
 	{
-		curvature_based_per_vertex(iv, scalar_grid, gradient_grid,
+		curvature_based_per_vertex (iv, scalar_grid, gradient_grid,
 			grad_mag_grid, reliable_grid, io_info);
 
 	}

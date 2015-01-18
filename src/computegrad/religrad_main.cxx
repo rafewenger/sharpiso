@@ -451,6 +451,9 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 		{
 			io_info.flag_cdiff = true;
 			io_info.curv_based = true;
+			//default parameters
+			io_info.param_angle =  5; // alpha
+			io_info.neighbor_angle_parameter = 20;
 		}
 		else if (s == "-gzip") {
 			flag_gzip = true;
@@ -511,6 +514,7 @@ void help_msg() {
 		<< endl;
 	cerr << "     Errors above the threshold fail the test. (Default 0.4.)" 
 		<< endl;
+	cerr << "  -curvature_based: two parameters, alpha set by -angle and -neighbor_angle."<<endl;
 	cerr << "  -gzip: Store gradients in compressed (gzip) format." << endl;
 	cerr << "  -out_param:  Print parameters." << endl;
 	cerr << "  -print_info {V} : Print information about vertex {IV}." << endl;

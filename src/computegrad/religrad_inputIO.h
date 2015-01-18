@@ -60,7 +60,7 @@ public:
 	float neighbor_angle_parameter; // threshold for angle between gradient at vertex v
 			// and the vector connecting the neighbor vertex.
 
-
+	
 
 	OUTPUT_INFO	 out_info;    // generate some output_info
 	//Set the default values
