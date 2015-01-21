@@ -14,13 +14,13 @@ using namespace std;
 using namespace SHARPISO;
 
 
-// local type definition
-namespace {
-
-	typedef IJK::BOOL_GRID_BASE<RELIGRADIENT_GRID> BOOL_GRID_BASE;
-	typedef IJK::BOOL_GRID<RELIGRADIENT_GRID> BOOL_GRID;
-
-};
+//// local type definition
+//namespace {
+//
+//	typedef IJK::BOOL_GRID_BASE<RELIGRADIENT_GRID> BOOL_GRID_BASE;
+//	typedef IJK::BOOL_GRID<RELIGRADIENT_GRID> BOOL_GRID;
+//
+//};
 
 /// Compute central difference per vertex
 void compute_gradient_central_difference(
@@ -1143,7 +1143,87 @@ bool No_based_computations_for_iv(
 	else
 		return true;
 }
+void extended_curv_per_vertex
+	(const VERTEX_INDEX iv,
+	const bool increasing_iv,
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	const RELIGRADIENT::BOOL_GRID &boundary_grid,
+	const GRADIENT_GRID & gradient_grid,
+	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
+	INPUT_INFO & io_info
+	)
+{
+	//set coord iv
+	COORD_TYPE coord_iv[DIM3] = {0.0,0.0,0.0};
+	scalar_grid.ComputeCoord(iv, coord_iv);
+	float alpha = io_info.param_angle;
 
+
+	if (reliable_grid.Scalar(iv)) {
+		for (int d = 0; d < DIM3; d++) 
+		{
+			if(increasing_iv){
+				int k = min(1,(scalar_grid.AxisSize(d) - int(coord_iv[d]) - 1));
+				VERTEX_INDEX next_vertex = iv + k * scalar_grid.AxisIncrement(d);
+
+				//compute iv+2 iv_plus_2 
+				COORD_TYPE coord_next_vertex[DIM3] = {0.0,0.0,0.0};
+				scalar_grid.ComputeCoord(next_vertex, coord_next_vertex);
+				
+				k = min(1,(scalar_grid.AxisSize(d) - int(coord_next_vertex[d]) - 1));
+				VERTEX_INDEX iv_plus2 = next_vertex + k * scalar_grid.AxisIncrement(d);
+
+				if (boundary_grid.Scalar(iv_plus2) == false)
+				{
+					if (reliable_grid.Scalar(next_vertex) && !reliable_grid.Scalar(iv_plus2) )
+					{
+						//compute lambda
+						if(lambda_computations
+							(iv, next_vertex, iv_plus2, scalar_grid, 
+							gradient_grid, grad_mag_grid) < alpha)
+						{
+							
+							reliable_grid.Set(iv_plus2, true);
+
+							io_info.out_info.num_reliable++;
+						}
+						else
+							io_info.out_info.num_unreliable++;
+					}
+				}
+
+			}//direction
+			else
+			{
+				// decreasing 
+				int k = min(1, int(coord_iv[d]));
+				VERTEX_INDEX prev_vertex = iv - k * scalar_grid.AxisIncrement(d);
+				COORD_TYPE coord_prev_vertex[DIM3] = {0.0,0.0,0.0};
+				scalar_grid.ComputeCoord(prev_vertex, coord_prev_vertex);
+
+				k = min (1, int(coord_prev_vertex[d]));
+				VERTEX_INDEX iv_minus2 = prev_vertex - k * scalar_grid.AxisIncrement(d);
+
+				if(boundary_grid.Scalar(iv_minus2) == false)
+				{
+					if(reliable_grid.Scalar(prev_vertex) && !reliable_grid.Scalar(iv_minus2))
+					{
+						if(lambda_computations(iv, prev_vertex, iv_minus2, scalar_grid, 
+							gradient_grid, grad_mag_grid) < alpha)
+						{
+							reliable_grid.Set(iv_minus2, true);
+							
+							io_info.out_info.num_reliable++;
+						}
+						else
+							io_info.out_info.num_unreliable++;
+					}
+				}
+			}
+		}
+	}
+}
 // Curvature based computations for vertex iv, 
 // @param iv , grid vertex
 // Called by compute_reliable_gradients_curvature_based.
@@ -1157,6 +1237,7 @@ void curvature_based_per_vertex(
 	INPUT_INFO & io_info
 	)
 {
+		
 	GRADIENT_COORD_TYPE grad_iv[DIM3];  // unscaled gradient vector
 	GRADIENT_COORD_TYPE normalized_grad_iv[DIM3]; // normalized grad_iv
 	// Only run the test if gradient at vertex iv is reliable
@@ -1221,8 +1302,14 @@ void curvature_based_per_vertex(
 			if(debug)
 				cout <<"is reliable: Nt "<< flag_nt <<" No "<< flag_no<<endl;
 			//DEBUG_END
-
-			reliable_grid.Set(iv, (flag_nt && flag_no) );
+			bool is_rel = (flag_nt && flag_no);
+			reliable_grid.Set(iv, is_rel );
+			if(is_rel)
+			{
+				io_info.out_info.num_reliable++;
+			}
+			else
+				io_info.out_info.num_unreliable++;
 
 		}
 	}
@@ -1232,17 +1319,47 @@ void curvature_based_per_vertex(
 //
 void compute_reliable_gradients_curvature_based(
 	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	const RELIGRADIENT::BOOL_GRID &boundary_grid,
 	const GRADIENT_GRID & gradient_grid,
 	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
 	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
 	INPUT_INFO & io_info
 	) 
 {
-
+	cout <<"Calling Function  " <<__FUNCTION__<< endl;
 	for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) 
 	{
 		curvature_based_per_vertex (iv, scalar_grid, gradient_grid,
 			grad_mag_grid, reliable_grid, io_info);
-
 	}
+	cout <<"Calling Function  " <<__FUNCTION__<< endl;
+}
+
+// Extended version of curvature based reliable gradients computations
+void compute_reliable_gradients_extended_curvature_based(
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	const RELIGRADIENT::BOOL_GRID &boundary_grid,
+	const GRADIENT_GRID & gradient_grid,
+	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
+	INPUT_INFO & io_info)
+{
+	cout <<"Calling Function " <<__FUNCTION__<< endl;
+	//increasing order
+	bool increasing_indices = true;
+	VERTEX_INDEX total = scalar_grid.NumVertices();
+	for (VERTEX_INDEX iv = 0; iv < total; iv++)
+	{
+		extended_curv_per_vertex(iv, increasing_indices, scalar_grid, boundary_grid, gradient_grid,
+			grad_mag_grid, reliable_grid, io_info);
+	}
+	cout <<"Calling Function  " <<__FUNCTION__<< endl;
+	increasing_indices = false; 
+
+	for (VERTEX_INDEX iv = total-1; iv > 0; iv--)
+	{
+		extended_curv_per_vertex(iv, increasing_indices, scalar_grid, boundary_grid, gradient_grid,
+			grad_mag_grid, reliable_grid, io_info);
+	}
+
 }

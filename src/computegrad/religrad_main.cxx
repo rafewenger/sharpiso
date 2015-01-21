@@ -18,6 +18,7 @@ using namespace IJK;
 using namespace std;
 using namespace RELIGRADIENT;
 
+
 // global variables
 char * scalar_filename = NULL;
 char * gradient_filename = NULL;
@@ -49,18 +50,35 @@ using namespace SHARPISO;
 /*
 * Output info
 */
-void out_stats(const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
-			   INPUT_INFO io_info)
+void out_stats
+	(const string method, const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
+	INPUT_INFO io_info)
 {
 	OUTPUT_INFO out = io_info.out_info;
 	cout <<"********************************\n"
-		<<"\tOutput stats"
+		<<"\tOutput stats ["<< method<<"]"
 		<<"\n********************************\n";
 	cout <<"Num unreliable "<< out.num_unreliable 
 		<<" [" << (out.num_unreliable * 1.0 / scalar_grid.NumVertices())*100
 		<<"%] of total vertices.\n"
 		<<"Num reliable "<< out.num_reliable << endl;
-	
+
+	int num_unreliable=0, num_reliable=0;
+	for (int i = 0; i < reliable_grid.NumVertices(); i++)
+	{	
+		if ( !reliable_grid.Scalar(i))
+		{
+			num_unreliable++;
+		}
+		else
+		{
+			num_reliable++;
+		}
+	}
+	cout <<"TOTAL number of unreliable vertices: "<< num_unreliable << endl;
+	cout <<"TOTAL number of reliable vertices: "<< num_reliable << endl;
+	cout <<"TOTAL number of vertices: "<< num_unreliable + num_reliable<< endl;
 }
 
 // Main program
@@ -182,7 +200,7 @@ int main(int argc, char **argv) {
 			compute_reliable_gradients_advangle
 			(full_scalar_grid, vertex_gradient_grid, magnitude_grid, 
 			reliable_grid, input_info);
-			out_stats(full_scalar_grid, input_info);
+			out_stats("adv_angle_based", full_scalar_grid, reliable_grid, input_info);
 			
 			OptChosen = true;
 			time(&end);
@@ -200,7 +218,7 @@ int main(int argc, char **argv) {
 			compute_reliable_gradients_advangle_version2
 				(full_scalar_grid, vertex_gradient_grid, magnitude_grid, 
 				reliable_grid, input_info);
-			out_stats(full_scalar_grid, input_info);
+			out_stats("adv_angle_based_v2", full_scalar_grid, reliable_grid, input_info);
 
 
 			OptChosen = true;
@@ -209,6 +227,12 @@ int main(int argc, char **argv) {
 		}
 		if(input_info.curv_based)
 		{
+			//boundary grid
+			//create and fill boundary grid
+			RELIGRADIENT::BOOL_GRID boundary_grid;
+			boundary_grid.SetSize(full_scalar_grid);
+			compute_boundary_grid(boundary_grid);
+
 			input_info.out_info.num_unreliable = 0;
 			input_info.out_info.num_reliable = 0;
 			time_t begin, end;
@@ -217,9 +241,22 @@ int main(int argc, char **argv) {
 			time(&begin);	
 			//curvature based computation.
 			compute_reliable_gradients_curvature_based
-				(full_scalar_grid, vertex_gradient_grid, magnitude_grid, 
+				(full_scalar_grid, boundary_grid, vertex_gradient_grid, magnitude_grid, 
 				reliable_grid, input_info);
-			out_stats(full_scalar_grid, input_info);
+			out_stats("curvature based", full_scalar_grid, reliable_grid, input_info);
+			// check if extended
+			if (input_info.extended_curv_based)
+			{
+				//reset num unreliables. 
+				input_info.out_info.num_unreliable = 0;
+				input_info.out_info.num_reliable = 0;
+				compute_reliable_gradients_extended_curvature_based
+					(full_scalar_grid, boundary_grid, vertex_gradient_grid, magnitude_grid, 
+					reliable_grid, input_info);
+
+				out_stats("extended curvature",full_scalar_grid, reliable_grid, input_info);
+			}
+			
 			OptChosen = true;
 			time(&end);
 			finish = clock();	
@@ -444,7 +481,6 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 		{
 			iarg++;
 			io_info.flag_cdiff = true;
-			io_info.adv_angle_based = true;
 			io_info.neighbor_angle_parameter = atof(argv[iarg]);
 		}
 		else if (s == "-curvature_based")
@@ -452,8 +488,18 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 			io_info.flag_cdiff = true;
 			io_info.curv_based = true;
 			//default parameters
-			io_info.param_angle =  5; // alpha
+			io_info.param_angle =  8; // alpha
 			io_info.neighbor_angle_parameter = 20;
+		}
+		else if (s == "-extended_curv")
+		{
+			io_info.flag_cdiff = true;
+			io_info.curv_based = true;
+			//default parameters
+			io_info.param_angle = 8;
+			io_info.neighbor_angle_parameter = 20;
+
+			io_info.extended_curv_based = true;
 		}
 		else if (s == "-gzip") {
 			flag_gzip = true;
@@ -486,6 +532,7 @@ void usage_msg() {
 	cerr << "  [-neighbor_angle {A}]"<< endl;
 	cerr << "  [-scalar_pred_err {E}]" << endl;
 	cerr << "  [-curvature_based]" << endl;
+	cerr << "  [-extended_curv]"   << endl;
 	cerr << "  [-gzip]" << endl;
 	cerr << "  [-out_param] [-print_info {V}] [-print_grad_loc] [-help]" << endl;
 }
@@ -515,6 +562,7 @@ void help_msg() {
 	cerr << "     Errors above the threshold fail the test. (Default 0.4.)" 
 		<< endl;
 	cerr << "  -curvature_based: two parameters, alpha set by -angle and -neighbor_angle."<<endl;
+	cerr << "  -extended_curv: extended version of curvature based reliable gradients. Takes parameters -angle and -neighbor-angle"<<endl;
 	cerr << "  -gzip: Store gradients in compressed (gzip) format." << endl;
 	cerr << "  -out_param:  Print parameters." << endl;
 	cerr << "  -print_info {V} : Print information about vertex {IV}." << endl;
