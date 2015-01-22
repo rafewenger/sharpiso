@@ -1151,6 +1151,7 @@ void extended_curv_per_vertex
 	const GRADIENT_GRID & gradient_grid,
 	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
 	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
+	vector<VERTEX_INDEX> & vertex_index_of_extended_correct_grads,
 	INPUT_INFO & io_info
 	)
 {
@@ -1184,8 +1185,8 @@ void extended_curv_per_vertex
 							gradient_grid, grad_mag_grid) < alpha)
 						{
 							
-							reliable_grid.Set(iv_plus2, true);
-
+							//reliable_grid.Set(iv_plus2, true);
+							vertex_index_of_extended_correct_grads.push_back(iv_plus2);
 							io_info.out_info.num_reliable++;
 						}
 						else
@@ -1212,8 +1213,8 @@ void extended_curv_per_vertex
 						if(lambda_computations(iv, prev_vertex, iv_minus2, scalar_grid, 
 							gradient_grid, grad_mag_grid) < alpha)
 						{
-							reliable_grid.Set(iv_minus2, true);
-							
+							//reliable_grid.Set(iv_minus2, true);
+							vertex_index_of_extended_correct_grads.push_back(iv_minus2);
 							io_info.out_info.num_reliable++;
 						}
 						else
@@ -1342,6 +1343,7 @@ void compute_reliable_gradients_extended_curvature_based(
 	const GRADIENT_GRID & gradient_grid,
 	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
 	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
+	vector<VERTEX_INDEX> & vertex_index_of_extended_correct_grads,
 	INPUT_INFO & io_info)
 {
 	cout <<"Calling Function " <<__FUNCTION__<< endl;
@@ -1351,7 +1353,7 @@ void compute_reliable_gradients_extended_curvature_based(
 	for (VERTEX_INDEX iv = 0; iv < total; iv++)
 	{
 		extended_curv_per_vertex(iv, increasing_indices, scalar_grid, boundary_grid, gradient_grid,
-			grad_mag_grid, reliable_grid, io_info);
+			grad_mag_grid, reliable_grid, vertex_index_of_extended_correct_grads, io_info);
 	}
 	cout <<"Calling Function  " <<__FUNCTION__<< endl;
 	increasing_indices = false; 
@@ -1359,7 +1361,7 @@ void compute_reliable_gradients_extended_curvature_based(
 	for (VERTEX_INDEX iv = total-1; iv > 0; iv--)
 	{
 		extended_curv_per_vertex(iv, increasing_indices, scalar_grid, boundary_grid, gradient_grid,
-			grad_mag_grid, reliable_grid, io_info);
+			grad_mag_grid, reliable_grid, vertex_index_of_extended_correct_grads, io_info);
 	}
 
 }

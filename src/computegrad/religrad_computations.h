@@ -7,6 +7,7 @@
 #include "ijkscalar_grid.txx"
 #include "religrad_inputIO.h"
 #include <iostream>
+#include <vector>
 
 
 
@@ -72,5 +73,6 @@ void compute_reliable_gradients_extended_curvature_based(
 	const GRADIENT_GRID & gradient_grid,
 	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
 	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
+	std::vector<SHARPISO::VERTEX_INDEX> & vertex_index_of_extended_correct_grads,
 	INPUT_INFO & io_info);
 #endif

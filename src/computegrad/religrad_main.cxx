@@ -123,6 +123,7 @@ int main(int argc, char **argv) {
 
 		// compute central difference
 		if (input_info.flag_cdiff) {
+			cout <<"In Function "<< __FUNCTION__ << endl;
 			compute_gradient_central_difference_normalized(full_scalar_grid,
 				vertex_gradient_grid, magnitude_grid, input_info);
 			OptChosen = true;
@@ -247,13 +248,19 @@ int main(int argc, char **argv) {
 			// check if extended
 			if (input_info.extended_curv_based)
 			{
+				vector<VERTEX_INDEX>  vertex_index_of_extended_correct_grads;
 				//reset num unreliables. 
 				input_info.out_info.num_unreliable = 0;
 				input_info.out_info.num_reliable = 0;
 				compute_reliable_gradients_extended_curvature_based
 					(full_scalar_grid, boundary_grid, vertex_gradient_grid, magnitude_grid, 
-					reliable_grid, input_info);
+					reliable_grid, vertex_index_of_extended_correct_grads, input_info);
 
+				cout <<"NEW "<< vertex_index_of_extended_correct_grads.size() << endl;
+				for (int i = 0; i < vertex_index_of_extended_correct_grads.size(); i++)
+				{
+					reliable_grid.Set(i, true);
+				}
 				out_stats("extended curvature",full_scalar_grid, reliable_grid, input_info);
 			}
 			
