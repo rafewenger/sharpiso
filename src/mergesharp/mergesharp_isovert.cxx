@@ -2,7 +2,7 @@
 /// Data structures for creating and processing sharp isosurface vertices.
 
 /*
-Copyright (C) 2012-2014 Arindam Bhattacharya and Rephael Wenger
+Copyright (C) 2012-2015 Arindam Bhattacharya and Rephael Wenger
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -3685,7 +3685,7 @@ void reselect_edge_cubes
 // Return true if a neighbor of c has given flag.
 /// *** NOTE: SHOULD PASS CUBE c BY REFERENCE
 bool is_neighbor
-(GRID_CUBE_DATA c,
+(const GRID_CUBE_DATA & c,
  const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  SHARPISO_GRID_NEIGHBORS & gridn,
  ISOVERT &isovert,
