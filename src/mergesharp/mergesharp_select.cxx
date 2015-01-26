@@ -762,6 +762,7 @@ void MERGESHARP::select_sharp_isovert
   covered_grid.SetAll(false);
 
   MSDEBUG();
+  flag_debug = false;
   if (flag_debug) {
     cerr << endl << "*** Selecting corner cubes." << endl;
   }
