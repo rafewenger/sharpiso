@@ -79,6 +79,7 @@ void out_stats
 	cout <<"TOTAL number of unreliable vertices: "<< num_unreliable << endl;
 	cout <<"TOTAL number of reliable vertices: "<< num_reliable << endl;
 	cout <<"TOTAL number of vertices: "<< num_unreliable + num_reliable<< endl;
+
 }
 
 // Main program
@@ -97,6 +98,8 @@ int main(int argc, char **argv) {
 		//print the input params
 		output_param(input_info);
 		RELIGRADIENT_SCALAR_GRID full_scalar_grid;
+
+
 		GRID_NRRD_IN<int, int> nrrd_in;
 		NRRD_DATA<int, int> nrrd_header;
 		GRADIENT_COORD_TYPE zero_vector[3] = { 0.0, 0.0, 0.0 };
@@ -119,7 +122,8 @@ int main(int argc, char **argv) {
 
 		IJK::BOOL_GRID<RELIGRADIENT_GRID> reliable_grid;
 		reliable_grid.SetSize(full_scalar_grid);
-		reliable_grid.SetAll(true);
+		reliable_grid.SetAll(false);
+
 
 		// compute central difference
 		if (input_info.flag_cdiff) {
@@ -167,7 +171,7 @@ int main(int argc, char **argv) {
 			clock_t start, finish;
 			start = clock();
 			time(&begin);
-			
+
 			compute_reliable_gradients_SBP
 				(full_scalar_grid, vertex_gradient_grid, magnitude_grid, 
 				reliable_grid, input_info);
@@ -199,10 +203,10 @@ int main(int argc, char **argv) {
 			time(&begin);
 
 			compute_reliable_gradients_advangle
-			(full_scalar_grid, vertex_gradient_grid, magnitude_grid, 
-			reliable_grid, input_info);
+				(full_scalar_grid, vertex_gradient_grid, magnitude_grid, 
+				reliable_grid, input_info);
 			out_stats("adv_angle_based", full_scalar_grid, reliable_grid, input_info);
-			
+
 			OptChosen = true;
 			time(&end);
 			finish = clock();			
@@ -259,11 +263,11 @@ int main(int argc, char **argv) {
 				cout <<"NEW "<< vertex_index_of_extended_correct_grads.size() << endl;
 				for (int i = 0; i < vertex_index_of_extended_correct_grads.size(); i++)
 				{
-					reliable_grid.Set(i, true);
+					reliable_grid.Set( vertex_index_of_extended_correct_grads[i], true);
 				}
 				out_stats("extended curvature",full_scalar_grid, reliable_grid, input_info);
 			}
-			
+
 			OptChosen = true;
 			time(&end);
 			finish = clock();	
@@ -288,12 +292,12 @@ int main(int argc, char **argv) {
 				GRADIENT_COORD_TYPE grad_temp[DIM3] = { 0.0, 0.0, 0.0 };
 				std::copy(vertex_gradient_grid.VectorPtrConst(iv),
 					vertex_gradient_grid.VectorPtrConst(iv) + DIM3, grad_temp);
-				
+
 				GRADIENT_COORD_TYPE mag = magnitude_grid.Scalar(iv);
-				
+
 				for (int l = 0; l < DIM3; l++)
-					{
-						grad_temp[l] = grad_temp[l]*mag;
+				{
+					grad_temp[l] = grad_temp[l]*mag;
 				}
 				//set the gradient
 				vertex_gradient_grid.Set(iv,grad_temp);
@@ -362,7 +366,7 @@ void output_param(INPUT_INFO & io_info) {
 	if (flag_out_param) {
 		cout << "*********************************\n";
 		cout <<"\tOut Parameters.\n*********************************\n";
-		
+
 		if (io_info.flag_reliable_grad) {
 			cout << "reliable_grad, ";
 		}
@@ -384,19 +388,19 @@ void output_param(INPUT_INFO & io_info) {
 		}
 		else if(io_info.adv_angle_based)
 		{
-			
+
 			cout <<"Advanced Angle based Reliability criteria."<<endl;
-			
+
 			cout <<"Angle threshold for gradients to agree "<<io_info.param_angle << endl;
 			cout <<"Neighbor angle "<<io_info.neighbor_angle_parameter<<endl;
 			cout <<"\t{angle between grad at v and vector vv' where v' is an edge neighbor}"<<endl;
-			
+
 		}
 		else if(io_info.curv_based)
 		{
-			
+
 			cout <<"Curvature  based."<<endl;
-			
+
 			cout <<"Neighbor angle "<<io_info.neighbor_angle_parameter<<endl;
 			cout <<"Angle threshold for gradients to agree "<<io_info.param_angle << endl;
 		}
