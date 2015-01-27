@@ -2,7 +2,7 @@
 /// Data structures for creating and processing sharp isosurface vertices.
 
 /*
-Copyright (C) 2012-2014 Arindam Bhattacharya and Rephael Wenger
+Copyright (C) 2012-2015 Arindam Bhattacharya and Rephael Wenger
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -24,9 +24,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "ijkdualtable.h"
 
-#include "mergesharp_types.h"
 #include "sharpiso_grids.h"
 #include "sharpiso_feature.h"
+#include "mergesharp_types.h"
 
 #include <vector>
 
@@ -56,18 +56,18 @@ protected:
   void Init();
 
 public:
-	GRID_COORD_TYPE cube_coord[DIM3];  ///< Cube coordinates (unscaled).
-	COORD_TYPE isovert_coord[DIM3];    ///< Location of the sharp isovertex.
-	COORD_TYPE isovert_coordB[DIM3];   ///< Substitute location.
-	unsigned char num_eigenvalues;     ///< Number of eigenvalues.
-	GRID_CUBE_FLAG flag;               ///< Type for this cube.
+  GRID_COORD_TYPE cube_coord[DIM3];  ///< Cube coordinates (unscaled).
+  COORD_TYPE isovert_coord[DIM3];    ///< Location of the sharp isovertex.
+  COORD_TYPE isovert_coordB[DIM3];   ///< Substitute location.
+  unsigned char num_eigenvalues;     ///< Number of eigenvalues.
+  GRID_CUBE_FLAG flag;               ///< Type for this cube.
   BOUNDARY_BITS_TYPE boundary_bits;  ///< Boundary bits for the cube
-	VERTEX_INDEX cube_index;           ///< Index of cube in scalar grid.
+  VERTEX_INDEX cube_index;           ///< Index of cube in scalar grid.
 
   /// If num_eigenvalues == 2, then direction = direction of isosurface edge.
   /// If num_eigenvalues == 1, then 
   ///   direction = direction orthogonal to isosurface.
-	COORD_TYPE direction[DIM3];         
+  COORD_TYPE direction[DIM3];         
 
   /// Linf-dist from isovert_coord[] to cube-center.
   COORD_TYPE linf_dist;
@@ -123,6 +123,43 @@ public:
 };
 
 typedef std::vector<GRID_CUBE_DATA> GRID_CUBE_DATA_ARRAY;
+
+
+// **************************************************
+// GCUBE_COMPARE
+// **************************************************
+
+class GCUBE_COMPARE {
+
+public:
+  const std::vector<GRID_CUBE_DATA> * gcube_list;
+
+  GCUBE_COMPARE(const std::vector<GRID_CUBE_DATA> & gcube_list)
+  { this->gcube_list = &gcube_list; };
+
+  bool operator () (int i,int j)
+  {
+    int num_eigen_i = gcube_list->at(i).num_eigenvalues;
+    int num_eigen_j = gcube_list->at(j).num_eigenvalues;
+
+    if (num_eigen_i == num_eigen_j) {
+
+      int flag_i = int(gcube_list->at(i).flag_coord_from_other_cube);
+      int flag_j = int(gcube_list->at(j).flag_coord_from_other_cube);
+
+      if (flag_i == flag_j) {
+        return ((gcube_list->at(i).linf_dist) < (gcube_list->at(j).linf_dist)); 
+      }
+      else {
+        // Process first cubes which generated their own iso vertices.
+        return ((flag_i < flag_j));
+      }
+    }
+    else {
+      return ((num_eigen_i > num_eigen_j));
+    }
+  }
+};
 
 
 // **************************************************
@@ -214,29 +251,6 @@ void compute_dual_isovert
    const SHARP_ISOVERT_PARAM & isovert_param,
    ISOVERT & isovert);
 
-/// Select sharp isosurface vertices.
-void select_sharp_isovert(
-		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SCALAR_TYPE isovalue,
-		const SHARP_ISOVERT_PARAM & isovert_param,
-		ISOVERT & isovertData);
-
-/// Select sharp isosurface vertices.
-void select_sharp_isovert(
-		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-    const GRADIENT_GRID_BASE & gradient_grid,
-		const SCALAR_TYPE isovalue,
-		const SHARP_ISOVERT_PARAM & isovert_param,
-		ISOVERT & isovertData);
-
-/// Select sharp isosurface vertices using mod3 algorithm.
-void select_sharp_isovert_mod3(
-		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-    const GRADIENT_GRID_BASE & gradient_grid,
-		const SCALAR_TYPE isovalue,
-		const SHARP_ISOVERT_PARAM & isovert_param,
-		ISOVERT & isovertData);
-
 /// Recompute isosurface vertex positions for cubes 
 ///   which are not selected or covered.
 /// also takes isovert_info as parameter
@@ -261,12 +275,35 @@ void recompute_isovert_positions(
 /// Recompute isosurface vertex positions for cubes 
 ///   which are not selected or covered.
 /// Version for hermite data.
-void recompute_isovert_positions (
-    const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-    const std::vector<COORD_TYPE> & edgeI_coord,
-		const SCALAR_TYPE isovalue,
-		const SHARP_ISOVERT_PARAM & isovert_param,
-		ISOVERT & isovert);
+void recompute_isovert_positions
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const std::vector<COORD_TYPE> & edgeI_coord,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ ISOVERT & isovert);
+
+/// Recompute isovert positions for cubes containing covered points.
+void recompute_covered_point_positions
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SHARPISO_BOOL_GRID & covered_grid,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ ISOVERT & isovert);
+
+/// Recompute isovert positions for cubes containing covered points.
+/// Use voxel for gradient cube offset, 
+///   not isovert_param.grad_selection_cube_offset.
+/// @param flag_min_offset If true, voxel uses minimum gradient cube offset.
+void recompute_covered_point_positions
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SHARPISO_BOOL_GRID & covered_grid,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ const OFFSET_VOXEL & voxel,
+ const bool flag_min_offset,
+ ISOVERT & isovert);
 
 /// Set grid containing locations of edges in edgeI_coord[].
 void set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,
@@ -286,6 +323,27 @@ void get_cube_list
 
 /// Transform GRID_CUBE_FLAG into a string
 void convert2string(const GRID_CUBE_FLAG & flag, std::string & s);
+
+/// Copy isovert position from from_gcube to to_gcube.
+void copy_isovert_position
+(const SHARPISO_GRID & grid, 
+ const NUM_TYPE from_gcube, const NUM_TYPE to_gcube, ISOVERT & isovert);
+
+/// Compute overlap of 3x3x3 regions
+bool find_3x3x3_overlap
+(const GRID_COORD_TYPE cubeA_coord[DIM3],
+ const GRID_COORD_TYPE cubeB_coord[DIM3],
+ GRID_COORD_TYPE rmin[DIM3], GRID_COORD_TYPE rmax[DIM3],
+ int & overlap_dim);
+
+/// Compute overlap of 3x3x3 regions.
+/// Version with grid and cube indices input.
+template <typename GRID_TYPE>
+bool find_3x3x3_overlap
+(const GRID_TYPE & grid,
+ const VERTEX_INDEX cubeA_index, const VERTEX_INDEX cubeB_index,
+ GRID_COORD_TYPE rmin[DIM3], GRID_COORD_TYPE rmax[DIM3],
+ int & overlap_dim);
 
 
 // **************************************************
@@ -322,19 +380,32 @@ void get_selected
 // **************************************************
 
 /// Return true if this vertex creates a triangle with a large angle.
-/// @param check_triangl_angle If true, check it triangle has large angles.
+/// @param check_triangle_angle If true, check it triangle has large angles.
 /// @param bin_grid Contains the already selected vertices.
 /// @param[out] v1,v2 vertex indices which form a triangle with iv.
-bool creates_triangle (
-    const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const bool check_triangle_angle,
-		const ISOVERT & isovertData,
-		const VERTEX_INDEX iv,
-		const SCALAR_TYPE isovalue,
-		const BIN_GRID<VERTEX_INDEX> & bin_grid,
-		const AXIS_SIZE_TYPE bin_width,
-		VERTEX_INDEX & v1,
-		VERTEX_INDEX & v2);
+bool creates_triangle
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const bool check_triangle_angle,
+ const ISOVERT & isovertData,
+ const VERTEX_INDEX iv,
+ const SCALAR_TYPE isovalue,
+ const BIN_GRID<VERTEX_INDEX> & bin_grid,
+ const AXIS_SIZE_TYPE bin_width,
+ VERTEX_INDEX & v1,
+ VERTEX_INDEX & v2);
+
+/// Return true if selecting this vertex creates a triangle with a large angle.
+/// @param bin_grid Contains the already selected vertices.
+/// @param[out] iv1, iv2 vertex indices which form a triangle with iv0
+bool creates_triangle_new
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const ISOVERT & isovert,
+ const VERTEX_INDEX iv0,
+ const SCALAR_TYPE isovalue,
+ const BIN_GRID<VERTEX_INDEX> & bin_grid,
+ const AXIS_SIZE_TYPE bin_width,
+ VERTEX_INDEX & iv1,
+ VERTEX_INDEX & iv2);
 
 /// Select and sort cubes with more than one eigenvalue.
 ///   Store references to cubes sorted by number of large eigenvalues

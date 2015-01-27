@@ -67,7 +67,8 @@ else()
 ENDIF()
 
 SET(MERGESHARP_SUB_LIST mergesharpIO.cxx mergesharp.cxx 
-                        mergesharp_datastruct.cxx mergesharp_isovert.cxx
+                        mergesharp_datastruct.cxx 
+                        mergesharp_isovert.cxx mergesharp_select.cxx
                         mergesharp_extract.cxx mergesharp_position.cxx 
                         mergesharp_merge.cxx
                         ijkdualtable.cxx ijkdualtable_ambig.cxx 

@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "mergesharp.h"
 #include "mergesharp_ambig.h"
+#include "mergesharp_select.h"
 #include "mergesharp_merge.h"
 #include "mergesharp_extract.h"
 #include "mergesharp_position.h"

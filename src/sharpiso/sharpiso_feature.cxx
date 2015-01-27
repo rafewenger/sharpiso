@@ -849,7 +849,6 @@ bool SHARPISO::cube_contains_point
 }
 
 
-/// *** INCORRECT FOR SPACING != (1,1,1) ***
 /// Return index of cube containing point.
 /// Set flag_boundary to true if point is on cube boundary.
 /// @pre Point is contained in grid.
@@ -858,13 +857,14 @@ void SHARPISO::get_cube_containing_point
 (const SHARPISO_GRID & grid, const COORD_TYPE * coord,
  VERTEX_INDEX & cube_index, bool & flag_boundary)
 {
+  const COORD_TYPE * spacing = grid.SpacingPtrConst();
   static COORD_TYPE coord2[DIM3];
 
   flag_boundary = false;
   for (int d = 0; d < DIM3; d++) {
-    coord2[d] = floor(coord[d]);
+    coord2[d] = floor(coord[d]/spacing[d]);
 
-    if (coord2[d] == coord[d])
+    if (coord2[d] == coord[d]/spacing[d])
       { flag_boundary = true; }
 
     if (coord2[d] < 0) {
@@ -881,7 +881,6 @@ void SHARPISO::get_cube_containing_point
   cube_index = grid.ComputeVertexIndex(coord2);
 }
 
-/// *** INCORRECT FOR SPACING != (1,1,1) ***
 /// Return index of cube containing point.
 /// Set flag_boundary to true if point is on cube boundary.
 /// Set flag_active to true if cube is active.
@@ -899,7 +898,6 @@ void SHARPISO::get_cube_containing_point
 }
 
 
-/// *** INCORRECT FOR SPACING != (1,1,1) ***
 /// Return list of cubes containing point.
 /// Set flag_boundary to true if point is on cube boundary.
 /// @pre Point is contained in grid.
@@ -908,18 +906,18 @@ void get_all_cubes_containing_point
 (const SHARPISO_GRID & grid, const COORD_TYPE * coord,
  std::vector<VERTEX_INDEX> & cube_list)
 {
+  const COORD_TYPE * spacing = grid.SpacingPtrConst();
   static COORD_TYPE coord2[DIM3];
 
   cube_list.clear();
-
 
   for (int index = 0; index < 8; index++) {
 
     bool flag_skip(false);
     for (int d = 0; d < DIM3; d++) {
-      coord2[d] = floor(coord[d]);
+      coord2[d] = floor(coord[d]/spacing[d]);
 
-      if (coord2[d] == coord[d]) {
+      if (coord2[d] == coord[d]/spacing[d]) {
         int mask = (1L << d);
         if ((mask & index) == 0) {
           if (coord2[d] > 0)
@@ -948,6 +946,7 @@ void get_all_cubes_containing_point
   }
 
 }
+
 
 /// Return true if point lies in an occupied cube
 ///   other than the one given by cube_coord[].
