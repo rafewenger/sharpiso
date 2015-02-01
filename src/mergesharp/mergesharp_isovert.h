@@ -179,10 +179,10 @@ public:
 	SHARPISO_INDEX_GRID sharp_ind_grid;
 
   /// Return true if cube is active.
-	bool isActive(const int cube_index);
+	bool isActive(const int cube_index) const;
 
   /// Return true if cube flag equals flag.
-	bool isFlag(const int cube_index, GRID_CUBE_FLAG flag); 
+	bool isFlag(const int cube_index, GRID_CUBE_FLAG flag) const; 
 
   /// Return cube index.
   VERTEX_INDEX CubeIndex(const int gcube_index) const
