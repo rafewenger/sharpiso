@@ -161,6 +161,32 @@ void SHARPISO::compute_closest_point_on_line_linf
 
 }
 
+///  Compute the closest point under the Linf metric to point p on a given line.
+void SHARPISO::compute_closest_point_on_line_unscaled_linf
+(const COORD_TYPE point[DIM3],
+ const COORD_TYPE line_origin[DIM3],
+ const COORD_TYPE line_direction[DIM3],
+ const GRADIENT_COORD_TYPE zero_tolerance_squared,
+ const COORD_TYPE spacing[DIM3],
+ COORD_TYPE closest_point[DIM3])
+{
+  COORD_TYPE point2[DIM3], line_origin2[DIM3], line_direction2[DIM3];
+
+  // Unscale point and line.
+  for (int d = 0; d < DIM3; d++) {
+    point2[d] = point[d]/spacing[d];
+    line_origin2[d] = line_origin[d]/spacing[d];
+    line_direction2[d] = line_direction[d]/spacing[d];
+  }
+
+  compute_closest_point_on_line_linf
+    (point2, line_origin2, line_direction2, zero_tolerance_squared, 
+     closest_point);
+
+  // Rescale closest point.
+  IJK::scale_coord(DIM3, spacing, closest_point, closest_point);
+}
+
 // compute the linf distance between a point and a ray
 void SHARPISO::compute_closest_point_to_cube_center_linf
 (const GRID_COORD_TYPE cube_coord[],

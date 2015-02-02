@@ -255,9 +255,11 @@ void compute_isovert_position_lindstrom
           (closest_point, isovert.gcube_list[gcube_index].isovert_coordB);
       }
       else {
+
         // Compute point on line closest (Linf) to cube center.
-        compute_closest_point_on_line_linf
-          (cube_center_coord, isovert_coord,  direction, max_small_magnitude, 
+        compute_closest_point_on_line_unscaled_linf
+          (cube_center_coord, isovert_coord,  direction, max_small_magnitude,
+           scalar_grid.SpacingPtrConst(),
            isovert.gcube_list[gcube_index].isovert_coordB);
       }
     }
