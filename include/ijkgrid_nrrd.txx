@@ -266,6 +266,21 @@ namespace IJK {
                  dimension, nrrd_axis_size.Ptr());
   }
 
+  /// Wrap scalar data in nrrd_data.
+  template <typename DTYPE, typename ATYPE>
+  void wrap_scalar_grid_data
+  (Nrrd * nrrd_data, const int * scalar, 
+   const DTYPE dimension, const ATYPE * axis_size)
+  {
+    IJK::ARRAY<size_t> nrrd_axis_size(dimension);
+
+    for (DTYPE d = 0; d < dimension; d++) 
+      { nrrd_axis_size[d] = axis_size[d]; }
+
+    nrrdWrap_nva(nrrd_data, (void *)(scalar), nrrdTypeInt,
+                 dimension, nrrd_axis_size.Ptr());
+  }
+
   /// Wrap vector data in nrrd_data.
   template <typename DTYPE, typename ATYPE, typename LTYPE>
   void wrap_vector_grid_data
