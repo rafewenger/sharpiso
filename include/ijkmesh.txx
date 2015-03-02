@@ -1,10 +1,10 @@
 /// \file ijkmesh.txx
 /// ijk templates for handling polyhedral meshes
-/// Version 0.1.0
+/// Version 0.2.0
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2010-2013 Rephael Wenger
+  Copyright (C) 2010-2015 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -37,7 +37,7 @@ namespace IJK {
   // **************************************************
 
   /// comparison function template
-  template <class DTYPE, class T> class TUPLE_LESS_THAN {
+  template <typename DTYPE, typename T> class TUPLE_LESS_THAN {
   protected:
     const DTYPE dimension;
     const T * array;
@@ -629,6 +629,108 @@ namespace IJK {
       { vlist[i] = new_index[vlist[i]]; }
   }
 
+
+  // **************************************************
+  // REVERSE ORIENTATIONS
+  // **************************************************
+
+  /// Reverse simplex orientations
+  template <typename DTYPE, typename SVERT, typename NTYPE>
+  void reverse_simplex_orientations
+  (const DTYPE simplex_dimension,
+   SVERT * simplex_vertex, const NTYPE num_simplices)
+  {
+    if (simplex_dimension < 1) { return; }
+
+    const DTYPE num_simplex_vert = simplex_dimension+1;
+    const DTYPE inc1 = num_simplex_vert-1;
+    const DTYPE inc2 = num_simplex_vert-2;
+
+    SVERT * svert0 = simplex_vertex;
+    for (NTYPE i = 0; i < num_simplices; i++) {
+      
+      std::swap(*(svert0+inc1), *(svert0+inc2));
+      svert0 += num_simplex_vert;
+    }
+  }
+
+  /// Reverse simplex orientations
+  template <typename DTYPE, typename SVERT>
+  void reverse_simplex_orientations
+  (const DTYPE simplex_dimension, std::vector<SVERT> & simplex_vertex)
+  {
+    if (simplex_vertex.size() > 0) {
+      reverse_simplex_orientations
+        (simplex_dimension, &(simplex_vertex.front()),
+         simplex_vertex.size()/(simplex_dimension+1));
+    }
+  }
+
+  /// Reverse quadrilateral orientations
+  template <typename QVERT, typename NTYPE>
+  void reverse_quad_orientations
+  (QVERT * quad_vertex, const NTYPE num_quad)
+  {
+    const NTYPE NUM_VERT_PER_QUAD = 4;
+
+    QVERT * qvert0 = quad_vertex;
+    for (NTYPE i = 0; i < num_quad; i++) {
+      std::swap(*(qvert0), *(qvert0+3));
+      std::swap(*(qvert0+1), *(qvert0+2));
+      qvert0 += NUM_VERT_PER_QUAD;
+    }
+  }
+
+  /// Reverse quadrilateral orientations
+  template <typename QVERT>
+  void reverse_quad_orientations(std::vector<QVERT> & quad_vertex)
+  {
+    const int NUM_VERT_PER_QUAD = 4;
+
+    if (quad_vertex.size() > 0) {
+      reverse_quad_orientations
+        (&(quad_vertex.front()), quad_vertex.size()/NUM_VERT_PER_QUAD);
+    }
+  }
+
+  /// Reverse orientation of a polygon.
+  template <typename QVERT, typename NTYPE>
+  void reverse_polygon_orientation
+  (QVERT * polygon_vertex, const NTYPE num_polygon_vert)
+  {
+    for (NTYPE i = 0; i < num_polygon_vert/2; i++) {
+      NTYPE i2 = num_polygon_vert-i-1;
+      std::swap(polygon_vertex[i], polygon_vertex[i2]); 
+    }
+  }
+
+  /// Reverse orientations of polygons in a list.
+  template <typename VTYPE, typename NTYPE0, typename NTYPE1, typename ITYPE>
+  void reverse_orientations_polygon_list
+  (VTYPE * poly_vert, const NTYPE0 * num_poly_vert, 
+   const ITYPE * first_poly_vert, const NTYPE1 num_poly)
+  {
+    for (NTYPE1 ipoly = 0; ipoly < num_poly; ipoly++) {
+      reverse_polygon_orientation
+        (poly_vert+first_poly_vert[ipoly], num_poly_vert[ipoly]);
+    }
+  }
+
+
+  /// Reverse orientations of polygons in a list.
+  /// C++ STL vector format for num_poly_vert[], poly_vert[], first_poly_vert[].
+  template <typename VTYPE, typename NTYPE, typename ITYPE>
+  void reverse_orientations_polygon_list
+  (std::vector<VTYPE> & poly_vert, const std::vector<NTYPE> & num_poly_vert, 
+   const std::vector<ITYPE> & first_poly_vert)
+  {
+    if (poly_vert.size() > 0 && num_poly_vert.size() > 0) {
+      reverse_orientations_polygon_list
+        (&(poly_vert.front()), &(num_poly_vert.front()), 
+         &(first_poly_vert.front()), num_poly_vert.size());
+    }
+  }
+
   // **************************************************
   // REORDER QUADRILATERALS
   // **************************************************
@@ -908,6 +1010,36 @@ namespace IJK {
     }
   }
 
+  /// Triangulate list of polygons.
+  template <typename NTYPE0, typename NTYPE1, 
+            typename VTYPE0, typename VTYPE1,
+            typename ITYPE>
+  void triangulate_polygon_list
+  (const NTYPE0 * num_poly_vert, const VTYPE0 * poly_vert,
+   const ITYPE * first_poly_vert, const NTYPE1 num_poly,
+   std::vector<VTYPE1> & tri_vert)
+  {
+    for (NTYPE1 ipoly = 0; ipoly < num_poly; ipoly++) {
+      triangulate_polygon
+        (num_poly_vert[ipoly], poly_vert+first_poly_vert[ipoly], tri_vert);
+    }
+  }
+
+  /// Triangulate list of polygons.
+  /// C++ STL vector format for num_poly_vert[], poly_vert[], first_poly_vert[].
+  template <typename NTYPE, typename VTYPE0, typename VTYPE1,
+            typename ITYPE>
+  void triangulate_polygon_list
+  (const std::vector<NTYPE> & num_poly_vert, 
+   const std::vector<VTYPE0> & poly_vert,
+   const std::vector<ITYPE> & first_poly_vert,
+   std::vector<VTYPE1> & tri_vert)
+  {
+    triangulate_polygon_list
+      (IJK::vector2pointer(num_poly_vert), IJK::vector2pointer(poly_vert),
+       IJK::vector2pointer(first_poly_vert), num_poly_vert.size(), tri_vert);
+  }
+
   /// Triangulate a set of quadrilaterals.
   /// Quadrilateral vertices are listed in clockwise or counter-clockwise order
   ///   around the polygon.
@@ -938,6 +1070,186 @@ namespace IJK {
 
     SIZE_TYPE num_quad = quad_vert.size()/NUM_VERT_PER_QUAD;
     triangulate_quad(IJK::vector2pointer(quad_vert), num_quad, tri_vert);
+  }
+
+  // **************************************************
+  // Class POLYMESH 
+  // **************************************************
+
+  /// Mesh of polytopes
+  template <typename DTYPE, typename VTYPE, typename NTYPE>
+  class POLYMESH {
+
+  public:
+
+    typedef NTYPE NUM_TYPE;
+
+    /// num_poly_vert[i] = Number of vertices of polytope i.
+    std::vector<NTYPE> num_poly_vert;
+
+    /// first_poly_vert[i] = Index in poly_vert[] of first vertex of poly i.
+    std::vector<NTYPE> first_poly_vert;
+
+    /// List of polytope vertices.
+    std::vector<VTYPE> poly_vert;
+
+    // constructor
+    POLYMESH(){}
+
+    NTYPE NumPoly() const               ///< Number of polytopes.
+    { return(num_poly_vert.size()); }
+
+    /// Number of vertices of polytope i.
+    NTYPE NumPolyVert(const int ipoly) const
+    { return(num_poly_vert[ipoly]); }
+
+    /// Return j'th vertex of polytope ipoly.
+    VTYPE Vertex(const NTYPE ipoly, const NTYPE j) const
+    { return(poly_vert[first_poly_vert[ipoly]+j]); }
+
+    /// Return pointer to first vertex of polytope ipoly.
+    const VTYPE * VertexList(const NTYPE ipoly) const
+    { return(&(poly_vert[first_poly_vert[ipoly]])); }
+
+    /// Copy.
+    template <typename MTYPE>
+    void Copy(const MTYPE & polymesh2);
+
+    /// Add polytopes from list where each polytope has 
+    ///   num_vert_per_poly vertices.
+    /// @param num_vert_per_poly Number of vertices in each polytope.
+    template <typename VTYPE2>
+    void AddPolytopes(const std::vector<VTYPE2> & poly_vert_list, 
+                      const NTYPE num_vert_per_poly);
+
+    /// Sort the vertices of each polytope.
+    /// Note: Sorting may change simplex orientation.
+    void SortVert();
+
+    /// Sort the polytopes.
+    /// @param sorted_poly[i] = i'th poly in sorted order.
+    /// @pre SortVert() should be called before Sort().
+    template <typename NTYPE2>
+    void Sort(std::vector<NTYPE2> & sorted_poly) const;
+
+    /// Clear the polytopes.
+    void Clear();
+  };
+
+  // **************************************************
+  // POLYMESH compare
+  // **************************************************
+
+  /// function class for comparing polytopes in POLYMESH
+  /// @pre: Vertices for each poly are sorted.
+  template <typename MTYPE> class POLYMESH_LESS_THAN {
+  protected:
+    const MTYPE * polymesh;
+
+  public:
+    POLYMESH_LESS_THAN(const MTYPE * pmesh):
+      polymesh(pmesh)
+    {};
+
+    typedef typename MTYPE::NUM_TYPE NUM_TYPE;
+
+    bool operator ()(const int i0, const int i1) const
+    { 
+      if (polymesh->num_poly_vert[i0] < polymesh->num_poly_vert[i1])
+        { return(true); }
+      else if (polymesh->num_poly_vert[i0] > polymesh->num_poly_vert[i1])
+        { return(false); }
+      else {
+        // polymesh->num_poly_vert[i0] = polymesh->num_poly_vert[i1]
+        NUM_TYPE num_poly_vert = polymesh->num_poly_vert[i0];
+
+        const int * vlist0 = polymesh->VertexList(i0);
+        const int * vlist1 = polymesh->VertexList(i1);
+
+        return(std::lexicographical_compare
+               (vlist0, vlist0+num_poly_vert, 
+                vlist1, vlist1+num_poly_vert));
+      }
+    };
+  };
+
+  
+
+  // **************************************************
+  // POLYMESH member functions
+  // **************************************************
+
+  template <typename DTYPE, typename VTYPE, typename NTYPE>
+  template <typename MTYPE>
+  void POLYMESH<DTYPE,VTYPE,NTYPE>::Copy(const MTYPE & polymesh2)
+  {
+    const NTYPE num_poly = polymesh2.NumPoly();
+
+    num_poly_vert.resize(num_poly);
+    first_poly_vert.resize(num_poly);
+    poly_vert.resize(polymesh2.poly_vert.size());
+
+    std::copy(polymesh2.num_poly_vert.begin(), polymesh2.num_poly_vert.end(),
+              num_poly_vert.begin());
+    std::copy(polymesh2.first_poly_vert.begin(), 
+              polymesh2.first_poly_vert.end(),
+              first_poly_vert.begin());
+    std::copy(polymesh2.poly_vert.begin(), polymesh2.poly_vert.end(),
+              poly_vert.begin());
+  }
+
+
+  template <typename DTYPE, typename VTYPE, typename NTYPE>
+  template <typename VTYPE2>
+  void POLYMESH<DTYPE,VTYPE,NTYPE>::AddPolytopes
+    (const std::vector<VTYPE2> & poly_vert_list, 
+     const NTYPE num_vert_per_poly)
+  {
+    NTYPE num_poly = poly_vert_list.size()/num_vert_per_poly;
+    NTYPE ifirst = poly_vert.size();
+    for (NTYPE ipoly = 0; ipoly < num_poly; ipoly++) {
+      num_poly_vert.push_back(num_vert_per_poly);
+      first_poly_vert.push_back(ifirst+ipoly*num_vert_per_poly);
+
+      for (NTYPE j = 0; j < num_vert_per_poly; j++) {
+        VTYPE iv = poly_vert_list[ipoly*num_vert_per_poly+j];
+        poly_vert.push_back(iv);
+      }
+    }
+  }
+
+  template <typename DTYPE, typename VTYPE, typename NTYPE>
+  void POLYMESH<DTYPE,VTYPE,NTYPE>::SortVert()
+  {
+    for (NTYPE ipoly = 0; ipoly < NumPoly(); ipoly++) {
+      NTYPE iv = first_poly_vert[ipoly];
+
+      sort(poly_vert.begin()+iv, 
+           poly_vert.begin()+iv+num_poly_vert[ipoly]);
+    }
+  }
+
+  template <typename DTYPE, typename VTYPE, typename NTYPE>
+  template <typename NTYPE2>
+  void POLYMESH<DTYPE,VTYPE,NTYPE>::Sort
+  (std::vector<NTYPE2> & sorted_poly) const
+  {
+    POLYMESH_LESS_THAN<POLYMESH> polymesh_lt(this);
+
+    sorted_poly.resize(NumPoly());
+
+    for (int i = 0; i < NumPoly(); i++)
+      { sorted_poly[i] = i; }
+
+    std::sort(sorted_poly.begin(), sorted_poly.end(), polymesh_lt);
+  }
+
+  template <typename DTYPE, typename VTYPE, typename NTYPE>
+  void POLYMESH<DTYPE,VTYPE,NTYPE>::Clear()
+  {
+    num_poly_vert.clear();
+    first_poly_vert.clear();
+    poly_vert.clear();
   }
 
 }

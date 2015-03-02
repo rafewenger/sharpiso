@@ -2,7 +2,7 @@
 /// IO routines for mergesharp
 
 /*
-  Copyright (C) 2011-2014 Rephael Wenger
+  Copyright (C) 2011-2015 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -938,7 +938,7 @@ void MERGESHARP::output_dual_isosurface
     report_iso_info3D
       (output_info, mergesharp_data, dual_isosurface, mergesharp_info);
 
-    report_isovert_info(output_info, isovert);
+    report_isovert_info(output_info, mergesharp_data.ScalarGrid(), isovert);
   }
 
   if (!output_info.nowrite_flag) {
@@ -1463,7 +1463,8 @@ void output_yes_no(const char * s, const bool flag)
 
 /// Report information about isosurface vertices
 void report_isovert_cube_info
-(const ISOVERT & isovert, const VERTEX_INDEX cube_index)
+(const SHARPISO_GRID & grid, const ISOVERT & isovert, 
+ const VERTEX_INDEX cube_index)
 {
   const INDEX_DIFF_TYPE gcube_index = isovert.GCubeIndex(cube_index);
   const NUM_TYPE num_eigenvalues = 
@@ -1474,6 +1475,14 @@ void report_isovert_cube_info
 
   cout << "Cube " << cube_index << ": ";
   ijkgrid_output_vertex_coord(cout, isovert.sharp_ind_grid, cube_index);
+
+  if (!grid.IsUnitSpacing()) {
+    COORD_TYPE scaled_cube_coord[DIM3];
+    grid.ComputeScaledCoord(cube_index, scaled_cube_coord);
+    cout << "  ";
+    IJK::print_coord3D(cout, scaled_cube_coord);
+  }
+
   cout << "    Num eigenvalues: " << num_eigenvalues;
   cout << endl;
   cout << "    Isovert coord A: ";
@@ -1528,7 +1537,8 @@ void report_isovert_cube_info
 }
 
 /// Report information about cubes containing corner or edge iso vertices.
-void MERGESHARP::report_sharp_cubes(const ISOVERT & isovert)
+void MERGESHARP::report_sharp_cubes
+(const SHARPISO_GRID & grid, const ISOVERT & isovert)
 {
   std::vector<NUM_TYPE> sharp_gcube_list;
 
@@ -1540,27 +1550,29 @@ void MERGESHARP::report_sharp_cubes(const ISOVERT & isovert)
   for (NUM_TYPE i = 0; i < sharp_gcube_list.size(); i++) {
     NUM_TYPE gcube_index = sharp_gcube_list[i];
     VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
-    report_isovert_cube_info(isovert, cube_index);
+    report_isovert_cube_info(grid, isovert, cube_index);
   }
   cout << endl;
 }
 
 /// Report information about active cubes.
 /// A cube is active if it has some bipolar edge.
-void MERGESHARP::report_active_cubes(const ISOVERT & isovert)
+void MERGESHARP::report_active_cubes
+(const SHARPISO_GRID & grid, const ISOVERT & isovert)
 {
   cout << endl;
   cout << "Active cubes (containing bipolar edges): " << endl;
   for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
     VERTEX_INDEX cube_index = isovert.CubeIndex(i);
-    report_isovert_cube_info(isovert, cube_index);
+    report_isovert_cube_info(grid, isovert, cube_index);
   }
   cout << endl;
 }
 
 /// Report information about isosurface vertices
 void MERGESHARP::report_isovert_info
-(const OUTPUT_INFO & output_info, const ISOVERT & isovert)
+(const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
+ const ISOVERT & isovert)
 {
   const VERTEX_POSITION_METHOD vpos_method = output_info.VertexPositionMethod();
   std::vector<NUM_TYPE> sharp_gcube_list;
@@ -1583,17 +1595,17 @@ void MERGESHARP::report_isovert_info
 
       if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
         VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
-        report_isovert_cube_info(isovert, cube_index);
+        report_isovert_cube_info(grid, isovert, cube_index);
       }
     }
     cout << endl;
   }
 
   if (output_info.flag_output_sharp) 
-    { report_sharp_cubes(isovert); }
+    { report_sharp_cubes(grid, isovert); }
 
   if (output_info.flag_output_active) 
-    { report_active_cubes(isovert); }
+    { report_active_cubes(grid, isovert); }
 
 }
 

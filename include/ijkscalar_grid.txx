@@ -1184,7 +1184,7 @@ namespace IJK {
   template <typename GRID_CLASS, typename STYPE>
   STYPE SCALAR_GRID_BASE<GRID_CLASS,STYPE>::FindMinScalar() const
   {
-    STYPE min_scalar = *(min_element(ScalarPtrConst(), End()));
+    STYPE min_scalar = *(std::min_element(ScalarPtrConst(), End()));
     return(min_scalar);
   }
 
@@ -1192,7 +1192,7 @@ namespace IJK {
   template <typename GRID_CLASS, typename STYPE>
   STYPE SCALAR_GRID_BASE<GRID_CLASS,STYPE>::FindMaxScalar() const
   {
-    STYPE max_scalar = *(max_element(ScalarPtrConst(), End()));
+    STYPE max_scalar = *(std::max_element(ScalarPtrConst(), End()));
     return(max_scalar);
   }
 

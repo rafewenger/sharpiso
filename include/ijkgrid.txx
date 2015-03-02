@@ -622,6 +622,9 @@ namespace IJK {
     STYPE Spacing(const DTYPE2 d) const
     { return(spacing[d]); };
 
+    /// Return true if (Spacing(d) == 1) for all d.
+    bool IsUnitSpacing() const;
+
     /// Get const pointer to spacing.
     const STYPE * SpacingPtrConst() const
     { return(spacing); }
@@ -4976,6 +4979,19 @@ namespace IJK {
   SetSpacing(const GRID_SPACING<STYPE2, GRID_TYPE2> & grid2)
   {
     SetSpacing(grid2.SpacingPtrConst());
+  }
+
+  /// Return true if (Spacing(d) == 1) for all d.
+  template <typename STYPE, typename GRID_TYPE>
+  bool GRID_SPACING<STYPE, GRID_TYPE>::IsUnitSpacing() const
+  {
+    typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
+
+    for (DTYPE d = 0; d < this->dimension; d++) {
+      if (Spacing(d) != 1) { return(false); }
+    }
+
+    return(true);
   }
 
   template <typename STYPE, typename GRID_TYPE>

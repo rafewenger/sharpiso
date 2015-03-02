@@ -28,6 +28,16 @@ namespace SHARPISO {
    const GRADIENT_COORD_TYPE zero_tolerance_squared,
    COORD_TYPE closest_point[DIM3]);
 
+  /// Compute the closest point under the Linf metric 
+  ///   to unscaled point p on a given unscaled line.
+  void compute_closest_point_on_line_unscaled_linf
+  (const COORD_TYPE point[DIM3],
+   const COORD_TYPE line_origin[DIM3],
+   const COORD_TYPE line_direction[DIM3],
+   const GRADIENT_COORD_TYPE zero_tolerance_squared,
+   const COORD_TYPE spacing[DIM3],
+   COORD_TYPE closest_point[DIM3]);
+
   // compute the linf dis
   void compute_closest_point_to_cube_center_linf
   (const GRID_COORD_TYPE cube_coord[],
