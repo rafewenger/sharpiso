@@ -39,7 +39,7 @@ public:
 	bool adv_angle_based_v2;     // advanced angle based version 2 
 	bool curv_based;           // curvature based.
 	bool extended_curv_based;  //extended version of curvature based. 
-
+	
 	//Compare the cdiff gradient with immediate neighbors or
 	//neighbors at a certain distance
 	bool angle_based;
@@ -60,6 +60,8 @@ public:
 	int num_vertices_mag_grt_zero;
 	float neighbor_angle_parameter; // threshold for angle between gradient at vertex v
 			// and the vector connecting the neighbor vertex.
+	int cdist; // associated with curvature based reliablity prediction
+	int extend_max;
 
 	
 
@@ -90,6 +92,11 @@ public:
 		min_cos_of_angle = cos((param_angle*M_PI/180.0)); // 20 degrees=0.34906585, 30 degrees=0.523598776;
 		out_info.set_defaults();
 		num_vertices_mag_grt_zero=0;
+		adv_angle_based = false;
+		adv_angle_based_v2 = false; 
+		extended_curv_based = false;
+		cdist = 1;
+		extend_max = 1;
 
 	}
 
