@@ -30,6 +30,7 @@
 #include "mergesharpIO.h"
 #include "sharpiso_get_gradients.h"
 
+#include "ijkcoord.txx"
 #include "ijkgrid_nrrd.txx"
 #include "ijkIO.txx"
 #include "ijkmesh.txx"
@@ -85,6 +86,7 @@ namespace {
     OUTPUT_FILENAME_PARAM, STDOUT_PARAM, NOWRITE_PARAM, 
     OUTPUT_PARAM_PARAM, OUTPUT_INFO_PARAM, 
     OUTPUT_SELECTED_PARAM, OUTPUT_SHARP_PARAM, OUTPUT_ACTIVE_PARAM,
+    OUTPUT_ISOVERT_PARAM,
     WRITE_ISOV_INFO_PARAM, SILENT_PARAM, TIME_PARAM, 
     UNKNOWN_PARAM} PARAMETER;
   const char * parameter_string[] =
@@ -117,6 +119,7 @@ namespace {
       "-help", "-off", "-iv", 
       "-o", "-stdout", "-nowrite", 
       "-out_param", "-info", "-out_selected", "-out_sharp", "-out_active",
+      "-out_isovert",
       "-write_isov_info", "-s", "-time", "-unknown"};
 
   PARAMETER get_parameter_token(const char * s)
@@ -217,6 +220,50 @@ namespace {
       cerr << "Error in argument for option: " << option << endl;
       cerr << "Non-numeric character in string: " << value_string << endl;
       exit(50);
+    }
+  }
+
+  void get_isovert_type
+  (const char * option, const char * value0, const char * value1,
+   ISOVERT_TYPE & isovert_type,
+   MSHARP_ISOVERT_TYPE & isovert_type2)
+  {
+    string s0 = value0;
+    if (s0 == "corner") {
+      isovert_type = CORNER_ISOVERT;
+    }
+    else if (s0 == "edge") {
+      isovert_type = EDGE_ISOVERT;
+    }
+    else if (s0 == "sharp") {
+      isovert_type = SHARP_ISOVERT;
+    }
+    else if (s0 == "smooth") {
+      isovert_type = SMOOTH_ISOVERT;
+    }
+    else if (s0 == "all") {
+      isovert_type = ALL_ISOVERT;
+    }
+    else {
+      cerr << "Usage error.  Illegal first argument " << value0
+           << " to option " << option << ".";
+      exit(220);
+    }
+
+    string s1 = value1;
+    if (s1 == "selected") {
+      isovert_type2 = SELECTED_ISOVERT;
+    }
+    else if (s1 == "uncovered") {
+      isovert_type2 = UNCOVERED_ISOVERT;
+    }
+    else if (s1 == "all") {
+      isovert_type2 = ACTIVE_ISOVERT;
+    }
+    else {
+      cerr << "Usage error.  Illegal second argument " << value1
+           << " to option " << option << ".";
+      exit(221);
     }
   }
 
@@ -569,6 +616,34 @@ namespace {
     return(true);
   }
 
+  // Set value in input_info based on param.
+  // Return false if param is not valid or does not take a value.
+  bool set_input_info_value
+  (const PARAMETER param, const char * option_string, 
+   const char * value_string0, const char * value_string1,
+   INPUT_INFO & input_info)
+  {
+    switch(param) {
+
+    case OUTPUT_ISOVERT_PARAM:
+      input_info.flag_output_isovert = true;
+      get_isovert_type(option_string, value_string0, value_string1,
+                       input_info.output_isovert_type,
+                       input_info.output_isovert_type2);
+
+      // Default output filename
+      input_info.output_isovert_filename = "isovert.off";
+
+      break;
+
+    default:
+      return(false);
+    }
+
+    return(true);
+  }
+
+
 #ifdef _WIN32
   const char PATH_DELIMITER = '\\';
 #else
@@ -644,6 +719,14 @@ bool MERGESHARP::parse_command_option
 
   if (set_input_info_value(param, argv[iarg], argv[iarg+1], input_info)) {
     next_arg = iarg+2;
+    return(true);
+  }
+
+  if (iarg+2 >= argc) { return(false); }
+
+  if (set_input_info_value
+      (param, argv[iarg], argv[iarg+1], argv[iarg+2], input_info)) {
+    next_arg = iarg+3;
     return(true);
   }
 
@@ -950,6 +1033,10 @@ void MERGESHARP::output_dual_isosurface
       write_isovert_info(output_info, mergesharp_info.sharpiso.vertex_info);
     }
   }
+
+  if (output_info.flag_output_isovert) 
+    { write_isovert(output_info, isovert); }
+
 }
 
 
@@ -1149,6 +1236,89 @@ void MERGESHARP::rescale_vertex_coord
 
   rescale_coord(grid_spacing, vertex_coord);
 }
+
+// **************************************************
+// WRITE ISOSURFACE VERTICES
+// **************************************************
+
+void add_coord_to_vector
+(const COORD_TYPE coord[DIM3], std::vector<COORD_TYPE> & vcoord)
+{
+  NUM_TYPE k = vcoord.size();
+  vcoord.resize(k+DIM3);
+  copy_coord_3D(coord, &(vcoord.front())+k);
+}
+
+void MERGESHARP::write_isovert
+(const OUTPUT_INFO & output_info, const ISOVERT & isovert)
+{
+  vector<COORD_TYPE> vertex_coord;
+  vector<VERTEX_INDEX> simplex_vert;
+  ofstream output_file;
+  IJK::PROCEDURE_ERROR error("write_isovert");
+
+  for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
+
+    if  (output_info.output_isovert_type2 == UNCOVERED_ISOVERT) {
+      if ((isovert.NumEigenvalues(i) <= 1) &&
+          (isovert.gcube_list[i].maps_to_cube == isovert.CubeIndex(i))) {
+        add_coord_to_vector(isovert.IsoVertCoord(i), vertex_coord);
+      }
+    }
+    else {
+      if ((output_info.output_isovert_type2 == SELECTED_ISOVERT) &&
+          (isovert.gcube_list[i].flag != SELECTED_GCUBE))
+        { continue; }
+
+      switch (output_info.output_isovert_type) {
+
+      case CORNER_ISOVERT:
+        if (isovert.NumEigenvalues(i) == 3)
+          { add_coord_to_vector(isovert.IsoVertCoord(i), vertex_coord); }
+        break;
+
+      case EDGE_ISOVERT:
+        if (isovert.NumEigenvalues(i) == 2)
+          { add_coord_to_vector(isovert.IsoVertCoord(i), vertex_coord); }
+        break;
+
+      case SHARP_ISOVERT:
+        if (isovert.NumEigenvalues(i) > 1)
+          { add_coord_to_vector(isovert.IsoVertCoord(i), vertex_coord); }
+        break;
+
+      case SMOOTH_ISOVERT:
+        if (isovert.NumEigenvalues(i) == 1)
+          { add_coord_to_vector(isovert.IsoVertCoord(i), vertex_coord); }
+        break;
+
+      case ALL_ISOVERT:
+        add_coord_to_vector(isovert.IsoVertCoord(i), vertex_coord);
+      }
+    }
+  }
+
+  if (output_info.output_isovert_filename == "") {
+    error.AddMessage("Programming error. Missing output filename.");
+    throw error;
+  }
+
+  output_file.open(output_info.output_isovert_filename.c_str(), ios::out);
+  if (!output_file.good()) {
+    cerr << "Unable to open output file " 
+         << output_info.output_isovert_filename << "." << endl;
+    exit(65);
+  };
+
+  ijkoutOFF(output_file, DIM3, vertex_coord, simplex_vert);
+
+  output_file.close();
+
+  if (!output_info.flag_silent)
+    cout << "Wrote isosurface vertices to file: " 
+         << output_info.output_isovert_filename << endl;
+}
+
 
 // **************************************************
 // REPORT SCALAR FIELD OR ISOSURFACE INFORMATION
@@ -1791,6 +1961,7 @@ namespace {
     cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
          << endl;
     cerr << "  [-s] [-out_param] [-info] [-out_selected] [-out_sharp] [-out_active]" << endl;
+    cerr << "  [-out_isovert [corner|edge|sharp|smooth|all] [selected|all|uncovered]" << endl;
     cerr << "  [-write_isov_info] [-nowrite] [-time]" << endl;
     cerr << "  [-help]" << endl;
   }
@@ -1977,6 +2148,7 @@ void MERGESHARP::help(const char * command_path)
   cout << "  -out_selected: Output list of selected cubes." << endl;
   cout << "  -out_sharp: Output list of cubes containing corner or edge vertices." << endl;
   cout << "  -out_active: Output list of active cubes." << endl;
+  cerr << "  -out_isovert [arg1] [arg2]:  Output isosurface vertices to off file." << endl;
   cout << "  -write_isov_info:  Write isosurface vertex information to file."
        << endl;
   cout << "     File format: isosurface vertex index, cube index," << endl;

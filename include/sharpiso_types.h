@@ -66,6 +66,11 @@ namespace SHARPISO {
                  UNKNOWN_GRAD_SELECTION_METHOD }
     GRAD_SELECTION_METHOD;
 
+  /// Isosurface vertex types
+  typedef enum 
+  { CORNER_ISOVERT, EDGE_ISOVERT, SHARP_ISOVERT, SMOOTH_ISOVERT, ALL_ISOVERT }
+  ISOVERT_TYPE;
+
 
   // **************************************************
   // CONSTANTS

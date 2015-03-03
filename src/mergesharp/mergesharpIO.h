@@ -2,7 +2,7 @@
 /// IO classes and routines for mergesharp.
 
 /*
-  Copyright (C) 2011-2013 Rephael Wenger
+  Copyright (C) 2011-2015 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -64,6 +64,10 @@ namespace MERGESHARP {
   ///  Output format.
   typedef enum { OFF, IV } OUTPUT_FORMAT;
 
+  typedef enum { SELECTED_ISOVERT, UNCOVERED_ISOVERT, ACTIVE_ISOVERT }
+    MSHARP_ISOVERT_TYPE;
+
+
   // **************************************************
   // IO INFORMATION
   // **************************************************
@@ -100,6 +104,10 @@ namespace MERGESHARP {
     bool flag_output_selected;   ///< Output information about selected cubes.
     bool flag_output_sharp;      ///< Output information about sharp cubes.
     bool flag_output_active;     ///< Output information about active cubes.
+    bool flag_output_isovert;    ///< Output isosurface vertices to separate file.
+    ISOVERT_TYPE output_isovert_type;
+    MSHARP_ISOVERT_TYPE output_isovert_type2;
+    std::string output_isovert_filename;
     std::vector<COORD_TYPE> minc;
     std::vector<COORD_TYPE> maxc;
 
@@ -420,12 +428,16 @@ namespace MERGESHARP {
    const MERGESHARP_TIME & mergesharp_time, const double total_elapsed_time);
 
   // **************************************************
-  // WRITE ISOSURFACE VERTEX INFORMATION TO FILE
+  // WRITE ISOSURFACE VERTICES OR VERTEX INFORMATION TO FILE
   // **************************************************
 
   void write_isovert_info
   (const OUTPUT_INFO & output_info,
    const std::vector<DUAL_ISOVERT_INFO> & isovert_info);
+
+  void write_isovert
+  (const OUTPUT_INFO & output_info, const ISOVERT & isovert);
+
 
   // **************************************************
   // USAGE/HELP MESSAGES
