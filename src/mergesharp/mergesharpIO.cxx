@@ -1790,7 +1790,7 @@ namespace {
     cerr << "  [-keepv]" << endl;
     cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
          << endl;
-    cerr << "  [-s] [-out_param] [-info] [-out_selected] [-out_sharp]" << endl;
+    cerr << "  [-s] [-out_param] [-info] [-out_selected] [-out_sharp] [-out_active]" << endl;
     cerr << "  [-write_isov_info] [-nowrite] [-time]" << endl;
     cerr << "  [-help]" << endl;
   }
@@ -1976,6 +1976,7 @@ void MERGESHARP::help(const char * command_path)
   cout << "  -info: Print algorithm information." << endl;
   cout << "  -out_selected: Output list of selected cubes." << endl;
   cout << "  -out_sharp: Output list of cubes containing corner or edge vertices." << endl;
+  cout << "  -out_active: Output list of active cubes." << endl;
   cout << "  -write_isov_info:  Write isosurface vertex information to file."
        << endl;
   cout << "     File format: isosurface vertex index, cube index," << endl;
