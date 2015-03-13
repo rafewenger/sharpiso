@@ -172,6 +172,7 @@ namespace MERGESHARP {
     /// If true, convert gradient to hermite data using linear interpolation.
     bool flag_grad2hermiteI;
 
+
   public:
     MERGESHARP_PARAM() { Init(); };
     ~MERGESHARP_PARAM() { Init(); };

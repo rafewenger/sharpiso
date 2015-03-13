@@ -54,7 +54,8 @@ namespace {
     GRADIENT_PARAM, NORMAL_PARAM, POSITION_PARAM, POS_PARAM, 
     TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
     GRAD2HERMITE_PARAM, GRAD2HERMITE_INTERPOLATE_PARAM,
-    MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, 
+    MAX_EIGEN_PARAM, MAX_DIST_PARAM, 
+    GRAD_S_OFFSET_PARAM, MIN_GRAD_S_OFFSET_PARAM,
     MAX_MAG_PARAM, SNAP_DIST_PARAM, MAX_GRAD_DIST_PARAM,
     SHARP_EDGEI_PARAM, INTERPOLATE_EDGEI_PARAM,
     ALLOW_CONFLICT_PARAM,
@@ -94,8 +95,8 @@ namespace {
       "-gradient", "-normal", "-position", "-pos", 
       "-trimesh", "-uniform_trimesh",
       "-grad2hermite", "-grad2hermiteI",
-      "-max_eigen", "-max_dist", "-gradS_offset", "-max_mag", "-snap_dist",
-      "-max_grad_dist",
+      "-max_eigen", "-max_dist", "-gradS_offset", "-min_gradS_offset", 
+      "-max_mag", "-snap_dist", "-max_grad_dist",
       "-sharp_edgeI", "-interpolate_edgeI",
       "-allow_conflict", "-clamp_conflict", "-centroid_conflict", 
       "-merge_sharp","-no_merge_sharp", "-merge_linf_th",
@@ -580,6 +581,11 @@ namespace {
 
     case GRAD_S_OFFSET_PARAM:
       input_info.grad_selection_cube_offset = 
+        get_option_float(option_string, value_string);
+      break;
+
+    case MIN_GRAD_S_OFFSET_PARAM:
+      input_info.min_grad_selection_cube_offset = 
         get_option_float(option_string, value_string);
       break;
 
@@ -2190,6 +2196,7 @@ void MERGESHARP::IO_INFO::Init()
   flag_output_selected = false;
   flag_output_sharp = false;
   flag_output_active = false;
+  flag_output_isovert = false;
   flag_recompute_isovert = true; // recompute the isovert for unavailable cubes
   flag_check_triangle_angle = true;
   grid_spacing.resize(3,1);

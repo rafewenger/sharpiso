@@ -413,6 +413,10 @@ namespace SHARPISO {
     /// Maximum (Linf) distance from cube to isosurface vertex
     SIGNED_COORD_TYPE max_dist;
 
+    /// Min value for grad_selection_cube_offset.
+    ///   grad_selection_cube_offset is never reduced below this value.
+    SIGNED_COORD_TYPE min_grad_selection_cube_offset;
+
     /// Maximum (Linf) distance from cube center to isosurface vertex
     ///   used in setting other active cube.
     COORD_TYPE max_dist_to_set_other;

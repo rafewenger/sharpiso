@@ -289,6 +289,7 @@ int main(int argc, char **argv)
          sharpiso_param.grad_selection_cube_offset);
 
       if (flag_edge_intersect_sharp) {
+
         compute_cube_edgeI
           (scalar_grid, gradient_grid, cube_index, isovalue,
            max_small_mag, point_coord, gradient_coord);
@@ -584,6 +585,7 @@ void output_gradients
  const COORD_TYPE cube_center[DIM3])
 {
   using namespace std;
+  COORD_TYPE normalized_gradient_coord[DIM3];
 
   for (NUM_TYPE i = 0; i < num_points; i++) {
     GRADIENT_COORD_TYPE magnitude;
@@ -594,11 +596,17 @@ void output_gradients
       (gradient_coord+i*DIM3, point_coord+i*DIM3, scalar[i], cube_center,
        isovalue, distance);
 
+    IJK::normalize_vector
+      (DIM3, gradient_coord + i*DIM3, 0.0, normalized_gradient_coord);
+
     output << "Point " << setw(2)  << i << " ";
     IJK::ijkgrid_output_coord(output, DIM3, point_coord + i*DIM3);
     output << ":  Scalar " << scalar[i];
-    output << " Grad ";
+    output << "  Grad ";
     IJK::ijkgrid_output_coord(output, DIM3, gradient_coord + i*DIM3);
+    output << endl;
+    output << "    Normalized: ";
+    IJK::ijkgrid_output_coord(output, DIM3, normalized_gradient_coord);
     output << "  Mag " << magnitude;
     output << "  Dist " << distance;
     output << endl;
@@ -1241,12 +1249,12 @@ void usage_error()
     cerr << "Usage: sharpinfo [OPTIONS] <scalar filename> <gradient filename>"
     << endl;
     cerr << "OPTIONS:" << endl;
+    cerr << "  -position {centroid|gradC|gradN|gradCS|gradNS|gradXS|" << endl
+         << "             gradIE|gradIES|gradIEDir|gradCD|gradNIE|gradNIES|gradBIES|" << endl
+         << "             gradES|gradEC}" << endl;
     cerr << "  -isovalue <isovalue> | -cube <cube_index> | -cc \"cube coordinates\""
     << endl;
     cerr << "  [-centroid | -gradC | -gradN | -gradCS | -gradNS |" << endl;
-    cerr << "   -gradIE | -gradIES | -gradIEDir | -gradNIE | -gradNIES |" 
-         << endl;
-    cerr << "   -gradCD | -gradCDdup | -gradES | -gradEC ]" << endl;
     cerr << "  -subgrid | -lindstrom | -lindstrom_fast| -rayI" << endl;
     cerr << "  [-allow_conflict | -clamp_conflict | -centroid_conflict]" 
          << endl;
@@ -1263,10 +1271,54 @@ void usage_error()
     cerr << "  -max_eigen <value>" << endl;
     cerr << "  -gradS_offset <value> | -max_dist <value> | max_mag <value>" 
          << endl;
+    cerr << "  -max_grad_dist <D>" << endl;
     cerr << "  -listg | -list_subgrid | -list_edgeI" << endl;
     cerr << "  -help | -no_output_param" << endl;
     exit(10);
 }
+
+// Set vertex position method and flags.
+void set_vertex_position_method
+(const char * s, SHARP_ISOVERT_PARAM & input_info)
+{
+  const string str = s;
+
+  if (str == "centroid") {
+    flag_centroid = true;
+  }
+  else {
+    flag_centroid = false;
+
+    GRAD_SELECTION_METHOD grad_selection_method
+      = get_grad_selection_method(str);
+
+    if (grad_selection_method == UNKNOWN_GRAD_SELECTION_METHOD) {
+      cerr << "Error in input parameter -position.  Illegal position method: "
+           << str << "." << endl;
+      exit(1030);
+    }
+
+    input_info.SetGradSelectionMethod(grad_selection_method);
+
+    flag_edge_intersection = false;
+    if (grad_selection_method == GRAD_EDGEI_INTERPOLATE) {
+      flag_edge_intersection = true;
+      flag_edge_intersect_interpolate = true;
+      sharpiso_param.use_only_cube_gradients = true;
+      sharpiso_param.use_gradients_determining_edge_intersections = true;
+    }
+    else if (grad_selection_method == GRAD_EDGEI_GRAD) {
+      flag_edge_intersection = true;
+      flag_edge_intersect_sharp = true;
+      flag_use_lindstrom = true;
+      sharpiso_param.use_only_cube_gradients = true;
+      sharpiso_param.use_selected_gradients = false;
+      sharpiso_param.use_sharp_edgeI = true;
+      sharpiso_param.use_gradients_determining_edge_intersections = true;
+    }
+  }
+}
+
 
 int get_int(const int iarg, const int argc, char **argv)
 {
@@ -1337,6 +1389,9 @@ void parse_command_line(int argc, char **argv)
   bool use_intersected_edge_endpoint_gradients(false);
   bool use_gradients_determining_edge_intersections(false);
   bool select_based_on_grad_dir(false);
+  bool use_zero_grad_boundary(false);
+  bool use_large_neighborhood(false);
+  bool is_vertex_position_method_set(false);
 
   if (argc == 1) { usage_error(); }
 
@@ -1404,6 +1459,12 @@ void parse_command_line(int argc, char **argv)
     }
     else if (s == "-sortg") {
       sharpiso_param.flag_sort_gradients = true;
+    }
+    else if (s == "-position") {
+      if (iarg+1 >= argc) { usage_error(); }
+      iarg++;
+      set_vertex_position_method(argv[iarg], sharpiso_param);
+      is_vertex_position_method_set = true;
     }
     else if (s == "-gradES") {
       flag_edge_intersect_interpolate = true;
@@ -1483,6 +1544,13 @@ void parse_command_line(int argc, char **argv)
       flag_edge_intersection = false;
       sharpiso_param.allow_duplicates = true;
     }
+    else if (s == "-gradBIES") {
+      use_only_cube_gradients = false;
+      use_selected_gradients = true;
+      use_intersected_edge_endpoint_gradients = true;
+      use_zero_grad_boundary = true;
+      use_large_neighborhood = true;
+    }
     else if (s == "-subgrid") {
       flag_subgrid = true;
     }
@@ -1509,6 +1577,10 @@ void parse_command_line(int argc, char **argv)
     }
     else if (s == "-max_dist") {
       sharpiso_param.max_dist = get_float(iarg, argc, argv);
+      iarg++;
+    }
+    else if (s == "-max_grad_dist") {
+      sharpiso_param.max_grad_dist = get_float(iarg, argc, argv);
       iarg++;
     }
     else if (s == "-max_mag") {
@@ -1637,16 +1709,20 @@ void parse_command_line(int argc, char **argv)
     exit(15);
   }
 
-  sharpiso_param.use_only_cube_gradients = use_only_cube_gradients;
-  sharpiso_param.use_selected_gradients = use_selected_gradients;
-  sharpiso_param.use_intersected_edge_endpoint_gradients = 
-    use_intersected_edge_endpoint_gradients;
-  sharpiso_param.use_gradients_determining_edge_intersections =
-    use_gradients_determining_edge_intersections;
-  sharpiso_param.use_lindstrom = flag_use_lindstrom;
-  sharpiso_param.use_lindstrom2 = flag_use_lindstrom2;
-  sharpiso_param.use_lindstrom_fast = flag_use_lindstrom_fast;
-  sharpiso_param.select_based_on_grad_dir = select_based_on_grad_dir;
+  if (!is_vertex_position_method_set) {
+    sharpiso_param.use_only_cube_gradients = use_only_cube_gradients;
+    sharpiso_param.use_selected_gradients = use_selected_gradients;
+    sharpiso_param.use_intersected_edge_endpoint_gradients = 
+      use_intersected_edge_endpoint_gradients;
+    sharpiso_param.use_gradients_determining_edge_intersections =
+      use_gradients_determining_edge_intersections;
+    sharpiso_param.use_lindstrom = flag_use_lindstrom;
+    sharpiso_param.use_lindstrom2 = flag_use_lindstrom2;
+    sharpiso_param.use_lindstrom_fast = flag_use_lindstrom_fast;
+    sharpiso_param.select_based_on_grad_dir = select_based_on_grad_dir;
+    sharpiso_param.use_large_neighborhood = use_large_neighborhood;
+    sharpiso_param.use_zero_grad_boundary = use_zero_grad_boundary;
+  }
 }
 
 void help()
@@ -1654,54 +1730,81 @@ void help()
   cerr << "Usage: sharpinfo [OPTIONS] <scalar filename> <gradient filename>"
        << endl;
   cerr << "OPTIONS:" << endl;
+  cout << "  -position {method}: Isosurface vertex position method." << endl;
+  cout << "  -position centroid: Position isosurface vertices at centroid of"
+       << endl;
+  cout << "                      intersection of grid edges and isosurface."
+       << endl;
+  cout << "  -position gradC: Position isosurface vertices using cube vertex gradients" << endl;
+  cout << "                   and singular value decomposition (svd)." << endl;
+  cout << "  -position gradN: Position isosurface vertices using svd on"
+       << endl;
+  cout << "                   vertex gradients of cube and cube neighbors."
+       << endl;
+  cout << "  -position gradCS: Position isosurface vertices using selected"
+       << endl;
+  cout << "                    cube vertex gradients and svd." << endl;
+  cout << "  -position gradNS: Position isosurface vertices using svd"
+       << endl;
+  cout << "       on selected vertex gradients of cube and cube neighbors."
+       << endl;
+  cout << "  -position gradXS: Position isosurface vertices using svd"
+       << endl;
+  cout << "       on selected vertex gradients of cube and cube neighbors."
+       << endl;
+  cout << "       Neighbors include diagonal neighbors." << endl;
+  cout << "  -position gradIE: Position isosurface vertices using svd"
+       << endl;
+  cout << "       on gradients at endpoints of intersected cube edges."
+       << endl;
+  cout << "  -position gradIES: Position isosurface vertices using svd"
+       << endl;
+  cout << "       on selected gradients at endpoints of intersected cube edges."
+       << endl;
+  cout << "  -position gradIEDir: Position isosurface vertices using svd"
+       << endl;
+  cout << "       on selected gradients at endpoints of intersected cube edges."
+       << endl;
+  cerr << "           Select gradients based on direction along edge."
+       << endl;
+  cout << "  -position gradCD: Position isosurface vertices using svd"
+       << endl;
+  cout << "       using gradients determining intersections of cube edge"
+       << endl
+       << "       and isosurface." << endl;
+  cout << "  -position gradNIE: Position isosurface vertices using svd"
+       << endl;
+  cout << "       on gradients at endpoints of intersected cube" << endl;
+  cerr << "       and cube neighbor edges." << endl;
+  cout << "  -position gradNIES: Position isosurface vertices using svd"
+       << endl;
+  cout << "       on selected gradients at endpoints of intersected cube"
+       << endl;
+  cerr << "       and cube neighbor edges." << endl;
+  cout << "  -position gradBIES: Position isosurface vertices using svd"
+       << endl;
+  cout << "       on selected gradients on boundary of zero gradient region."
+       << endl;
+  cout << "       Use only gradients from vertices incident on bipolar edges."
+       << endl;
+  cout << "  -position gradES: Position using isosurface vertices using svd"
+       << endl;
+  cout << "       on gradients at isosurface-edge intersections."
+       << endl;
+  cout << "       Use simple interpolation to compute isosurface-edge intersections." << endl;
+  cout << "  -position gradEC: Position isosurface vertices using svd"
+       << endl;
+  cout << "       on computed gradients at isosurface-edge intersections."
+       << endl;
+  cout << "       Use endpoint gradients to compute isosurface-edge intersections." << endl;
   cerr << "  -isovalue <isovalue>:  Compute isosurface vertex for given <isovalue>." << endl;
   cerr << "  -cube <cube_index>:  Compute isosurface vertex for cube <cube_index>." << endl;
   cerr << "           Default is cube 0." << endl;
   cerr << "  -cc \"cube coordinates\":  Compute isosurface vertex for cube"
        << endl
        << "           at given coordinates." << endl;
-  cerr << "  -centroid:  Return centroid of isosurface-edge intersections."
-       << endl;
-  cerr << "  -gradC:  Use only cube gradients." << endl;
-  cerr << "  -gradN:  Use gradients from cube and neighboring cubes." << endl;
-  cerr << "  -gradCS: Use selected cube gradients." << endl;
-  cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
-  cerr << "  -gradNS: Use selected gradients from cube and neighboring cubes."
-       << endl;
-  cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
-  cerr << "  -gradIE: Use gradients at endpoints of intersected cube edges."
-       << endl;
-  cerr << "  -gradIES: Use gradients at endpoints of intersected cube edges."
-       << endl;
-  cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
-  cerr << "  -gradIEDir: Use gradients at endpoints of intersected cube edges."
-       << endl;
-  cerr << "           Select gradients based on direction along edge."
-       << endl;
-  cerr << "  -gradCD: Use gradients determining intersections of isosurface"
-       << endl
-       << "           and cube edges." << endl;
-  cerr << "  -gradCDdup: Use gradients determining intersections of isosurface"
-       << endl
-       << "           and cube edges." << endl;
-  cerr << "           Allow duplicates." << endl;
-  cerr << "  -gradNIE: Use gradients at endpoints of intersected cube edges"
-       << endl
-       << "              and intersected cube edges in neighboring cubes."
-       << endl;
-  cerr << "  -gradNIES: Use gradients at endpoints of intersected cube edges"
-       << endl
-       << "              and intersected cube edges in neighboring cubes."
-       << endl;
-  cerr << "           Isosurfaces from selected gradients must intersect the cube." << endl;
   cerr << "  -neighbor <cube_index>:  Use gradients from cube and" << endl
        << "           neighbors of cube <cube_index>." << endl;
-  cerr << "  -gradES:    Interpolate intersection points/normals and"
-       << endl
-       << "           apply svd." << endl;
-  cerr << "  -gradEC:    Compute edge-isosurface intersection points/normals"
-       << endl
-       << "                using gradient assignment and apply svd." << endl;
   cerr << "  -subgrid:   Output isosurface vertex based on subgrid." << endl;
   cerr << "  -lindstrom: Use Lindstrom's equation for calculating point on sharp feature." << endl;
   cerr << "  -sharp_edgeI: Use sharp formula for calculating"
@@ -1727,6 +1830,7 @@ void help()
        << endl;
   cerr << "  -max_dist <V>:  Maximum distance from cube to isosurface vertex."
        << endl;
+  cerr << "  -max_grad_dist {D}: Max distance (integer) of gradients to cube. (Default 1.)" << endl;
   cerr << "  -max_mag {max}:  Set maximum small gradient magnitude to max." 
        << endl;
   cerr << "           Gradients with magnitude below max are ignored." << endl;

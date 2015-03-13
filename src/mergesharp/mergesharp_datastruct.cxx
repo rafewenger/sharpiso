@@ -68,6 +68,7 @@ void MERGESHARP_PARAM::Init()
   flag_store_isovert_info = false;
   flag_grad2hermite = false;
   flag_grad2hermiteI = false;
+  min_grad_selection_cube_offset = 0;
 }
 
 /// Set type of interpolation

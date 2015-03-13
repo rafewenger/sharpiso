@@ -402,6 +402,11 @@ void recompute_isovert_position_lindstrom
     cerr << "  flag: "
          << int(isovert.gcube_list[gcube_index].flag);
     cerr << endl;
+    if (isovert.gcube_list[gcube_index].flag_conflict) {
+      scalar_grid.PrintIndexAndCoord
+        (cerr, "    Isovert coord conflicts with cube ",
+         isovert.gcube_list[gcube_index].cube_containing_isovert, "\n");
+    }
   }
 
   compute_isovert_position_lindstrom
@@ -473,20 +478,24 @@ void recompute_far_points
 
   if (grad_selection_cube_offset > 0.5) {
 
-    voxel.SetVertexCoord
-      (scalar_grid.SpacingPtrConst(), 0.5);
+    if (isovert_param.min_grad_selection_cube_offset <= 0.5) {
+
+      voxel.SetVertexCoord(scalar_grid.SpacingPtrConst(), 0.5);
+
+      recompute_far_points
+        (scalar_grid, gradient_grid, isovalue, isovert_param, 
+         voxel, false, isovert);
+    }
+  }
+
+  if (isovert_param.min_grad_selection_cube_offset <= 0) {
+
+    voxel.SetVertexCoord(scalar_grid.SpacingPtrConst(), 0.0);
 
     recompute_far_points
       (scalar_grid, gradient_grid, isovalue, isovert_param, 
-       voxel, false, isovert);
+       voxel, true, isovert);
   }
-
-  voxel.SetVertexCoord
-    (scalar_grid.SpacingPtrConst(), 0.0);
-
-  recompute_far_points
-    (scalar_grid, gradient_grid, isovalue, isovert_param, 
-     voxel, true, isovert);
 }
 
 
@@ -539,20 +548,25 @@ void MERGESHARP::recompute_covered_point_positions
   OFFSET_VOXEL voxel;
 
   if (grad_selection_cube_offset > 0.5) {
+    if (isovert_param.min_grad_selection_cube_offset <= 0.5) {
 
-    voxel.SetVertexCoord
-      (scalar_grid.SpacingPtrConst(), 0.5);
+      voxel.SetVertexCoord
+        (scalar_grid.SpacingPtrConst(), 0.5);
+
+      recompute_covered_point_positions
+        (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param, 
+         voxel, false, isovert);
+    }
+  }
+
+  if (isovert_param.min_grad_selection_cube_offset <= 0) {
+
+    voxel.SetVertexCoord(scalar_grid.SpacingPtrConst(), 0.0);
 
     recompute_covered_point_positions
       (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param, 
-       voxel, false, isovert);
+       voxel, true, isovert);
   }
-
-  voxel.SetVertexCoord(scalar_grid.SpacingPtrConst(), 0.0);
-
-  recompute_covered_point_positions
-    (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param, 
-     voxel, true, isovert);
 }
 
 
