@@ -159,6 +159,10 @@ namespace MERGESHARP {
     /// have one isosurface vertex while the other has two isosurface vertices.
     bool flag_select_split;
 
+    /// If true, recompute sharp, unselected, uncovered isosurface vertices
+    ///   using adjacent locations of adjacent isosurface vertices.
+    bool flag_recompute_using_adjacent;
+
     /// If true, remove isolated isosurface vertices.  Isolated vertices
     ///   do not lie in any isosurface polygon.
     bool flag_delete_isolated_vertices;

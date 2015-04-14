@@ -103,6 +103,9 @@ public:
   ///   with min gradient cube offset.
   bool flag_recomputed_coord_min_offset;
 
+  /// If true, location is recomputed from location of adjacent vertices.
+  bool flag_recomputed_using_adjacent;
+
   /// If true, svd coord were farther than max_dist.
   bool flag_far;
 
@@ -304,6 +307,18 @@ void recompute_covered_point_positions
  const OFFSET_VOXEL & voxel,
  const bool flag_min_offset,
  ISOVERT & isovert);
+
+/// Recompute using adjacent isosurface vertex locations.
+void recompute_using_adjacent
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, ISOVERT & isovert);
+
+/// Recompute isovert in cube cube_index
+///   using adjacent isosurface vertex locations.
+void recompute_using_adjacent
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+ const VERTEX_INDEX cube_index, ISOVERT & isovert,
+ bool & flag_loc_recomputed);
+
 
 /// Set grid containing locations of edges in edgeI_coord[].
 void set_edge_index(const std::vector<COORD_TYPE> & edgeI_coord,

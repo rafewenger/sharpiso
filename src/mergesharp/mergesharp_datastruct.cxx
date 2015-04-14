@@ -64,6 +64,7 @@ void MERGESHARP_PARAM::Init()
   flag_separate_neg = true;
   flag_split_non_manifold = false;
   flag_select_split = false;
+  flag_recompute_using_adjacent = false;
   flag_delete_isolated_vertices = true;
   flag_store_isovert_info = false;
   flag_grad2hermite = false;

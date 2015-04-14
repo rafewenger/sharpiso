@@ -64,6 +64,7 @@ namespace {
     MERGE_SHARP_LINF_THRES_PARAM,
     CLAMP_FAR_PARAM, CENTROID_FAR_PARAM,
     RECOMPUTE_ISOVERT, NO_RECOMPUTE_ISOVERT,
+    RECOMPUTE_USING_ADJACENT, NO_RECOMPUTE_USING_ADJACENT,
     CHECK_TRIANGLE_ANGLE, NO_CHECK_TRIANGLE_ANGLE,
     DIST2CENTER_PARAM, DIST2CENTROID_PARAM,
     LINF_PARAM, NO_LINF_PARAM,
@@ -102,6 +103,7 @@ namespace {
       "-merge_sharp","-no_merge_sharp", "-merge_linf_th",
       "-clamp_far", "-centroid_far",
       "-recompute_isovert", "-no_recompute_isovert",
+      "-recompute_using_adjacent", "-no_recompute_using_adjacent",
       "-check_triangle_angle", "-no_check_triangle_angle",
       "-dist2center", "-dist2centroid",
       "-Linf", "-no_Linf",
@@ -418,6 +420,15 @@ namespace {
 
     case NO_RECOMPUTE_ISOVERT:
       input_info.flag_recompute_isovert = false;
+      break;
+
+    case RECOMPUTE_USING_ADJACENT:
+      input_info.flag_recompute_using_adjacent = true;
+      input_info.flag_recompute_changing_gradS_offset = false;
+      break;
+
+    case NO_RECOMPUTE_USING_ADJACENT:
+      input_info.flag_recompute_using_adjacent = false;
       break;
 
     case CHECK_TRIANGLE_ANGLE:
@@ -1692,10 +1703,13 @@ void report_isovert_cube_info
 
   output_yes_no("    Conflict? ", 
                 isovert.gcube_list[gcube_index].flag_conflict);
-  output_yes_no("  SVD coord far?: ", 
+  output_yes_no("  SVD coord far? ", 
                 isovert.gcube_list[gcube_index].flag_far);
-  output_yes_no("  Centroid coord?: ", 
+  output_yes_no("  Centroid coord? ", 
                 isovert.gcube_list[gcube_index].flag_centroid_location);
+  cout << endl;
+  output_yes_no("    Recomputed using adjacent? ",
+                isovert.gcube_list[gcube_index].flag_recomputed_using_adjacent);
   cout << endl;
 
   cout << "    ";
@@ -1947,8 +1961,8 @@ namespace {
     cerr << "  [-manifold] [-select_split]" << endl;
     cerr << "  [-trimesh]" << endl;
     cerr << "  [-max_eigen {max}]" << endl;
-    cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}] [-snap_dist {D}]" << endl;
-    cerr << "  [-max_grad_dist {D}]" << endl;
+    cerr << "  [-max_dist {D}] [-max_mag {M}] [-snap_dist {D}]" << endl;
+    cerr << "  [-gradS_offset {offset}] [-min_gradS_offset {offset}] [-max_grad_dist {D}]" << endl;
     cerr << "  [-sharp_edgeI | -interpolate_edgeI]" << endl;
     cerr << "  [-lindstrom]" << endl;
     cerr << "  [-single_isov | -multi_isov | -split_non_manifold]" << endl;

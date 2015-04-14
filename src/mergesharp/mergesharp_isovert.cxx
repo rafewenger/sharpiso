@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ijkscalar_grid.txx"
 
 
+#include "sharpiso_array.txx"
 #include "mergesharp_types.h"
 #include "mergesharp_isovert.h"
 #include "mergesharp_position.h"
@@ -372,6 +373,11 @@ void compute_all_isovert_positions_edgeI
 
   store_boundary_bits(scalar_grid, isovert.gcube_list);
 }
+
+
+// **************************************************
+// RECOMPUTE ROUTINES
+// **************************************************
 
 /// Recompute isovert position using lindstrom.
 /// Use voxel for gradient cube offset, 
@@ -734,6 +740,127 @@ void MERGESHARP::recompute_isovert_positions
   }
 
 }
+
+
+inline bool is_uncovered_sharp(const GRID_CUBE_DATA & gcube_data)
+{
+  GRID_CUBE_FLAG gcube_flag = gcube_data.flag;
+  if (gcube_flag == COVERED_POINT || gcube_flag == UNAVAILABLE_GCUBE) {
+
+    if (gcube_data.cube_index == gcube_data.maps_to_cube)
+      { return(true); }
+  }
+
+  return(false);
+}
+
+void MERGESHARP::recompute_using_adjacent
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, ISOVERT & isovert)
+{
+  for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
+
+    if (is_uncovered_sharp(isovert.gcube_list[i])) {
+      const VERTEX_INDEX cube_index = isovert.CubeIndex(i);
+      bool flag_loc_recomputed;
+
+      recompute_using_adjacent
+        (scalar_grid, cube_index, isovert, flag_loc_recomputed);
+    }
+  }
+
+}
+
+void MERGESHARP::recompute_using_adjacent
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+ const VERTEX_INDEX cube_index, ISOVERT & isovert,
+ bool & flag_loc_recomputed)
+{
+  const NUM_TYPE gcube_index = isovert.GCubeIndex(cube_index);
+  const BOUNDARY_BITS_TYPE boundary_bits = 
+    isovert.gcube_list[gcube_index].boundary_bits;
+  FIXED_ARRAY<NUM_CUBE_NEIGHBORS3D, VERTEX_INDEX, NUM_TYPE>
+    neighbor_list;
+  COORD_TYPE new_coord[DIM3];
+
+
+  MSDEBUG();
+  if (flag_debug) {
+    cerr << "In " << __func__;
+    scalar_grid.PrintIndexAndCoord(cerr, "  cube: ", cube_index, "\n");
+  }
+
+  flag_loc_recomputed = false;
+  if (boundary_bits == 0) {
+
+    for (int d = 0; d < DIM3; d++) {
+
+      for (int iadj = 0; iadj < 2; iadj++) {
+
+        VERTEX_INDEX cube2_index = scalar_grid.AdjacentVertex(cube_index, d, iadj);
+        NUM_TYPE gcube2_index = isovert.GCubeIndex(cube2_index);
+
+        if (gcube2_index == ISOVERT::NO_INDEX) { continue; }
+
+        MSDEBUG();
+        if (flag_debug) {
+          scalar_grid.PrintIndexAndCoord(cerr, "Processing active neighbor ", cube2_index, "\n");
+        }
+
+        if (is_uncovered_sharp(isovert.gcube_list[gcube2_index]) == false) {
+
+          // SHOULD CHECK THAT SHARED FACET IS ACTIVE
+
+          VERTEX_INDEX cube3_index = 
+            isovert.gcube_list[gcube2_index].maps_to_cube;
+
+          if (neighbor_list.Contains(cube3_index) == false) 
+            { neighbor_list.PushBack(cube3_index); }
+        }
+      }
+    }
+
+    MSDEBUG();
+    if (flag_debug) {
+      cerr << "Neighbor list: ";
+      for (int i = 0; i < neighbor_list.NumElements(); i++)
+        { cerr << " " << neighbor_list[i]; }
+      cerr << endl;
+    }
+
+    if (neighbor_list.NumElements() < 3) { return; }
+
+    IJK::set_coord_3D(0, new_coord);
+    for (NUM_TYPE i = 0; i < neighbor_list.NumElements(); i++) {
+      VERTEX_INDEX cube3_index = neighbor_list[i];
+      NUM_TYPE gcube3_index = isovert.GCubeIndex(cube3_index);
+      IJK::add_coord_3D(new_coord, isovert.IsoVertCoord(gcube3_index), new_coord);
+    }
+
+    IJK::divide_coord
+      (DIM3, COORD_TYPE(neighbor_list.NumElements()), new_coord, new_coord);
+
+
+    MSDEBUG();
+    if (flag_debug) {
+      scalar_grid.PrintIndexAndCoord(cerr, "*** Recompute: ", cube_index, "\n");
+      cerr << "  Old coord: ";
+      IJK::print_coord3D(cerr, isovert.IsoVertCoord(gcube_index));
+      cerr << "  New: ";
+      IJK::print_coord3D(cerr, new_coord);
+      cerr << endl;
+    }
+
+    IJK::copy_coord_3D(new_coord, isovert.gcube_list[gcube_index].isovert_coord);
+    isovert.gcube_list[gcube_index].flag_recomputed_using_adjacent = true;
+    isovert.gcube_list[gcube_index].flag_centroid_location = false;
+  }
+  else {
+    // HANDLE BOUNDARY_CUBE
+  }
+
+}
+
+
 
 /// Set isovert position from grid vertex or grid edge.
 void set_isovert_position_from_face
@@ -2449,10 +2576,6 @@ void MERGESHARP::compute_dual_isovert
 
     recompute_isovert_position_around_vertex
       (scalar_grid, gradient_grid, isovalue, isovert_param, isovert);
-    /* DEBUG
-       recompute_isovert_position_around_edge_B
-       (scalar_grid, gradient_grid, isovalue, isovert_param, isovert);
-    */
 
     MSDEBUG();
     recompute_isovert_position_around_edge
@@ -2649,6 +2772,7 @@ void GRID_CUBE_DATA::Init()
   flag_using_substitute_coord = false;
   flag_recomputed_coord = false;
   flag_recomputed_coord_min_offset = false;
+  flag_recomputed_using_adjacent = false;
   flag_far = false;
   cube_containing_isovert = 0;
   table_index = 0;

@@ -442,6 +442,9 @@ namespace SHARPISO {
     /// Used in determining whether to use Linf distance.
     COORD_TYPE max_small_grad_coord_Linf;
 
+    /// If true, recompute by changing gradS_offset
+    bool flag_recompute_changing_gradS_offset;
+
     /// Width of bin in BIN_GRID.
     int bin_width;
 

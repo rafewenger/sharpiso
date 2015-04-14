@@ -742,6 +742,8 @@ void MERGESHARP::select_sharp_isovert
 {
   const int dimension = scalar_grid.Dimension();
   const int bin_width = isovert_param.bin_width;
+  const bool flag_recompute = 
+    isovert_param.flag_recompute_changing_gradS_offset;
   GCUBE_COMPARE gcube_compare(isovert.gcube_list);
   std::vector<NUM_TYPE> sharp_gcube_list;
 
@@ -772,11 +774,14 @@ void MERGESHARP::select_sharp_isovert
     (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param, 
      sharp_gcube_list, isovert);
 
-  recompute_covered_point_positions
-    (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
-     isovert);
+  if (flag_recompute) {
 
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+    recompute_covered_point_positions
+      (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
+       isovert);
+
+    reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  }
 
   // Resort sharp gcube_list
   sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
@@ -791,11 +796,14 @@ void MERGESHARP::select_sharp_isovert
     (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param, 
      sharp_gcube_list, isovert);
 
-  recompute_covered_point_positions
-    (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
-     isovert);
+  if (flag_recompute) {
 
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+    recompute_covered_point_positions
+      (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
+       isovert);
+
+    reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  }
 
   // Resort sharp gcube_list
   sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
@@ -812,11 +820,14 @@ void MERGESHARP::select_sharp_isovert
   if (flag_debug) 
     { cerr << endl << "*** Recomputing covered point positions." << endl; }
 
-  recompute_covered_point_positions
-    (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
-     isovert);
+  if (flag_recompute) {
 
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+    recompute_covered_point_positions
+      (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
+       isovert);
+
+    reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  }
 
   // Resort sharp gcube_list
   sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
@@ -844,9 +855,12 @@ void MERGESHARP::select_sharp_isovert
   if (flag_debug) 
     { cerr << endl << "*** Recomputing covered point positions." << endl; }
 
-  recompute_covered_point_positions
-    (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
-     isovert);
+  if (flag_recompute) {
+
+    recompute_covered_point_positions
+      (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
+       isovert);
+  }
 
   reset_covered_isovert_positions(gridn, covered_grid, isovert);
 
