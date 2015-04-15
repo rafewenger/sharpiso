@@ -1165,6 +1165,7 @@ bool is_dist_to_cube_le
 }
 
 // Snap coordinate to cube.
+// *** POSSIBLE ERROR IN CODE?  SHOULD USE scaled_snap_dist, not snap_dist.
 void snap_to_cube
 (const COORD_TYPE cube_coord[DIM3], const COORD_TYPE spacing[DIM3],
  const COORD_TYPE snap_dist, COORD_TYPE coord[DIM3])

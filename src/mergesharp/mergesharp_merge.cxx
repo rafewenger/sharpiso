@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "mergesharp_datastruct.h"
 #include "mergesharp_merge.h"
 #include "mergesharp_extract.h"
+#include "mergesharp_check_map.h"
 
 #include "mergesharp_debug.h"
 
@@ -1016,7 +1017,6 @@ namespace {
               (grid, iend0, edge_dir, cube1_index, cube2_index,
                isovert, gcube_map, flagB_maps_to_cube1, flagB_maps_to_cube2);
 
-            /* 
             MSDEBUG();
             if (flag_debug) {
 
@@ -1033,7 +1033,6 @@ namespace {
                    << ": " << int(flagB_maps_to_cube2);
               cerr << endl;
             }
-            */
 
             if (flagB_maps_to_cube1) {
               flag_maps_to_cube1 = true;
@@ -1205,8 +1204,8 @@ namespace {
 
     MSDEBUG();
     if(flag_debug) {
-      if (to_cube == 38270 || to_cube == 43370) {
-        cerr << endl;
+      if (to_cube == 10371 || to_cube == 13285) {
+        cerr << "+++In " << __func__ << endl;
         cerr << "Checking map for: " << from_cube << " ";
         ijkgrid_output_vertex_coord(cerr, scalar_grid, from_cube);
         cerr << " to " << to_cube << " ";
@@ -1231,7 +1230,7 @@ namespace {
 
       MSDEBUG();
       if (flag_debug) {
-        if (to_cube == 38270 || to_cube == 43370) {
+        if (to_cube == 10371 || to_cube == 13285) {
           cerr << "   flag_maps_to_cubeA: " << int(flag_maps_to_cubeA)
                << "  flag_maps_to_both_cubes: " << int(flag_maps_to_both_cubes)
                << endl;
@@ -2502,19 +2501,17 @@ namespace {
    const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
    const bool flag_extended)
   {
+    // *** DEBUG ***
+    /*
+    using namespace std;
+    cerr << "In " << __func__;
+    scalar_grid.PrintIndexAndCoord(cerr, " from cube: ", from_cube, "");
+    scalar_grid.PrintIndexAndCoord(cerr, " to cube: ", to_cube, "\n");
+    */
+
     if (!is_unselected_cube_connected_to
         (scalar_grid, grid, isovalue, isovert, from_cube, to_cube, gcube_map))
       {
-        // *** DEBUG ***
-        /*
-        using namespace std;
-        cerr << "******* Unselected cube " << from_cube << " ";
-        ijkgrid_output_vertex_coord(cerr, scalar_grid, from_cube);
-        cerr << " NOT connected to " << to_cube << " ";
-        ijkgrid_output_vertex_coord(cerr, scalar_grid, to_cube);
-        cerr << endl;
-        */
-
         return(false);
       }
 
@@ -2539,7 +2536,6 @@ namespace {
          isovert, gcube_map, flag_extended))
       { return(false); }
 
-    
     if (!check_separating_cubes
         (scalar_grid, grid, isovalue, from_cube, to_cube, isovert, 
          gcube_map, flag_extended))
@@ -2764,6 +2760,7 @@ namespace {
     store_map[0] = gcube_map[gcube0];
     store_map[1] = gcube_map[gcube1];
 
+    // *** BUG! SETTING gcube_map can invalidate check.
     // Temporarily set gcube_map[gcube1] to to_gcube.
     gcube_map[gcube1] = to_gcube;
     if (!check_edges_between_sharp_cubes
@@ -2775,6 +2772,7 @@ namespace {
     }
     gcube_map[gcube1] = store_map[1];
 
+    // *** BUG! SETTING gcube_map can invalidate check.
     // Temporarily set gcube_map[gcube0] to to_gcube.
     gcube_map[gcube0] = to_gcube;
     if (!check_edges_between_sharp_cubes

@@ -1,10 +1,10 @@
 /// \file ijkcoord.txx
 /// ijk templates for coordinate arithmetic
-/// Version 0.2.0
+/// Version 0.2.1
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2009-2014 Rephael Wenger
+  Copyright (C) 2009-2015 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -158,6 +158,24 @@ namespace IJK {
   {
     for (DTYPE d = 0; d < dimension; d++)
       { coord1[d] = scale[d]*coord0[d]; };
+  }
+
+  /*!
+   * Reverse scaling of each \a coord0[d].
+   * @param dimension Coordinate dimension (= number of coordinates.)
+   * @param coord0[] Input coordinates.
+   * @param scale[] Scale factors.
+   * @param[out] coord1[] Output coordinates.
+   *   - coord1[d] =  (\a coord0[d] / \a scale[d]).
+   * @pre \a scale[d] is not zero for any \a d.
+   */
+  template <typename DTYPE, typename STYPE, typename CTYPE0, typename CTYPE1>
+  inline void reverse_coord_scaling
+  (const DTYPE dimension, const STYPE scale[], const CTYPE0 coord0[],
+   CTYPE1 coord1[])
+  {
+    for (DTYPE d = 0; d < dimension; d++)
+      { coord1[d] = coord0[d]/scale[d]; };
   }
 
   /*!

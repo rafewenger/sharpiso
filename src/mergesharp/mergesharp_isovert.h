@@ -195,6 +195,10 @@ public:
   INDEX_DIFF_TYPE GCubeIndex(const int cube_index) const
   { return(sharp_ind_grid.Scalar(cube_index)); }
 
+  /// Return gcube index or NO_INDEX.
+  /// Set error message if cube not active (gcube_index = NO_INDEX).
+  INDEX_DIFF_TYPE GCubeIndex(const int cube_index, IJK::ERROR & error) const;
+
   /// Return number of eigenvalues.
   NUM_TYPE NumEigenvalues(const int gcube_index) const
   { return(gcube_list[gcube_index].num_eigenvalues); }

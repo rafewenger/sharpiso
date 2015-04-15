@@ -2812,6 +2812,19 @@ bool ISOVERT::isActive(const int cube_index) const
     return false;
 }
 
+INDEX_DIFF_TYPE ISOVERT::GCubeIndex
+(const int cube_index, IJK::ERROR & error) const
+{
+  const INDEX_DIFF_TYPE gcube_index = this->GCubeIndex(cube_index);
+
+  if (gcube_index == NO_INDEX) {
+    error.AddMessage("Programming error.  Cube ", cube_index,
+                     " is not active.");
+  }
+  return(gcube_index);
+}
+
+
 // **************************************************
 // ISOVERT_INFO member functions
 // **************************************************
