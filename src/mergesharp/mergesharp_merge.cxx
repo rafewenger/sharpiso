@@ -2258,12 +2258,6 @@ namespace {
       (scalar_grid, grid, isodual_table, ambig_info,
        isovalue, isovert, 2, sorted_gcube_list, gcube_map);
 
-    // Map cube pairs (cube0, cube1) where cube0 is facet adjacent
-    //   to a selected cube
-    map_adjacent_pairs_facet
-      (scalar_grid, grid, isovalue, isovert, sorted_gcube_list, 
-       false, gcube_map);
-
     // Try again to map cubes which share facets with selected cubes.
     // *** NOTE: SHOULD BE REPLACED BY STORING PREVIOUS FAILURES
     //             AND RETRYING THEM HERE.
@@ -2294,18 +2288,6 @@ namespace {
     map_vertex_adjacent_cubes_multi
       (scalar_grid, grid, isodual_table, ambig_info,
        isovalue, isovert, 2, sorted_gcube_list, gcube_map);
-
-    // Try again to map cube pairs (cube0, cube1) where cube0 
-    //   is facet adjacent to a selected cube
-    map_adjacent_pairs_facet
-      (scalar_grid, grid, isovalue, isovert, sorted_gcube_list, 
-       false, gcube_map);
-
-    // Map cube pairs (cube0, cube1) where cube0 is edge adjacent
-    //   to a selected cube
-    map_adjacent_pairs_edge
-      (scalar_grid, grid, isovalue, isovert, sorted_gcube_list, 
-       false, gcube_map);
 
     // Try again to map cubes which share facets with selected cubes.
     // *** NOTE: SHOULD BE REPLACED BY STORING PREVIOUS FAILURES
@@ -2339,18 +2321,6 @@ namespace {
     map_vertex_adjacent_cubes_multi
       (scalar_grid, grid, isodual_table, ambig_info,
        isovalue, isovert, 2, sorted_gcube_list, gcube_map);
-
-    // Try again to map cube pairs (cube0, cube1) where cube0 
-    //   is facet adjacent to a selected cube
-    map_adjacent_pairs_facet
-      (scalar_grid, grid, isovalue, isovert, sorted_gcube_list, 
-       false, gcube_map);
-
-    // Try again to map cube pairs (cube0, cube1) where cube0 
-    //   is edge adjacent to a selected cube
-    map_adjacent_pairs_edge
-      (scalar_grid, grid, isovalue, isovert, sorted_gcube_list, 
-       false, gcube_map);
 	}
 
   // *** NEW VERSION ***
@@ -2760,29 +2730,47 @@ namespace {
     store_map[0] = gcube_map[gcube0];
     store_map[1] = gcube_map[gcube1];
 
-    // *** BUG! SETTING gcube_map can invalidate check.
-    // Temporarily set gcube_map[gcube1] to to_gcube.
-    gcube_map[gcube1] = to_gcube;
-    if (!check_edges_between_sharp_cubes
-        (scalar_grid, grid, isovalue, cube0, to_cube,
-         isovert, gcube_map, flag_extended)) {
+    bool check0_result = 
+      check_edges_between_sharp_cubes
+      (scalar_grid, grid, isovalue, cube0, to_cube,
+       isovert, gcube_map, flag_extended);
 
-      gcube_map[gcube1] = store_map[1];
-      return(false); 
-    }
-    gcube_map[gcube1] = store_map[1];
+    bool check1_result = 
+      check_edges_between_sharp_cubes
+      (scalar_grid, grid, isovalue, cube1, to_cube,
+       isovert, gcube_map, flag_extended);
 
-    // *** BUG! SETTING gcube_map can invalidate check.
-    // Temporarily set gcube_map[gcube0] to to_gcube.
-    gcube_map[gcube0] = to_gcube;
-    if (!check_edges_between_sharp_cubes
+    if (!check0_result && !check1_result)
+      { return(false); }
+
+    if (check0_result && !check1_result) {
+
+      // Temporarily set gcube_map[gcube0] to to_gcube.
+      gcube_map[gcube0] = to_gcube;
+      check1_result = 
+        check_edges_between_sharp_cubes
         (scalar_grid, grid, isovalue, cube1, to_cube,
-         isovert, gcube_map, flag_extended)) {
+         isovert, gcube_map, flag_extended);
 
+      // Restore gcube_map
       gcube_map[gcube0] = store_map[0];
-      return(false); 
+
+      if (!check1_result) { return(false); }
     }
-    gcube_map[gcube0] = store_map[0];
+    else if (!check0_result && check1_result) {
+
+      // Temporarily set gcube_map[gcube1] to to_gcube.
+      gcube_map[gcube1] = to_gcube;
+      check0_result = 
+        check_edges_between_sharp_cubes
+        (scalar_grid, grid, isovalue, cube0, to_cube,
+         isovert, gcube_map, flag_extended);
+
+      // Restore gcube_map
+      gcube_map[gcube1] = store_map[1];
+
+      if (!check0_result) { return(false); }
+    }
 
     return(true);
   }
