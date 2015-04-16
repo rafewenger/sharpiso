@@ -2511,6 +2511,20 @@ namespace {
          gcube_map, flag_extended))
       { return(false); }
 
+    // *** DEBUG ***
+    /*
+    if (!check_distortion
+        (scalar_grid, isovalue, isovert, gcube_map, from_cube, to_cube)) {
+
+      MSDEBUG();
+      scalar_grid.PrintIndexAndCoord
+        (cerr, "Map failed (distortion). From: ", from_cube, 
+         " to ", to_cube, "\n");
+
+      return(false);
+    }
+    */
+
     return(true);
   }
 

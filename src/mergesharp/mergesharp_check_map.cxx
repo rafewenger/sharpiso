@@ -30,8 +30,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "mergesharp_datastruct.h"
 #include "mergesharp_check_map.h"
 
+// *** DEBUG ***
+#include "mergesharp_debug.h"
+#include "ijkprint.txx"
+
 
 using namespace MERGESHARP;
+
 
 // **************************************************
 //  Forward declarations
@@ -99,6 +104,14 @@ bool MERGESHARP::check_distortion
     // HANDLE BOUNDARY CASE
   }
 
+  // *** DEBUG ***
+  /*
+  MSDEBUG();
+  scalar_grid.PrintIndexAndCoord
+    (cerr, "  Passed distortion test!.  From cube: ", from_cube,
+     " to cube ", to_cube, "\n");
+  */
+
   return(true);
 }
 
@@ -142,6 +155,16 @@ bool MERGESHARP::check_quad_distortion
        icubeC, icubeB, dir2, dir1))
     { return(false); }
 
+  // *** DEBUG ***
+  /*
+  MSDEBUG();
+  scalar_grid.PrintIndexAndCoord
+    (cerr, "  NO quad distortion.  From cube: ", from_cube,
+     " to cube ", to_cube, ". ");
+  scalar_grid.PrintIndexAndCoord
+    (cerr, "  Edge: [", iend0, ",", iend1, "]\n");
+  */
+
   return(true);
 }
 
@@ -176,37 +199,112 @@ bool MERGESHARP::check_tri_distortion
       (gcube_map[gcubeA_index] == gcube_map[gcubeB_index])) 
     { return(true); }
 
-  COORD_TYPE to_coord[DIM3], coordA[DIM3], coordB[DIM3];
+  bool return_flag =
+    check_tri_distortion
+    (grid, isovert, from_cube, icubeA, icubeB,
+     isovert.IsoVertCoord(to_gcube_index),
+     isovert.IsoVertCoord(gcube_map[gcubeA_index]),
+     isovert.IsoVertCoord(gcube_map[gcubeB_index]),
+     dirFA, dirAB);
 
-  IJK::reverse_coord_scaling
-    (DIM3, spacing, isovert.IsoVertCoord(to_gcube_index), to_coord);
-  IJK::reverse_coord_scaling
-    (DIM3, spacing, isovert.IsoVertCoord(gcube_map[gcubeA_index]), coordA);
-  IJK::reverse_coord_scaling
-    (DIM3, spacing, isovert.IsoVertCoord(gcube_map[gcubeB_index]), coordB);
+  return(return_flag);
+}
 
-  if (are_separated(grid, isovert.gcube_list[from_gcube_index], to_coord, 
-                    isovert.gcube_list[gcubeA_index], coordA, dirFA)) {
 
-    if (are_separated(grid, isovert.gcube_list[gcubeA_index], coordA, 
-                      isovert.gcube_list[gcubeB_index], coordB, dirAB)) {
+// Return true if mapping to given coordinates does not
+//   reverse/distort triangle with vertices in (icubeA, icubeB, icubeC)
+// @param icubeA Cube icubeA shares an edge with cube icubeC.
+// @param icubeB Cube icubeB shares facets with cubes icubeA and icubeC.
+// @param icubeC Cube icubeC shares an edge with cube icubeA.
+// @param dirAB Direction (0,1,2) of icubeA to icubeB.
+// @param dirBC Direction (0,1,2) of icubeB to icubeC.
+bool MERGESHARP::check_tri_distortion
+(const SHARPISO_GRID & grid, const ISOVERT & isovert,
+ const VERTEX_INDEX icubeA, const VERTEX_INDEX icubeB, 
+ const VERTEX_INDEX icubeC, 
+ const COORD_TYPE coordA[DIM3], const COORD_TYPE coordB[DIM3],
+ const COORD_TYPE coordC[DIM3],
+ const int dirAB, const int dirBC)
+{
+  const COORD_TYPE * spacing = grid.SpacingPtrConst();
+  IJK::PROCEDURE_ERROR error("check_tri_distortion");
+  const INDEX_DIFF_TYPE gcubeA_index = isovert.GCubeIndex(icubeA, error);
+  const INDEX_DIFF_TYPE gcubeB_index = isovert.GCubeIndex(icubeB, error);
+  const INDEX_DIFF_TYPE gcubeC_index = isovert.GCubeIndex(icubeC, error);
 
-      if (are_separated(grid, isovert.gcube_list[from_gcube_index], to_coord, 
-                        isovert.gcube_list[gcubeB_index], coordB, dirFA)) {
 
-        if (is_between(to_coord[dirAB], coordA[dirAB], coordB[dirAB]))
+  if ((gcubeA_index == ISOVERT::NO_INDEX) || 
+      (gcubeB_index == ISOVERT::NO_INDEX) || 
+      (gcubeC_index == ISOVERT::NO_INDEX))
+    { throw error; }
+
+  COORD_TYPE unscaled_coordA[DIM3], unscaled_coordB[DIM3], 
+    unscaled_coordC[DIM3];
+
+  // Reverse scaling on coordA[], coordB[], coordC[]
+  IJK::reverse_coord_scaling(DIM3, spacing, coordA, unscaled_coordA);
+  IJK::reverse_coord_scaling(DIM3, spacing, coordB, unscaled_coordB);
+  IJK::reverse_coord_scaling(DIM3, spacing, coordC, unscaled_coordC);
+
+  // *** DEBUG ***
+  /*
+  MSDEBUG();
+  grid.PrintIndexAndCoord
+    (cerr, "  Triangle cubes: ", icubeA, " ", icubeB, " ", icubeC, "\n");
+  cerr << "  Triangle vertices: ";
+  IJK::print_coord3D(cerr, coordA);
+  IJK::print_coord3D(cerr, coordB);
+  IJK::print_coord3D(cerr, coordC);
+  cerr << endl;
+  */
+
+  if (are_separated(grid, isovert.gcube_list[gcubeA_index], unscaled_coordA,
+                    isovert.gcube_list[gcubeB_index], unscaled_coordB, dirAB)) {
+
+    if (are_separated(grid, isovert.gcube_list[gcubeB_index], unscaled_coordB, 
+                      isovert.gcube_list[gcubeC_index], unscaled_coordC, 
+                      dirBC)) {
+
+      // *** DEBUG ***
+      /*
+      cerr << "    Passed first two separation tests." << endl;
+      */
+
+      if (are_separated(grid, isovert.gcube_list[gcubeA_index], unscaled_coordA,
+                        isovert.gcube_list[gcubeC_index], unscaled_coordC, 
+                        dirAB)) {
+
+        // *** DEBUG ***
+        /*
+        cerr << "    Passed separation test in direction " << dirAB << endl;
+        cerr << "    coord[" << dirBC << "] : "
+             << coordB[dirBC] << " " << coordA[dirBC]
+             << " " << coordC[dirBC] << endl;
+        */
+
+        if (is_between(unscaled_coordA[dirBC], unscaled_coordB[dirBC], 
+                       unscaled_coordC[dirBC]))
           { return(true); }      
       }
 
-      if (are_separated(grid, isovert.gcube_list[from_gcube_index], to_coord, 
-                        isovert.gcube_list[gcubeB_index], coordB, dirAB)) {
+      if (are_separated(grid, isovert.gcube_list[gcubeA_index], unscaled_coordA,
+                        isovert.gcube_list[gcubeC_index], unscaled_coordC, 
+                        dirBC)) {
 
-        if (is_between(coordB[dirFA], to_coord[dirFA], coordA[dirFA]))
+        // *** DEBUG ***
+        /*
+        cerr << "    Passed separation test in direction " << dirBC << endl;
+        cerr << "    coord[" << dirAB << "] : "
+             << coordA[dirAB] << " " << coordC[dirAB]
+             << " " << coordB[dirAB] << endl;
+        */
+
+        if (is_between(coordC[dirAB], coordA[dirAB], coordB[dirAB]))
           { return(true); }
       }
     }
   }
-      
+
   return(false);
 }
 

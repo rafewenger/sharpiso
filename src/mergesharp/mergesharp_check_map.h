@@ -68,4 +68,23 @@ namespace MERGESHARP {
    const VERTEX_INDEX from_cube, const VERTEX_INDEX to_cube,
    const VERTEX_INDEX icubeA, const VERTEX_INDEX icubeB,
    const int dirFA, const int dirAB);
+
+  /// Return true if mapping to given coordinates does not
+  ///   reverse/distort triangle with vertices in (icubeA, icubeB, icubeC)
+  /// @param icubeA Cube icubeA shares an edge with cube icubeC.
+  /// @param icubeB Cube icubeB shares facets with cubes icubeA and icubeC.
+  /// @param icubeC Cube icubeC shares an edge with cube icubeA.
+  /// @param coordA Proposed coordinates of vertex in icubeA.
+  /// @param coordB Proposed coordinates of vertex in icubeB.
+  /// @param coordC Proposed coordinates of vertex in icubeC.
+  /// @param dirAB Direction (0,1,2) of icubeA to icubeB.
+  /// @param dirBC Direction (0,1,2) of icubeB to icubeC.
+  bool check_tri_distortion
+  (const SHARPISO_GRID & grid, const ISOVERT & isovert,
+   const VERTEX_INDEX icubeA, const VERTEX_INDEX icubeB, 
+   const VERTEX_INDEX icubeC, 
+   const COORD_TYPE coordA[DIM3], const COORD_TYPE coordB[DIM3],
+   const COORD_TYPE coordC[DIM3],
+   const int dirAB, const int dirBC);
+
 }

@@ -4312,7 +4312,7 @@ namespace IJK {
     out << text1;
     PrintIndexAndCoord(out, iv1);
     out << text2;
-    PrintIndexAndCoord(out, iv1);
+    PrintIndexAndCoord(out, iv2);
     out << text3;
   }
 
