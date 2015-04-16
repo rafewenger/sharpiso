@@ -88,6 +88,7 @@ namespace {
     OUTPUT_FILENAME_PARAM, STDOUT_PARAM, NOWRITE_PARAM, 
     OUTPUT_PARAM_PARAM, OUTPUT_INFO_PARAM, 
     OUTPUT_SELECTED_PARAM, OUTPUT_SHARP_PARAM, OUTPUT_ACTIVE_PARAM,
+    OUTPUT_MAP_TO_PARAM,
     OUTPUT_ISOVERT_PARAM,
     WRITE_ISOV_INFO_PARAM, SILENT_PARAM, TIME_PARAM, 
     UNKNOWN_PARAM} PARAMETER;
@@ -122,6 +123,7 @@ namespace {
       "-help", "-off", "-iv", 
       "-o", "-stdout", "-nowrite", 
       "-out_param", "-info", "-out_selected", "-out_sharp", "-out_active",
+      "-out_map_to",
       "-out_isovert",
       "-write_isov_info", "-s", "-time", "-unknown"};
 
@@ -621,6 +623,12 @@ namespace {
       get_option_multiple_arguments
         (option_string, value_string, input_info.maxc);
 	  break;
+
+    case OUTPUT_MAP_TO_PARAM:
+      input_info.flag_output_map_to = true;
+      input_info.to_cube = 
+        get_option_float(option_string, value_string);
+      break;
 
     case OUTPUT_FILENAME_PARAM:
       input_info.output_filename = value_string;
@@ -1763,6 +1771,24 @@ void MERGESHARP::report_active_cubes
   cout << endl;
 }
 
+/// Report information about cubes which map to a specific cube.
+void MERGESHARP::report_cubes_which_map_to
+(const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
+ const ISOVERT & isovert, const VERTEX_INDEX & to_cube)
+{
+  cout << endl;
+  grid.PrintIndexAndCoord
+    (cout, "Cubes which map to cube ", to_cube, ":\n");
+  for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
+    if (isovert.gcube_list[i].maps_to_cube == to_cube) {
+      VERTEX_INDEX cube_index = isovert.CubeIndex(i);
+      report_isovert_cube_info(output_info, grid, isovert, cube_index);
+    }
+  }
+  cout << endl;
+}
+
+
 /// Report information about isosurface vertices
 void MERGESHARP::report_isovert_info
 (const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
@@ -1800,6 +1826,11 @@ void MERGESHARP::report_isovert_info
 
   if (output_info.flag_output_active) 
     { report_active_cubes(output_info, grid, isovert); }
+
+  if (output_info.flag_output_map_to) {
+    report_cubes_which_map_to
+      (output_info, grid, isovert, output_info.to_cube); 
+  }
 
 }
 
@@ -1985,6 +2016,7 @@ namespace {
     cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
          << endl;
     cerr << "  [-s] [-out_param] [-info] [-out_selected] [-out_sharp] [-out_active]" << endl;
+    cerr << "  [-out_map_to {cube index}]" << endl;
     cerr << "  [-out_isovert [corner|edge|sharp|smooth|all] [selected|all|uncovered]" << endl;
     cerr << "  [-write_isov_info] [-nowrite] [-time]" << endl;
     cerr << "  [-help]" << endl;
@@ -2172,7 +2204,8 @@ void MERGESHARP::help(const char * command_path)
   cout << "  -out_selected: Output list of selected cubes." << endl;
   cout << "  -out_sharp: Output list of cubes containing corner or edge vertices." << endl;
   cout << "  -out_active: Output list of active cubes." << endl;
-  cerr << "  -out_isovert [arg1] [arg2]:  Output isosurface vertices to off file." << endl;
+  cout << "  -out_map_to {cube index}: Output list of cubes which map to given cube index." << endl;
+  cout << "  -out_isovert [arg1] [arg2]:  Output isosurface vertices to off file." << endl;
   cout << "  -write_isov_info:  Write isosurface vertex information to file."
        << endl;
   cout << "     File format: isosurface vertex index, cube index," << endl;
@@ -2214,6 +2247,8 @@ void MERGESHARP::IO_INFO::Init()
   flag_output_selected = false;
   flag_output_sharp = false;
   flag_output_active = false;
+  flag_output_map_to = false;
+  to_cube = 0;
   flag_output_isovert = false;
   flag_recompute_isovert = true; // recompute the isovert for unavailable cubes
   flag_check_triangle_angle = true;
