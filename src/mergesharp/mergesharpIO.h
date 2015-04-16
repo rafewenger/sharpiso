@@ -407,12 +407,14 @@ namespace MERGESHARP {
 
   /// Report information about cubes containing corner or edge iso vertices.
   void report_sharp_cubes
-  (const SHARPISO_GRID & grid, const ISOVERT & isovert);
+    (const OUTPUT_INFO & output_info,
+     const SHARPISO_GRID & grid, const ISOVERT & isovert);
 
   /// Report information about active cubes.
   /// A cube is active if it has some bipolar edge.
   void report_active_cubes
-  (const SHARPISO_GRID & grid, const ISOVERT & isovert);
+    (const OUTPUT_INFO & output_info,
+     const SHARPISO_GRID & grid, const ISOVERT & isovert);
 
 
   // **************************************************
