@@ -1,6 +1,6 @@
 /// \file ijkcoord.txx
 /// ijk templates for coordinate arithmetic
-/// Version 0.2.1
+/// Version 0.2.2
 
 /*
   IJK: Isosurface Jeneration Kode
@@ -543,6 +543,33 @@ namespace IJK {
     else {
       set_coord(dimension, 0, coord1);
     }
+  }
+
+  /*!
+   *  Compute unit vector from coord0[] to coord1[].\n
+   *  If distance from \a coord0[] to \a coord1[]is less than or equal 
+   *     to \a max_small_magnitude, then \a coord2[] is set to the zero vector.
+   *  @param dimension Coordinate dimension (= number of coordinates.)
+   *  @param coord0[] Input coordinates.
+   *  @param coord1[] Input coordinates.
+   *  @param max_small_magnitude If distance from \a coord0[] to \a coord1[]
+   *     is less than or equal to \a max_small_magnitude, then \a coord2[] 
+   *      is set to the zero vector.
+   *  @param[out] coord2[] Normalized coordinates or the zero vector.
+   *  @param[out] magnitude Magnitude of (\a coord1[] - \a coord0[]).
+   *  @param[out] flag_zero True if \a coord2[] is set to the zero vector.
+   *  @pre max_small_magnitude >= 0.
+   */
+  template <typename DTYPE, typename CTYPE0, typename MTYPE0, 
+            typename CTYPE1, typename CTYPE2, typename MTYPE1>
+  void compute_unit_vector
+  (const DTYPE dimension, const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const MTYPE0 max_small_magnitude, CTYPE2 coord2[],
+   MTYPE1 & magnitude, bool & flag_zero)
+  {
+    subtract_coord(dimension, coord1, coord0, coord2);
+    normalize_vector
+      (dimension, coord2, max_small_magnitude, coord2, magnitude, flag_zero);
   }
 
   /*!
@@ -1265,6 +1292,24 @@ namespace IJK {
     const int DIM3 = 3;
     return(is_coord_less_than_or_equal(DIM3, coord0, coord1)); 
   }
+
+  // **************************************************
+  // 3D vector operations
+  // **************************************************
+
+  /// Compute 3D unit vector.
+  template <typename CTYPE0, typename MTYPE0, 
+            typename CTYPE1, typename CTYPE2, typename MTYPE1>
+  void compute_unit_vector_3D
+  (const CTYPE0 coord0[], const CTYPE1 coord1[],
+   const MTYPE0 max_small_magnitude, CTYPE2 coord2[],
+   MTYPE1 & magnitude, bool & flag_zero)
+  {
+    const int DIM3 = 3;
+    compute_unit_vector(DIM3, coord0, coord1, max_small_magnitude, coord2,
+                        magnitude, flag_zero);
+  }
+
 
   // **************************************************
   // 3D distances

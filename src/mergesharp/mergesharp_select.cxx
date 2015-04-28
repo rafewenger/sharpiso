@@ -47,9 +47,7 @@ using namespace IJK;
 namespace {
 
   void reset_covered_isovert_positions
-  (const SHARPISO_GRID_NEIGHBORS & grid, 
-   const SHARPISO_BOOL_GRID & covered_grid,
-   ISOVERT & isovert);
+  (const SHARPISO_BOOL_GRID & covered_grid, ISOVERT & isovert);
 
   bool check_covered_point
   (const SHARPISO_BOOL_GRID & covered_grid,
@@ -116,7 +114,7 @@ void select_cube
 
     covered_grid.Set(cube_index2, true);
 
-    NUM_TYPE gcube_index2 = isovert.sharp_ind_grid.Scalar(cube_index2);
+    NUM_TYPE gcube_index2 = isovert.index_grid.Scalar(cube_index2);
     if(gcube_index2 != ISOVERT::NO_INDEX) {
       isovert.gcube_list[gcube_index2].flag = flag;
 
@@ -703,7 +701,7 @@ void MERGESHARP::select_sharp_isovert
     (scalar_grid, covered_grid, bin_grid, gridn, isovalue, isovert_param, 
      sharp_gcube_list, isovert);
 
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 
   // Resort sharp gcube_list
   sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
@@ -780,7 +778,7 @@ void MERGESHARP::select_sharp_isovert
       (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
        isovert);
 
-    reset_covered_isovert_positions(gridn, covered_grid, isovert);
+    reset_covered_isovert_positions(covered_grid, isovert);
   }
 
   // Resort sharp gcube_list
@@ -802,7 +800,7 @@ void MERGESHARP::select_sharp_isovert
       (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
        isovert);
 
-    reset_covered_isovert_positions(gridn, covered_grid, isovert);
+    reset_covered_isovert_positions(covered_grid, isovert);
   }
 
   // Resort sharp gcube_list
@@ -826,7 +824,7 @@ void MERGESHARP::select_sharp_isovert
       (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
        isovert);
 
-    reset_covered_isovert_positions(gridn, covered_grid, isovert);
+    reset_covered_isovert_positions(covered_grid, isovert);
   }
 
   // Resort sharp gcube_list
@@ -862,7 +860,8 @@ void MERGESHARP::select_sharp_isovert
        isovert);
   }
 
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
+  set_cover_type(isovert);
 
   MSDEBUG();
   flag_debug = false;
@@ -1124,7 +1123,7 @@ void select_cubes_cong_zero_mod3
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 }
 
 /// Select edge cubes (eigenvalue 2) whose coordinates are all NOT
@@ -1174,7 +1173,7 @@ void select_cubes_not_cong_zero_mod3_A
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 }
 
 /// Select edge cubes (eigenvalue 2) whose coordinates are all NOT
@@ -1225,7 +1224,7 @@ void select_cubes_not_cong_zero_mod3_B
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 }
 
 /// Select edge cubes (eigenvalue 2) with one coord congruent to 0 mod 3
@@ -1272,7 +1271,7 @@ void select_cubes_with_one_coord_cong_zero_mod3_A
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 }
 
 /// Select edge cubes (eigenvalue 2) with one coord congruent to 0 mod 3
@@ -1365,7 +1364,7 @@ void select_cubes_with_two_coord_cong_zero_mod3_A
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 }
 
 /// Select edge cubes (eigenvalue 2) using mod 3 algorithm
@@ -1443,7 +1442,7 @@ void select_edge_cubes_mod3
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 
   MSDEBUG();
   if (flag_debug)
@@ -1472,7 +1471,7 @@ void select_edge_cubes_mod3
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 
   MSDEBUG();
   if (flag_debug)
@@ -1507,7 +1506,7 @@ void select_edge_cubes_mod3
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 
   MSDEBUG();
   if (flag_debug)
@@ -1568,7 +1567,7 @@ void select_edge_cubes_mod3
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 
   MSDEBUG();
   if (flag_debug)
@@ -1593,7 +1592,7 @@ void select_edge_cubes_mod3
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 
   MSDEBUG();
   if (flag_debug)
@@ -1655,7 +1654,7 @@ void MERGESHARP::select_sharp_isovert_mod3
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
 
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 
   // Resort sharp gcube_list
   sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
@@ -1679,7 +1678,7 @@ void MERGESHARP::select_sharp_isovert_mod3
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
 
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 
   // Resort sharp gcube_list
   sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
@@ -1693,7 +1692,7 @@ void MERGESHARP::select_sharp_isovert_mod3
     (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param,
      isovert);
 
-  reset_covered_isovert_positions(gridn, covered_grid, isovert);
+  reset_covered_isovert_positions(covered_grid, isovert);
 
   MSDEBUG();
   flag_debug = false;
@@ -1708,8 +1707,7 @@ namespace {
 
   // Change isovert positions which lie in covered cubes.
   void reset_covered_isovert_positions
-  (const SHARPISO_GRID_NEIGHBORS & grid, 
-   const SHARPISO_BOOL_GRID & covered_grid,
+  (const SHARPISO_BOOL_GRID & covered_grid,
    ISOVERT & isovert)
   {
     std::vector<NUM_TYPE> gcube_sharp_list;
@@ -1744,9 +1742,9 @@ namespace {
                   using namespace std;
                   VERTEX_INDEX cubeA_index = isovert.CubeIndex(gcubeA_index);
                   cerr << "Copying position from " << cubeA_index << " ";
-                  ijkgrid_output_vertex_coord(cerr, grid, cubeA_index);
+                  ijkgrid_output_vertex_coord(cerr, isovert.grid, cubeA_index);
                   cerr << " to " << cubeB_index << " ";
-                  ijkgrid_output_vertex_coord(cerr, grid, cubeB_index);
+                  ijkgrid_output_vertex_coord(cerr, isovert.grid, cubeB_index);
                   cerr << endl;
                   cerr << "  Old position: ";
                   IJK::print_coord3D(cerr, isovert.gcube_list[gcubeB_index].isovert_coord);
@@ -1755,7 +1753,7 @@ namespace {
                   cerr << endl;
                 }
 
-                copy_isovert_position(grid, gcubeA_index, gcubeB_index, isovert);
+                copy_isovert_position(isovert.grid, gcubeA_index, gcubeB_index, isovert);
               }
             }
           }
@@ -1843,7 +1841,7 @@ namespace {
       neighbor_cube_index = gridn.CubeNeighborF(c.cube_index, j);
       //neighbor_gcube_index is an entry into the gcube list 
       INDEX_DIFF_TYPE neighbor_gcube_index
-        = isovert.sharp_ind_grid.Scalar(neighbor_cube_index);
+        = isovert.index_grid.Scalar(neighbor_cube_index);
 
       if(neighbor_gcube_index == ISOVERT::NO_INDEX)
         {
@@ -1860,7 +1858,7 @@ namespace {
       neighbor_cube_index = gridn.CubeNeighborE(c.cube_index, j);
       //neighbor_gcube_index is an entry into the gcube list 
       INDEX_DIFF_TYPE neighbor_gcube_index
-        = isovert.sharp_ind_grid.Scalar(neighbor_cube_index);
+        = isovert.index_grid.Scalar(neighbor_cube_index);
 
       if(neighbor_gcube_index == ISOVERT::NO_INDEX)
         {
@@ -1877,7 +1875,7 @@ namespace {
       neighbor_cube_index = gridn.CubeNeighborV(c.cube_index, j);
       //neighbor_gcube_index is an entry into the gcube list 
       INDEX_DIFF_TYPE neighbor_gcube_index
-        = isovert.sharp_ind_grid.Scalar(neighbor_cube_index);
+        = isovert.index_grid.Scalar(neighbor_cube_index);
 
       if(neighbor_gcube_index == ISOVERT::NO_INDEX)
         {

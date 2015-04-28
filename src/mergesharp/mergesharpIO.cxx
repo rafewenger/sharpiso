@@ -1669,7 +1669,7 @@ void report_isovert_cube_info
   if (gcube_index == ISOVERT::NO_INDEX) { return; }
 
   cout << "Cube " << cube_index << ": ";
-  ijkgrid_output_vertex_coord(cout, isovert.sharp_ind_grid, cube_index);
+  ijkgrid_output_vertex_coord(cout, isovert.index_grid, cube_index);
 
   if (!grid.IsUnitSpacing()) {
     COORD_TYPE scaled_cube_coord[DIM3];
@@ -1720,6 +1720,10 @@ void report_isovert_cube_info
     output_yes_no("    Recomputed using adjacent? ",
                   isovert.gcube_list[gcube_index].flag_recomputed_using_adjacent);
     cout << endl;
+  }
+  if (isovert.gcube_list[gcube_index].cover_type != NO_ADJACENT_CUBE) {
+    convert2string(isovert.gcube_list[gcube_index].cover_type, s);
+    cout << "    Cover type: " << s << endl;
   }
 
   cout << "    ";

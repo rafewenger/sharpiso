@@ -138,7 +138,7 @@ void MERGESHARP::map_isopoly_vert
 {
   for (VERTEX_INDEX i = 0; i < iso_poly_vert.size(); i++) {
     VERTEX_INDEX icube = iso_poly_vert[i];
-    VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(icube);
+    VERTEX_INDEX gcube_index = isovert.GCubeIndex(icube);
     iso_poly_vert[i] = gcube_index;
   }
 }

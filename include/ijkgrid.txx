@@ -5295,9 +5295,10 @@ namespace IJK {
   }
 
   // **************************************************
-  // TEMPLATE OUTPUT FUNCTIONS
+  // TEMPLATE OUTPUT FUNCTIONS (deprecated)
   // **************************************************
 
+  /// DEPRECATED. Use GRID::PrintCoord().
   /// Output coord (for debugging purposes)
   template <typename DTYPE, typename CTYPE>
   void ijkgrid_output_coord
@@ -5313,6 +5314,7 @@ namespace IJK {
     out << ")";
   }
 
+  /// DEPRECATED. Use GRID::PrintCoord().
   /// Output vertex coord (for debugging purposes)
   template <typename GTYPE, typename VTYPE>
   void ijkgrid_output_vertex_coord
