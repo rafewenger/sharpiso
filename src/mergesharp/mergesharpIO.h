@@ -106,12 +106,20 @@ namespace MERGESHARP {
     bool flag_output_active;     ///< Output information about active cubes.
     bool flag_output_map_to;     ///< Output cubes which map to a specific cube.
     VERTEX_INDEX to_cube;        ///< Index of cube specified by map to.
-    bool flag_output_isovert;    ///< Output isosurface vertices to separate file.
     ISOVERT_TYPE output_isovert_type;
     MSHARP_ISOVERT_TYPE output_isovert_type2;
     std::string output_isovert_filename;
     std::vector<COORD_TYPE> minc;
     std::vector<COORD_TYPE> maxc;
+
+    ///< Output pairs of selected neighboring cubes which are far apart.
+    bool flag_output_neighbors;  
+
+    ///< Report cubes which are min distance apart.
+    GRID_COORD_TYPE min_distance[DIM3];
+
+    ///< Output isosurface vertices to separate file.
+    bool flag_output_isovert;    
 
   public:
     IO_INFO() { Init(); };
