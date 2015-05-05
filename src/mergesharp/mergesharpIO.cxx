@@ -1588,14 +1588,8 @@ void report_far_neighbors
 
       compute_dist(isovert, icubeA, icubeC, dist);
 
-      if (is_far(dist, output_info.min_distance)) {
-        grid.PrintIndexAndCoord
-          (cout, "Cubes ", icubeA, " and ", icubeC, ".  Distance: ");
-        print_coord3D(cout, dist);
-        cout << endl;
-
-        count++;
-      }
+      if (is_far(dist, output_info.min_distance)) 
+        { count++; }
     }
   }
 
@@ -2515,6 +2509,7 @@ void MERGESHARP::IO_INFO::Init()
   flag_output_sharp = false;
   flag_output_active = false;
   flag_output_map_to = false;
+  flag_output_neighbors = false;
   to_cube = 0;
   flag_output_isovert = false;
   flag_recompute_isovert = true; // recompute the isovert for unavailable cubes

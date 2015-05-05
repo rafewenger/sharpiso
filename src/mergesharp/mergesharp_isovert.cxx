@@ -859,10 +859,10 @@ void MERGESHARP::recompute_using_adjacent
 }
 
 
-
 /// Set isovert position from grid vertex or grid edge.
 void set_isovert_position_from_face
-(const SHARPISO_GRID & grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
  const VERTEX_INDEX cube_index,
  const COORD_TYPE isovert_coord[DIM3],
  const NUM_TYPE num_large_eigenvalues,
@@ -879,7 +879,7 @@ void set_isovert_position_from_face
   MSDEBUG();
   if (flag_debug) {
     cerr << "*** In " << __FUNCTION__ << ".  Cube: " << cube_index << " ";
-    ijkgrid_output_vertex_coord(cerr, grid, cube_index);
+    ijkgrid_output_vertex_coord(cerr, scalar_grid, cube_index);
     cerr << endl;
     cerr << "    Old coord: ";
     IJK::print_coord3D(cerr, isovert.gcube_list[gcube_index].isovert_coord);
@@ -895,7 +895,9 @@ void set_isovert_position_from_face
   }
 
   set_isovert_position
-    (grid, gcube_index, isovert_coord, num_large_eigenvalues, isovert);
+    (scalar_grid, gcube_index, isovert_coord, num_large_eigenvalues, isovert);
+
+  set_cube_containing_isovert(scalar_grid, isovalue, gcube_index, isovert);
 
   isovert.gcube_list[gcube_index].flag_using_substitute_coord = false;
 
@@ -909,7 +911,8 @@ void set_isovert_position_from_face
 
 /// Set isovert position from grid vertex or grid edge.
 void set_isovert_position_from_face
-(const SHARPISO_GRID & grid,
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
  const VERTEX_INDEX cube_index,
  const COORD_TYPE isovert_coord[DIM3],
  const NUM_TYPE num_large_eigenvalues,
@@ -918,9 +921,10 @@ void set_isovert_position_from_face
 {
   bool flag_set;
   set_isovert_position_from_face
-    (grid, cube_index, isovert_coord, num_large_eigenvalues, 
+    (scalar_grid, isovalue, cube_index, isovert_coord, num_large_eigenvalues, 
      flag_from_vertex, isovert, flag_set);
 }
+
 
 /// Return true if sharp edge in cube0 points to cube1.
 /// Return false if cube0 has no sharp edge.
@@ -1298,7 +1302,7 @@ void recompute_isovert_position_around_vertex
 
       bool flag_set1;
       set_isovert_position_from_face
-        (scalar_grid, cube1_index, new_isovert_coord, 2, true, 
+        (scalar_grid, isovalue, cube1_index, new_isovert_coord, 2, true, 
          isovert, flag_set1);
 
       if (flag_set1) { flag_set = true; }
@@ -1317,7 +1321,8 @@ void recompute_isovert_position_around_vertex
         { continue; }
 
       set_isovert_position_from_face
-        (scalar_grid, cube1_index, new_isovert_coord, 2, true, isovert);
+        (scalar_grid, isovalue, cube1_index, new_isovert_coord, 2, 
+         true, isovert);
     }
   }
 
@@ -1531,7 +1536,7 @@ void recompute_isovert_position_around_edge
 
         bool flag_set1;
         set_isovert_position_from_face
-          (scalar_grid, cube_index, new_isovert_coord, 2, false, 
+          (scalar_grid, isovalue, cube_index, new_isovert_coord, 2, false, 
            isovert, flag_set1);
 
         if (flag_set1) { flag_set = true; }
@@ -1553,7 +1558,8 @@ void recompute_isovert_position_around_edge
           { continue; }
 
         set_isovert_position_from_face
-          (scalar_grid, cube_index, new_isovert_coord, 2, false, isovert);
+          (scalar_grid, isovalue, cube_index, new_isovert_coord, 2, 
+           false, isovert);
       }
     }
 
@@ -1751,7 +1757,7 @@ void recompute_isovert_position_around_edge_B
 
       bool flag_set1;
       set_isovert_position_from_face
-        (scalar_grid, cube_index, new_isovert_coord, 2, false, 
+        (scalar_grid, isovalue, cube_index, new_isovert_coord, 2, false, 
          isovert, flag_set1);
 
       if (flag_set1) { flag_set = true; }
@@ -1769,7 +1775,8 @@ void recompute_isovert_position_around_edge_B
     for (int j = 0; j < 2; j++) {
       VERTEX_INDEX cube_index = orthogonal_cube[j];
       set_isovert_position_from_face
-        (scalar_grid, cube_index, new_isovert_coord, 2, false, isovert);
+        (scalar_grid, isovalue, cube_index, new_isovert_coord, 2, 
+         false, isovert);
     }
   }
 
