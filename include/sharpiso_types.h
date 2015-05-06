@@ -1,10 +1,10 @@
 /// \file sharpiso_types.h
 /// Definitions for sharp isosurface processing.
-/// Version v0.1.1
+/// Version v0.1.2
 
 /*
   IJK: Isosurface Jeneration Code
-  Copyright (C) 2011,2012 Rephael Wenger
+  Copyright (C) 2011-2015 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -42,7 +42,7 @@ namespace SHARPISO {
 
   typedef int AXIS_SIZE_TYPE;
   typedef int GRADIENT_LENGTH_TYPE;
-  typedef int BOUNDARY_BITS_TYPE;
+  typedef unsigned int BOUNDARY_BITS_TYPE;
 
   /// Coordinate type which is guaranteed to be signed.
   /// (Note: COORD_TYPE may be signed or unsigned.)
@@ -70,6 +70,11 @@ namespace SHARPISO {
   typedef enum 
   { CORNER_ISOVERT, EDGE_ISOVERT, SHARP_ISOVERT, SMOOTH_ISOVERT, ALL_ISOVERT }
   ISOVERT_TYPE;
+
+  /// Cube adjacency types
+  typedef enum
+  { FACET_ADJACENT, EDGE_ADJACENT, VERTEX_ADJACENT, NO_ADJACENT_CUBE }
+  CUBE_ADJACENCY_TYPE;
 
 
   // **************************************************

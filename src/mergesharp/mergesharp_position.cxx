@@ -182,7 +182,7 @@ void MERGESHARP::position_merged_dual_isovertices_multi
   for (VERTEX_INDEX i = 0; i < iso_vlist.size(); i++) {
 
     VERTEX_INDEX cube_index = iso_vlist[i].cube_index;
-    VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(cube_index);
+    VERTEX_INDEX gcube_index = isovert.GCubeIndex(cube_index);
 
     if (isovert.gcube_list[gcube_index].flag != SELECTED_GCUBE) {
 
@@ -253,7 +253,7 @@ void MERGESHARP::position_dual_isovertices_multi
   for (VERTEX_INDEX i = 0; i < iso_vlist.size(); i++) {
 
     VERTEX_INDEX cube_index = iso_vlist[i].cube_index;
-    VERTEX_INDEX gcube_index = isovert.sharp_ind_grid.Scalar(cube_index);
+    VERTEX_INDEX gcube_index = isovert.GCubeIndex(cube_index);
 
     it = iso_vlist[i].table_index;
 

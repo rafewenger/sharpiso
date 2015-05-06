@@ -70,12 +70,12 @@ SET(MERGESHARP_SUB_LIST mergesharpIO.cxx mergesharp.cxx
                         mergesharp_datastruct.cxx 
                         mergesharp_isovert.cxx mergesharp_select.cxx
                         mergesharp_extract.cxx mergesharp_position.cxx 
-                        mergesharp_merge.cxx
+                        mergesharp_merge.cxx mergesharp_check_map.cxx
                         ijkdualtable.cxx ijkdualtable_ambig.cxx 
                         ijktable_poly.cxx
                         ijktable_ambig.cxx mergesharp_ambig.cxx
                         ${SHARPISO_SRC_DIR}/sharpiso_feature.cxx
-						${SHARPISO_SRC_DIR}/sharpiso_get_gradients.cxx
+                        ${SHARPISO_SRC_DIR}/sharpiso_get_gradients.cxx
                         ${SHARPISO_SRC_DIR}/sharpiso_intersect.cxx
                         ${SHARPISO_SRC_DIR}/sharpiso_svd.cxx
                         ${SHARPISO_SRC_DIR}/sharpiso_closest.cxx)

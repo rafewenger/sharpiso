@@ -1,15 +1,15 @@
 /// \file ijkgrid.txx
 /// ijk templates defining regular grid classes and functions.
-/// Version 0.2.0
+/// Version 0.2.1
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2008-2014 Rephael Wenger
+  Copyright (C) 2008-2015 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  version 2.1 of the License, or any later version.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -154,23 +154,37 @@ namespace IJK {
 
     /// Print vertex coordinates (mainly for debugging).
     template <typename OSTREAM_TYPE, typename VTYPE0>
-    void PrintCoord(OSTREAM_TYPE & out, const char * prefix, 
-                    const VTYPE0 iv, const char * suffix) const;
+    void PrintCoord(OSTREAM_TYPE & out, const VTYPE0 iv) const;
 
     /// Print vertex coordinates (mainly for debugging).
     template <typename OSTREAM_TYPE, typename VTYPE0>
-    void PrintCoord(OSTREAM_TYPE & out, const VTYPE0 iv) const
-    { PrintCoord(out, "", iv, ""); }
+    void PrintCoord(OSTREAM_TYPE & out, const char * prefix, 
+                    const VTYPE0 iv, const char * suffix) const;
+
+    /// Print vertex index and coordinates (mainly for debugging).
+    template <typename OSTREAM_TYPE, typename VTYPE0>
+    void PrintIndexAndCoord(OSTREAM_TYPE & out, const VTYPE0 iv) const;
 
     /// Print vertex index and coordinates (mainly for debugging).
     template <typename OSTREAM_TYPE, typename VTYPE0>
     void PrintIndexAndCoord(OSTREAM_TYPE & out, const char * prefix,
                             const VTYPE0 iv, const char * suffix) const;
 
-    /// Print vertex index and coordinates (mainly for debugging).
-    template <typename OSTREAM_TYPE, typename VTYPE0>
-    void PrintIndexAndCoord(OSTREAM_TYPE & out, const VTYPE0 iv) const
-    { PrintIndexAndCoord(out, "", iv, ""); }
+    /// Print two vertex indices and coordinates (mainly for debugging).
+    template <typename OSTREAM_TYPE, typename VTYPE0, typename VTYPE1>
+    void PrintIndexAndCoord
+    (OSTREAM_TYPE & out, const char * text0,
+     const VTYPE0 iv0, const char * text1, 
+     const VTYPE1 iv1, const char * text2) const;
+
+    /// Print three vertex indices and coordinates (mainly for debugging).
+    template <typename OSTREAM_TYPE, 
+              typename VTYPE0, typename VTYPE1, typename VTYPE2>
+    void PrintIndexAndCoord
+    (OSTREAM_TYPE & out, const char * text0,
+     const VTYPE0 iv0, const char * text1, 
+     const VTYPE1 iv1, const char * text2,
+     const VTYPE2 iv2, const char * text3) const;
 
     /// Check function
     template <typename DTYPE2, typename ATYPE2, typename VTYPE2, 
@@ -4219,31 +4233,87 @@ namespace IJK {
   template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
   template <typename OSTREAM_TYPE, typename VTYPE0>
   void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
-  PrintCoord(OSTREAM_TYPE & out, const char * prefix,
-             const VTYPE0 iv, const char * suffix) const
+  PrintCoord(OSTREAM_TYPE & out, const VTYPE0 iv) const
   {
     const DTYPE dimension = this->Dimension();
     IJK::ARRAY<ATYPE> coord(dimension);
 
     this->ComputeCoord(iv, coord.Ptr());
     
-    out << prefix << "(";
+    out << "(";
     for (DTYPE d = 0; d < dimension; d++) {
       out << coord[d];
       if (d+1 < dimension) { out << ","; }
     }
-    out << ")" << suffix;
+    out << ")";
   }
 
-  // Print vertex index and coordiantes (mainly for debugging).
+  // Print vertex coordinates (mainly for debugging).
+  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
+  template <typename OSTREAM_TYPE, typename VTYPE0>
+  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  PrintCoord(OSTREAM_TYPE & out, const char * prefix,
+             const VTYPE0 iv, const char * suffix) const
+  {
+    out << prefix;
+    PrintCoord(out, iv);
+    out << suffix;
+  }
+
+  // Print vertex index and coordinates (mainly for debugging).
+  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
+  template <typename OSTREAM_TYPE, typename VTYPE0>
+  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  PrintIndexAndCoord(OSTREAM_TYPE & out, const VTYPE0 iv) const
+  {
+    out << iv << " ";
+    PrintCoord(out, iv);
+  }
+
+  // Print vertex index and coordinates (mainly for debugging).
   template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
   template <typename OSTREAM_TYPE, typename VTYPE0>
   void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
   PrintIndexAndCoord(OSTREAM_TYPE & out, const char * prefix,
                      const VTYPE0 iv, const char * suffix) const
   {
-    out << prefix << iv;
-    PrintCoord(out, " ", iv, suffix);
+    out << prefix;
+    PrintIndexAndCoord(out, iv);
+    out << suffix;
+  }
+
+  // Print two vertex indices and coordinates (mainly for debugging).
+  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
+  template <typename OSTREAM_TYPE, typename VTYPE0, typename VTYPE1>
+  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  PrintIndexAndCoord(OSTREAM_TYPE & out, const char * text0,
+                     const VTYPE0 iv0, const char * text1, 
+                     const VTYPE1 iv1, const char * text2) const
+  {
+    out << text0;
+    PrintIndexAndCoord(out, iv0);
+    out << text1;
+    PrintIndexAndCoord(out, iv1);
+    out << text2;
+  }
+
+  // Print three vertex indices and coordinates (mainly for debugging).
+  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
+  template <typename OSTREAM_TYPE, 
+            typename VTYPE0, typename VTYPE1, typename VTYPE2>
+  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  PrintIndexAndCoord(OSTREAM_TYPE & out, const char * text0,
+                     const VTYPE0 iv0, const char * text1, 
+                     const VTYPE1 iv1, const char * text2,
+                     const VTYPE2 iv2, const char * text3) const
+  {
+    out << text0;
+    PrintIndexAndCoord(out, iv0);
+    out << text1;
+    PrintIndexAndCoord(out, iv1);
+    out << text2;
+    PrintIndexAndCoord(out, iv2);
+    out << text3;
   }
 
   template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
@@ -5225,9 +5295,10 @@ namespace IJK {
   }
 
   // **************************************************
-  // TEMPLATE OUTPUT FUNCTIONS
+  // TEMPLATE OUTPUT FUNCTIONS (deprecated)
   // **************************************************
 
+  /// DEPRECATED. Use GRID::PrintCoord().
   /// Output coord (for debugging purposes)
   template <typename DTYPE, typename CTYPE>
   void ijkgrid_output_coord
@@ -5243,6 +5314,7 @@ namespace IJK {
     out << ")";
   }
 
+  /// DEPRECATED. Use GRID::PrintCoord().
   /// Output vertex coord (for debugging purposes)
   template <typename GTYPE, typename VTYPE>
   void ijkgrid_output_vertex_coord

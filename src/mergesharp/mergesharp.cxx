@@ -806,6 +806,10 @@ void MERGESHARP::dual_contouring_merge_sharp
 		IJK::get_non_degenerate_quad_btlr
 			(quad_vert, dual_isosurface.tri_vert, dual_isosurface.quad_vert);
 
+    if (mergesharp_param.flag_recompute_using_adjacent) {
+      recompute_using_adjacent(scalar_grid, isovert);
+    }
+
 		position_merged_dual_isovertices_multi
 			(scalar_grid, isodual_table, isovalue, isovert,
 			iso_vlist, dual_isosurface.vertex_coord);

@@ -64,10 +64,12 @@ void MERGESHARP_PARAM::Init()
   flag_separate_neg = true;
   flag_split_non_manifold = false;
   flag_select_split = false;
+  flag_recompute_using_adjacent = false;
   flag_delete_isolated_vertices = true;
   flag_store_isovert_info = false;
   flag_grad2hermite = false;
   flag_grad2hermiteI = false;
+  min_grad_selection_cube_offset = 0;
 }
 
 /// Set type of interpolation
@@ -409,15 +411,6 @@ MERGESHARP::MERGESHARP_INFO::MERGESHARP_INFO()
 void MERGESHARP::SHARPISO_INFO::Clear()
 {
   ISOVERT_INFO::Clear();
-
-  /* OBSOLETE
-  num_conflicts = 0;
-  num_merged_iso_vertices = 0;
-  num_sharp_corners = 0;
-  num_sharp_edges = 0;
-  num_smooth_vertices = 0;
-  num_Linf_iso_vertex_locations = 0;
-  */
 
   num_edge_collapses = 0;
   num_repositioned_vertices = 0;

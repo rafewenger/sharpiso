@@ -27,15 +27,16 @@
 #include <sstream>
 #include <string>
 
-#include "mergesharpIO.h"
-#include "sharpiso_get_gradients.h"
-
 #include "ijkcoord.txx"
 #include "ijkgrid_nrrd.txx"
 #include "ijkIO.txx"
 #include "ijkmesh.txx"
 #include "ijkprint.txx"
 #include "ijkstring.txx"
+
+#include "sharpiso_array.txx"
+#include "mergesharpIO.h"
+#include "sharpiso_get_gradients.h"
 
 using namespace IJK;
 using namespace MERGESHARP;
@@ -54,7 +55,8 @@ namespace {
     GRADIENT_PARAM, NORMAL_PARAM, POSITION_PARAM, POS_PARAM, 
     TRIMESH_PARAM, UNIFORM_TRIMESH_PARAM,
     GRAD2HERMITE_PARAM, GRAD2HERMITE_INTERPOLATE_PARAM,
-    MAX_EIGEN_PARAM, MAX_DIST_PARAM, GRAD_S_OFFSET_PARAM, 
+    MAX_EIGEN_PARAM, MAX_DIST_PARAM, 
+    GRAD_S_OFFSET_PARAM, MIN_GRAD_S_OFFSET_PARAM,
     MAX_MAG_PARAM, SNAP_DIST_PARAM, MAX_GRAD_DIST_PARAM,
     SHARP_EDGEI_PARAM, INTERPOLATE_EDGEI_PARAM,
     ALLOW_CONFLICT_PARAM,
@@ -63,6 +65,7 @@ namespace {
     MERGE_SHARP_LINF_THRES_PARAM,
     CLAMP_FAR_PARAM, CENTROID_FAR_PARAM,
     RECOMPUTE_ISOVERT, NO_RECOMPUTE_ISOVERT,
+    RECOMPUTE_USING_ADJACENT, NO_RECOMPUTE_USING_ADJACENT,
     CHECK_TRIANGLE_ANGLE, NO_CHECK_TRIANGLE_ANGLE,
     DIST2CENTER_PARAM, DIST2CENTROID_PARAM,
     LINF_PARAM, NO_LINF_PARAM,
@@ -86,6 +89,7 @@ namespace {
     OUTPUT_FILENAME_PARAM, STDOUT_PARAM, NOWRITE_PARAM, 
     OUTPUT_PARAM_PARAM, OUTPUT_INFO_PARAM, 
     OUTPUT_SELECTED_PARAM, OUTPUT_SHARP_PARAM, OUTPUT_ACTIVE_PARAM,
+    OUTPUT_MAP_TO_PARAM, OUTPUT_NEIGHBORS_PARAM,
     OUTPUT_ISOVERT_PARAM,
     WRITE_ISOV_INFO_PARAM, SILENT_PARAM, TIME_PARAM, 
     UNKNOWN_PARAM} PARAMETER;
@@ -94,13 +98,14 @@ namespace {
       "-gradient", "-normal", "-position", "-pos", 
       "-trimesh", "-uniform_trimesh",
       "-grad2hermite", "-grad2hermiteI",
-      "-max_eigen", "-max_dist", "-gradS_offset", "-max_mag", "-snap_dist",
-      "-max_grad_dist",
+      "-max_eigen", "-max_dist", "-gradS_offset", "-min_gradS_offset", 
+      "-max_mag", "-snap_dist", "-max_grad_dist",
       "-sharp_edgeI", "-interpolate_edgeI",
       "-allow_conflict", "-clamp_conflict", "-centroid_conflict", 
       "-merge_sharp","-no_merge_sharp", "-merge_linf_th",
       "-clamp_far", "-centroid_far",
       "-recompute_isovert", "-no_recompute_isovert",
+      "-recompute_using_adjacent", "-no_recompute_using_adjacent",
       "-check_triangle_angle", "-no_check_triangle_angle",
       "-dist2center", "-dist2centroid",
       "-Linf", "-no_Linf",
@@ -119,7 +124,7 @@ namespace {
       "-help", "-off", "-iv", 
       "-o", "-stdout", "-nowrite", 
       "-out_param", "-info", "-out_selected", "-out_sharp", "-out_active",
-      "-out_isovert",
+      "-out_map_to", "-out_neighbors", "-out_isovert",
       "-write_isov_info", "-s", "-time", "-unknown"};
 
   PARAMETER get_parameter_token(const char * s)
@@ -275,6 +280,29 @@ namespace {
          << endl;
   }
 
+  void set_min_dist
+  (const std::vector<GRID_COORD_TYPE> & min_dist,
+   INPUT_INFO & input_info)
+  {
+    // Initialize input_info.min_distance[0].
+    input_info.min_distance[0] = 4;
+    input_info.min_distance[1] = 2;
+    input_info.min_distance[2] = 2;
+
+    if (min_dist.size() == 1) {
+      for (int d = 1; d < DIM3; d++)
+        { input_info.min_distance[d] = min_dist[0]; }
+    }
+    else if (min_dist.size() == 2) {
+      for (int d = 1; d < DIM3; d++)
+        { input_info.min_distance[d] = min_dist[d-1]; }
+    }
+    else {
+      for (int d = 0; d < DIM3; d++)
+        { input_info.min_distance[d] = min_dist[d]; }
+    }
+  }
+
   // Set flag in input_info based on param.
   // Return false if param is not valid or not a flag.
   bool set_input_info_flag
@@ -417,6 +445,15 @@ namespace {
 
     case NO_RECOMPUTE_ISOVERT:
       input_info.flag_recompute_isovert = false;
+      break;
+
+    case RECOMPUTE_USING_ADJACENT:
+      input_info.flag_recompute_using_adjacent = true;
+      input_info.flag_recompute_changing_gradS_offset = false;
+      break;
+
+    case NO_RECOMPUTE_USING_ADJACENT:
+      input_info.flag_recompute_using_adjacent = false;
       break;
 
     case CHECK_TRIANGLE_ANGLE:
@@ -583,6 +620,11 @@ namespace {
         get_option_float(option_string, value_string);
       break;
 
+    case MIN_GRAD_S_OFFSET_PARAM:
+      input_info.min_grad_selection_cube_offset = 
+        get_option_float(option_string, value_string);
+      break;
+
     case MERGE_SHARP_LINF_THRES_PARAM:
       input_info.linf_dist_thresh_merge_sharp = 
         get_option_float(option_string, value_string);
@@ -604,6 +646,22 @@ namespace {
       get_option_multiple_arguments
         (option_string, value_string, input_info.maxc);
 	  break;
+
+    case OUTPUT_MAP_TO_PARAM:
+      input_info.flag_output_map_to = true;
+      input_info.to_cube = 
+        get_option_float(option_string, value_string);
+      break;
+
+    case OUTPUT_NEIGHBORS_PARAM:
+      {
+        vector<GRID_COORD_TYPE> min_dist;
+        get_option_multiple_arguments
+          (option_string, value_string, min_dist);
+        set_min_dist(min_dist, input_info);
+        input_info.flag_output_neighbors = true;
+      }
+      break;
 
     case OUTPUT_FILENAME_PARAM:
       input_info.output_filename = value_string;
@@ -1013,6 +1071,11 @@ void MERGESHARP::read_off_file
 // OUTPUT ISOSURFACE
 // **************************************************
 
+void report_far_neighbors
+(const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
+ const ISOVERT & isovert);
+
+
 void MERGESHARP::output_dual_isosurface
 (const OUTPUT_INFO & output_info, const MERGESHARP_DATA & mergesharp_data,
  const DUAL_ISOSURFACE & dual_isosurface, const ISOVERT & isovert, 
@@ -1023,6 +1086,11 @@ void MERGESHARP::output_dual_isosurface
       (output_info, mergesharp_data, dual_isosurface, mergesharp_info);
 
     report_isovert_info(output_info, mergesharp_data.ScalarGrid(), isovert);
+
+    if (output_info.flag_output_neighbors) {
+      report_far_neighbors
+        (output_info, mergesharp_data.ScalarGrid(), isovert);
+    }
   }
 
   if (!output_info.nowrite_flag) {
@@ -1036,10 +1104,7 @@ void MERGESHARP::output_dual_isosurface
   }
 
   if (output_info.flag_output_isovert) 
-  {
-	  write_isovert(output_info, isovert); 
-  }
-
+    { write_isovert(output_info, isovert); }
 }
 
 
@@ -1321,6 +1386,223 @@ void MERGESHARP::write_isovert
   if (!output_info.flag_silent)
     cout << "Wrote isosurface vertices to file: " 
          << output_info.output_isovert_filename << endl;
+}
+
+
+// **************************************************
+// ANALYZE ADJACENT
+// **************************************************
+
+
+bool find_corner(const ISOVERT & isovert, const vector<VERTEX_INDEX> & list,
+                 VERTEX_INDEX & icubeB)
+{
+  icubeB = 0;
+  for (int i = 0; i < list.size(); i++) {
+    INDEX_DIFF_TYPE gcube_index = isovert.GCubeIndex(list[i]);
+    if (gcube_index == ISOVERT::NO_INDEX) { continue; }
+
+    if (isovert.NumEigenvalues(gcube_index) == 3) {
+      icubeB = list[i];
+      return(true);
+    }
+  }
+
+  return(false);
+}
+
+// Compute distance along each axis and then sort by decreasing magnitude.
+void compute_dist
+(const ISOVERT & isovert, const VERTEX_INDEX & icubeA, 
+ const VERTEX_INDEX & icubeB, GRID_COORD_TYPE dist[DIM3])
+{
+  const INDEX_DIFF_TYPE gcubeA_index = isovert.GCubeIndex(icubeA);
+  const INDEX_DIFF_TYPE gcubeB_index = isovert.GCubeIndex(icubeB);
+
+  set_coord_3D(0, dist);
+  if (gcubeA_index == ISOVERT::NO_INDEX || gcubeB_index == ISOVERT::NO_INDEX)
+    { return; }
+
+  subtract_coord_3D(isovert.gcube_list[gcubeA_index].cube_coord,
+                    isovert.gcube_list[gcubeB_index].cube_coord,
+                    dist);
+  abs_coord_3D(dist, dist);
+
+  if (dist[1] < dist[2]) { std:: swap(dist[1], dist[2]); }
+  if (dist[0] < dist[1]) { std:: swap(dist[0], dist[1]); }
+  if (dist[1] < dist[2]) { std:: swap(dist[1], dist[2]); }
+}
+
+bool is_dist_lt(const GRID_COORD_TYPE distA[DIM3],
+                const GRID_COORD_TYPE distB[DIM3])
+{
+  if (distA[0] < distB[0]) { return(true); }
+  if (distA[0] > distB[0]) { return(false); }
+
+  // distA[0] == distB[0]
+  if (distA[1] < distB[1]) { return(true); }
+  if (distA[1] > distB[1]) { return(false); }
+
+  // distA[0] == distB[0] and distA[1] == distB[1]
+  if (distA[2] < distB[2]) { return(true); }
+
+  return(false);
+}
+
+void find_closest(const ISOVERT & isovert, const VERTEX_INDEX icubeA,
+                  const vector<VERTEX_INDEX> & list, VERTEX_INDEX & icubeB)
+{
+  GRID_COORD_TYPE distB[DIM3], distC[DIM3];
+
+  if (list.size() == 0) { 
+    icubeB = 0;
+    return; 
+  }
+
+  icubeB = list[0];
+  compute_dist(isovert, icubeA, icubeB, distB);
+
+  for (int i = 1; i < list.size(); i++) {
+    VERTEX_INDEX icubeC = list[i];
+    compute_dist(isovert, icubeA, icubeC, distC);
+    if (is_dist_lt(distC, distB)) {
+      icubeB = icubeC;
+      copy_coord_3D(distC, distB);
+    }
+  }
+}
+
+// Find closest cube in list, which is in opposite direction from icubeB
+void find_closest_opposite
+(const ISOVERT & isovert, const VERTEX_INDEX icubeA, 
+ const VERTEX_INDEX icubeB,
+ const vector<VERTEX_INDEX> & list, VERTEX_INDEX & icubeC,
+ bool & flag_found)
+{
+  const INDEX_DIFF_TYPE gcubeA_index = isovert.GCubeIndex(icubeA);
+  const INDEX_DIFF_TYPE gcubeB_index = isovert.GCubeIndex(icubeB);
+  GRID_COORD_TYPE distC[DIM3], distD[DIM3];
+  GRID_BOX region(DIM3);
+
+  flag_found = false;
+
+  if (gcubeA_index == ISOVERT::NO_INDEX || gcubeB_index == ISOVERT::NO_INDEX)
+    { return; }
+
+  region.SetMinCoord(isovert.gcube_list[gcubeA_index].cube_coord);
+  region.SetMaxCoord(isovert.gcube_list[gcubeA_index].cube_coord);
+  region.Extend(isovert.gcube_list[gcubeB_index].cube_coord);
+
+  icubeC = 0;
+  if (list.size() == 0) { return; }
+
+  for (int i = 0; i < list.size(); i++) {
+
+    VERTEX_INDEX icubeD = list[i];
+    INDEX_DIFF_TYPE gcubeD_index = isovert.GCubeIndex(icubeD);
+    if (gcubeD_index == ISOVERT::NO_INDEX) { continue; }
+
+    if (region.Contains(isovert.gcube_list[gcubeD_index].cube_coord))
+      { continue; }
+
+    compute_dist(isovert, icubeA, icubeD, distD);
+    if (!flag_found || is_dist_lt(distD, distC)) {
+      icubeC = icubeD;
+      copy_coord_3D(distD, distC);
+      flag_found = true;
+    }
+  }
+}
+
+bool is_far(const GRID_COORD_TYPE dist[DIM3], 
+            const GRID_COORD_TYPE min_distance[DIM3])
+{
+  for (int d = 0; d < DIM3; d++) {
+    if (dist[d] >= min_distance[d])
+      { return(true); }
+  }
+
+  return(false);
+}
+
+void report_far_neighbors
+(const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
+ const ISOVERT & isovert)
+{
+  const int bin_width = output_info.bin_width;
+  GRID_COORD_TYPE dist[DIM3];
+  vector<VERTEX_INDEX> selected_list;
+  vector<VERTEX_INDEX> list;
+
+  BIN_GRID<VERTEX_INDEX> bin_grid;
+  init_bin_grid(grid, bin_width, bin_grid);
+
+  for (int i = 0; i < isovert.gcube_list.size(); i++) {
+    if (isovert.gcube_list[i].flag == SELECTED_GCUBE) {
+      VERTEX_INDEX icubeA = isovert.CubeIndex(i);
+      bin_grid_insert(grid, bin_width, icubeA, bin_grid);
+    }
+  }
+
+  NUM_TYPE count = 0;
+
+  cout << endl;
+  cout << "Neighboring cube pairs which are far apart:" << endl;
+  for (int i = 0; i < isovert.gcube_list.size(); i++) {
+
+    if (isovert.gcube_list[i].flag != SELECTED_GCUBE) { continue; }
+
+    VERTEX_INDEX icubeA = isovert.CubeIndex(i);
+
+    get_selected(grid, icubeA, bin_grid, bin_width, selected_list);
+
+    // Copy selected_list to list, removing icubeA.
+    list.clear();
+    for (int i = 0; i < selected_list.size(); i++) {
+      if (selected_list[i] != icubeA) 
+        { list.push_back(selected_list[i]); }
+    }
+
+    if (list.size() == 0) { continue; }
+
+    VERTEX_INDEX icubeB, icubeC;
+    bool flag = find_corner(isovert, list, icubeB);
+    if (flag) {
+      compute_dist(isovert, icubeA, icubeB, dist);
+      if (dist[0] > 2) 
+        { find_closest(isovert, icubeA, list, icubeB); }
+    }
+    if (!flag) { find_closest(isovert, icubeA, list, icubeB); }
+
+    compute_dist(isovert, icubeA, icubeB, dist);
+
+    if (is_far(dist, output_info.min_distance)) {
+      grid.PrintIndexAndCoord
+        (cout, "Cubes ", icubeA, " and ", icubeB, ".  Distance: ");
+      print_coord3D(cout, dist);
+      cout << endl;
+
+      count++;
+    }
+
+    find_closest_opposite(isovert, icubeA, icubeB, list, icubeC, flag);
+    if (flag) {
+
+      compute_dist(isovert, icubeA, icubeC, dist);
+
+      if (is_far(dist, output_info.min_distance)) {
+        grid.PrintIndexAndCoord
+          (cout, "Cubes ", icubeA, " and ", icubeC, ".  Distance: ");
+        print_coord3D(cout, dist);
+        cout << endl;
+
+        count++;
+      }
+    }
+  }
+
+  cout << "Reported " << count << " pairs of neighboring cubes." << endl;
+  cout << endl;
 }
 
 
@@ -1637,8 +1919,8 @@ void output_yes_no(const char * s, const bool flag)
 
 /// Report information about isosurface vertices
 void report_isovert_cube_info
-(const SHARPISO_GRID & grid, const ISOVERT & isovert, 
- const VERTEX_INDEX cube_index)
+(const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid, 
+ const ISOVERT & isovert, const VERTEX_INDEX cube_index)
 {
   const INDEX_DIFF_TYPE gcube_index = isovert.GCubeIndex(cube_index);
   const NUM_TYPE num_eigenvalues = 
@@ -1648,7 +1930,7 @@ void report_isovert_cube_info
   if (gcube_index == ISOVERT::NO_INDEX) { return; }
 
   cout << "Cube " << cube_index << ": ";
-  ijkgrid_output_vertex_coord(cout, isovert.sharp_ind_grid, cube_index);
+  ijkgrid_output_vertex_coord(cout, isovert.index_grid, cube_index);
 
   if (!grid.IsUnitSpacing()) {
     COORD_TYPE scaled_cube_coord[DIM3];
@@ -1690,11 +1972,20 @@ void report_isovert_cube_info
 
   output_yes_no("    Conflict? ", 
                 isovert.gcube_list[gcube_index].flag_conflict);
-  output_yes_no("  SVD coord far?: ", 
+  output_yes_no("  SVD coord far? ", 
                 isovert.gcube_list[gcube_index].flag_far);
-  output_yes_no("  Centroid coord?: ", 
+  output_yes_no("  Centroid coord? ", 
                 isovert.gcube_list[gcube_index].flag_centroid_location);
   cout << endl;
+  if (output_info.flag_recompute_using_adjacent) {
+    output_yes_no("    Recomputed using adjacent? ",
+                  isovert.gcube_list[gcube_index].flag_recomputed_using_adjacent);
+    cout << endl;
+  }
+  if (isovert.gcube_list[gcube_index].cover_type != NO_ADJACENT_CUBE) {
+    convert2string(isovert.gcube_list[gcube_index].cover_type, s);
+    cout << "    Cover type: " << s << endl;
+  }
 
   cout << "    ";
   if (isovert.gcube_list[gcube_index].flag_using_substitute_coord)
@@ -1712,7 +2003,8 @@ void report_isovert_cube_info
 
 /// Report information about cubes containing corner or edge iso vertices.
 void MERGESHARP::report_sharp_cubes
-(const SHARPISO_GRID & grid, const ISOVERT & isovert)
+(const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
+ const ISOVERT & isovert)
 {
   std::vector<NUM_TYPE> sharp_gcube_list;
 
@@ -1724,7 +2016,7 @@ void MERGESHARP::report_sharp_cubes
   for (NUM_TYPE i = 0; i < sharp_gcube_list.size(); i++) {
     NUM_TYPE gcube_index = sharp_gcube_list[i];
     VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
-    report_isovert_cube_info(grid, isovert, cube_index);
+    report_isovert_cube_info(output_info, grid, isovert, cube_index);
   }
   cout << endl;
 }
@@ -1732,16 +2024,35 @@ void MERGESHARP::report_sharp_cubes
 /// Report information about active cubes.
 /// A cube is active if it has some bipolar edge.
 void MERGESHARP::report_active_cubes
-(const SHARPISO_GRID & grid, const ISOVERT & isovert)
+(const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
+ const ISOVERT & isovert)
 {
   cout << endl;
   cout << "Active cubes (containing bipolar edges): " << endl;
   for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
     VERTEX_INDEX cube_index = isovert.CubeIndex(i);
-    report_isovert_cube_info(grid, isovert, cube_index);
+    report_isovert_cube_info(output_info, grid, isovert, cube_index);
   }
   cout << endl;
 }
+
+/// Report information about cubes which map to a specific cube.
+void MERGESHARP::report_cubes_which_map_to
+(const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
+ const ISOVERT & isovert, const VERTEX_INDEX & to_cube)
+{
+  cout << endl;
+  grid.PrintIndexAndCoord
+    (cout, "Cubes which map to cube ", to_cube, ":\n");
+  for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
+    if (isovert.gcube_list[i].maps_to_cube == to_cube) {
+      VERTEX_INDEX cube_index = isovert.CubeIndex(i);
+      report_isovert_cube_info(output_info, grid, isovert, cube_index);
+    }
+  }
+  cout << endl;
+}
+
 
 /// Report information about isosurface vertices
 void MERGESHARP::report_isovert_info
@@ -1769,17 +2080,22 @@ void MERGESHARP::report_isovert_info
 
       if (isovert.gcube_list[gcube_index].flag == SELECTED_GCUBE) {
         VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
-        report_isovert_cube_info(grid, isovert, cube_index);
+        report_isovert_cube_info(output_info, grid, isovert, cube_index);
       }
     }
     cout << endl;
   }
 
   if (output_info.flag_output_sharp) 
-    { report_sharp_cubes(grid, isovert); }
+    { report_sharp_cubes(output_info, grid, isovert); }
 
   if (output_info.flag_output_active) 
-    { report_active_cubes(grid, isovert); }
+    { report_active_cubes(output_info, grid, isovert); }
+
+  if (output_info.flag_output_map_to) {
+    report_cubes_which_map_to
+      (output_info, grid, isovert, output_info.to_cube); 
+  }
 
 }
 
@@ -1945,8 +2261,8 @@ namespace {
     cerr << "  [-manifold] [-select_split]" << endl;
     cerr << "  [-trimesh]" << endl;
     cerr << "  [-max_eigen {max}]" << endl;
-    cerr << "  [-max_dist {D}] [-gradS_offset {offset}] [-max_mag {M}] [-snap_dist {D}]" << endl;
-    cerr << "  [-max_grad_dist {D}]" << endl;
+    cerr << "  [-max_dist {D}] [-max_mag {M}] [-snap_dist {D}]" << endl;
+    cerr << "  [-gradS_offset {offset}] [-min_gradS_offset {offset}] [-max_grad_dist {D}]" << endl;
     cerr << "  [-sharp_edgeI | -interpolate_edgeI]" << endl;
     cerr << "  [-lindstrom]" << endl;
     cerr << "  [-single_isov | -multi_isov | -split_non_manifold]" << endl;
@@ -1965,6 +2281,8 @@ namespace {
     cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
          << endl;
     cerr << "  [-s] [-out_param] [-info] [-out_selected] [-out_sharp] [-out_active]" << endl;
+    cerr << "  [-out_map_to {cube index}] [-out_neighbors \"min dist\"]" 
+         << endl;
     cerr << "  [-out_isovert [corner|edge|sharp|smooth|all] [selected|all|uncovered]" << endl;
     cerr << "  [-write_isov_info] [-nowrite] [-time]" << endl;
     cerr << "  [-help]" << endl;
@@ -2152,7 +2470,11 @@ void MERGESHARP::help(const char * command_path)
   cout << "  -out_selected: Output list of selected cubes." << endl;
   cout << "  -out_sharp: Output list of cubes containing corner or edge vertices." << endl;
   cout << "  -out_active: Output list of active cubes." << endl;
-  cerr << "  -out_isovert [arg1] [arg2]:  Output isosurface vertices to off file." << endl;
+  cout << "  -out_map_to {cube index}: Output list of cubes which map to given cube index." << endl;
+  cerr << "  -out_neighbors {\"min dist\"}: Output pairs of selected neighboring cubes"
+       << endl
+       << "       whose distance is greater than or equal to min_dist." << endl;
+  cout << "  -out_isovert [arg1] [arg2]:  Output isosurface vertices to off file." << endl;
   cout << "  -write_isov_info:  Write isosurface vertex information to file."
        << endl;
   cout << "     File format: isosurface vertex index, cube index," << endl;
@@ -2194,6 +2516,9 @@ void MERGESHARP::IO_INFO::Init()
   flag_output_selected = false;
   flag_output_sharp = false;
   flag_output_active = false;
+  flag_output_map_to = false;
+  to_cube = 0;
+  flag_output_isovert = false;
   flag_recompute_isovert = true; // recompute the isovert for unavailable cubes
   flag_check_triangle_angle = true;
   flag_output_isovert = false;

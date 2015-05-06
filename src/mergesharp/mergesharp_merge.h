@@ -2,7 +2,7 @@
 /// Merge cubes containing sharp vertices.
 
 /*
-Copyright (C) 2012-2014 Arindam Bhattacharya and Rephael Wenger
+Copyright (C) 2012-2015 Arindam Bhattacharya and Rephael Wenger
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License

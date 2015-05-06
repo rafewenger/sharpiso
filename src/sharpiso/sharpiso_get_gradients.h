@@ -501,7 +501,6 @@ namespace SHARPISO {
     bool allow_duplicates;
     bool flag_sort_gradients;               ///< Sort gradients.
     bool use_new_version;                  ///< If true, use new version.
-    SIGNED_COORD_TYPE grad_selection_cube_offset;
     GRADIENT_COORD_TYPE zero_tolerance;
 
     /// Gradients with magnitude less than max_small_magnitude 
@@ -510,6 +509,11 @@ namespace SHARPISO {
 
     /// Maximum distance (in edges) of neighborhood vertices from cube.
     NUM_TYPE max_grad_dist;
+
+    /// Offset for cube boundary for gradient selection.
+    ///   Only gradients whose planes intersect the offset cube
+    ///   are selected.
+    SIGNED_COORD_TYPE grad_selection_cube_offset;
 
     /// Constructor
     GET_GRADIENTS_PARAM() { Init(); };

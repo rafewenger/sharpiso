@@ -1165,6 +1165,7 @@ bool is_dist_to_cube_le
 }
 
 // Snap coordinate to cube.
+// *** POSSIBLE ERROR IN CODE?  SHOULD USE scaled_snap_dist, not snap_dist.
 void snap_to_cube
 (const COORD_TYPE cube_coord[DIM3], const COORD_TYPE spacing[DIM3],
  const COORD_TYPE snap_dist, COORD_TYPE coord[DIM3])
@@ -1248,6 +1249,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   max_small_eigenvalue = 0.1;
   round_denominator = 16;
   max_small_grad_coord_Linf = 0.2;
+  flag_recompute_changing_gradS_offset = true;
   linf_dist_thresh_merge_sharp = 1.5;
   bin_width = 5;
   flag_map_extended = false;
