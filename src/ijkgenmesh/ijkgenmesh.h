@@ -85,9 +85,22 @@ namespace IJKGENMESH {
                 std::vector<COORD_TYPE> & coord, POLYMESH_TYPE & mesh);
 
   /// Generate an annulus.
+  /// @param prop Annulus properties.  
+  ///   If prop.flag_flange is true, then annulus has a flange.
   void gen_annulus
     (const int dimension, const OBJECT_PROPERTIES & prop,
      std::vector<COORD_TYPE> & coord, POLYMESH_TYPE & mesh);
+
+  /// Generate an annulus with no flange.
+  void gen_annulus_no_flange
+  (const int dimension, const OBJECT_PROPERTIES & prop,
+   std::vector<COORD_TYPE> & coord, POLYMESH_TYPE & mesh);
+
+  /// Generate a flanged annulus.
+  void gen_flanged_annulus
+  (const int dimension, const OBJECT_PROPERTIES & prop,
+   std::vector<COORD_TYPE> & coord, POLYMESH_TYPE & mesh);
+
 };
 
 #endif

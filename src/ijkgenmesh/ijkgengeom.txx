@@ -3,12 +3,12 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2014 Rephael Wenger
+  Copyright (C) 2014-2015 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  version 2.1 of the License, or any later version.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -127,6 +127,7 @@ namespace IJKGENGEOM {
     bool flag_tilt;
     bool flag_flange;
     bool flag_wedge;
+    bool flag_smooth_tip;
 
     std::vector<COORD_TYPE> center;
     std::vector<DIR_TYPE> direction;
@@ -139,6 +140,7 @@ namespace IJKGENGEOM {
     std::vector<COORD_TYPE> flange_height;
     std::vector<DIFF_TYPE> dist2near0;
     std::vector<DIFF_TYPE> dist2far0;
+    std::vector<DIFF_TYPE> dist2ball_center;
     std::vector<ANGLE_TYPE> angle;
     std::vector<ANGLE_TYPE> wedge_angle;
     std::vector<SCALAR_TYPE> wedge_isovalue;
@@ -197,6 +199,15 @@ namespace IJKGENGEOM {
       }
     };
 
+    // Check routines.
+    bool CheckNumCenters
+    (const NUM_TYPE num_centers, IJK::ERROR & error) const;
+    bool CheckNumDirections
+    (const NUM_TYPE num_directions, IJK::ERROR & error) const;
+    bool CheckNumAngles
+    (const NUM_TYPE num_angles, IJK::ERROR & error) const;
+    bool CheckNumDist2BallCenters
+    (const NUM_TYPE num_dist, IJK::ERROR & error) const;
   };
 
   // ********************************************************
@@ -282,6 +293,7 @@ namespace IJKGENGEOM {
     void GetLengthDifferenceString(const NUMBER_TYPE i, std::string & s) const;
     void GetDist2Near0String(const NUMBER_TYPE i, std::string & s) const;
     void GetDist2Far0String(const NUMBER_TYPE i, std::string & s) const;
+    void GetDist2BallCenterString(const NUMBER_TYPE i, std::string & s) const;
     void GetFlangeWidthString(const NUMBER_TYPE i, std::string & s) const;
     void GetFlangeHeightString(const NUMBER_TYPE i, std::string & s) const;
     void GetWedgeAngleString(const NUMBER_TYPE i, std::string & s) const;
@@ -330,13 +342,13 @@ namespace IJKGENGEOM {
   template <typename OBJECT_PROPERTIES_TYPE>                        \
   void GEOM_INFO_T<OBJECT_PROPERTIES_TYPE>::
 
-#define _OBJECT_PROPERTIES_T_HEADER_                                 \
+#define _OBJECT_PROPERTIES_T_HEADER_(ret_type)                       \
   template <typename DIM_TYPE,                                       \
             typename COORD_TYPE, typename DIR_TYPE,                  \
             typename RADIUS_TYPE, typename DIFF_TYPE,                \
             typename ANGLE_TYPE, typename SCALAR_TYPE,               \
             typename NUM_TYPE>                                       \
-  void OBJECT_PROPERTIES_T<DIM_TYPE, COORD_TYPE, DIR_TYPE,           \
+  ret_type OBJECT_PROPERTIES_T<DIM_TYPE, COORD_TYPE, DIR_TYPE,       \
                            RADIUS_TYPE, DIFF_TYPE, ANGLE_TYPE,       \
                            SCALAR_TYPE, NUM_TYPE>::
 
@@ -488,13 +500,115 @@ namespace IJKGENGEOM {
   // TEMPLATE CLASS OBJECT_PROPERTIES_T MEMBER FUNCTIONS
   // ********************************************************
 
-  _OBJECT_PROPERTIES_T_HEADER_
-  Init()
+  _OBJECT_PROPERTIES_T_HEADER_(void)
+    Init()
   {
     flag_tilt = true;
     flag_flange = false;
     flag_wedge = false;
+    flag_smooth_tip = false;
   }
+
+  _OBJECT_PROPERTIES_T_HEADER_(bool)
+    CheckNumCenters
+  (const NUM_TYPE num_centers, IJK::ERROR & error) const
+  {
+    if (num_centers < 1) { return(true); }
+
+    if (center.size() == 0) {
+      error.AddMessage("Programming error.  Missing center coordinates.");
+      error.AddMessage("  No center coordinates are defined.");
+      return(false);
+    }
+
+    if (center.size() < Dimension()) {
+      error.AddMessage
+        ("Programming error.  Coordinates missing from first center.");
+      return(false);
+    }
+
+    if (num_centers > NumCenters()) {
+      error.AddMessage("Programming error.  Missing centers.");
+      error.AddMessage("  Only ", NumCenters(), " centers are defined.");
+      error.AddMessage("  Expected ", num_centers, " centers.");
+      return(false);
+    }
+
+    return(true);
+  }
+
+  _OBJECT_PROPERTIES_T_HEADER_(bool)
+    CheckNumDirections
+  (const NUM_TYPE num_directions, IJK::ERROR & error) const
+  {
+    if (num_directions < 1) { return(true); }
+
+    if (direction.size() == 0) {
+      error.AddMessage("Programming error.  Missing direction coordinates.");
+      error.AddMessage("  No direction coordinates are defined.");
+      return(false);
+    }
+
+    if (direction.size() < Dimension()) {
+      error.AddMessage
+        ("Programming error.  Coordinates missing from first direction.");
+      return(false);
+    }
+
+    if (num_directions > NumDirections()) {
+      error.AddMessage("Programming error.  Missing directions.");
+      error.AddMessage("  Only ", NumDirections(), " directions are defined.");
+      error.AddMessage("  Expected ", num_directions, " directions.");
+      return(false);
+    }
+
+    return(true);
+  }
+
+  _OBJECT_PROPERTIES_T_HEADER_(bool)
+    CheckNumAngles
+  (const NUM_TYPE num_angles, IJK::ERROR & error) const
+  {
+    if (num_angles < 1) { return(true); }
+
+    if (NumAngles() == 0) {
+      error.AddMessage("Programming error.  Missing angles.");
+      error.AddMessage("  No angles are defined.");
+      return(false);
+    }
+
+    if (num_angles > NumAngles()) {
+      error.AddMessage("Programming error.  Missing angles.");
+      error.AddMessage("  Only ", NumAngles(), " angles are defined.");
+      error.AddMessage("  Expected ", num_angles, " angles.");
+      return(false);
+    }
+
+    return(true);
+  }
+
+  _OBJECT_PROPERTIES_T_HEADER_(bool)
+    CheckNumDist2BallCenters
+  (const NUM_TYPE num_centers, IJK::ERROR & error) const
+  {
+    if (num_centers < 1) { return(true); }
+
+    if (dist2ball_center.size() == 0) {
+      error.AddMessage("Programming error.  Missing distance to ball centers.");
+      error.AddMessage("  No distance to ball centers are defined.");
+      return(false);
+    }
+
+    if (num_centers > dist2ball_center.size()) {
+      error.AddMessage("Programming error.  Missing distances to ball centers.");
+      error.AddMessage("  Only ", dist2ball_center.size(), " distances are defined.");
+      error.AddMessage("  Expected ", num_centers, " distances.");
+      return(false);
+    }
+
+    return(true);
+  }
+
 
   // ********************************************************
   // TEMPLATE CLASS GEOM_PARAM_T MEMBER FUNCTIONS
@@ -568,6 +682,7 @@ namespace IJKGENGEOM {
   _GET_SCALAR_STRING_(GetFlangeHeightString, flange_height);
   _GET_SCALAR_STRING_(GetDist2Near0String, dist2near0);
   _GET_SCALAR_STRING_(GetDist2Far0String, dist2far0);
+  _GET_SCALAR_STRING_(GetDist2BallCenterString, dist2ball_center);
 
 
   // ********************************************************

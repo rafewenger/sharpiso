@@ -1,15 +1,15 @@
 /// \file ijkgenmesh_main.cxx
 /// generate a mesh
-/// Version v0.1.0
+/// Version v0.1.1
 
 /*
   IJK: Isosurface Jeneration Code
-  Copyright (C) 2014 Rephael Wenger
+  Copyright (C) 2014-2015 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  version 2.1 of the License, or any later version.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -44,12 +44,15 @@ using namespace std;
 
 // global variables
 char * ofilename = NULL;
+char * ofile_prefix = NULL;
 SET_VALUE<int> grid_axis_size;
 vector<MESH_INFO> mesh_info;
 MESH_PARAM mesh_param;
 bool output_gradients = false;
 bool flag_silent = false;
 double max_small_magnitude(0.0001);
+std::vector<COORD_TYPE> mesh_distance;
+bool flag_reverse_orient = false;
 
 // functions to read mesh parameters
 void init_mesh_info
@@ -62,6 +65,7 @@ void set_mesh_param(const vector<MESH_INFO> & mesh_info);
 
 // global functions
 void set_random_param(const int dimension, const int num_objects);
+void generate_and_write_mesh(const int dimension, const COORD_TYPE dist);
 void generate_mesh
 (const int dimension, vector<COORD_TYPE> & coord, POLYMESH_TYPE & mesh);
 
@@ -74,6 +78,7 @@ void check_mesh_options();
 void write_mesh
 (const char * filename, const int dimension, const vector<COORD_TYPE> & coord, 
  const POLYMESH_TYPE & mesh);
+void construct_output_filename(std::string & ofilename, const COORD_TYPE dist);
 
 
 int main(int argc, char **argv)
@@ -85,11 +90,6 @@ int main(int argc, char **argv)
     init_mesh_info(mesh_info);
 
     parse_command_line(argc, argv);
-
-    if (ofilename == NULL) {
-      error.AddMessage("Missing output file name");
-      throw error;
-    }
 
     if (!mesh_param.geom_info_index.IsSet()) 
       { read_mesh_name(mesh_info); }
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
     check_mesh_options();
     check_input_param(mesh_param.Dimension());
 
-    if (!mesh_param.distance.IsSet()) 
+    if (mesh_distance.size() == 0) 
       { read_mesh_distance(mesh_info[imesh]); }
 
     POLYMESH_TYPE mesh;
@@ -129,13 +129,9 @@ int main(int argc, char **argv)
 
     int dimension = mesh_param.Dimension();
 
-    generate_mesh(dimension, coord, mesh);
-
-    if (!flag_silent) {
-      cout << "Writing mesh to " << ofilename << endl;
+    for (int i = 0; i < mesh_distance.size(); i++) {
+      generate_and_write_mesh(dimension, mesh_distance[i]);
     }
-
-    write_mesh(ofilename, dimension, coord, mesh);
   } 
   catch (IJK::ERROR & error) {
     if (error.NumMessages() == 0) {
@@ -151,6 +147,7 @@ int main(int argc, char **argv)
   };
 
 }
+
 
 // **************************************************
 // Prompt for scalar mesh parameters
@@ -799,6 +796,30 @@ void compute_center_translation_vector
 // Generate mesh
 // **************************************************
 
+/// Generate and write mesh
+void generate_and_write_mesh(const int dimension, const COORD_TYPE dist)
+{
+  vector<COORD_TYPE> coord;   // mesh vertex coordinates
+  POLYMESH_TYPE mesh;         // mesh facets
+
+  mesh_param.distance.Set(dist);
+  generate_mesh(dimension, coord, mesh);
+
+  std::string fname;
+  if (ofilename == NULL) {
+    construct_output_filename(fname, dist);
+  }
+  else {
+    fname = ofilename;
+  }
+
+  if (!flag_silent) {
+    cout << "Writing mesh to " << fname << endl;
+  }
+
+  write_mesh(fname.c_str(), dimension, coord, mesh);
+}
+
 /// Generate mesh
 void generate_mesh
 (const int dimension, vector<COORD_TYPE> & coord, POLYMESH_TYPE & mesh)
@@ -812,6 +833,11 @@ void generate_mesh
 
   object_properties.Copy(mesh_param);
   mesh_info[imesh].function_ptr(dimension, object_properties, coord, mesh);
+
+  if (flag_reverse_orient) {
+    IJK::reverse_orientations_polygon_list
+      (mesh.poly_vert, mesh.num_poly_vert, mesh.first_poly_vert);
+  }
 
   if (mesh_param.flag_triangulate) {
     IJK::triangulate_polygon_list
@@ -904,7 +930,7 @@ void read_num_vert_per_axis()
 
 void read_mesh_distance(const MESH_INFO & mesh_info)
 {
-  COORD_TYPE distance;
+  COORD_TYPE dist;
 
   if (mesh_info.flag_cylinder) 
     { cout << "Enter distance to circle: "; }
@@ -912,9 +938,9 @@ void read_mesh_distance(const MESH_INFO & mesh_info)
     { cout << "Enter distance to center: "; }
   else
     { cout << "Enter distance: "; }
-  cin >> distance;
 
-  mesh_param.distance.Set(distance);
+  cin >> dist;
+  mesh_distance.push_back(dist);
 }
 
 // **************************************************
@@ -928,11 +954,14 @@ void init_mesh_info(vector<MESH_INFO> & mesh_info)
   info.Set("cube", gen_cube);
   info.SetCubeFlags();
   info.SetDescription("Cube specified by distance from facets to cube center.");
+  info.AddToDescription("    Use -two for two cubes.");
+  info.AddToDescription("    Use -two -stack for stack of two cubes.");
   mesh_info.push_back(info);
 
   info.Set("annulus", gen_annulus);
   info.SetAnnulusFlags();
   info.SetDescription("Thickened annulus.");
+  info.AddToDescription("    Use -flange_wh <W> <H> to add flange width and height.");
   mesh_info.push_back(info);
 
 }
@@ -1104,6 +1133,32 @@ void write_mesh
 
   out.close();
 
+}
+
+
+void construct_output_filename(std::string & ofilename, const COORD_TYPE dist)
+{
+  std::string dimension_str;
+  std::string distance_str;
+  const int imesh = mesh_param.MeshIndex();
+  const std::string mesh_name = mesh_info[imesh].name;
+
+  IJK::val2string(mesh_param.Dimension(), dimension_str);
+  IJK::val2string(dist, distance_str);
+
+  size_t string_pos = distance_str.find(".");
+  if (string_pos != std::string::npos) {
+    distance_str.replace(string_pos, 1, "_");
+  }
+
+  if (ofile_prefix == NULL) {
+    ofilename = mesh_name + dimension_str + "D";
+    if (mesh_param.flag_flange) { ofilename += "_flanged"; }
+    ofilename += ".dist_" + distance_str + ".off";
+  }
+  else {
+    ofilename = std::string(ofile_prefix) + ".dist_" + distance_str + ".off";
+  }
 }
 
 
@@ -1292,8 +1347,7 @@ void parse_command_line(const int argc, char **argv)
       iarg++;
     }
     else if (s == "-distance") {
-      COORD_TYPE distance = get_float(iarg, argc, argv);
-      mesh_param.distance.Set(distance);
+      get_float(iarg, argc, argv, mesh_distance);
       iarg++;
     }
     else if (s == "-tilt") {
@@ -1420,6 +1474,9 @@ void parse_command_line(const int argc, char **argv)
     else if (s == "-triangulate") {
       mesh_param.flag_triangulate = true;
     }
+    else if (s == "-reverse_orient") {
+      flag_reverse_orient = true;
+    }
     else if (s == "-poly") {
       mesh_param.flag_triangulate = false;
     }
@@ -1427,6 +1484,14 @@ void parse_command_line(const int argc, char **argv)
       cout << "Valid mesh names: " << endl;
       out_mesh_descriptions(mesh_info);
       exit(20);
+    }
+    else if (s == "-prefix") {
+      iarg++;
+      if (iarg >= argc) { 
+        cerr << "Usage error. Missing arguments for option -prefix." << endl;
+        usage_error(); 
+      }
+      ofile_prefix = argv[iarg];
     }
     else if (s == "-s") {
       flag_silent = true;
@@ -1441,21 +1506,27 @@ void parse_command_line(const int argc, char **argv)
     iarg++;
   };
 
-  if (iarg+1 > argc) { 
-    cerr << "Error.  Missing file name." << endl << endl;
-    usage_error(); 
+  if (iarg < argc) {
+    ofilename = argv[iarg];
+    iarg++;
   }
-  else if (iarg+1 < argc) 
+
+  if (iarg != argc) 
     { usage_error(); }
 
-  ofilename = argv[iarg];
+  if (ofilename != NULL && mesh_distance.size() > 1) {
+    cerr << "Usage error.  Filename cannot be specified with more than one mesh distance." << endl;
+    usage_error();
+  }
+
 }
 
 void usage_msg()
 {
-  cerr << "Usage: ijkgenscalar [OPTIONS] <filename>" << endl;
+  cerr << "Usage: ijkgenmesh [OPTIONS] [<filename>]" << endl;
   cerr << "OPTIONS:" << endl;
-  cerr << "  [-mesh <mesh name>] [-distance <d>]" << endl;
+  cerr << "  [-mesh <mesh name>] [-distance <d> | -distance \"<d1 d2 ...>\"]" 
+       << endl;
   cerr << "  [-asize <N>] [-tilt | -no_tilt]" << endl;
   cerr << "  [-single | -two | -multi | -n <num_obj>] [-stack]" << endl;
   cerr << "  [-center \"<coord>\" | -grid_center | -randompos <S>]" << endl;
@@ -1469,8 +1540,8 @@ void usage_msg()
   cerr << "  [-normal \"<coord>\"] [-translate \"<coord>\"]" << endl;
   cerr << "  [-spacing \"<space_coord>\"]" << endl;
   cerr << "  [-seed <S>]" << endl;
-  cerr << "  [-triangulate | -poly]" << endl;
-  cerr << "  [-s] [-list] [-help]" << endl;
+  cerr << "  [-reverse_orient] [-triangulate | -poly]" << endl;
+  cerr << "  [-prefix <fprefix>] [-s] [-list] [-help]" << endl;
 }
 
 void usage_error()
@@ -1481,11 +1552,12 @@ void usage_error()
 
 void help_msg()
 {
-  cerr << "Usage: ijkgenscalar [OPTIONS] <filename>" << endl;
+  cerr << "Usage: ijkgenmesh [OPTIONS] <filename>" << endl;
   cerr << "OPTIONS:" << endl;
   cerr << "  -mesh <mesh name>: Set mesh."
        << "  (Use -list to list meshes.)" << endl;
   cerr << "  -distance <d>:  Distance to center/centerline/circle." << endl;
+  cerr << "  -distance \"<d1 d2 ...>\":  List of distances to center/centerline/circle." << endl;
   cerr << "  -asize <N>: Set number of vertices along each grid axis to <N>."
        << endl;
   cerr << "  -tilt:      Use directions to tilt objects." << endl;
@@ -1535,8 +1607,11 @@ void help_msg()
        << endl
        << "                along each axis." << endl;
   cerr << "  -seed <S>: Set random seed to <S>." << endl;
+  cerr << "  -reverse_orient: Reverse polygon orientations." << endl;
   cerr << "  -triangulate:  Triangulate all polygons." << endl;
   cerr << "  -poly:  Output arbitrary polygons, no triangulation." << endl;
+  cerr << "  -prefix <fprefix>: Set output filename prefix to <fprefix>."
+       << endl;
   cerr << "  -list:  List meshes." << endl;
   cerr << "  -s:     Silent mode." << endl;
   cerr << "  -help:  Print this help message." << endl;

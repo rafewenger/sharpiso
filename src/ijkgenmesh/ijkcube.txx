@@ -26,6 +26,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <vector>
 
 #include "ijk.txx"
 
@@ -202,13 +203,14 @@ namespace IJK {
     bool IsEdgeIncidentOnVertex(const VTYPE ie, const VTYPE iv) const;
   };
 
+
   // **************************************************
-  // TEMPLATE CLASS CUBE
+  // TEMPLATE CLASS CUBEV
   // **************************************************
 
-  template <typename DTYPE, typename NTYPE, 
-            typename CTYPE, typename LTYPE> 
-  class CUBE:public CUBE_INFO<DTYPE,NTYPE> {
+  /// Cube vertices
+  template <typename DTYPE, typename NTYPE, typename CTYPE>
+  class CUBEV:public CUBE_INFO<DTYPE,NTYPE> {
 
   protected:
     /// vertex_coord[dimension*k+j] = 
@@ -218,14 +220,8 @@ namespace IJK {
     /// max_vertex_index.  Stored for faster processing.
     NTYPE max_vertex_index;
 
-    /// cube edge length
-    LTYPE edge_length;
-
     void ZeroLocal();
     void InitLocal();
-    template <typename CTYPE2, typename LTYPE2>
-    void InitLocal
-    (const CTYPE2 * vertex0_coord, const LTYPE2 edge_length);    
     void FreeLocal();
     void AllocateLocal();           ///< Allocate data structures in CUBE.
     void SetToUnitCube();           ///< Set coordinates to unit cube.
@@ -237,25 +233,15 @@ namespace IJK {
   public:
     // Constructors and destructors.
     template <typename CTYPE2>
-    CUBE(const DTYPE dimension, const CTYPE2 * vertex0_coord);
-    template <typename CTYPE2, typename LTYPE2>
-    CUBE(const DTYPE dimension, 
-         const CTYPE2 * vertex0_coord, const LTYPE2 edge_length);
-    CUBE(const DTYPE dimension);
-    CUBE();
-    ~CUBE();
+    CUBEV(const DTYPE dimension, const CTYPE2 * vertex0_coord);
+    CUBEV(const DTYPE dimension);
+    CUBEV();
+    ~CUBEV();
 
     // set functions
     template <typename DTYPE2>
     void SetDimension               ///< Set cube dimension.
     (const DTYPE2 dimension);
-    template <typename CTYPE2, typename LTYPE2>
-    void SetVertexCoord             ///< Set cube vertex coordinates.
-    (const CTYPE2 * vertex0_coord, const LTYPE2 edge_length);
-    template <typename DTYPE2, typename CTYPE2, typename LTYPE2>
-    void Set                        ///< Set dimension and vertex coord.
-    (const DTYPE2 dimension, 
-     const CTYPE2 * vertex0_coord, const LTYPE2 edge_length);
 
     // *** get functions ***
 
@@ -265,9 +251,6 @@ namespace IJK {
     NTYPE OppositeVertex            ///< Index of vertex opposite iv
     (const NTYPE iv) const
     { return(MaxVertexIndex()-iv); }
-
-    LTYPE EdgeLength() const
-    { return(edge_length); }        ///< Cube edge length.
 
     /// Return pointer to vertex coordinates
     const CTYPE * VertexCoord() const
@@ -282,17 +265,6 @@ namespace IJK {
     (const NTYPE k, const NTYPE j) const
     { return(vertex_coord[this->Dimension()*k+j]); }
 
-    /// Return true if cube contains point.
-    /// @param point_coord[] Point coordinates.
-    /// @pre point_coord[] contains Dimension() point coordinates.
-    template <typename CTYPE2>
-    bool Contains(const CTYPE2 * point_coord) const;
-
-    /// Return true if interior of cube contains point.
-    /// @param point_coord[] Point coordinates.
-    /// @pre point_coord[] contains Dimension() point coordinates.
-    template <typename CTYPE2>
-    bool InteriorContains(const CTYPE2 * point_coord) const;
 
     // *** get diagonal functions ***
 
@@ -341,6 +313,136 @@ namespace IJK {
     }
 
   };
+
+
+  // **************************************************
+  // TEMPLATE CLASS CUBE
+  // **************************************************
+
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  class CUBE:public CUBEV<DTYPE,NTYPE,CTYPE> {
+
+  protected:
+
+    /// cube edge length
+    LTYPE edge_length;
+
+    void Init();
+    template <typename CTYPE2, typename LTYPE2>
+    void Init
+    (const CTYPE2 * vertex0_coord, const LTYPE2 edge_length);    
+    void SetToUnitCube();           ///< Set coordinates to unit cube.
+
+  public:
+    typedef CTYPE COORD_TYPE;       ///< Coordinate type.
+
+  public:
+    // Constructors and destructors.
+    template <typename CTYPE2>
+    CUBE(const DTYPE dimension, const CTYPE2 * vertex0_coord);
+    template <typename CTYPE2, typename LTYPE2>
+    CUBE(const DTYPE dimension, 
+         const CTYPE2 * vertex0_coord, const LTYPE2 edge_length);
+    CUBE(const DTYPE dimension);
+    CUBE();
+    ~CUBE();
+
+    // set functions
+    template <typename DTYPE2>
+    void SetDimension               ///< Set cube dimension.
+    (const DTYPE2 dimension);
+    template <typename CTYPE2, typename LTYPE2>
+    void SetVertexCoord             ///< Set cube vertex coordinates.
+    (const CTYPE2 * vertex0_coord, const LTYPE2 edge_length);
+    template <typename DTYPE2, typename CTYPE2, typename LTYPE2>
+    void Set                        ///< Set dimension and vertex coord.
+    (const DTYPE2 dimension, 
+     const CTYPE2 * vertex0_coord, const LTYPE2 edge_length);
+
+    // *** get functions ***
+
+    LTYPE EdgeLength() const
+    { return(edge_length); }        ///< Cube edge length.
+
+
+    /// Return true if cube contains point.
+    /// @param point_coord[] Point coordinates.
+    /// @pre point_coord[] contains Dimension() point coordinates.
+    template <typename CTYPE2>
+    bool Contains(const CTYPE2 * point_coord) const;
+
+    /// Return true if interior of cube contains point.
+    /// @param point_coord[] Point coordinates.
+    /// @pre point_coord[] contains Dimension() point coordinates.
+    template <typename CTYPE2>
+    bool InteriorContains(const CTYPE2 * point_coord) const;
+
+  };
+
+
+  // **************************************************
+  // TEMPLATE CLASS HRECT
+  // **************************************************
+
+  /// Hyper-rectangle.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  class HRECT:public CUBEV<DTYPE,NTYPE,CTYPE> {
+
+  protected:
+
+    /// hyper-rectangle edge lengths
+    LTYPE * edge_length;
+
+    void ZeroLocal();
+    void Init();
+    void FreeLocal();
+    void AllocateLocal();           ///< Allocate data structures in HRECT.
+    void SetToUnitCube();           ///< Set coordinates to unit cube.
+
+  public:
+    typedef CTYPE COORD_TYPE;       ///< Coordinate type.
+
+  public:
+    // Constructors and destructors.
+    HRECT(const DTYPE dimension);
+    HRECT();
+    ~HRECT();
+
+    // set functions
+    template <typename DTYPE2>
+    void SetDimension               ///< Set hyper-rectangle dimension.
+    (const DTYPE2 dimension);
+    template <typename CTYPE2, typename LTYPE2>
+    void SetVertexCoord             ///< Set hyper-rectangle vertex coordinates.
+    (const CTYPE2 * vertex0_coord, const LTYPE2 * edge_length);
+    template <typename CTYPE2, typename LTYPE2>
+    void SetVertexCoord             ///< Set hyper-rectangle vertex coordinates.
+    (const CTYPE2 * vertex0_coord, const std::vector<LTYPE2> & edge_length);
+
+
+    // *** get functions ***
+
+    template <typename DTYPE2>
+    LTYPE EdgeLength(const DTYPE2 d) const
+    { return(edge_length[d]); }      ///< Cube edge length d.
+
+
+    /// Return true if hyper-rectangle contains point.
+    /// @param point_coord[] Point coordinates.
+    /// @pre point_coord[] contains Dimension() point coordinates.
+    template <typename CTYPE2>
+    bool Contains(const CTYPE2 * point_coord) const;
+
+    /// Return true if interior of hyper-rectangle contains point.
+    /// @param point_coord[] Point coordinates.
+    /// @pre point_coord[] contains Dimension() point coordinates.
+    template <typename CTYPE2>
+    bool InteriorContains(const CTYPE2 * point_coord) const;
+
+  };
+
 
   // **************************************************
   // TEMPLATE CLASS UNIT_CUBE
@@ -514,6 +616,39 @@ namespace IJK {
       long j0 = j;
       for (DTYPE d = 0; d < dimension; d++) {
         coord[j*dimension+d] = j0 % 2;
+        j0 = j0/2;
+      }
+    }
+  }
+
+  /// Compute hyper-rectangle vertex coordinates.
+  /// @param dimension  Dimension of grid.
+  /// @param vertex0_coord Coordinates of lowest/leftmost hyper-rectangle vertex.
+  /// @param hyper_rectangle[d] Length of d'th edge of hyper-rectangle.
+  /// @param[out] coord[] Hyper-rectangle vertex coordinates.
+  /// @pre Array coord[] is allocated with size at least 
+  ///      (number of hyper_rectangle vertices)*dimension
+  template <typename DTYPE, typename CTYPE0, typename LTYPE0, typename CTYPE1>
+  void compute_hrect_vertex_coord
+  (const DTYPE dimension, const CTYPE0 * vertex0_coord,
+   const LTYPE0 * edge_length, CTYPE1 * coord)
+  {
+    IJK::PROCEDURE_ERROR error("compute_hrect_coord");
+
+    if (dimension <= 0) { return; };
+
+    if (!check_array_allocated(vertex0_coord, "vertex0_coord", error)) 
+      { throw error; }
+    if (!check_array_allocated(coord, "coord", error)) { throw error; }
+    if (!check_array_allocated(edge_length, "edge_length", error)) { throw error; }
+    
+    long num_hrect_vertices = compute_num_cube_vertices(dimension);
+
+    for (long j = 0; j < num_hrect_vertices; j++) {
+      long j0 = j;
+      for (DTYPE d = 0; d < dimension; d++) {
+        int iend = j0 % 2;
+        coord[j*dimension+d] = vertex0_coord[d] + iend*edge_length[d];
         j0 = j0/2;
       }
     }
@@ -951,38 +1086,34 @@ namespace IJK {
   }
 
   // **************************************************
-  // TEMPLATE CLASS CUBE MEMBER FUNCTIONS
+  // TEMPLATE CLASS CUBEV MEMBER FUNCTIONS
   // **************************************************
 
   /// Constructor.
-  template <typename DTYPE, typename NTYPE, 
-            typename CTYPE, typename LTYPE> 
-  CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::CUBE(const DTYPE dimension):
+  template <typename DTYPE, typename NTYPE, typename CTYPE>
+  CUBEV<DTYPE,NTYPE,CTYPE>::CUBEV(const DTYPE dimension):
     CUBE_INFO<DTYPE,NTYPE>(dimension)
   {
     InitLocal();
   }
 
   /// Constructor.
-  template <typename DTYPE, typename NTYPE, 
-            typename CTYPE, typename LTYPE> 
-  CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::CUBE():CUBE_INFO<DTYPE,NTYPE>()
+  template <typename DTYPE, typename NTYPE, typename CTYPE>
+  CUBEV<DTYPE,NTYPE,CTYPE>::CUBEV():CUBE_INFO<DTYPE,NTYPE>()
   {
     InitLocal();
   }
 
   /// Destructor
-  template <typename DTYPE, typename NTYPE, 
-            typename CTYPE, typename LTYPE> 
-  CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::~CUBE()
+  template <typename DTYPE, typename NTYPE, typename CTYPE> 
+  CUBEV<DTYPE,NTYPE,CTYPE>::~CUBEV()
   {
     FreeLocal();
   }
 
   /// Initialize.
-  template <typename DTYPE, typename NTYPE, 
-            typename CTYPE, typename LTYPE> 
-  void CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::InitLocal()
+  template <typename DTYPE, typename NTYPE, typename CTYPE> 
+  void CUBEV<DTYPE,NTYPE,CTYPE>::InitLocal()
   {
     ZeroLocal();
     AllocateLocal();
@@ -990,12 +1121,11 @@ namespace IJK {
     SetToUnitCube();
   }
 
-  /// Allocate local data structures in CUBE
-  template <typename DTYPE, typename NTYPE, 
-            typename CTYPE, typename LTYPE> 
-  void CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::AllocateLocal()
+  /// Allocate local data structures in CUBEV
+  template <typename DTYPE, typename NTYPE, typename CTYPE> 
+  void CUBEV<DTYPE,NTYPE,CTYPE>::AllocateLocal()
   {
-    IJK::PROCEDURE_ERROR error("CUBE::AllocateLocal");
+    IJK::PROCEDURE_ERROR error("CUBEV::AllocateLocal");
 
     if (!check_cube_dimension(this->Dimension(), error)) 
       { throw error; }
@@ -1004,6 +1134,98 @@ namespace IJK {
 
     NTYPE numv = this->NumVertices();
     this->vertex_coord = new CTYPE[numv*this->Dimension()];
+  }
+
+  // Set max vertex index.
+  template <typename DTYPE, typename NTYPE, typename CTYPE> 
+  void CUBEV<DTYPE,NTYPE,CTYPE>::SetMaxVertexIndex()
+  {
+    if (this->NumVertices() > 0) 
+      { max_vertex_index = this->NumVertices()-1; }
+    else
+      { max_vertex_index = 0; }
+  }
+
+  // Set vertex coordinates to unit cube vertex coordinates.
+  template <typename DTYPE, typename NTYPE, typename CTYPE> 
+  void CUBEV<DTYPE,NTYPE,CTYPE>::SetToUnitCube()
+  {
+    IJK::PROCEDURE_ERROR error("CUBE::SetToUnitCube");
+
+    if (!check_cube_dimension(this->Dimension(), error)) 
+      { throw error; }
+    if (!check_array_allocated(vertex_coord, "vertex_coord", error)) 
+      { throw error; }
+
+    compute_unit_cube_vertex_coord
+      (this->Dimension(), this->vertex_coord);
+  }
+
+  /// Set pointers defined in CUBE to NULL.
+  template <typename DTYPE, typename NTYPE, typename CTYPE>
+  void CUBEV<DTYPE,NTYPE,CTYPE>::ZeroLocal()
+  {
+    max_vertex_index = 0;
+    this->vertex_coord = NULL;
+  }
+
+
+  /// Free memory allocated in CUBEV.
+  template <typename DTYPE, typename NTYPE, typename CTYPE> 
+  void CUBEV<DTYPE,NTYPE,CTYPE>::FreeLocal()
+  {
+    if (vertex_coord != NULL) { delete [] vertex_coord; };
+    ZeroLocal();
+  }
+
+  /// Set cube dimension.
+  template <typename DTYPE, typename NTYPE, typename CTYPE> 
+  template <typename DTYPE2>
+  void CUBEV<DTYPE,NTYPE,CTYPE>::SetDimension
+  (const DTYPE2 dimension)
+  {
+    FreeLocal();
+
+    CUBE_INFO<DTYPE,NTYPE>::SetDimension(dimension);
+    AllocateLocal();
+    SetMaxVertexIndex();
+    SetToUnitCube();
+  }
+
+  // **************************************************
+  // TEMPLATE CLASS CUBE MEMBER FUNCTIONS
+  // **************************************************
+
+  /// Constructor.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::CUBE(const DTYPE dimension):
+    CUBEV<DTYPE,NTYPE,CTYPE>(dimension)
+  {
+    Init();
+  }
+
+  /// Constructor.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::CUBE():CUBEV<DTYPE,NTYPE,CTYPE>()
+  {
+    Init();
+  }
+
+  /// Destructor
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::~CUBE()
+  {}
+
+  /// Initialize.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  void CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::Init()
+  {
+    edge_length = 1;
+    CUBEV<DTYPE,NTYPE,CTYPE>::InitLocal();
   }
 
   // Return true if cube contains coordinate.
@@ -1044,51 +1266,13 @@ namespace IJK {
     return(true);
   }
 
-  // Set max vertex index.
-  template <typename DTYPE, typename NTYPE, 
-            typename CTYPE, typename LTYPE> 
-  void CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::SetMaxVertexIndex()
-  {
-    if (this->NumVertices() > 0) 
-      { max_vertex_index = this->NumVertices()-1; }
-    else
-      { max_vertex_index = 0; }
-  }
-
   // Set vertex coordinates to unit cube vertex coordinates.
   template <typename DTYPE, typename NTYPE, 
             typename CTYPE, typename LTYPE> 
   void CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::SetToUnitCube()
   {
-    IJK::PROCEDURE_ERROR error("CUBE::SetToUnitCube");
-
-    if (!check_cube_dimension(this->Dimension(), error)) 
-      { throw error; }
-    if (!check_array_allocated(vertex_coord, "vertex_coord", error)) 
-      { throw error; }
-
     edge_length = 1;
-    compute_unit_cube_vertex_coord
-      (this->Dimension(), this->vertex_coord);
-  }
-
-  /// Set pointers defined in CUBE to NULL.
-  template <typename DTYPE, typename NTYPE, 
-            typename CTYPE, typename LTYPE> 
-  void CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::ZeroLocal()
-  {
-    max_vertex_index = 0;
-    this->vertex_coord = NULL;
-  }
-
-
-  /// Free memory allocated in CUBE.
-  template <typename DTYPE, typename NTYPE, 
-            typename CTYPE, typename LTYPE> 
-  void CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::FreeLocal()
-  {
-    if (vertex_coord != NULL) { delete [] vertex_coord; };
-    ZeroLocal();
+    CUBEV<DTYPE,NTYPE,CTYPE>::SetToUnitCube();
   }
 
   /// Set cube dimension.
@@ -1098,12 +1282,8 @@ namespace IJK {
   void CUBE<DTYPE,NTYPE,CTYPE,LTYPE>::SetDimension
   (const DTYPE2 dimension)
   {
-    FreeLocal();
-
-    CUBE_INFO<DTYPE,NTYPE>::SetDimension(dimension);
-    AllocateLocal();
-    SetMaxVertexIndex();
-    SetToUnitCube();
+    CUBEV<DTYPE,NTYPE,CTYPE>::SetDimension(dimension);
+    edge_length = 1;
   }
 
   /// Set cube vertex coordinates.
@@ -1118,8 +1298,170 @@ namespace IJK {
   {
     this->edge_length = edge_length;
     compute_cube_vertex_coord
-      (this->Dimension(), vertex0_coord, edge_length, vertex_coord);
+      (this->Dimension(), vertex0_coord, edge_length, this->vertex_coord);
   }
+
+
+  // **************************************************
+  // TEMPLATE CLASS HRECT MEMBER FUNCTIONS
+  // **************************************************
+
+  /// Constructor.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  HRECT<DTYPE,NTYPE,CTYPE,LTYPE>::HRECT(const DTYPE dimension):
+    CUBEV<DTYPE,NTYPE,CTYPE>(dimension)
+  {
+    Init();
+  }
+
+  /// Constructor.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  HRECT<DTYPE,NTYPE,CTYPE,LTYPE>::HRECT():CUBEV<DTYPE,NTYPE,CTYPE>()
+  {
+    Init();
+  }
+
+  /// Destructor
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  HRECT<DTYPE,NTYPE,CTYPE,LTYPE>::~HRECT()
+  {
+    FreeLocal();
+  }
+
+  /// Initialize.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  void HRECT<DTYPE,NTYPE,CTYPE,LTYPE>::Init()
+  {
+    ZeroLocal();
+    CUBEV<DTYPE,NTYPE,CTYPE>::InitLocal();
+    AllocateLocal();
+    SetToUnitCube();
+  }
+
+  /// Set pointers defined in HRECT to NULL.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE>
+  void HRECT<DTYPE,NTYPE,CTYPE,LTYPE>::ZeroLocal()
+  {
+    this->edge_length = NULL;
+  }
+
+  /// Allocate local data structures in HRECT.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  void HRECT<DTYPE,NTYPE,CTYPE,LTYPE>::AllocateLocal()
+  {
+    IJK::PROCEDURE_ERROR error("HRECT::AllocateLocal");
+
+    if (!check_cube_dimension(this->Dimension(), error)) 
+      { throw error; }
+    if (!IJK::check_is_NULL(edge_length, "edge_length", error))
+      { throw error; }
+
+    this->edge_length = new CTYPE[this->Dimension()];
+  }
+
+  /// Free memory allocated in HRECT
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  void HRECT<DTYPE,NTYPE,CTYPE,LTYPE>::FreeLocal()
+  {
+    if (edge_length != NULL) { delete [] edge_length; };
+    ZeroLocal();
+  }
+
+  // Return true if cube contains coordinate.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  template <typename CTYPE2>
+  bool HRECT<DTYPE,NTYPE,CTYPE,LTYPE>::
+  Contains(const CTYPE2 * point_coord) const
+  {
+    for (DTYPE d = 0; d < this->Dimension(); d++) {
+      COORD_TYPE c = VertexCoord(0,d);
+      if (point_coord[d] < c)
+        { return(false); }
+
+      if (point_coord[d] > c + EdgeLength(d))
+        { return(false); }
+    }
+
+    return(true);
+  }
+
+  // Return true if interior of cube contains coordinate.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  template <typename CTYPE2>
+  bool HRECT<DTYPE,NTYPE,CTYPE,LTYPE>::
+  InteriorContains(const CTYPE2 * point_coord) const
+  {
+    for (DTYPE d = 0; d < this->Dimension(); d++) {
+      COORD_TYPE c = VertexCoord(0,d);
+      if (point_coord[d] <= c)
+        { return(false); }
+
+      if (point_coord[d] >= c + EdgeLength(d))
+        { return(false); }
+    }
+
+    return(true);
+  }
+
+  // Set vertex coordinates to unit cube vertex coordinates.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  void HRECT<DTYPE,NTYPE,CTYPE,LTYPE>::SetToUnitCube()
+  {
+    for (DTYPE d = 0; d < this->Dimension(); d++)
+      { edge_length[d] = 1; }
+    CUBEV<DTYPE,NTYPE,CTYPE>::SetToUnitCube();
+  }
+
+  /// Set cube dimension.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  template <typename DTYPE2>
+  void HRECT<DTYPE,NTYPE,CTYPE,LTYPE>::SetDimension
+  (const DTYPE2 dimension)
+  {
+    CUBEV<DTYPE,NTYPE,CTYPE>::SetDimension(dimension);
+    for (DTYPE d = 0; d < this->Dimension(); d++)
+      { edge_length[d] = 1; }
+  }
+
+  /// Set cube vertex coordinates.
+  /// @param vertex0_coord Coordinates of lowest/leftmost vertex.
+  /// @param edge_length[d] Length of d'th hyper-rectangle edge.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  template <typename CTYPE2, typename LTYPE2>
+  void HRECT<DTYPE,NTYPE,CTYPE,LTYPE>::
+  SetVertexCoord             ///< Set cube vertex coordinates.
+  (const CTYPE2 * vertex0_coord, const LTYPE2 * edge_length)
+  {
+    for (DTYPE d = 0; d < this->Dimension(); d++)
+      { this->edge_length[d] = edge_length[d]; }
+
+    compute_hrect_vertex_coord
+      (this->Dimension(), vertex0_coord, this->edge_length, this->vertex_coord);
+  }
+
+  /// Set cube vertex coordinates.
+  template <typename DTYPE, typename NTYPE, 
+            typename CTYPE, typename LTYPE> 
+  template <typename CTYPE2, typename LTYPE2>
+  void HRECT<DTYPE,NTYPE,CTYPE,LTYPE>::
+  SetVertexCoord             ///< Set cube vertex coordinates.
+  (const CTYPE2 * vertex0_coord, const std::vector<LTYPE2> & edge_length)
+  {
+    SetVertexCoord(vertex0_coord, IJK::vector2pointer(edge_length));
+  }
+
 
   // **************************************************
   // TEMPLATE CLASS UNIT_CUBE MEMBER FUNCTIONS

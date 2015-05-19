@@ -3,12 +3,12 @@
 
 /*
   IJK: Isosurface Jeneration Code
-  Copyright (C) 2014 Rephael Wenger
+  Copyright (C) 2014-2015 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  version 2.1 of the License, or any later version.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,8 +19,9 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
 #define _USE_MATH_DEFINES
-#include <cmath>
+#include <math.h>
 
 #include "ijkcube.txx"
 #include "ijkmesh.txx"
@@ -112,7 +113,8 @@ void IJKGENMESH::gen_cube
     gen_two_cubes(dimension, prop, coord, mesh);
   }
   else {
-    error.AddMessage("Programming error. gen_cube not implemented for more than 2 cubes.");
+    error.AddMessage
+      ("Programming error. gen_cube not implemented for more than 2 cubes.");
     throw error;
   }
 }
@@ -161,7 +163,8 @@ void gen_single_cube
   }
 
   if (dimension == 3) {
-    IJK::reorder_quad_vertices(&(mesh.poly_vert[0]), cube.NumFacets()); 
+    IJK::reorder_quad_vertices(mesh.poly_vert);
+    IJK::reverse_quad_orientations(mesh.poly_vert);
   }
 
 }
@@ -191,12 +194,6 @@ void gen_two_cubes
   cube[0].SetVertexCoord(vertex0_coord.PtrConst(), 2*distance);
 
   get_center_diff(dimension, prop, center_diff.Ptr(), error);
-
-  if (mesh_param.flag_tilt) {
-    compute_frame_coord3D
-      (prop.DirectionPtrConst(0), prop.SideDirectionPtrConst(0),
-       center_diff.Ptr(), center_diff.Ptr());
-  }
 
   add_coord(dimension, vertex0_coord.PtrConst(), 
             center_diff.PtrConst(), vertex0_coord.Ptr());
@@ -240,9 +237,28 @@ void gen_two_cubes
   mesh.Clear();
   for (int i = 0; i < 2; i++)
     { add_split_cube_facets(i, cube_face_info, ivX[i], mesh); }
+
+  if (dimension == 3) {
+    IJK::reverse_quad_orientations(mesh.poly_vert);
+  }
 }
 
 void IJKGENMESH::gen_annulus
+(const int dimension, const OBJECT_PROPERTIES & prop,
+ std::vector<COORD_TYPE> & coord, POLYMESH_TYPE & mesh)
+{
+  if (prop.flag_flange && 
+      prop.flange_width.size() > 0 && prop.flange_height.size() > 0) {
+
+    gen_flanged_annulus(dimension, prop, coord, mesh);
+  }
+  else {
+    gen_annulus_no_flange(dimension, prop, coord, mesh);
+  }
+}
+
+
+void IJKGENMESH::gen_annulus_no_flange
 (const int dimension, const OBJECT_PROPERTIES & prop,
  std::vector<COORD_TYPE> & coord, POLYMESH_TYPE & mesh)
 {
@@ -296,7 +312,117 @@ void IJKGENMESH::gen_annulus
   add_quad_between_circles(num_angle, 2*num_angle, 3*num_angle, mesh);
   add_quad_between_circles(num_angle, 0, 2*num_angle, mesh);
   add_quad_between_circles(num_angle, 3*num_angle, num_angle, mesh);
+
+  if (dimension == 3) {
+    IJK::reverse_quad_orientations(mesh.poly_vert);
+  }
 }
+
+void IJKGENMESH::gen_flanged_annulus
+(const int dimension, const OBJECT_PROPERTIES & prop,
+ std::vector<COORD_TYPE> & coord, POLYMESH_TYPE & mesh)
+{
+  const COORD_TYPE distance = prop.Distance();
+  COORD_TYPE radius0, radius1, radius2, radius3;
+  COORD_TYPE flange_width, flange_height;
+  COORD_TYPE half_height;
+  NUM_TYPE num_angle;
+  IJK::ARRAY<COORD_TYPE> dir1(dimension);
+  IJK::PROCEDURE_ERROR error("gen_flanged_annulus");
+
+  if (!check_dimension(DIM3, dimension, error)) { throw error; }
+
+  if (!prop.flag_flange) {
+    error.AddMessage("Programming error.  Annulus does not have a flange.");
+    throw error;
+  }
+
+  if (prop.flange_width.size() < 1) {
+    error.AddMessage("Programming error.  Missing flange width.");
+    throw error;
+  }
+
+  if (prop.flange_height.size() < 1) {
+    error.AddMessage("Programming error.  Missing flange height.");
+    throw error;
+  }
+
+  flange_width = prop.flange_width[0];
+  flange_height = prop.flange_height[0];
+  radius0 = prop.radius[0]-distance-flange_width;
+  radius1 = prop.radius[0]-distance;
+  radius2 = prop.radius[0]+distance;
+  radius3 = prop.radius[0]+distance+flange_width;
+
+  if (radius0 < 1) {
+    error.AddMessage("Error. Inner radius is too small.");
+    error.AddMessage("  Increase distance or radius.");
+    throw error;
+  }
+
+  half_height = distance+prop.length_difference[0];
+  if (half_height < 1) {
+    error.AddMessage("Error.  Height too small.");
+    error.AddMessage("  Increase length_diff.");
+    throw error;
+  }
+  
+  num_angle = int(2*M_PI*radius3);
+  if (num_angle < 4) { num_angle = 4; }
+
+  coord.clear();
+  add_vertices_on_circle
+    (dimension, num_angle, radius0, -half_height, coord);
+  add_vertices_on_circle
+    (dimension, num_angle, radius0, half_height, coord);
+  add_vertices_on_circle
+    (dimension, num_angle, radius1, -half_height, coord);
+  add_vertices_on_circle
+    (dimension, num_angle, radius1, half_height, coord);
+  add_vertices_on_circle
+    (dimension, num_angle, radius1, -half_height-flange_height, coord);
+  add_vertices_on_circle
+    (dimension, num_angle, radius1, half_height+flange_height, coord);
+  add_vertices_on_circle
+    (dimension, num_angle, radius2, -half_height, coord);
+  add_vertices_on_circle
+    (dimension, num_angle, radius2, half_height, coord);
+  add_vertices_on_circle
+    (dimension, num_angle, radius2, -half_height-flange_height, coord);
+  add_vertices_on_circle
+    (dimension, num_angle, radius2, half_height+flange_height, coord);
+  add_vertices_on_circle
+    (dimension, num_angle, radius3, -half_height, coord);
+  add_vertices_on_circle
+    (dimension, num_angle, radius3, half_height, coord);
+
+  find_different_direction
+    (dimension, prop.DirectionPtrConst(0), dir1.Ptr());
+  rotate_coord(dimension, prop.DirectionPtrConst(0), dir1.PtrConst(), coord);
+
+  // translate by center
+  translate_coord(dimension, prop.CenterPtrConst(0), coord);
+
+  mesh.Clear();
+  add_quad_between_circles(num_angle, num_angle, 0, mesh);
+  add_quad_between_circles(num_angle, 2*num_angle, 4*num_angle, mesh);
+  add_quad_between_circles(num_angle, 5*num_angle, 3*num_angle, mesh);
+  add_quad_between_circles(num_angle, 8*num_angle, 6*num_angle, mesh);
+  add_quad_between_circles(num_angle, 7*num_angle, 9*num_angle, mesh);
+  add_quad_between_circles(num_angle, 10*num_angle, 11*num_angle, mesh);
+
+  add_quad_between_circles(num_angle, 0, 2*num_angle, mesh);
+  add_quad_between_circles(num_angle, 3*num_angle, num_angle, mesh);
+  add_quad_between_circles(num_angle, 4*num_angle, 8*num_angle, mesh);
+  add_quad_between_circles(num_angle, 9*num_angle, 5*num_angle, mesh);
+  add_quad_between_circles(num_angle, 6*num_angle, 10*num_angle, mesh);
+  add_quad_between_circles(num_angle, 11*num_angle, 7*num_angle, mesh);
+
+  if (dimension == 3) {
+    IJK::reverse_quad_orientations(mesh.poly_vert);
+  }
+}
+
 
 // **************************************************
 // ROUTINES TO ADD VERTICES
@@ -377,8 +503,9 @@ void add_split_cube_facets
   const int num_cube_facets = cube_face_info.NumFacets();
   const int num_cube_edges = cube_face_info.NumEdges();
   const int num_facet_vertices = cube_face_info.NumFacetVertices();
-  IJK::ARRAY <NUM_TYPE> facet_vertex(num_facet_vertices);
   //NUM_TYPE facet_vertex[num_facet_vertices];
+  //NUM_TYPE facet_vertex[cube_face_info.NumFacetVertices()];
+  IJK::ARRAY<NUM_TYPE> facet_vertex(num_facet_vertices);
   IJK::PROCEDURE_ERROR error("add_split_cube_facets");
 
   if (!check_dimension(DIM3, dimension, error)) { throw error; }

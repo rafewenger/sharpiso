@@ -1,10 +1,10 @@
 /// \file ijkmesh.txx
 /// ijk templates for handling polyhedral meshes
-/// Version 0.1.1
+/// Version 0.2.0
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2010-2014 Rephael Wenger
+  Copyright (C) 2010-2015 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -627,6 +627,108 @@ namespace IJK {
       std::accumulate(num_poly_vert, num_poly_vert+num_poly, 0);
     for (ITYPE i = 0; i < vlist_length; i++) 
       { vlist[i] = new_index[vlist[i]]; }
+  }
+
+
+  // **************************************************
+  // REVERSE ORIENTATIONS
+  // **************************************************
+
+  /// Reverse simplex orientations
+  template <typename DTYPE, typename SVERT, typename NTYPE>
+  void reverse_simplex_orientations
+  (const DTYPE simplex_dimension,
+   SVERT * simplex_vertex, const NTYPE num_simplices)
+  {
+    if (simplex_dimension < 1) { return; }
+
+    const DTYPE num_simplex_vert = simplex_dimension+1;
+    const DTYPE inc1 = num_simplex_vert-1;
+    const DTYPE inc2 = num_simplex_vert-2;
+
+    SVERT * svert0 = simplex_vertex;
+    for (NTYPE i = 0; i < num_simplices; i++) {
+      
+      std::swap(*(svert0+inc1), *(svert0+inc2));
+      svert0 += num_simplex_vert;
+    }
+  }
+
+  /// Reverse simplex orientations
+  template <typename DTYPE, typename SVERT>
+  void reverse_simplex_orientations
+  (const DTYPE simplex_dimension, std::vector<SVERT> & simplex_vertex)
+  {
+    if (simplex_vertex.size() > 0) {
+      reverse_simplex_orientations
+        (simplex_dimension, &(simplex_vertex.front()),
+         simplex_vertex.size()/(simplex_dimension+1));
+    }
+  }
+
+  /// Reverse quadrilateral orientations
+  template <typename QVERT, typename NTYPE>
+  void reverse_quad_orientations
+  (QVERT * quad_vertex, const NTYPE num_quad)
+  {
+    const NTYPE NUM_VERT_PER_QUAD = 4;
+
+    QVERT * qvert0 = quad_vertex;
+    for (NTYPE i = 0; i < num_quad; i++) {
+      std::swap(*(qvert0), *(qvert0+3));
+      std::swap(*(qvert0+1), *(qvert0+2));
+      qvert0 += NUM_VERT_PER_QUAD;
+    }
+  }
+
+  /// Reverse quadrilateral orientations
+  template <typename QVERT>
+  void reverse_quad_orientations(std::vector<QVERT> & quad_vertex)
+  {
+    const int NUM_VERT_PER_QUAD = 4;
+
+    if (quad_vertex.size() > 0) {
+      reverse_quad_orientations
+        (&(quad_vertex.front()), quad_vertex.size()/NUM_VERT_PER_QUAD);
+    }
+  }
+
+  /// Reverse orientation of a polygon.
+  template <typename QVERT, typename NTYPE>
+  void reverse_polygon_orientation
+  (QVERT * polygon_vertex, const NTYPE num_polygon_vert)
+  {
+    for (NTYPE i = 0; i < num_polygon_vert/2; i++) {
+      NTYPE i2 = num_polygon_vert-i-1;
+      std::swap(polygon_vertex[i], polygon_vertex[i2]); 
+    }
+  }
+
+  /// Reverse orientations of polygons in a list.
+  template <typename VTYPE, typename NTYPE0, typename NTYPE1, typename ITYPE>
+  void reverse_orientations_polygon_list
+  (VTYPE * poly_vert, const NTYPE0 * num_poly_vert, 
+   const ITYPE * first_poly_vert, const NTYPE1 num_poly)
+  {
+    for (NTYPE1 ipoly = 0; ipoly < num_poly; ipoly++) {
+      reverse_polygon_orientation
+        (poly_vert+first_poly_vert[ipoly], num_poly_vert[ipoly]);
+    }
+  }
+
+
+  /// Reverse orientations of polygons in a list.
+  /// C++ STL vector format for num_poly_vert[], poly_vert[], first_poly_vert[].
+  template <typename VTYPE, typename NTYPE, typename ITYPE>
+  void reverse_orientations_polygon_list
+  (std::vector<VTYPE> & poly_vert, const std::vector<NTYPE> & num_poly_vert, 
+   const std::vector<ITYPE> & first_poly_vert)
+  {
+    if (poly_vert.size() > 0 && num_poly_vert.size() > 0) {
+      reverse_orientations_polygon_list
+        (&(poly_vert.front()), &(num_poly_vert.front()), 
+         &(first_poly_vert.front()), num_poly_vert.size());
+    }
   }
 
   // **************************************************

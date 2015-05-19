@@ -70,17 +70,6 @@ namespace IJKGENCOORD {
   // Vector operators.
   // **********************************************************************
 
-  /// Compute the cross product of two 3D vectors.
-  template <typename VTYPE0, typename VTYPE1, typename VTYPE2>
-  void cross_product3D(const VTYPE0 v0[], const VTYPE1 v1[],
-                       VTYPE2 v2[])
-  {
-    IJK::determinant_2x2(v0[1], v0[2], v1[1], v1[2], v2[0]);
-    IJK::determinant_2x2(v0[0], v0[2], v1[0], v1[2], v2[1]);
-    v2[1] = -v2[1];
-    IJK::determinant_2x2(v0[0], v0[1], v1[0], v1[1], v2[2]);
-  }
-
   /// Compute 3D orthogonal basis.
   template <typename VTYPE0, typename VTYPE1, typename VTYPE2>
   void compute_orthogonal_basis3D
@@ -92,7 +81,7 @@ namespace IJKGENCOORD {
     normalize_vector(DIM3, v0, xdir);
     IJK::compute_orthogonal_vector(DIM3, v1, xdir, ydir);
     normalize_vector(DIM3, ydir);
-    cross_product3D(xdir, ydir, zdir);
+    IJK::compute_cross_product_3D(xdir, ydir, zdir);
   }
 
   /// Compute w=(v[0]*xdir[]+v[1]*ydir[]+v[2]*zdir[]).
@@ -809,6 +798,103 @@ namespace IJKGENCOORD {
     compute_dist2cone(dimension, apex, axis_dir, coord, alpha, distance,
                       v_diff.Ptr(), v_diff_length, v_proj.Ptr(), v_proj_length);
   }
+
+  /// Compute signed distance to smooth tipped cone.
+  /// @param apex0[] Coordinates of apex of cone.
+  /// @param axis_dir[] Axis direction.
+  /// @pre axis_dir[] is a unit vector.
+  /// @param alpha Cone angle alpha in radians.
+  /// @pre alpha > 0.
+  /// @param coord[] Point coordinates.
+  /// @param[out] flag_dist2apex If true, distance = |coord-apex|.
+  /// @param[out] v_diff[] Vector from axis to point.
+  /// @param[out] v_proj[] Projection of vector from apex0 to point
+  ///                      onto axis.
+  template<typename DTYPE,
+           typename CTYPE0, typename CTYPE1, typename CTYPE2, 
+           typename CTYPE3, typename CTYPE4,
+           typename LTYPE3, typename LTYPE4,
+           typename ANGLE_TYPE, typename DIST_TYPE>
+  void compute_dist2cone_smooth_tip
+  (const DTYPE dimension, const CTYPE0 apex[], const CTYPE1 axis_dir[], 
+   const CTYPE2 coord[], const ANGLE_TYPE alpha, DIST_TYPE & distance,
+   bool & flag_dist2apex,
+   CTYPE3 v_diff[], LTYPE3 & v_diff_length,
+   CTYPE4 v_proj[], LTYPE4 & v_proj_length)
+  {
+    DIST_TYPE x1, x2;    // v_diff_length = x1 + x2.
+    double y;
+
+    flag_dist2apex = false;
+
+    compute_dist2line_L2(dimension, apex, axis_dir, coord, v_diff_length,
+                         v_diff, v_proj);
+    compute_length(dimension, v_proj, v_proj_length);
+    x1 = v_proj_length*std::tan(alpha);
+    IJK::compute_inner_product(dimension, axis_dir, v_proj, y);
+
+    if (y < 0) {
+      x2 = v_diff_length - x1;
+      distance = x2 * std::cos(alpha);
+    }
+    else {
+      x2 = v_diff_length + x1;
+
+      if (v_proj_length*v_proj_length <= v_diff_length*x1) {
+        distance = x2 * std::cos(alpha);
+      }
+      else {
+        // Compute distance to smooth tip of cone.
+        IJK::compute_distance(dimension, coord, apex, distance);
+        flag_dist2apex = true;
+      }
+    }
+  }
+
+  /// Compute signed distance to smooth tipped cone.
+  /// @param apex0[] Coordinates of apex of cone.
+  /// @param axis_dir[] Axis direction.
+  /// @pre axis_dir[] is a unit vector.
+  /// @param alpha Cone angle alpha in radians.
+  /// @pre alpha > 0.
+  /// @param coord[] Point coordinates.
+  /// @param[out] flag_dist2apex If true, distance = |coord-apex|.
+  template<typename DTYPE,
+           typename CTYPE0, typename CTYPE1, typename CTYPE2, 
+           typename ANGLE_TYPE, typename DIST_TYPE>
+  void compute_dist2cone_smooth_tip
+  (const DTYPE dimension, const CTYPE0 apex[], const CTYPE1 axis_dir[], 
+   const CTYPE2 coord[], const ANGLE_TYPE alpha, DIST_TYPE & distance,
+   bool & dist2apex)
+  {
+    IJK::ARRAY<double> v_diff(dimension);
+    IJK::ARRAY<double> v_proj(dimension);
+    double v_diff_length, v_proj_length;
+
+    compute_dist2cone_smooth_tip
+      (dimension, apex, axis_dir, coord, alpha, distance, dist2apex,
+       v_diff.Ptr(), v_diff_length, v_proj.Ptr(), v_proj_length);
+  }
+  /// Compute signed distance to smooth tipped cone.
+  /// @param apex0[] Coordinates of apex of cone.
+  /// @param axis_dir[] Axis direction.
+  /// @pre axis_dir[] is a unit vector.
+  /// @param alpha Cone angle alpha in radians.
+  /// @pre alpha > 0.
+  /// @param coord[] Point coordinates.
+  template<typename DTYPE,
+           typename CTYPE0, typename CTYPE1, typename CTYPE2, 
+           typename ANGLE_TYPE, typename DIST_TYPE>
+  void compute_dist2cone_smooth_tip
+  (const DTYPE dimension, const CTYPE0 apex[], const CTYPE1 axis_dir[], 
+   const CTYPE2 coord[], const ANGLE_TYPE alpha, DIST_TYPE & distance)
+  {
+    bool dist2apex;
+
+    compute_dist2cone_smooth_tip
+      (dimension, apex, axis_dir, coord, alpha, distance, dist2apex);
+  }
+
 }
 
 #endif
