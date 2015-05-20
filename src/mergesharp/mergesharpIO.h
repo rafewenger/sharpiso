@@ -113,9 +113,19 @@ namespace MERGESHARP {
     std::vector<COORD_TYPE> maxc;
 
     ///< Output pairs of selected neighboring cubes which are far apart.
-    bool flag_output_neighbors;  
+    bool flag_output_neighbors;
+    bool flag_output_neighbors_222;
+    bool flag_output_neighbors_221;
+    bool flag_output_neighbors_220;
+    bool flag_output_neighbors_322;
+    bool flag_output_neighbors_321;
+    bool flag_output_neighbors_320;
+    bool flag_output_neighbors_332;
+    bool flag_output_neighbors_331;
+    bool flag_output_neighbors_330;
 
     ///< Report cubes which are min distance apart.
+    /// *** DEPRECATED ***
     GRID_COORD_TYPE min_distance[DIM3];
 
     ///< Output isosurface vertices to separate file.

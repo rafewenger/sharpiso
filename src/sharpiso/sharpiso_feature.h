@@ -391,7 +391,10 @@ namespace SHARPISO {
     bool flag_map_extended;        
 
     /// If true, then use mod3 cube selection.
-    bool flag_select_mod3;        
+    bool flag_select_mod3;
+
+    /// If true, then use mod6 cube selection.
+    bool flag_select_mod6;
 
     /// Merge sharp vertices which are within this threshold distance.
     COORD_TYPE linf_dist_thresh_merge_sharp;

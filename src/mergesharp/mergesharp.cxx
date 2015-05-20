@@ -618,7 +618,11 @@ void MERGESHARP::dual_contouring_merge_sharp_from_grad
 
 	t1 = clock();
 
-  if (mergesharp_param.flag_select_mod3) {
+  if (mergesharp_param.flag_select_mod6) {
+    select_sharp_isovert_mod6
+      (scalar_grid, gradient_grid, isovalue, mergesharp_param, isovert);
+  }
+  else if (mergesharp_param.flag_select_mod3) {
     select_sharp_isovert_mod3
       (scalar_grid, gradient_grid, isovalue, mergesharp_param, isovert);
   }

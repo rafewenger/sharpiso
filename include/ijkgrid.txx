@@ -116,6 +116,9 @@ namespace IJK {
     template <typename BTYPE>
     void ComputeBoundaryCubeBits
     (const VTYPE icube, BTYPE & boundary_bits) const;
+    template <typename CTYPE, typename DIST_TYPE>
+    void ComputeCubeDistanceToGridBoundary
+    (const CTYPE cube_coord[], DIST_TYPE & distance) const;
     template <typename PTYPE, typename ATYPE2>
     void ComputeSubsampledAxisSizes
     (const PTYPE subsample_period, ATYPE2 subsampled_axis_size[]) const;
@@ -4116,6 +4119,29 @@ namespace IJK {
   ComputeBoundaryCubeBits(const VTYPE icube, BTYPE & boundary_bits) const
   {
     compute_boundary_cube_bits(icube, Dimension(), AxisSize(), boundary_bits);
+  }
+
+  /// Compute distance of cube to grid boundary.
+  /// @pre Cube is contained in grid.
+  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
+  template <typename CTYPE, typename DIST_TYPE>
+  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
+  ComputeCubeDistanceToGridBoundary
+  (const CTYPE * cube_coord, DIST_TYPE & distance) const
+  {
+    if (Dimension() < 1) {
+      distance = 0;
+      return;
+    }
+
+    distance = AxisSize(0);
+
+    for (int d = 0; d < Dimension(); d++) {
+      if (cube_coord[d] < distance) { distance = cube_coord[d]; }
+
+      DIST_TYPE d2 = AxisSize(d)-2-cube_coord[d];
+      if (d2 < distance) { distance = d2; }
+    }
   }
 
   /// Return true if grid dimension and axis size match parameters.

@@ -869,7 +869,14 @@ void store_boundary_bits
 void store_table_index
 (const std::vector<IJKDUALTABLE::TABLE_INDEX> & table_index,
  GRID_CUBE_DATA_ARRAY & gcube_list);
- 
+
+/// Return true if line through sharp edge in cube0 passes near cube1.
+/// Return false if cube0 has no sharp edge.
+bool does_sharp_edge_point_to_cube
+(const SHARPISO_GRID & grid, const ISOVERT & isovert,
+ const VERTEX_INDEX cube0_index, const VERTEX_INDEX cube1_index,
+ const COORD_TYPE min_distance);
+
 }
 
 #endif /* _MERGESHARP_ISOVERT_H_ */

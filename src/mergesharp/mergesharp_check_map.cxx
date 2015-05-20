@@ -218,6 +218,54 @@ bool MERGESHARP::check_distortionII
 }
 
 
+/// Return true if simultaneous mapping of three cubes to to_cube
+///   does not reverse any triangles incident on vertices on cubes
+///   or create any degenerate triangles.
+bool MERGESHARP::check_distortionIII
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const ISOVERT & isovert,
+ std::vector<VERTEX_INDEX> & gcube_map,
+ const VERTEX_INDEX cube_index[3], const VERTEX_INDEX to_cube)
+{
+  INDEX_DIFF_TYPE gcube_index[3], to_gcube;
+  IJK::PROCEDURE_ERROR error("check_distortionIII");
+  NUM_TYPE store_map[3];
+  bool flag;
+
+  to_gcube = isovert.GCubeIndex(to_cube, error);
+  if (to_gcube == ISOVERT::NO_INDEX) { throw error; }
+  for (int i = 0; i < 3; i++) {
+    gcube_index[i] = isovert.GCubeIndex(cube_index[i], error);
+    if (gcube_index[i] == ISOVERT::NO_INDEX) { throw error; }
+
+    store_map[i] = gcube_map[gcube_index[i]];
+  }
+
+  for (int i0 = 0; i0 < 3; i0++) {
+
+    int i1 = (i0+1)%3;
+    int i2 = (i0+2)%3;
+
+    // temporarily set gcube_map[] for gcube_index[i1] and gcube_index[i2]
+    //   to to_cube
+    gcube_map[gcube_index[i1]] = to_gcube;
+    gcube_map[gcube_index[i2]] = to_gcube;
+
+    flag = check_distortion_strict
+      (scalar_grid, isovalue, isovert, gcube_map, cube_index[i0], to_cube);
+
+    // restore gcube_map[]
+    gcube_map[gcube_index[i1]] = store_map[i1];
+    gcube_map[gcube_index[i2]] = store_map[i2];
+
+    if (!flag) { return(false); }
+  }
+
+  return(true);
+}
+
+
 /// Return true if mapping of from_cube to to_cube does not reverse/distort
 ///   triangles FAB or FBC on quad (FABC) dual to (iend0, iend1).
 bool MERGESHARP::check_quad_distortion_strict

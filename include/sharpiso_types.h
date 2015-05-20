@@ -51,8 +51,9 @@ namespace SHARPISO {
   typedef int NUM_TYPE;
   typedef int VERTEX_INDEX;
 
-  /// Index difference type.  Must be signed.
+  /// Index and grid coord difference types.  Must be signed.
   typedef int INDEX_DIFF_TYPE;
+  typedef int GRID_COORD_DIFF_TYPE;
 
   typedef std::pair<VERTEX_INDEX, VERTEX_INDEX> VERTEX_PAIR;
 

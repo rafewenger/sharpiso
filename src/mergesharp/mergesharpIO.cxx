@@ -84,7 +84,7 @@ namespace {
     ROUND_PARAM, NO_ROUND_PARAM,
     KEEPV_PARAM,
     MINC_PARAM, MAXC_PARAM,
-    MAP_EXTENDED_PARAM, SELECT_MOD3_PARAM,
+    MAP_EXTENDED_PARAM, SELECT_MOD3_PARAM, SELECT_MOD6_PARAM,
     HELP_PARAM, OFF_PARAM, IV_PARAM, 
     OUTPUT_FILENAME_PARAM, STDOUT_PARAM, NOWRITE_PARAM, 
     OUTPUT_PARAM_PARAM, OUTPUT_INFO_PARAM, 
@@ -120,7 +120,7 @@ namespace {
       "-round", "-no_round",
       "-keepv",
       "-minc", "-maxc",
-      "-map_extended", "-select_mod3",
+      "-map_extended", "-select_mod3", "-select_mod6",
       "-help", "-off", "-iv", 
       "-o", "-stdout", "-nowrite", 
       "-out_param", "-info", "-out_selected", "-out_sharp", "-out_active",
@@ -280,6 +280,7 @@ namespace {
          << endl;
   }
 
+  /* OBSOLETE
   void set_min_dist
   (const std::vector<GRID_COORD_TYPE> & min_dist,
    INPUT_INFO & input_info)
@@ -300,6 +301,62 @@ namespace {
     else {
       for (int d = 0; d < DIM3; d++)
         { input_info.min_distance[d] = min_dist[d]; }
+    }
+  }
+  */
+
+  // Set output neighbors flags.
+  void set_output_neighbors_flags
+  (const char * option, const char * value_string, INPUT_INFO & input_info)
+  {
+    std::vector<std::string> distance_string;
+
+    input_info.flag_output_neighbors = true;
+
+    IJK::string2vector(value_string, distance_string);
+
+    for (int i = 0; i < distance_string.size(); i++) {
+
+      if (distance_string[i] == "222") {
+        input_info.flag_output_neighbors_222 = true;
+        input_info.flag_output_neighbors_322 = true;
+        input_info.flag_output_neighbors_332 = true;
+      }
+      else if (distance_string[i] == "22x") {
+        input_info.flag_output_neighbors_222 = true;
+        input_info.flag_output_neighbors_221 = true;
+        input_info.flag_output_neighbors_220 = true;
+        input_info.flag_output_neighbors_322 = true;
+        input_info.flag_output_neighbors_321 = true;
+        input_info.flag_output_neighbors_320 = true;
+        input_info.flag_output_neighbors_332 = true;
+        input_info.flag_output_neighbors_331 = true;
+        input_info.flag_output_neighbors_330 = true;
+      }
+      else if (distance_string[i] == "321") {
+        input_info.flag_output_neighbors_322 = true;
+        input_info.flag_output_neighbors_321 = true;
+        input_info.flag_output_neighbors_332 = true;
+        input_info.flag_output_neighbors_331 = true;
+      }
+      else if (distance_string[i] == "32x") {
+        input_info.flag_output_neighbors_322 = true;
+        input_info.flag_output_neighbors_321 = true;
+        input_info.flag_output_neighbors_320 = true;
+        input_info.flag_output_neighbors_332 = true;
+        input_info.flag_output_neighbors_331 = true;
+        input_info.flag_output_neighbors_330 = true;
+      }
+      else if (distance_string[i] == "33x") {
+        input_info.flag_output_neighbors_332 = true;
+        input_info.flag_output_neighbors_331 = true;
+        input_info.flag_output_neighbors_330 = true;
+      }
+      else {
+        cerr << "Usage error.  Illegal argument " << value_string
+             << " to option " << option << "." << endl;
+        exit(227);
+      }
     }
   }
 
@@ -470,6 +527,10 @@ namespace {
 
     case SELECT_MOD3_PARAM:
       input_info.flag_select_mod3 = true;
+      break;
+
+    case SELECT_MOD6_PARAM:
+      input_info.flag_select_mod6 = true;
       break;
 
     case DIST2CENTER_PARAM:
@@ -654,13 +715,7 @@ namespace {
       break;
 
     case OUTPUT_NEIGHBORS_PARAM:
-      {
-        vector<GRID_COORD_TYPE> min_dist;
-        get_option_multiple_arguments
-          (option_string, value_string, min_dist);
-        set_min_dist(min_dist, input_info);
-        input_info.flag_output_neighbors = true;
-      }
+      set_output_neighbors_flags(option_string, value_string, input_info);
       break;
 
     case OUTPUT_FILENAME_PARAM:
@@ -1512,6 +1567,7 @@ void find_closest_opposite
   }
 }
 
+/* OBSOLETE
 bool is_far(const GRID_COORD_TYPE dist[DIM3], 
             const GRID_COORD_TYPE min_distance[DIM3])
 {
@@ -1522,6 +1578,57 @@ bool is_far(const GRID_COORD_TYPE dist[DIM3],
 
   return(false);
 }
+*/
+
+// Return true if distance matches one of the output neighbor flags.
+bool matches_output_neighbor_flag
+(const GRID_COORD_TYPE dist[DIM3], const OUTPUT_INFO & output_info)
+{
+  if (dist[0] < 2) { return(false); }
+  if (dist[1] < 2) { return(false); }
+
+  if (dist[0] == 2 && dist[1] == 2) {
+
+    if (dist[2] == 0) { 
+      if (output_info.flag_output_neighbors_220) { return(true); }
+    }
+    else if (dist[2] == 1) {
+      if (output_info.flag_output_neighbors_221) { return(true); }
+    }
+    else if (dist[2] == 2) {
+      if (output_info.flag_output_neighbors_222) { return(true); }
+    }
+  }
+  else if (dist[0] >= 3) {
+
+    if (dist[1] == 2) {
+
+      if (dist[2] == 0) {
+        if (output_info.flag_output_neighbors_320) { return(true); }
+      }
+      else if (dist[2] == 1) {
+        if (output_info.flag_output_neighbors_321) { return(true); }
+      }
+      else if (dist[2] == 2) {
+        if (output_info.flag_output_neighbors_322) { return(true); }
+      }
+    }
+    else if (dist[1] >= 3) {
+      if (dist[2] == 0) {
+        if (output_info.flag_output_neighbors_330) { return(true); }
+      }
+      else if (dist[2] == 1) {
+        if (output_info.flag_output_neighbors_331) { return(true); }
+      }
+      else if (dist[2] >= 2) {
+        if (output_info.flag_output_neighbors_332) { return(true); }
+      }
+    }
+  }
+
+  return(false);
+}
+
 
 void report_far_neighbors
 (const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
@@ -1570,13 +1677,15 @@ void report_far_neighbors
       if (dist[0] > 2) 
         { find_closest(isovert, icubeA, list, icubeB); }
     }
-    if (!flag) { find_closest(isovert, icubeA, list, icubeB); }
+    else {
+      find_closest(isovert, icubeA, list, icubeB); 
+    }
 
     compute_dist(isovert, icubeA, icubeB, dist);
 
-    if (is_far(dist, output_info.min_distance)) {
+    if (matches_output_neighbor_flag(dist, output_info)) {
       grid.PrintIndexAndCoord
-        (cout, "Cubes ", icubeA, " and ", icubeB, ".  Distance: ");
+        (cout, "Cubes ", icubeA, " and (closest) ", icubeB, ".  Distance: ");
       print_coord3D(cout, dist);
       cout << endl;
 
@@ -1588,8 +1697,16 @@ void report_far_neighbors
 
       compute_dist(isovert, icubeA, icubeC, dist);
 
-      if (is_far(dist, output_info.min_distance)) 
-        { count++; }
+
+    if (matches_output_neighbor_flag(dist, output_info)) {
+        grid.PrintIndexAndCoord
+          (cout, "Cubes ", icubeA, " and (opposite) ", icubeC, 
+           ".  Distance: ");
+        print_coord3D(cout, dist);
+        cout << endl;
+
+        count++;
+      }
     }
   }
 
@@ -2273,7 +2390,7 @@ namespace {
     cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
          << endl;
     cerr << "  [-s] [-out_param] [-info] [-out_selected] [-out_sharp] [-out_active]" << endl;
-    cerr << "  [-out_map_to {cube index}] [-out_neighbors \"min dist\"]" 
+    cerr << "  [-out_map_to {cube index}] [-out_neighbors \" 222|22x|32x|33x \"]" 
          << endl;
     cerr << "  [-out_isovert [corner|edge|sharp|smooth|all] [selected|all|uncovered]" << endl;
     cerr << "  [-write_isov_info] [-nowrite] [-time]" << endl;
@@ -2463,9 +2580,11 @@ void MERGESHARP::help(const char * command_path)
   cout << "  -out_sharp: Output list of cubes containing corner or edge vertices." << endl;
   cout << "  -out_active: Output list of active cubes." << endl;
   cout << "  -out_map_to {cube index}: Output list of cubes which map to given cube index." << endl;
-  cerr << "  -out_neighbors {\"min dist\"}: Output pairs of selected neighboring cubes"
-       << endl
-       << "       whose distance is greater than or equal to min_dist." << endl;
+  cerr << "  -out_neighbors {\" 222 | 22x | 32x | 33x \"}:" << endl;
+  cerr << "       Output pairs of selected neighboring cubes at given distances." << endl;
+  cerr << "       Distances: 222 = (2,2,2). 22x = (2,2,x). 32x = (3,2,x). 33x = (3,3,x)." << endl;
+  cerr << "       22x |: Output neighbors at distance (2,2,2) (or greater.)"
+       << endl;
   cout << "  -out_isovert [arg1] [arg2]:  Output isosurface vertices to off file." << endl;
   cout << "  -write_isov_info:  Write isosurface vertex information to file."
        << endl;
@@ -2509,12 +2628,22 @@ void MERGESHARP::IO_INFO::Init()
   flag_output_sharp = false;
   flag_output_active = false;
   flag_output_map_to = false;
-  flag_output_neighbors = false;
   to_cube = 0;
   flag_output_isovert = false;
   flag_recompute_isovert = true; // recompute the isovert for unavailable cubes
   flag_check_triangle_angle = true;
   grid_spacing.resize(3,1);
+
+  flag_output_neighbors = false;
+  flag_output_neighbors_222 = false;
+  flag_output_neighbors_221 = false;
+  flag_output_neighbors_220 = false;
+  flag_output_neighbors_322 = false;
+  flag_output_neighbors_321 = false;
+  flag_output_neighbors_320 = false;
+  flag_output_neighbors_332 = false;
+  flag_output_neighbors_331 = false;
+  flag_output_neighbors_330 = false;
 }
 
 void MERGESHARP::IO_INFO::Set(const IO_INFO & io_info)

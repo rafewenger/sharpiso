@@ -67,6 +67,16 @@ namespace MERGESHARP {
    const VERTEX_INDEX from_cube0, const VERTEX_INDEX to_cube0,
    const VERTEX_INDEX from_cube1, const VERTEX_INDEX to_cube1);
 
+  // Return true if simultaneous mapping of three cubes to to_cube
+  //   does not reverse any triangles incident on vertices on cubes
+  //   or create any degenerate triangles.
+  bool check_distortionIII
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   std::vector<VERTEX_INDEX> & gcube_map,
+   const VERTEX_INDEX cube_index[3], const VERTEX_INDEX to_cube);
+
   /// Return true if mapping of from_cube to to_cube does not reverse/distort
   ///   any triangles on quad dual to (iend0,iend1).
   bool check_quad_distortion_strict

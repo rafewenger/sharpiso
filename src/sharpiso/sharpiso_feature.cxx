@@ -1254,6 +1254,7 @@ void SHARPISO::SHARP_ISOVERT_PARAM::Init()
   bin_width = 5;
   flag_map_extended = false;
   flag_select_mod3 = false;
+  flag_select_mod6 = false;
 }
 
 // **************************************************
