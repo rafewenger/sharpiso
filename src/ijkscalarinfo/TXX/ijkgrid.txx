@@ -1,15 +1,15 @@
 /// \file ijkgrid.txx
 /// ijk templates defining regular grid classes and functions.
-/// Version 0.2.1
+/// Version 0.1.0
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2008-2015 Rephael Wenger
+  Copyright (C) 2008-2014 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or any later version.
+  version 2.1 of the License, or (at your option) any later version.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -116,9 +116,6 @@ namespace IJK {
     template <typename BTYPE>
     void ComputeBoundaryCubeBits
     (const VTYPE icube, BTYPE & boundary_bits) const;
-    template <typename CTYPE, typename DIST_TYPE>
-    void ComputeCubeDistanceToGridBoundary
-    (const CTYPE cube_coord[], DIST_TYPE & distance) const;
     template <typename PTYPE, typename ATYPE2>
     void ComputeSubsampledAxisSizes
     (const PTYPE subsample_period, ATYPE2 subsampled_axis_size[]) const;
@@ -155,41 +152,7 @@ namespace IJK {
     (const CTYPE cube_index, const DTYPE2 facet_orth_dir, 
      const bool facet_side) const;
 
-    /// Print vertex coordinates (mainly for debugging).
-    template <typename OSTREAM_TYPE, typename VTYPE0>
-    void PrintCoord(OSTREAM_TYPE & out, const VTYPE0 iv) const;
-
-    /// Print vertex coordinates (mainly for debugging).
-    template <typename OSTREAM_TYPE, typename VTYPE0>
-    void PrintCoord(OSTREAM_TYPE & out, const char * prefix, 
-                    const VTYPE0 iv, const char * suffix) const;
-
-    /// Print vertex index and coordinates (mainly for debugging).
-    template <typename OSTREAM_TYPE, typename VTYPE0>
-    void PrintIndexAndCoord(OSTREAM_TYPE & out, const VTYPE0 iv) const;
-
-    /// Print vertex index and coordinates (mainly for debugging).
-    template <typename OSTREAM_TYPE, typename VTYPE0>
-    void PrintIndexAndCoord(OSTREAM_TYPE & out, const char * prefix,
-                            const VTYPE0 iv, const char * suffix) const;
-
-    /// Print two vertex indices and coordinates (mainly for debugging).
-    template <typename OSTREAM_TYPE, typename VTYPE0, typename VTYPE1>
-    void PrintIndexAndCoord
-    (OSTREAM_TYPE & out, const char * text0,
-     const VTYPE0 iv0, const char * text1, 
-     const VTYPE1 iv1, const char * text2) const;
-
-    /// Print three vertex indices and coordinates (mainly for debugging).
-    template <typename OSTREAM_TYPE, 
-              typename VTYPE0, typename VTYPE1, typename VTYPE2>
-    void PrintIndexAndCoord
-    (OSTREAM_TYPE & out, const char * text0,
-     const VTYPE0 iv0, const char * text1, 
-     const VTYPE1 iv1, const char * text2,
-     const VTYPE2 iv2, const char * text3) const;
-
-    /// Check function
+    // check function
     template <typename DTYPE2, typename ATYPE2, typename VTYPE2, 
               typename NTYPE2>
     bool CheckDimension
@@ -639,9 +602,6 @@ namespace IJK {
     STYPE Spacing(const DTYPE2 d) const
     { return(spacing[d]); };
 
-    /// Return true if (Spacing(d) == 1) for all d.
-    bool IsUnitSpacing() const;
-
     /// Get const pointer to spacing.
     const STYPE * SpacingPtrConst() const
     { return(spacing); }
@@ -1086,13 +1046,13 @@ namespace IJK {
    NTYPE & num_vertices)
   {
     //ATYPE interior_axis_size[dimension];
-	IJK::ARRAY<ATYPE> interior_axis_size(dimension);
+	IJK::ARRAY <ATYPE> interior_axis_size ( dimension ); 
     num_vertices = 0;
     for (DTYPE d = 0; d < dimension; d++) {
       if (axis_size[d] <= 2*boundary_width) { return; };
       interior_axis_size[d] = axis_size[d]-2*boundary_width;
     }
-    compute_num_grid_vertices(dimension, interior_axis_size.Ptr(), num_vertices);
+    compute_num_grid_vertices(dimension, &(interior_axis_size[0]), num_vertices);
   }
 
   /// Return number of vertices in grid interior for boundary width 1.
@@ -2563,10 +2523,12 @@ namespace IJK {
   (const DTYPE dimension, const ATYPE * axis_size, 
    const VTYPE iv0, const ATYPE max_region_edge_length, VTYPE * vlist)
   {
-    ATYPE coord[dimension];
-    ATYPE region_size[dimension];
+   // ATYPE coord[dimension];
+   // ATYPE region_size[dimension];
+   IJK::ARRAY <ATYPE> coord ( dimension );
+   IJK::ARRAY <ATYPE> region_size (  dimension );
 
-    compute_coord(iv0, dimension, axis_size, coord);
+    compute_coord(iv0, dimension, axis_size, &(coord[0]));
 
     for (DTYPE d = 0; d < dimension; d++) {
       if (coord[d] + max_region_edge_length < axis_size[d])
@@ -2579,7 +2541,7 @@ namespace IJK {
       }
     }
 
-    get_subgrid_vertices(dimension, axis_size, iv0, region_size, vlist);
+    get_subgrid_vertices(dimension, axis_size, iv0, &(region_size[0]), vlist);
   }
 
   /// Get grid cubes in region.
@@ -3027,7 +2989,8 @@ namespace IJK {
     // Precondition: vlist[] is preallocated to size 
     //   at least num_outer_vertices
   {
-    VTYPE axis_increment[dimension];
+    //VTYPE axis_increment[dimension];
+	IJK::ARRAY <VTYPE> axis_increment (dimension);
 
     if (dimension < 1) { return; };
 
@@ -3047,7 +3010,7 @@ namespace IJK {
       VTYPE num_vertices; 
       compute_num_outer_vertices(d_last, axis_size, num_vertices);
 
-      compute_increment(dimension, axis_size, axis_increment);
+      compute_increment(dimension, axis_size, &(axis_increment[0]));
 
       for (VTYPE i = 1; i < axis_size[d_last]-1; i++) {
         VTYPE k = i*num_vertices;
@@ -3321,9 +3284,9 @@ namespace IJK {
       return;
     }
 
-	//ATYPE axis_increment[dimension];
-    IJK::ARRAY<ATYPE> axis_increment(dimension);
-	compute_increment(dimension, axis_size, axis_increment.Ptr());
+    //ATYPE axis_increment[dimension];
+	IJK::ARRAY <ATYPE> axis_increment ( dimension );
+    compute_increment(dimension, axis_size, &(axis_increment[0]));
 
     // get vertices in lower facet
     VTYPE num_vertices_in_grid_facet;
@@ -3767,77 +3730,10 @@ namespace IJK {
     }
 
     if (k != num_neighbors*dimension) {
-      error.AddMessage
-        ("Programming error.  Wrong number of edge neighbors added to edge_neighborF2[].");
+      error.AddMessage("Programming error.  Wrong number of edge neighbors added to edge_neighborF2[].");
       throw error;
     }
 
-  }
-
-  // ********************************************************
-  // TEMPLATE FUNCTIONS: COMPUTING DISTANCE
-  // ********************************************************
-
-  /// Compute L-infinity distance between two grid vertices.
-  template <typename GTYPE, typename VTYPE0, typename VTYPE1,
-            typename DIST_TYPE, typename DIR_TYPE>
-  void compute_Linf_distance_between_grid_vertices
-  (const GTYPE & grid, const VTYPE0 iv0, const VTYPE1 iv1,
-   DIST_TYPE & Linf_distance, DIR_TYPE & axis)
-  {
-    typedef typename GTYPE::DIMENSION_TYPE DTYPE;
-
-    const DTYPE dimension = grid.Dimension();
-    IJK::ARRAY<DIST_TYPE> coord0(dimension), coord1(dimension);
-    DIST_TYPE diff;
-
-    grid.ComputeCoord(iv0, coord0.Ptr());
-    grid.ComputeCoord(iv1, coord1.Ptr());
-
-    Linf_distance = 0;
-    axis = 0;
-    for (DTYPE d = 0; d < dimension; d++) {
-
-      if (coord0[d] < coord1[d])
-        { diff = coord1[d] - coord0[d]; }
-      else
-        { diff = coord0[d] - coord1[d]; }
-
-      if (diff > Linf_distance) {
-        Linf_distance = diff;
-        axis = d;
-      }
-    }
-  }
-
-  /// Compute L-infinity distance between two grid vertices.
-  template <typename GTYPE, typename VTYPE0, typename VTYPE1,
-            typename DIST_TYPE>
-  void compute_Linf_distance_between_grid_vertices
-  (const GTYPE & grid, const VTYPE0 iv0, const VTYPE1 iv1,
-   DIST_TYPE & Linf_distance)
-  {
-    typedef typename GTYPE::DIMENSION_TYPE DTYPE;
-
-    const DTYPE dimension = grid.Dimension();
-    IJK::ARRAY<DIST_TYPE> coord0(dimension), coord1(dimension);
-    DIST_TYPE diff;
-
-    grid.ComputeCoord(iv0, coord0.Ptr());
-    grid.ComputeCoord(iv1, coord1.Ptr());
-
-    Linf_distance = 0;
-    for (DTYPE d = 0; d < dimension; d++) {
-
-      if (coord0[d] < coord1[d])
-        { diff = coord1[d] - coord0[d]; }
-      else
-        { diff = coord0[d] - coord1[d]; }
-
-      if (diff > Linf_distance) {
-        Linf_distance = diff;
-      }
-    }
   }
 
   // **************************************************
@@ -4122,29 +4018,6 @@ namespace IJK {
     compute_boundary_cube_bits(icube, Dimension(), AxisSize(), boundary_bits);
   }
 
-  /// Compute distance of cube to grid boundary.
-  /// @pre Cube is contained in grid.
-  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
-  template <typename CTYPE, typename DIST_TYPE>
-  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
-  ComputeCubeDistanceToGridBoundary
-  (const CTYPE * cube_coord, DIST_TYPE & distance) const
-  {
-    if (Dimension() < 1) {
-      distance = 0;
-      return;
-    }
-
-    distance = AxisSize(0);
-
-    for (int d = 0; d < Dimension(); d++) {
-      if (cube_coord[d] < distance) { distance = cube_coord[d]; }
-
-      DIST_TYPE d2 = AxisSize(d)-2-cube_coord[d];
-      if (d2 < distance) { distance = d2; }
-    }
-  }
-
   /// Return true if grid dimension and axis size match parameters.
   /// @param dimension  Dimension.
   /// @param axis_size  Array: <em>axis_size[d]</em> = Number of vertices along axis \a d.
@@ -4254,93 +4127,6 @@ namespace IJK {
   {
     return(is_cube_facet_on_grid_boundary
            (Dimension(), AxisSize(), cube_index, facet_orth_dir, facet_side));
-  }
-
-  // Print vertex coordinates (mainly for debugging).
-  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
-  template <typename OSTREAM_TYPE, typename VTYPE0>
-  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
-  PrintCoord(OSTREAM_TYPE & out, const VTYPE0 iv) const
-  {
-    const DTYPE dimension = this->Dimension();
-    IJK::ARRAY<ATYPE> coord(dimension);
-
-    this->ComputeCoord(iv, coord.Ptr());
-    
-    out << "(";
-    for (DTYPE d = 0; d < dimension; d++) {
-      out << coord[d];
-      if (d+1 < dimension) { out << ","; }
-    }
-    out << ")";
-  }
-
-  // Print vertex coordinates (mainly for debugging).
-  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
-  template <typename OSTREAM_TYPE, typename VTYPE0>
-  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
-  PrintCoord(OSTREAM_TYPE & out, const char * prefix,
-             const VTYPE0 iv, const char * suffix) const
-  {
-    out << prefix;
-    PrintCoord(out, iv);
-    out << suffix;
-  }
-
-  // Print vertex index and coordinates (mainly for debugging).
-  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
-  template <typename OSTREAM_TYPE, typename VTYPE0>
-  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
-  PrintIndexAndCoord(OSTREAM_TYPE & out, const VTYPE0 iv) const
-  {
-    out << iv << " ";
-    PrintCoord(out, iv);
-  }
-
-  // Print vertex index and coordinates (mainly for debugging).
-  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
-  template <typename OSTREAM_TYPE, typename VTYPE0>
-  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
-  PrintIndexAndCoord(OSTREAM_TYPE & out, const char * prefix,
-                     const VTYPE0 iv, const char * suffix) const
-  {
-    out << prefix;
-    PrintIndexAndCoord(out, iv);
-    out << suffix;
-  }
-
-  // Print two vertex indices and coordinates (mainly for debugging).
-  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
-  template <typename OSTREAM_TYPE, typename VTYPE0, typename VTYPE1>
-  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
-  PrintIndexAndCoord(OSTREAM_TYPE & out, const char * text0,
-                     const VTYPE0 iv0, const char * text1, 
-                     const VTYPE1 iv1, const char * text2) const
-  {
-    out << text0;
-    PrintIndexAndCoord(out, iv0);
-    out << text1;
-    PrintIndexAndCoord(out, iv1);
-    out << text2;
-  }
-
-  // Print three vertex indices and coordinates (mainly for debugging).
-  template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
-  template <typename OSTREAM_TYPE, 
-            typename VTYPE0, typename VTYPE1, typename VTYPE2>
-  void GRID<DTYPE,ATYPE,VTYPE,NTYPE>::
-  PrintIndexAndCoord(OSTREAM_TYPE & out, const char * text0,
-                     const VTYPE0 iv0, const char * text1, 
-                     const VTYPE1 iv1, const char * text2,
-                     const VTYPE2 iv2, const char * text3) const
-  {
-    out << text0;
-    PrintIndexAndCoord(out, iv0);
-    out << text1;
-    PrintIndexAndCoord(out, iv1);
-    out << text2;
-    PrintIndexAndCoord(out, iv2);
-    out << text3;
   }
 
   template <typename DTYPE, typename ATYPE, typename VTYPE, typename NTYPE>
@@ -5078,19 +4864,6 @@ namespace IJK {
     SetSpacing(grid2.SpacingPtrConst());
   }
 
-  /// Return true if (Spacing(d) == 1) for all d.
-  template <typename STYPE, typename GRID_TYPE>
-  bool GRID_SPACING<STYPE, GRID_TYPE>::IsUnitSpacing() const
-  {
-    typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
-
-    for (DTYPE d = 0; d < this->dimension; d++) {
-      if (Spacing(d) != 1) { return(false); }
-    }
-
-    return(true);
-  }
-
   template <typename STYPE, typename GRID_TYPE>
   template <typename DTYPE2, typename ATYPE2>
   void GRID_SPACING<STYPE, GRID_TYPE>::SetSize
@@ -5322,10 +5095,9 @@ namespace IJK {
   }
 
   // **************************************************
-  // TEMPLATE OUTPUT FUNCTIONS (deprecated)
+  // TEMPLATE OUTPUT FUNCTIONS
   // **************************************************
 
-  /// DEPRECATED. Use GRID::PrintCoord().
   /// Output coord (for debugging purposes)
   template <typename DTYPE, typename CTYPE>
   void ijkgrid_output_coord
@@ -5341,7 +5113,6 @@ namespace IJK {
     out << ")";
   }
 
-  /// DEPRECATED. Use GRID::PrintCoord().
   /// Output vertex coord (for debugging purposes)
   template <typename GTYPE, typename VTYPE>
   void ijkgrid_output_vertex_coord

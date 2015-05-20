@@ -140,6 +140,7 @@ int main(int argc, char **argv)
 
     if (input_info.flag_output_param) 
       { report_mergesharp_param(mergesharp_data); }
+ 
 
     report_num_cubes(full_scalar_grid, input_info, mergesharp_data);
     construct_isosurface(input_info, mergesharp_data, mergesharp_time, io_time);

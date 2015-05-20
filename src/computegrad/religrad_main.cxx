@@ -229,6 +229,31 @@ int main(int argc, char **argv) {
 			time(&end);
 			finish = clock();			
 		}
+
+		if (input_info.algo12)
+		{
+			only_cdiff = false; 
+			//create and fill boundary grid
+			RELIGRADIENT::BOOL_GRID boundary_grid;
+			boundary_grid.SetSize(full_scalar_grid);
+			compute_boundary_grid(boundary_grid);
+
+			input_info.out_info.num_unreliable = 0;
+			input_info.out_info.num_reliable = 0;
+			time_t begin, end;
+			clock_t start, finish;
+			start = clock();
+			time(&begin);	
+			compute_reliable_gradients_curvature_based_algo12
+				(full_scalar_grid, boundary_grid, vertex_gradient_grid, magnitude_grid, 
+				reliable_grid, input_info);
+			out_stats("Algorithm 1 or 2", full_scalar_grid, reliable_grid, input_info);
+
+			OptChosen = true;
+			time(&end);
+			finish = clock();	
+
+		}
 		if(input_info.curv_based)
 		{
 			only_cdiff = false;
@@ -500,7 +525,7 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 			io_info.flag_cdiff = true;
 			io_info.curv_based = true;
 			//default parameters
-			io_info.param_angle =  8; // alpha
+			io_info.param_angle =  20; // alpha
 			io_info.neighbor_angle_parameter = 20;
 		}
 
@@ -518,7 +543,7 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 			io_info.flag_cdiff = true;
 			io_info.curv_based = true;
 			//default parameters
-			io_info.param_angle = 8;
+			io_info.param_angle = 20;
 			io_info.neighbor_angle_parameter = 20;
 			io_info.extended_curv_based = true;
 		}
@@ -526,6 +551,13 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 		{
 			iarg++;
 			io_info.extend_max = atoi(argv[iarg]);
+		}
+		else if(s == "-algo12")
+		{
+			io_info.algo12 = true; 
+			iarg++;
+			io_info.cdist = atoi(argv[iarg]);
+			cerr <<"algorithm : " << io_info.cdist << ".\n";
 		}
 		else if (s == "-start_grads")
 		{

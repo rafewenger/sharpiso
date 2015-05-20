@@ -450,7 +450,9 @@ void output_mesh_info()
 
 	output_file.open(ei.out_degen.c_str(), ios::out);
 	nume = ei.degen.size()/2;
-	ijkoutColorLINE (output_file, dimension, &(new_vertex[0]), numv, &(ei.degen[0]), nume, yellow);
+	if(nume > 0 )
+	{ ijkoutColorLINE (output_file, dimension, &(new_vertex[0]), numv,
+	&(ei.degen[0]), nume, yellow);}
 	output_file.close();
 };
 

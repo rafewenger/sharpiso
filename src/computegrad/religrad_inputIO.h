@@ -30,6 +30,7 @@ public:
 };
 class INPUT_INFO {
 public:
+	bool algo12;                // run algorithm 1 or 2 look in IEEE vis 2015 paper for details. 
 	bool flag_cdiff;	 		// compute central difference
 	bool flag_reliable_grad;   // reliable grad
 	bool print_info;           // print info of the vertex
@@ -69,6 +70,7 @@ public:
 	//Set the default values
 	void set_defaults()
 	{
+		algo12 = false; 
 		//central diff flags
 		flag_cdiff = false;
 		//angle based 
@@ -97,6 +99,7 @@ public:
 		extended_curv_based = false;
 		cdist = 1;
 		extend_max = 1;
+		curv_based = false;
 
 	}
 

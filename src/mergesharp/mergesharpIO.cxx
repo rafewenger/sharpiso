@@ -739,6 +739,7 @@ namespace {
     switch(param) {
 
     case OUTPUT_ISOVERT_PARAM:
+      
       input_info.flag_output_isovert = true;
       get_isovert_type(option_string, value_string0, value_string1,
                        input_info.output_isovert_type,
@@ -1154,7 +1155,7 @@ void MERGESHARP::output_dual_isosurface
 
     if (output_info.flag_store_isovert_info) {
       write_isovert_info(output_info, mergesharp_info.sharpiso.vertex_info);
-    }
+	}
   }
 
   if (output_info.flag_output_isovert) 
@@ -1421,6 +1422,7 @@ void MERGESHARP::write_isovert
   }
 
   if (output_info.output_isovert_filename == "") {
+	  
     error.AddMessage("Programming error. Missing output filename.");
     throw error;
   }
@@ -2632,6 +2634,7 @@ void MERGESHARP::IO_INFO::Init()
   flag_output_isovert = false;
   flag_recompute_isovert = true; // recompute the isovert for unavailable cubes
   flag_check_triangle_angle = true;
+  flag_output_isovert = false;
   grid_spacing.resize(3,1);
 
   flag_output_neighbors = false;

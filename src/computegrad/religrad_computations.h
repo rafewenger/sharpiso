@@ -89,4 +89,17 @@ void compute_reliable_gradients_curvature_basedB(
 	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
 	INPUT_INFO & io_info
 	);
+
+/*
+*Curvature based reliable gradients computations B
+*Check reliablity at vertex iv using vertices distance 2 from v.
+*/
+void compute_reliable_gradients_curvature_based_algo12(
+	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
+	const RELIGRADIENT::BOOL_GRID &boundary_grid,
+	const GRADIENT_GRID & gradient_grid,
+	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
+	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
+	INPUT_INFO & io_info
+	);
 #endif
