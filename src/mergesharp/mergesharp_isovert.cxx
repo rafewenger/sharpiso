@@ -860,58 +860,6 @@ void MERGESHARP::recompute_using_adjacent
 
 
 /// Set isovert position from grid vertex or grid edge.
-/// *** Old version: deprecated ***
-void set_isovert_position_from_face_old
-(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
- const SCALAR_TYPE isovalue,
- const VERTEX_INDEX cube_index,
- const COORD_TYPE isovert_coord[DIM3],
- const NUM_TYPE num_large_eigenvalues,
- const bool flag_from_vertex,
- ISOVERT & isovert,
- bool & flag_set)
-{
-  const INDEX_DIFF_TYPE gcube_index = isovert.GCubeIndex(cube_index);
-
-  flag_set = false;
-
-  if (gcube_index == ISOVERT::NO_INDEX) { return; }
-
-  MSDEBUG();
-  if (flag_debug) {
-    cerr << "*** In " << __FUNCTION__ << ".  Cube: " << cube_index << " ";
-    ijkgrid_output_vertex_coord(cerr, scalar_grid, cube_index);
-    cerr << endl;
-    cerr << "    Old coord: ";
-    IJK::print_coord3D(cerr, isovert.gcube_list[gcube_index].isovert_coord);
-    cerr << "  num eigen: " << isovert.NumEigenvalues(gcube_index) << endl;
-    cerr << "    New coord: ";
-    IJK::print_coord3D(cerr, isovert_coord);
-    cerr << " num eigen: " << num_large_eigenvalues;
-    if (flag_from_vertex) 
-	  { cerr << "  From vertex."; }
-    else
-	  { cerr << "  From edge."; }
-    cerr << endl;
-  }
-
-  set_isovert_position
-    (scalar_grid, gcube_index, isovert_coord, num_large_eigenvalues, isovert);
-
-  // Old version missing call to set_cube_containing_isovert. 
-  // set_cube_containing_isovert(scalar_grid, isovalue, gcube_index, isovert);
-
-  isovert.gcube_list[gcube_index].flag_using_substitute_coord = false;
-
-  if (flag_from_vertex) 
-    { isovert.gcube_list[gcube_index].flag_coord_from_vertex = true; }
-  else
-    { isovert.gcube_list[gcube_index].flag_coord_from_edge = true; }
-
-  flag_set = true;
-}
-
-/// Set isovert position from grid vertex or grid edge.
 void set_isovert_position_from_face
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
