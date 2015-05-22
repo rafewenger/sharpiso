@@ -1,10 +1,10 @@
 /// \file ijkgenscalar.h
 /// generate a scalar field
-/// Version v0.1.3
+/// Version v0.1.4
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011-2013 Rephael Wenger
+  Copyright (C) 2011-2014 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -65,14 +65,13 @@ namespace IJKGENSCALAR {
   typedef IJK::SCALAR_GRID<GRID, SCALAR_TYPE> SCALAR_GRID;
   typedef IJK::VECTOR_GRID<GRID, NUM_TYPE, GRADIENT_COORD_TYPE> GRADIENT_GRID;
 
-  typedef OBJECT_PROPERTIES_T
+  typedef FIELD_OBJECT_PROPERTIES_T
   <int, COORD_TYPE, GRADIENT_COORD_TYPE, RADIUS_TYPE, DIFF_TYPE, 
    ANGLE_TYPE, SCALAR_TYPE, NUM_TYPE>
   OBJECT_PROPERTIES;
-  typedef FIELD_PARAM_T
-  <int, AXIS_SIZE_TYPE, COORD_TYPE, GRADIENT_COORD_TYPE, RADIUS_TYPE, 
-   DIFF_TYPE, ANGLE_TYPE, SCALAR_TYPE, SEED_TYPE, MIN_MAX_TYPE, 
-   ISOTABLE_INDEX_TYPE, NUM_TYPE> 
+  typedef IJKGENGEOM::GEOM_PARAM_T<OBJECT_PROPERTIES, AXIS_SIZE_TYPE, SEED_TYPE>
+    GEOM_PARAM;
+  typedef FIELD_PARAM_T<GEOM_PARAM, MIN_MAX_TYPE, ISOTABLE_INDEX_TYPE> 
   FIELD_PARAM;
 
   typedef FIELD_INFO_T<OBJECT_PROPERTIES, SCALAR_GRID, GRADIENT_GRID> FIELD_INFO;

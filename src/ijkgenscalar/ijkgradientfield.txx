@@ -4,12 +4,12 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011-2014 Rephael Wenger
+  Copyright (C) 2011-2015 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  version 2.1 of the License, or any later version.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -251,8 +251,8 @@ namespace IJKSCALARFIELD {
     IJK::subtract_coord(dimension, coord1, coord0, v.Ptr());
     IJK::copy_coord(dimension, xdir, xdir2.Ptr());
     IJK::copy_coord(dimension, ydir, ydir2.Ptr());
-    ux = dot_product(dimension, v.PtrConst(), xdir2.Ptr());
-    uy = dot_product(dimension, v.PtrConst(), ydir2.Ptr());
+    IJK::compute_inner_product(dimension, v.PtrConst(), xdir2.Ptr(), ux);
+    IJK::compute_inner_product(dimension, v.PtrConst(), ydir2.Ptr(), uy);
 
     if (ux < 0)
       { flip_vector(dimension, xdir2.Ptr(), ux); }
@@ -442,6 +442,46 @@ namespace IJKSCALARFIELD {
 
     if (alpha <= 0) {
       IJK::copy_coord(dimension, v_diff.PtrConst(), gradient);
+    }
+    else {
+      double x = v_diff_length*tan(alpha);
+      IJK::multiply_coord(dimension, x, axis_dir, u.Ptr());
+      IJK::add_coord(dimension, v_diff.PtrConst(), u.PtrConst(), gradient);
+    }
+
+    normalize_vector(dimension, gradient, gradient);
+  }
+
+  /// Compute signed distance to cone.
+  /// @param apex0[] Coordinates of apex of cone.
+  /// @param axis_dir[] Axis direction.
+  /// @pre axis_dir[] is a unit vector.
+  /// @param alpha Cone angle alpha in radians.
+  /// @pre alpha > 0.
+  /// @param coord[] Point coordinates.
+  template<typename DTYPE,
+           typename CTYPE0, typename CTYPE1, typename CTYPE2, 
+           typename ANGLE_TYPE, typename DIST_TYPE, typename GRADIENT_TYPE>
+  void compute_dist2cone_smooth_tip_gradient
+  (const DTYPE dimension, const CTYPE0 apex[], const CTYPE1 axis_dir[], 
+   const CTYPE2 coord[], const ANGLE_TYPE alpha, DIST_TYPE & distance,
+   GRADIENT_TYPE gradient[])
+  {
+    IJK::ARRAY<double> v_diff(dimension);
+    IJK::ARRAY<double> v_proj(dimension);
+    IJK::ARRAY<double> u(dimension);
+    double v_diff_length, v_proj_length;
+    bool flag_dist2apex;
+    
+    compute_dist2cone_smooth_tip
+      (dimension, apex, axis_dir, coord, alpha, distance, flag_dist2apex,
+       v_diff.Ptr(), v_diff_length, v_proj.Ptr(), v_proj_length);
+
+    if (alpha <= 0) {
+      IJK::copy_coord(dimension, v_diff.PtrConst(), gradient);
+    }
+    else if (flag_dist2apex) {
+      IJK::subtract_coord(dimension, coord, apex, gradient);
     }
     else {
       double x = v_diff_length*tan(alpha);
@@ -1003,6 +1043,61 @@ namespace IJKSCALARFIELD {
     }
   }
 
+  /// Generate a scalar field whose isosurfaces are closed cones 
+  ///   with smooth tips.
+  /// @param dimension Volume dimension.
+  /// @param apex0 Apex of cone with isovalue 0.
+  /// @param axis_dir Cone axis direction.
+  /// @param angle Cone angle.
+  /// @param height0 Height of cone with isovalue 0.
+  template<typename SCALAR_GRID_TYPE, typename GRADIENT_GRID_TYPE,
+           typename COORD_TYPE, typename DIR_TYPE,
+           typename ANGLE_TYPE, typename DIST_TYPE>
+  void gen_gradient_closed_cone_smooth_tip
+  (const COORD_TYPE apex0[], const DIR_TYPE axis_dir[],
+   const ANGLE_TYPE angle, const DIST_TYPE height0, 
+   SCALAR_GRID_TYPE & grid, GRADIENT_GRID_TYPE & gradient)
+  {
+    typedef typename SCALAR_GRID_TYPE::DIMENSION_TYPE DTYPE;
+    typedef typename SCALAR_GRID_TYPE::SCALAR_TYPE STYPE;
+    typedef typename SCALAR_GRID_TYPE::VERTEX_INDEX_TYPE VTYPE;
+
+    const DTYPE dimension = grid.Dimension();
+    const double angle_radians = (angle*M_PI)/180.0;
+    IJK::ARRAY<COORD_TYPE> coord(dimension);
+    IJK::ARRAY<double> normalized_axis_dir(dimension);
+    IJK::ARRAY<double> v0(dimension), v1(dimension);
+    double dist0, dist1, x;
+
+    if (angle <= 0) {
+      gen_gradient_closed_cylinder
+        (apex0, axis_dir, height0, grid, gradient);
+      return;
+    }
+
+    normalize_vector(dimension, axis_dir, normalized_axis_dir.Ptr());
+
+    for (VTYPE iv = 0; iv < grid.NumVertices(); iv++) {
+      grid.ComputeScaledCoord(iv, coord.Ptr());
+
+      compute_dist2cone_smooth_tip_gradient
+        (dimension, apex0, normalized_axis_dir.PtrConst(), coord.PtrConst(), 
+         angle_radians, dist0, v0.Ptr());
+      compute_signed_dist2plane
+        (dimension, apex0, normalized_axis_dir.PtrConst(), coord.PtrConst(), 
+         dist1, v1.Ptr());
+      dist1 = -dist1;
+      normalize_vector(dimension, v1.Ptr());
+
+      max_scalar_tie_zero
+        (dimension, dist0, v0.PtrConst(), dist1-height0, v1.PtrConst(),
+         x, gradient.VectorPtr(iv));
+      STYPE s = convert2type<STYPE>(x);
+
+      grid.Set(iv, s);
+    }
+  }
+
   /// Generate a scalar field whose isosurfaces are frustra (truncated cones).
   /// @param dimension Volume dimension.
   /// @param apex0 Apex of cone with isovalue 0.
@@ -1058,6 +1153,85 @@ namespace IJKSCALARFIELD {
       max_scalar_tie_zero
         (dimension, x, v1.PtrConst(), dist0, v0.PtrConst(), x, 
          gradient.VectorPtr(iv));
+      STYPE s = convert2type<STYPE>(x);
+
+      grid.Set(iv, s);
+    }
+  }
+
+  /// Generate a scalar field whose isosurfaces are cannon shaped.
+  /// Cannon shape is the union of a frustrum and a ball.
+  /// @param dimension Volume dimension.
+  /// @param apex0 Apex of cone with isovalue 0.
+  /// @param axis_dir Cone axis direction.
+  /// @param angle Cone angle.
+  /// @param dist2near0 Distance from cone apex to near plane with isovalue 0.
+  /// @param dist2ball_center Distance from cone apex to ball center.
+  template<typename SCALAR_GRID_TYPE, typename GRADIENT_GRID_TYPE,
+           typename COORD_TYPE, typename DIR_TYPE, typename ANGLE_TYPE,
+           typename DIST0_TYPE, typename DIST1_TYPE>
+   void gen_gradient_cannon
+  (const COORD_TYPE apex0[], const DIR_TYPE axis_dir[],
+   const ANGLE_TYPE angle, 
+   const DIST0_TYPE dist2near0, const DIST1_TYPE dist2center,
+   SCALAR_GRID_TYPE & grid, GRADIENT_GRID_TYPE & gradient)
+  {
+    typedef typename SCALAR_GRID_TYPE::DIMENSION_TYPE DTYPE;
+    typedef typename SCALAR_GRID_TYPE::SCALAR_TYPE STYPE;
+    typedef typename SCALAR_GRID_TYPE::VERTEX_INDEX_TYPE VTYPE;
+
+    const DTYPE dimension = grid.Dimension();
+    const double angle_radians = (angle*M_PI)/180.0;
+    const double sin_angle = std::sin(angle_radians);
+    IJK::ARRAY<COORD_TYPE> coord(dimension);
+    IJK::ARRAY<double> normalized_axis_dir(dimension);
+    IJK::ARRAY<double> v0(dimension), v1(dimension);
+    IJK::ARRAY<double> u(dimension);
+    double u_length;
+    double dist0, dist1, x, cos_axis_u;
+
+    if (angle <= 0) {
+      grid.SetAll(0);
+      return;
+    }
+
+    normalize_vector(dimension, axis_dir, normalized_axis_dir.Ptr());
+
+    IJK::ARRAY<double> ball_center(dimension);
+    IJK::add_scaled_coord
+      (dimension, -dist2center, normalized_axis_dir.PtrConst(), apex0,
+       ball_center.Ptr());
+
+    for (VTYPE iv = 0; iv < grid.NumVertices(); iv++) {
+      grid.ComputeScaledCoord(iv, coord.Ptr());
+
+      IJK::subtract_coord
+        (dimension, coord.PtrConst(), ball_center.PtrConst(), u.Ptr());
+      IJK::compute_magnitude(dimension, u.PtrConst(), u_length);
+      normalize_vector(dimension, u.Ptr(), u.Ptr());
+      IJK::compute_inner_product
+        (dimension, u.PtrConst(), normalized_axis_dir.PtrConst(), cos_axis_u);
+
+      if (cos_axis_u >= sin_angle) {
+
+        compute_dist2cone_gradient
+          (dimension, apex0, normalized_axis_dir.PtrConst(), coord.PtrConst(), 
+           angle_radians, dist0, v0.Ptr());
+
+        compute_signed_dist2plane
+          (dimension, apex0, normalized_axis_dir.PtrConst(), 
+           coord.PtrConst(), dist1);
+ 
+        max_scalar_tie_zero
+          (dimension, dist0, v0.PtrConst(), 
+           dist1+dist2near0, normalized_axis_dir.PtrConst(), 
+           x, gradient.VectorPtr(iv));
+      }
+      else {
+        x = u_length - dist2center*sin_angle;
+        gradient.Set(iv, u.PtrConst());
+      }
+
       STYPE s = convert2type<STYPE>(x);
 
       grid.Set(iv, s);
@@ -1174,9 +1348,8 @@ namespace IJKSCALARFIELD {
     const DTYPE dimension = grid.Dimension();
     IJK::ARRAY<CTYPE0> coord(dimension);
     IJK::ARRAY<double> vertex_gradient(dimension);
-	//DEBUG
     //CTYPE1 unit_normal[dimension*num_planes];
-	 IJK::ARRAY<CTYPE1> unit_normal(dimension*num_planes);
+	IJK::ARRAY<CTYPE1> unit_normal(dimension*num_planes);
     double x, distance;
 
     if (num_planes < 1) {
@@ -1187,36 +1360,34 @@ namespace IJKSCALARFIELD {
 
     for (ITYPE i = 0; i < num_planes; i++) {
       normalize_vector
-		//DEBUG
-        //(dimension, normal+i*dimension, unit_normal+i*dimension);
-		 (dimension, normal+i*dimension, unit_normal.Ptr()+i*dimension);
+		(dimension, normal+i*dimension, unit_normal.Ptr()+i*dimension);
     }
 
     for (VTYPE iv = 0; iv < grid.NumVertices(); iv++) {
       grid.ComputeScaledCoord(iv, coord.Ptr());
-	  //DEBUG
+
       //compute_signed_dist2plane
-       // (dimension, coord0, unit_normal, coord.PtrConst(), x);
-		
-		compute_signed_dist2plane
+      //  (dimension, coord0, unit_normal, coord.PtrConst(), x);
+	  
+	  compute_signed_dist2plane
         (dimension, coord0, unit_normal.Ptr(), coord.PtrConst(), x);
-      //DEBUG
+      
 	  //IJK::copy_coord(dimension, unit_normal, vertex_gradient.Ptr());
 	  IJK::copy_coord(dimension, unit_normal.Ptr(), vertex_gradient.Ptr());
 
       for (ITYPE i = 1; i < num_planes; i++) {
-        compute_signed_dist2plane
-          
-		  //DEBUG
-		  //(dimension, coord0, unit_normal+i*dimension, coord.PtrConst(), 
-          //distance);
-		  (dimension, coord0, unit_normal.PtrConst()+i*dimension,
-		   coord.PtrConst(), distance);
+        //compute_signed_dist2plane
+        //  (dimension, coord0, unit_normal+i*dimension, coord.PtrConst(), 
+        //   distance);
 
-		//DEBUG
+		compute_signed_dist2plane
+          (dimension, coord0, unit_normal.Ptr()+i*dimension, coord.PtrConst(), 
+           distance);
+
         //min_scalar_tie_zero
-        //  (dimension, x, vertex_gradient.Ptr(), distance, 
-        //   unit_normal+i*dimension, x, vertex_gradient.Ptr());
+        // (dimension, x, vertex_gradient.Ptr(), distance, 
+        //  unit_normal+i*dimension, x, vertex_gradient.Ptr());
+
 		min_scalar_tie_zero
           (dimension, x, vertex_gradient.Ptr(), distance, 
            unit_normal.PtrConst()+i*dimension, x, vertex_gradient.Ptr());
