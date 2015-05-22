@@ -2,7 +2,7 @@ PROJECT(IJKGENSCALAR)
 
 #---------------------------------------------------------
 
-SET(SRC_DIRNAME "src/ijkgenscalar")
+SET(SRC_DIRNAME "src/ijkgenscalarNew")
 SET(TARFILE ijkgenscalar.tar)
 
 #---------------------------------------------------------

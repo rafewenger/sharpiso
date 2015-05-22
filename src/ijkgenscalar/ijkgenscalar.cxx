@@ -4,12 +4,12 @@
 
 /*
   IJK: Isosurface Jeneration Code
-  Copyright (C) 2011-2014 Rephael Wenger
+  Copyright (C) 2011-2015 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  version 2.1 of the License, or any later version.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,7 +21,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <cmath>
+
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include <iomanip>
 #include <iostream>
 #include <vector>
@@ -40,6 +42,7 @@ typedef IJK::NRRD_DATA<int, int> NRRD_HEADER;
 
 using namespace IJKSCALARFIELD;
 using namespace IJKGENSCALAR;
+using namespace IJKGENGEOM;
 using namespace std;
 
 // global constants
@@ -81,6 +84,7 @@ void construct_gradient_filename
 void parse_command_line(const int argc, char **argv);
 void usage_error(), help_msg();
 void check_input_param(const int dimension);
+void check_param(const std::string & field_name);
 void check_field();
 void check_field_options();
 bool check_dimension(const int dimension, const int dimension2,
@@ -101,7 +105,7 @@ int main(int argc, char **argv)
       throw error;
     }
 
-    if (!field_param.field_index.IsSet()) 
+    if (!field_param.geom_info_index.IsSet()) 
       { read_field_name(field_info); }
 
     // Set parameters related to field.
@@ -145,6 +149,8 @@ int main(int argc, char **argv)
 
     // Prompt for any missing parameters.
     prompt_param(field_name);
+
+    check_param(field_name);
 
     int dimension = field_param.Dimension();
     if (output_gradients) {
@@ -483,6 +489,41 @@ void prompt_frustrum(const int dimension)
 
 }
 
+void prompt_cannon(const int dimension)
+{
+  const int num_cannon = 1;
+
+  prompt_center(dimension, num_cannon, "cannon");
+
+  if (field_param.flag_tilt) {
+    if (field_param.direction.size() == 0) {
+      prompt_coordinates("Enter cannon axis direction",
+                         dimension, field_param.direction);
+    }
+  }
+  else {
+    // Set axis direction to (1,0,0,...)
+    field_param.direction.clear();
+    field_param.direction.resize(dimension, 0);
+    if (dimension > 0)
+      { field_param.direction[0] = 1; }
+  }
+
+  if (field_param.angle.size() == 0) {
+    prompt_scalar("Enter cannon angle", field_param.angle);
+  }
+
+  if (field_param.dist2near0.size() == 0) {
+    prompt_scalar("Enter distance from apex to near plane", 
+                  field_param.dist2near0);
+  }
+
+  if (field_param.dist2ball_center.size() == 0) {
+    prompt_scalar("Enter distance from apex to ball center", 
+                  field_param.dist2ball_center);
+  }
+}
+
 void prompt_octahedron(const int dimension, const int num_objects)
 {
   prompt_center(dimension, num_objects, "octahedron");
@@ -680,7 +721,7 @@ void prompt_constant_unit_gradient(const int dimension)
 }
 
 template <typename T>
-void prompt_maxval(IJKGENSCALAR::SET_VALUE<T> & maxval)
+void prompt_maxval(IJKGENGEOM::SET_VALUE<T> & maxval)
 {
   T x;
 
@@ -690,7 +731,7 @@ void prompt_maxval(IJKGENSCALAR::SET_VALUE<T> & maxval)
 }
 
 template <typename T>
-void prompt_random_seed(IJKGENSCALAR::SET_VALUE<T> & random_seed)
+void prompt_random_seed(IJKGENGEOM::SET_VALUE<T> & random_seed)
 {
   T x;
 
@@ -711,7 +752,7 @@ void prompt_random_int()
 
 template <typename T>
 void prompt_isotable_index
-(const int dimension, IJKGENSCALAR::SET_VALUE<T> & isotable_index)
+(const int dimension, IJKGENGEOM::SET_VALUE<T> & isotable_index)
 {
   T num_table_entries;
   IJK::PROCEDURE_ERROR error("prompt_isotable_index");
@@ -785,6 +826,9 @@ void prompt_param(const std::string & field_name)
   }
   else if (field_name == "frustrum") {
     prompt_frustrum(dimension);
+  }
+  else if (field_name == "cannon") {
+    prompt_cannon(dimension);
   }
   else if (field_name == "square") {
     prompt_square_cylinder(dimension);
@@ -1276,9 +1320,16 @@ void gen_closed_cone
 
   if (dimension < 1) { return; }
 
-  gen_closed_cone
-    (prop.CenterPtrConst(0), prop.DirectionPtrConst(0),
-     prop.angle[0], height0, grid);
+  if (prop.flag_smooth_tip) {
+    gen_closed_cone_smooth_tip
+      (prop.CenterPtrConst(0), prop.DirectionPtrConst(0),
+       prop.angle[0], height0, grid);
+  }
+  else {
+    gen_closed_cone
+      (prop.CenterPtrConst(0), prop.DirectionPtrConst(0),
+       prop.angle[0], height0, grid);
+  }
 }
 
 void gen_gradient_closed_cone
@@ -1291,9 +1342,16 @@ void gen_gradient_closed_cone
 
   if (dimension < 1) { return; }
 
-  gen_gradient_closed_cone
-    (prop.CenterPtrConst(0), prop.DirectionPtrConst(0),
-     prop.angle[0], height0, grid, gradient);
+  if (prop.flag_smooth_tip) {
+    gen_gradient_closed_cone_smooth_tip
+      (prop.CenterPtrConst(0), prop.DirectionPtrConst(0),
+       prop.angle[0], height0, grid, gradient);
+  }
+  else {
+    gen_gradient_closed_cone
+      (prop.CenterPtrConst(0), prop.DirectionPtrConst(0),
+       prop.angle[0], height0, grid, gradient);
+  }
 }
 
 void gen_frustrum
@@ -1324,6 +1382,51 @@ void gen_gradient_frustrum
     (prop.CenterPtrConst(0), prop.DirectionPtrConst(0),
      prop.angle[0], 
      prop.dist2near0[0], prop.dist2far0[0],
+     grid, gradient);
+}
+
+// Generate a field with cannon shaped isosurfaces.
+void gen_cannon
+(const OBJECT_PROPERTIES & prop, SCALAR_GRID & grid)
+{
+  const int dimension = grid.Dimension();
+  const double height0 = 0;
+  IJK::PROCEDURE_ERROR error("gen_cannon");
+
+  if (dimension < 1) { return; }
+
+  if (!prop.CheckNumCenters(1, error)) { throw error; }
+  if (!prop.CheckNumDirections(1, error)) { throw error; }
+  if (!prop.CheckNumAngles(1, error)) { throw error; }
+  if (!prop.CheckNumDist2BallCenters(1, error)) { throw error; }
+
+  gen_cannon
+    (prop.CenterPtrConst(0), prop.DirectionPtrConst(0),
+     prop.angle[0], 
+     prop.dist2near0[0], prop.dist2ball_center[0],
+     grid);
+}
+
+// Generate a field with cannon shaped isosurfaces.
+void gen_gradient_cannon
+(const OBJECT_PROPERTIES & prop, 
+ SCALAR_GRID & grid, GRADIENT_GRID & gradient)
+{
+  const int dimension = grid.Dimension();
+  const double height0 = 0;
+  IJK::PROCEDURE_ERROR error("gen_cannon");
+
+  if (dimension < 1) { return; }
+
+  if (!prop.CheckNumCenters(1, error)) { throw error; }
+  if (!prop.CheckNumDirections(1, error)) { throw error; }
+  if (!prop.CheckNumAngles(1, error)) { throw error; }
+  if (!prop.CheckNumDist2BallCenters(1, error)) { throw error; }
+
+  gen_gradient_cannon
+    (prop.CenterPtrConst(0), prop.DirectionPtrConst(0),
+     prop.angle[0], 
+     prop.dist2near0[0], prop.dist2ball_center[0],
      grid, gradient);
 }
 
@@ -1977,6 +2080,11 @@ void init_field_info(vector<FIELD_INFO> & field_info)
   info.AddToDescription("Isosurfaces are frustra (truncated cones.)");
   field_info.push_back(info);
 
+  info.Set("cannon", gen_cannon, gen_gradient_cannon);
+  info.SetFrustrumFlags();
+  info.SetDescription("Cannon shaped isosurfaces.");
+  field_info.push_back(info);
+
   info.Set("square", gen_square_cylinder, gen_gradient_square_cylinder);
   info.SetCylinderFlags();
   info.SetDescription("Isosurfaces are closed square cylinders.");
@@ -2070,20 +2178,6 @@ void init_field_info(vector<FIELD_INFO> & field_info)
   field_info.push_back(info);
 }
 
-bool find_field_name
-(const vector<FIELD_INFO> & field_info, const string & s, int & ifield)
-{
-  ifield = 0;
-  for (int i = 0; i < field_info.size(); i++) {
-    if (field_info[i].name == s) {
-      ifield = i;
-      return(true);
-    }
-  }
-
-  return(false);
-}
-
 /// Output field names.
 /// @param with_gradients 
 ///           If true, output only fields with gradients implemented.
@@ -2150,7 +2244,7 @@ void read_field_name(const vector<FIELD_INFO> & field_info)
   cin >> s;
 
   while (true) {
-    if (!find_field_name(field_info, s, ifield)) {
+    if (!find_geom_info_name(field_info, s, ifield)) {
       if (s != "h" && s != "help") {
         cout << "Illegal field name: " << s << endl;
       }
@@ -2211,19 +2305,13 @@ void set_random_param
 
   if (field_param.flag_random_centers) {
 
-	  if (field_param.randompos_seed.IsSet())
-	  { 
-		 //DEBUG
-		  //srandom(field_param.randompos_seed.Value()); 
-		  srand(field_param.randompos_seed.Value()); 
-	  }
+    if (field_param.randompos_seed.IsSet())
+      { srand(field_param.randompos_seed.Value()); }
 
     for (int i = field_param.NumCenters(); i < num_objects; i++) {
       for (int d = 0; d < dimension; d++) {
-		  //DEBUG
-		  //long int x = random();
-		  long int x = rand();
-		  x = x%(field_param.axis_size[d]);
+        long int x = rand();
+        x = x%(field_param.axis_size[d]);
         field_param.center.push_back(x);
       }
     }
@@ -2231,19 +2319,13 @@ void set_random_param
 
   if (field_param.flag_random_directions) {
 
-	  if (field_param.randomdir_seed.IsSet())
-	  { 
-		  //DEBUG
-		  //srandom(field_param.randomdir_seed.Value()); 
-		  srand(field_param.randomdir_seed.Value()); 
-	  }
+    if (field_param.randomdir_seed.IsSet())
+      { srand(field_param.randomdir_seed.Value()); }
 
     for (int i = field_param.NumDirections(); i < num_objects; i++) {
       for (int d = 0; d < dimension; d++) {
-		  //DEBUG
-		  //long int x = random();
-		  long int x = rand();
-		  x = x%(NUM_GRAD_COORD);
+        long int x = rand();
+        x = x%(NUM_GRAD_COORD);
         x = x + MIN_GRAD_COORD;
         field_param.direction.push_back(x);
       }
@@ -2343,7 +2425,25 @@ void check_input_param(const int dimension)
       }
     }
   }
+}
 
+void check_param(const std::string & field_name)
+{
+  if (field_name == "cannon") {
+    const COORD_TYPE dist2center = field_param.dist2ball_center[0];
+    const COORD_TYPE dist2near0 = field_param.dist2near0[0];
+    const ANGLE_TYPE angle = field_param.angle[0];
+    const double angle_radians = (angle*M_PI)/180.0;
+
+    if ((dist2center - dist2near0) < sin(angle_radians)*dist2center) {
+      COORD_TYPE min_dist = dist2near0/(1-sin(angle_radians));
+      cerr << "Input error.  Ball center is too close to near clipping plane."
+           << endl;
+      cerr << "  Distance to ball center should be greater than " 
+           << min_dist << endl;
+      exit(71);
+    }
+  }
 }
 
 void check_field()
@@ -2496,7 +2596,7 @@ int get_field_index
     usage_error();
   }
 
-  if (!find_field_name(field_info, argv[iarg+1], ifield)) {
+  if (!find_geom_info_name(field_info, argv[iarg+1], ifield)) {
     cerr << "Illegal field name: " << argv[iarg+1] << endl;
     exit(51);
   }
@@ -2651,6 +2751,19 @@ void parse_command_line(const int argc, char **argv)
       field_param.dist2far0.push_back(x2);
       iarg = iarg+2;
     }
+    else if (s == "-clip_near") {
+      float x = get_float(iarg, argc, argv);
+      field_param.dist2near0.push_back(x);
+      iarg++;
+    }
+    else if (s == "-dist2center") {
+      float x = get_float(iarg, argc, argv);
+      field_param.dist2ball_center.push_back(x);
+      iarg++;
+    }
+    else if (s == "-smooth_tip") {
+      field_param.flag_smooth_tip = true;
+    }
     else if (s == "-seed") {
       int x = get_int(iarg, argc, argv);
       field_param.random_seed.Set(x);
@@ -2710,11 +2823,12 @@ void usage_msg()
   cerr << "  [-center \"<coord>\" | -grid_center | -randompos <S>]" << endl;
   cerr << "  [-dir \"<coord>\" | -randomdir <S>]" << endl;
   cerr << "  [-side_dir \"<coord>\"] [-rot_dir \"<coord>\"]" << endl;
-  cerr << "  [-radius <x>] [-length_diff <x>] [-angle <A>] [-clip0 <N> <F>]" 
-       << endl;
+  cerr << "  [-radius <x>] [-length_diff <x>] [-angle <A>]" << endl;
+  cerr << "  [-clip0 <N> <F>] [-clip_near <N>] [-dist2center <D>]" << endl;
   cerr << "  [-flange | -flange_wh <W> <H>] [-wedge | wedge_angle <A>]" 
        << endl;
   cerr << "  [-wedge_isovalue <S>]" << endl;
+  cerr << "  [-smooth_tip]" << endl;
   cerr << "  [-normal \"<coord>\"] [-translate \"<coord>\"]" << endl;
   cerr << "  [-disc_zero] [-disc_select]" << endl;
   cerr << "  [-spacing \"<space_coord>\"]" << endl;
@@ -2768,6 +2882,10 @@ void help_msg()
        << "                    to near clipping plane to <N>." << endl
        << "                  Set distance to far clipping plane to <F>." 
        << endl;
+  cerr << "  -clip_near <N>: Set distance from isovalue 0 cannon apex" << endl
+       << "                    to near clipping plane to <N>." << endl;
+  cerr << "  -dist2center <D>: Set distance from cannon apex to ball center."
+       << endl;
   cerr << "  -flange: Add flange to object." << endl;
   cerr << "  -flange_wh <W> <H>: Set flange width to <W> and height to <H>."
        << endl;
@@ -2777,6 +2895,7 @@ void help_msg()
        << "                       through the center to <S>." << endl;
   cerr << "     Note: This determines how the wedge intersects objects."
        << endl;
+  cerr << "  -smooth_tip : Smooth the cone tip." << endl;
   cerr << "  -normal \"<coord>\": Set plane normals to given coordinates." 
        << endl;
   cerr << "  -translate \"<coord>\": Set stack translation vector to given coordinates." 
