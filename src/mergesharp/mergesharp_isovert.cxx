@@ -2085,6 +2085,39 @@ void swap_isovert_positions
               (grid, gcubeA_index, gcubeB_index, isovert);
           }
         }
+        else if (isovert.NumEigenvalues(gcubeA_index) >
+                 isovert.NumEigenvalues(gcubeB_index)) {
+
+          // Set sharp corner or edge in gcubeB_index from gcube_index.
+            MSDEBUG();
+            if (flag_debug) {
+              grid.PrintIndexAndCoord
+                (cerr, "*** Setting cube: ", conflicting_cube, "");
+              grid.PrintIndexAndCoord
+                (cerr, " from ", isovert.CubeIndex(gcubeA_index), "\n");
+              cerr << "    NumEigenvalues(" << gcubeA_index << ") "
+                   << isovert.NumEigenvalues(gcubeA_index) << endl;
+              cerr << "    NumEigenvalues(" << gcubeB_index << ") "
+                   << isovert.NumEigenvalues(gcubeB_index) << endl;
+              cerr << "    Cube: " << conflicting_cube;
+              cerr << "  old isovert_coord: ";
+              IJK::print_coord3D
+                (cerr, isovert.gcube_list[gcubeB_index].isovert_coord, "\n");
+            }
+
+            copy_isovert_position
+              (grid, gcubeA_index, gcubeB_index, isovert);
+
+            if (flag_debug) {
+              cerr << "  new isovert_coord: ";
+              IJK::print_coord3D
+                (cerr, isovert.gcube_list[gcubeB_index].isovert_coord, "  ");
+              cerr << "  linf_dist: "
+                   << isovert.gcube_list[gcubeB_index].linf_dist << endl;
+              
+            }
+
+        }
       }
       else {
         // Should never happen, but...
@@ -2865,6 +2898,7 @@ void GRID_CUBE_DATA::Init()
   flag_recomputed_coord_min_offset = false;
   flag_recomputed_using_adjacent = false;
   flag_far = false;
+  flag_ignore_mismatch = false;
   cube_containing_isovert = 0;
   table_index = 0;
   covered_by = 0;

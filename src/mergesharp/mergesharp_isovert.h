@@ -112,6 +112,9 @@ public:
   /// If true, svd coord were farther than max_dist.
   bool flag_far;
 
+  /// If true, cube is selected despite mismatch.
+  bool flag_ignore_mismatch;
+
   /// Index of cube configuration is isosurface lookup table.
   IJKDUALTABLE::TABLE_INDEX table_index;
 
@@ -150,9 +153,14 @@ public:
 
     if (num_eigen_i == num_eigen_j) {
 
+      /* OBSOLETE
       int flag_i = int(gcube_list->at(i).flag_coord_from_other_cube);
       int flag_j = int(gcube_list->at(j).flag_coord_from_other_cube);
+      */
 
+      return ((gcube_list->at(i).linf_dist) < (gcube_list->at(j).linf_dist)); 
+
+      /* OBSOLETE
       if (flag_i == flag_j) {
         return ((gcube_list->at(i).linf_dist) < (gcube_list->at(j).linf_dist)); 
       }
@@ -160,6 +168,7 @@ public:
         // Process first cubes which generated their own iso vertices.
         return ((flag_i < flag_j));
       }
+      */
     }
     else {
       return ((num_eigen_i > num_eigen_j));

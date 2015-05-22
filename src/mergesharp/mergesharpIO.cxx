@@ -280,31 +280,6 @@ namespace {
          << endl;
   }
 
-  /* OBSOLETE
-  void set_min_dist
-  (const std::vector<GRID_COORD_TYPE> & min_dist,
-   INPUT_INFO & input_info)
-  {
-    // Initialize input_info.min_distance[0].
-    input_info.min_distance[0] = 4;
-    input_info.min_distance[1] = 2;
-    input_info.min_distance[2] = 2;
-
-    if (min_dist.size() == 1) {
-      for (int d = 1; d < DIM3; d++)
-        { input_info.min_distance[d] = min_dist[0]; }
-    }
-    else if (min_dist.size() == 2) {
-      for (int d = 1; d < DIM3; d++)
-        { input_info.min_distance[d] = min_dist[d-1]; }
-    }
-    else {
-      for (int d = 0; d < DIM3; d++)
-        { input_info.min_distance[d] = min_dist[d]; }
-    }
-  }
-  */
-
   // Set output neighbors flags.
   void set_output_neighbors_flags
   (const char * option, const char * value_string, INPUT_INFO & input_info)
@@ -1569,18 +1544,6 @@ void find_closest_opposite
   }
 }
 
-/* OBSOLETE
-bool is_far(const GRID_COORD_TYPE dist[DIM3], 
-            const GRID_COORD_TYPE min_distance[DIM3])
-{
-  for (int d = 0; d < DIM3; d++) {
-    if (dist[d] >= min_distance[d])
-      { return(true); }
-  }
-
-  return(false);
-}
-*/
 
 // Return true if distance matches one of the output neighbor flags.
 bool matches_output_neighbor_flag
@@ -2107,6 +2070,10 @@ void report_isovert_cube_info
     { cout << "Coord from vertex.  "; }
   else if (isovert.gcube_list[gcube_index].flag_coord_from_edge)
     { cout << "Coord from edge.  "; }
+
+  if (isovert.gcube_list[gcube_index].flag_ignore_mismatch) 
+    { cout << "Mismatch ignored.  ";  }
+
   cout << "Isotable index: " 
        << int(isovert.gcube_list[gcube_index].table_index);
   cout << endl;
