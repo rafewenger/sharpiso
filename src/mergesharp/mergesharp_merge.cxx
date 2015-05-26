@@ -126,7 +126,6 @@ namespace {
 
 	void extend_mapping
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX extend_from_cube,
    const VERTEX_INDEX to_cube,
@@ -142,7 +141,6 @@ namespace {
 
 	void extend_mapping_corner_cube
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const BIN_GRID<VERTEX_INDEX> & bin_grid,
    const AXIS_SIZE_TYPE bin_width,
    const SCALAR_TYPE isovalue,
@@ -152,7 +150,6 @@ namespace {
 
 	void extend_mapping_near_corner_cube
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX extend_from_cube,
    const VERTEX_INDEX to_cube,
@@ -170,7 +167,6 @@ namespace {
 
 	void extend_mapping_corner_cube_multi
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const BIN_GRID<VERTEX_INDEX> & bin_grid,
@@ -182,7 +178,6 @@ namespace {
 
 	void extend_mapping_near_corner_cube_multi
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -191,7 +186,7 @@ namespace {
    MERGESHARP::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
-	void extend_map_adjacent_pairs
+	void extend_map_adjacent_pairs_covered
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
@@ -200,7 +195,7 @@ namespace {
    const std::vector<NUM_TYPE> & sharp_gcube_list,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
-	void extend_map_adjacent_pairs
+	void extend_map_adjacent_pairs_covered
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
@@ -774,7 +769,6 @@ namespace {
 
 		const NUM_TYPE num_gcube = isovert.gcube_list.size();
 		VERTEX_INDEX cube_index, neighbor_index;
-		SHARPISO_GRID_NEIGHBORS gridn;
 
     // Initialize
 		for (NUM_TYPE i = 0; i < num_gcube; i++)
@@ -1027,7 +1021,6 @@ namespace {
   ///   where one vertex maps to to_cube and the other does not.
   void count_edge_mappings_around_cube
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX cube0_index,
    const VERTEX_INDEX to_cube,
@@ -1054,14 +1047,17 @@ namespace {
           for (int j2 = 0; j2 < 2; j2++) {
 
             VERTEX_INDEX iend0 = 
-              cube0_index + j1*grid.AxisIncrement(d1) 
-              + j2*grid.AxisIncrement(d2);
-            VERTEX_INDEX iend1 = grid.NextVertex(iend0, edge_dir);
+              cube0_index + j1*isovert.grid.AxisIncrement(d1) 
+              + j2*isovert.grid.AxisIncrement(d2);
+            VERTEX_INDEX iend1 = isovert.grid.NextVertex(iend0, edge_dir);
 
             if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
-              VERTEX_INDEX iv1 = grid.AdjacentVertex(cube0_index, d1, j1);
-              VERTEX_INDEX iv2 = grid.AdjacentVertex(cube0_index, d2, j2);
-              VERTEX_INDEX iv3 = grid.AdjacentVertex(iv1, d2, j2);
+              VERTEX_INDEX iv1 = 
+                isovert.grid.AdjacentVertex(cube0_index, d1, j1);
+              VERTEX_INDEX iv2 = 
+                isovert.grid.AdjacentVertex(cube0_index, d2, j2);
+              VERTEX_INDEX iv3 = 
+                isovert.grid.AdjacentVertex(iv1, d2, j2);
 
               bool flag_v1 = 
                 does_cube_map_to(isovert, gcube_map, iv1, to_cube);
@@ -1069,31 +1065,6 @@ namespace {
                 does_cube_map_to(isovert, gcube_map, iv2, to_cube);
               bool flag_v3 = 
                 does_cube_map_to(isovert, gcube_map, iv3, to_cube);
-
-              // *** DEBUG ***
-              /*
-              using namespace std;
-              if (flag_debug) {
-                cerr << "Cube: " << cube0_index << " ";
-                ijkgrid_output_vertex_coord(cerr, grid, cube0_index);
-                cerr << " edge_dir: " << edge_dir << endl;
-                cerr << "    end0: " << iend0 << " ";
-                ijkgrid_output_vertex_coord(cerr, grid, iend0);
-                cerr << "    end1: " << iend1 << " ";
-                ijkgrid_output_vertex_coord(cerr, grid, iend1);
-                cerr << endl;
-                cerr << " v1: " << iv1 << " ";
-                ijkgrid_output_vertex_coord(cerr, grid, iv1);
-                cerr << "  flag_v1: " << int(flag_v1);
-                cerr << " v2: " << iv2 << " ";
-                ijkgrid_output_vertex_coord(cerr, grid, iv2);
-                cerr << "  flag_v2: " << int(flag_v2);
-                cerr << " v3: " << iv3 << " ";
-                ijkgrid_output_vertex_coord(cerr, grid, iv3);
-                cerr << "  flag_v3: " << int(flag_v3);
-                cerr << endl;
-              }
-              */
 
               if (flag_v1 != flag_v3) { num_count++; }
               if (flag_v2 != flag_v3) { num_count++; }
@@ -1107,7 +1078,6 @@ namespace {
   /// Returns true if mapping of adjacent cubes causes possible non-manifold.
   bool check_adjacent_cubes
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX cube0_index,
    const MERGESHARP::ISOVERT & isovert, 
@@ -1118,17 +1088,16 @@ namespace {
 
       NUM_TYPE num_count;
       count_edge_mappings_around_cube
-        (scalar_grid, grid, isovalue, cube0_index, connected_sharp[i],
+        (scalar_grid, isovalue, cube0_index, connected_sharp[i],
          isovert, gcube_map, num_count);
 
       MSDEBUG();
       if (flag_debug) {
         using namespace std;
         if (num_count > 2) {
-          cerr << "Around cube: " << cube0_index << " ";
-          ijkgrid_output_vertex_coord(cerr, grid, cube0_index);
-          cerr << " to cube " << connected_sharp[i];
-          ijkgrid_output_vertex_coord(cerr, grid, connected_sharp[i]);
+          scalar_grid.PrintIndexAndCoord
+            (cerr,  "Around cube: ", cube0_index, 
+             " to cube ", connected_sharp[i], "");
           cerr << "  num edges mappings: " << num_count << endl;
         }
       }
@@ -2353,7 +2322,7 @@ namespace {
 
 		if (flag_map_extended) {
 
-      extend_map_adjacent_pairs
+      extend_map_adjacent_pairs_covered
         (scalar_grid, isodual_table, ambig_info, isovalue,
          isovert, gcube_map);
 
@@ -3928,28 +3897,24 @@ namespace {
   // forward declaraions
 	void check_face_neighbors_near_corner_cube(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX covered_gcube_index,
 		MERGESHARP::ISOVERT & isovert,
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 	void check_edge_neighbors_near_corner_cube(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX covered_gcube_index,
 		MERGESHARP::ISOVERT & isovert,
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 	void check_vertex_neighbors_near_corner_cube(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX covered_gcube_index,
 		MERGESHARP::ISOVERT & isovert,
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 	void check_extended_corner_cube_and_map
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX from_cube,
    const VERTEX_INDEX to_cube,
@@ -3963,7 +3928,6 @@ namespace {
   /// @param to_cube Extend mapping to cube to_cube.
 	void extend_mapping_near_corner_cube
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX extend_from_cube,
    const VERTEX_INDEX to_cube,
@@ -3995,20 +3959,20 @@ namespace {
         using namespace std;
         if (flag_debug) { cerr << "  Checking face neighbors." << endl; }
         check_face_neighbors_near_corner_cube
-          (scalar_grid, grid, isovalue, extend_from_gcube, isovert, gcube_map);
+          (scalar_grid, isovalue, extend_from_gcube, isovert, gcube_map);
 
         // *** DEBUG ***
         using namespace std;
         if (flag_debug) { cerr << "  Checking edge neighbors." << endl; }
         check_edge_neighbors_near_corner_cube
-          (scalar_grid, grid, isovalue, extend_from_gcube, isovert, gcube_map);
+          (scalar_grid, isovalue, extend_from_gcube, isovert, gcube_map);
 
 
         // *** DEBUG ***
         using namespace std;
         if (flag_debug) { cerr << "  Checking vertex neighbors." << endl; }
         check_vertex_neighbors_near_corner_cube
-          (scalar_grid, grid, isovalue, extend_from_gcube, isovert, gcube_map);
+          (scalar_grid, isovalue, extend_from_gcube, isovert, gcube_map);
       }
     }
 
@@ -4024,7 +3988,6 @@ namespace {
 	{
     const int bin_width = isovert_param.bin_width;
     std::vector<NUM_TYPE> sharp_gcube_list;
-		SHARPISO_GRID_NEIGHBORS grid(scalar_grid);
     BIN_GRID<VERTEX_INDEX> bin_grid;
 
     // *** DEBUG ***
@@ -4047,7 +4010,7 @@ namespace {
           VERTEX_INDEX corner_cube_index = isovert.CubeIndex(gcube_index);
 
           extend_mapping_corner_cube
-            (scalar_grid, grid, bin_grid, bin_width, isovalue,
+            (scalar_grid, bin_grid, bin_width, isovalue,
              corner_cube_index, isovert, gcube_map);
         }
       }
@@ -4177,7 +4140,6 @@ namespace {
   /// Extend mapping of isosurface vertices to corner cube.
 	void extend_mapping_corner_cube
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const BIN_GRID<VERTEX_INDEX> & bin_grid,
    const AXIS_SIZE_TYPE bin_width,
    const SCALAR_TYPE isovalue,
@@ -4195,7 +4157,7 @@ namespace {
       isovert.gcube_list[corner_gcube_index].cube_coord;
 
     construct_extended_corner_cube_region
-      (grid, bin_grid, bin_width, isovert, corner_cube_index, region);
+      (isovert.grid, bin_grid, bin_width, isovert, corner_cube_index, region);
 
     // *** DEBUG ***
     using namespace std;
@@ -4216,7 +4178,7 @@ namespace {
           corner_cube_index + scalar_grid.AxisIncrement(d);
 
         extend_mapping_near_corner_cube
-          (scalar_grid, grid, isovalue, neighbor_cube_index,
+          (scalar_grid, isovalue, neighbor_cube_index,
            corner_cube_index, isovert, gcube_map);
       }
 
@@ -4225,7 +4187,7 @@ namespace {
           corner_cube_index - scalar_grid.AxisIncrement(d);
 
         extend_mapping_near_corner_cube
-          (scalar_grid, grid, isovalue, neighbor_cube_index,
+          (scalar_grid, isovalue, neighbor_cube_index,
            corner_cube_index, isovert, gcube_map);
       }
     }
@@ -4238,7 +4200,7 @@ namespace {
           corner_cube_index + scalar_grid.AxisIncrement(d);
 
         extend_mapping_near_corner_cube
-          (scalar_grid, grid, isovalue, neighbor_cube_index,
+          (scalar_grid, isovalue, neighbor_cube_index,
            corner_cube_index, isovert, gcube_map);
       }
 
@@ -4247,7 +4209,7 @@ namespace {
           corner_cube_index - scalar_grid.AxisIncrement(d);
 
         extend_mapping_near_corner_cube
-          (scalar_grid, grid, isovalue, neighbor_cube_index,
+          (scalar_grid, isovalue, neighbor_cube_index,
            corner_cube_index, isovert, gcube_map);
       }
     }
@@ -4261,7 +4223,6 @@ namespace {
 	*/
 	void check_face_neighbors_near_corner_cube(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX covered_gcube_index,
     MERGESHARP::ISOVERT & isovert,
@@ -4274,12 +4235,12 @@ namespace {
     bool flag_map;
 
 		VERTEX_INDEX neighbor_cube_index;
-		for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsF(); j++) 
+		for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsF(); j++) 
 		{
-			neighbor_cube_index = gridn.CubeNeighborF(covered_cube_index, j);
+			neighbor_cube_index = isovert.grid.CubeNeighborF(covered_cube_index, j);
 
       check_extended_corner_cube_and_map
-        (scalar_grid, gridn, isovalue, neighbor_cube_index, 
+        (scalar_grid, isovalue, neighbor_cube_index, 
          to_cube, isovert, gcube_map, flag_map);
 		}
 	}
@@ -4291,7 +4252,6 @@ namespace {
 	*/
 	void check_edge_neighbors_near_corner_cube(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS &gridn,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX covered_gcube_index,
     MERGESHARP::ISOVERT & isovert,
@@ -4304,12 +4264,12 @@ namespace {
     bool flag_map;
 
 		VERTEX_INDEX neighbor_cube_index;
-		for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsE(); j++) 
+		for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsE(); j++) 
 		{
-			neighbor_cube_index = gridn.CubeNeighborE(covered_cube_index, j);
+			neighbor_cube_index = isovert.grid.CubeNeighborE(covered_cube_index, j);
 
       check_extended_corner_cube_and_map
-        (scalar_grid, gridn, isovalue, neighbor_cube_index, 
+        (scalar_grid, isovalue, neighbor_cube_index, 
          to_cube, isovert, gcube_map, flag_map);
 		}
 	}
@@ -4321,7 +4281,6 @@ namespace {
 	*/
 	void check_vertex_neighbors_near_corner_cube(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX covered_gcube_index,
 		MERGESHARP::ISOVERT & isovert,
@@ -4334,18 +4293,19 @@ namespace {
     bool flag_map;
 
 		VERTEX_INDEX neighbor_cube_index;
-		for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsV(); j++) 
+		for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsV(); j++) 
 		{
-			neighbor_cube_index = gridn.CubeNeighborV(covered_cube_index, j);
+			neighbor_cube_index = isovert.grid.CubeNeighborV(covered_cube_index, j);
 
       // *** DEBUG ***
       if (flag_debug) {
-        using namespace std;
-        gridn.PrintIndexAndCoord(cerr, "  Checking ", neighbor_cube_index, "\n");
+        MSDEBUG();
+        scalar_grid.PrintIndexAndCoord
+          (cerr, "  Checking ", neighbor_cube_index, "\n");
       }
 
       check_extended_corner_cube_and_map
-        (scalar_grid, gridn, isovalue, neighbor_cube_index, 
+        (scalar_grid, isovalue, neighbor_cube_index, 
          to_cube, isovert, gcube_map, flag_map);
 		}
 	}
@@ -4353,7 +4313,6 @@ namespace {
   /// Check extended mapping from corner_cube and map from cube from_cube to cube to_cube.
 	void check_extended_corner_cube_and_map
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX from_cube,
    const VERTEX_INDEX to_cube,
@@ -4382,11 +4341,8 @@ namespace {
     // *** DEBUG ***
     using namespace std;
     if (flag_debug) {
-      cerr << "*** Checking mapping from " << from_cube << " ";
-      ijkgrid_output_vertex_coord(cerr, grid, from_cube);
-      cerr << " to " << to_cube << " ";
-      ijkgrid_output_vertex_coord(cerr, grid, to_cube);
-      cerr << endl;
+      scalar_grid.PrintIndexAndCoord
+        (cerr, "*** Checking mapping from ", from_cube, " to " , to_cube, "\n");
     }
 
     if (!is_corner_cube_merge_permitted
@@ -4410,7 +4366,7 @@ namespace {
 		find_connected_sharp(scalar_grid, isovalue, from_cube, isovert, 
                          gcube_map, connected_sharp);
 
-    if (!check_adjacent_cubes(scalar_grid, grid, isovalue, from_cube,
+    if (!check_adjacent_cubes(scalar_grid, isovalue, from_cube,
                               isovert, gcube_map, connected_sharp))
       { 
         /// *** DEBUG ***
@@ -4453,7 +4409,6 @@ namespace {
   // forward declaraion
 	void check_face_neighbors_near_corner_cube_multi(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
 		const SCALAR_TYPE isovalue,
@@ -4462,7 +4417,6 @@ namespace {
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 	void check_edge_neighbors_near_corner_cube_multi(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
 		const SCALAR_TYPE isovalue,
@@ -4471,7 +4425,6 @@ namespace {
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 	void check_vertex_neighbors_near_corner_cube_multi(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
 		const SCALAR_TYPE isovalue,
@@ -4480,7 +4433,6 @@ namespace {
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 	void extend_mapping_corner_region_multi
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const BIN_GRID<VERTEX_INDEX> & bin_grid,
@@ -4492,7 +4444,6 @@ namespace {
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 	void extend_mapping_corner_cube_across_facets_multi
   ( const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & grid,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
 		const SCALAR_TYPE isovalue,
@@ -4514,7 +4465,6 @@ namespace {
 	{
     const int bin_width = isovert_param.bin_width;
     std::vector<NUM_TYPE> sharp_gcube_list;
-		SHARPISO_GRID_NEIGHBORS grid(scalar_grid);
     BIN_GRID<VERTEX_INDEX> bin_grid;
 
     // *** DEBUG ***
@@ -4537,7 +4487,7 @@ namespace {
           VERTEX_INDEX corner_cube_index = isovert.CubeIndex(gcube_index);
 
           extend_mapping_corner_cube_multi
-            (scalar_grid, grid, isodual_table, ambig_info, 
+            (scalar_grid, isodual_table, ambig_info, 
              bin_grid, bin_width, isovalue, corner_cube_index, 
              isovert, gcube_map);
         }
@@ -4548,7 +4498,6 @@ namespace {
   /// Extend mapping of isosurface vertices to corner cube.
 	void extend_mapping_corner_cube_multi
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const BIN_GRID<VERTEX_INDEX> & bin_grid,
@@ -4568,7 +4517,7 @@ namespace {
       isovert.gcube_list[corner_gcube_index].cube_coord;
 
     construct_extended_corner_cube_region
-      (grid, bin_grid, bin_width, isovert, corner_cube_index, region);
+      (isovert.grid, bin_grid, bin_width, isovert, corner_cube_index, region);
 
     // *** DEBUG ***
     using namespace std;
@@ -4583,19 +4532,18 @@ namespace {
     }
 
     extend_mapping_corner_region_multi
-      (scalar_grid, grid, isodual_table, ambig_info, bin_grid, bin_width, 
+      (scalar_grid, isodual_table, ambig_info, bin_grid, bin_width, 
        isovalue, corner_cube_index, region, isovert, gcube_map);
 
     // Try again.
     extend_mapping_corner_region_multi
-      (scalar_grid, grid, isodual_table, ambig_info, bin_grid, bin_width, 
+      (scalar_grid, isodual_table, ambig_info, bin_grid, bin_width, 
        isovalue, corner_cube_index, region, isovert, gcube_map);
   }
 
   /// Extend mapping of isosurface vertices in region to corner cube.
 	void extend_mapping_corner_region_multi
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const BIN_GRID<VERTEX_INDEX> & bin_grid,
@@ -4614,30 +4562,33 @@ namespace {
     const GRID_COORD_TYPE * corner_cube_coord = 
       isovert.gcube_list[corner_gcube_index].cube_coord;
 
-    for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsF(); j++) {
+    for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsF(); j++) {
 
-      VERTEX_INDEX extend_from_cube = grid.CubeNeighborF(corner_cube_index, j);
+      VERTEX_INDEX extend_from_cube = 
+        isovert.grid.CubeNeighborF(corner_cube_index, j);
 
       extend_mapping_corner_cube_across_facets_multi
-        (scalar_grid, grid, isodual_table, ambig_info, isovalue, 
+        (scalar_grid, isodual_table, ambig_info, isovalue, 
          extend_from_cube, region, isovert, gcube_map);
     }
 
-    for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsE(); j++) {
+    for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsE(); j++) {
 
-      VERTEX_INDEX extend_from_cube = grid.CubeNeighborE(corner_cube_index, j);
+      VERTEX_INDEX extend_from_cube = 
+        isovert.grid.CubeNeighborE(corner_cube_index, j);
 
       extend_mapping_corner_cube_across_facets_multi
-        (scalar_grid, grid, isodual_table, ambig_info, isovalue, 
+        (scalar_grid, isodual_table, ambig_info, isovalue, 
          extend_from_cube, region, isovert, gcube_map);
     }
 
-    for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsV(); j++) {
+    for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsV(); j++) {
 
-      VERTEX_INDEX extend_from_cube = grid.CubeNeighborV(corner_cube_index, j);
+      VERTEX_INDEX extend_from_cube = 
+        isovert.grid.CubeNeighborV(corner_cube_index, j);
 
       extend_mapping_corner_cube_across_facets_multi
-        (scalar_grid, grid, isodual_table, ambig_info, isovalue, 
+        (scalar_grid, isodual_table, ambig_info, isovalue, 
          extend_from_cube, region, isovert, gcube_map);
     }
 
@@ -4649,7 +4600,6 @@ namespace {
   /// @param to_cube Extend mapping to cube to_cube.
 	void extend_mapping_near_corner_cube_multi
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
@@ -4683,21 +4633,21 @@ namespace {
         using namespace std;
         if (flag_debug) { cerr << "  Checking face neighbors." << endl; }
         check_face_neighbors_near_corner_cube_multi
-          (scalar_grid, grid, isodual_table, ambig_info, isovalue, 
+          (scalar_grid, isodual_table, ambig_info, isovalue, 
            extend_from_gcube, isovert, gcube_map);
 
         // *** DEBUG ***
         using namespace std;
         if (flag_debug) { cerr << "  Checking edge neighbors." << endl; }
         check_edge_neighbors_near_corner_cube_multi
-          (scalar_grid, grid, isodual_table, ambig_info, isovalue, 
+          (scalar_grid, isodual_table, ambig_info, isovalue, 
            extend_from_gcube, isovert, gcube_map);
 
         // *** DEBUG ***
         using namespace std;
         if (flag_debug) { cerr << "  Checking vertex neighbors." << endl; }
         check_vertex_neighbors_near_corner_cube_multi
-          (scalar_grid, grid, isodual_table, ambig_info, isovalue, 
+          (scalar_grid, isodual_table, ambig_info, isovalue, 
            extend_from_gcube, isovert, gcube_map);
       }
     }
@@ -4708,7 +4658,6 @@ namespace {
   /// Extend corner cube mapping across facets.
 	void extend_mapping_corner_cube_across_facets_multi
   ( const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & grid,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
 		const SCALAR_TYPE isovalue,
@@ -4727,9 +4676,10 @@ namespace {
 
     if (isovert.gcube_list[extend_from_gcube].boundary_bits == 0) {
 
-      for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsF(); j++) {
+      for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsF(); j++) {
 
-        VERTEX_INDEX from_cube = grid.CubeNeighborF(extend_from_cube, j);
+        VERTEX_INDEX from_cube = 
+          isovert.grid.CubeNeighborF(extend_from_cube, j);
         INDEX_DIFF_TYPE from_gcube = isovert.GCubeIndex(from_cube);
 
         if (from_gcube == ISOVERT::NO_INDEX) { continue; }
@@ -4737,7 +4687,7 @@ namespace {
         if (region.Contains(isovert.gcube_list[from_gcube].cube_coord)) {
 
           check_extended_corner_cube_and_map
-            (scalar_grid, grid, isovalue, from_cube, to_cube, isovert,
+            (scalar_grid, isovalue, from_cube, to_cube, isovert,
              gcube_map, flag_map);
 
           if (!flag_map) {
@@ -4760,7 +4710,6 @@ namespace {
 	*/
 	void check_face_neighbors_near_corner_cube_multi(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
 		const SCALAR_TYPE isovalue,
@@ -4774,12 +4723,13 @@ namespace {
     VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
     bool flag_map;
 
-		for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsF(); j++) 
+		for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsF(); j++) 
 		{
-			VERTEX_INDEX from_cube = gridn.CubeNeighborF(covered_cube_index, j);
+			VERTEX_INDEX from_cube = 
+        isovert.grid.CubeNeighborF(covered_cube_index, j);
 
       check_extended_corner_cube_and_map
-        (scalar_grid, gridn, isovalue, from_cube, to_cube, isovert,
+        (scalar_grid, isovalue, from_cube, to_cube, isovert,
          gcube_map, flag_map);
 
       if (!flag_map) {
@@ -4797,7 +4747,6 @@ namespace {
 	*/
 	void check_edge_neighbors_near_corner_cube_multi(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
 		const SCALAR_TYPE isovalue,
@@ -4811,12 +4760,13 @@ namespace {
     VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
     bool flag_map;
 
-		for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsE(); j++) 
+		for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsE(); j++) 
 		{
-			VERTEX_INDEX from_cube = gridn.CubeNeighborE(covered_cube_index, j);
+			VERTEX_INDEX from_cube = 
+        isovert.grid.CubeNeighborE(covered_cube_index, j);
 
       check_extended_corner_cube_and_map
-        (scalar_grid, gridn, isovalue, from_cube, to_cube, isovert,
+        (scalar_grid, isovalue, from_cube, to_cube, isovert,
          gcube_map, flag_map);
 
       if (!flag_map) {
@@ -4834,7 +4784,6 @@ namespace {
 	*/
 	void check_vertex_neighbors_near_corner_cube_multi(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
     const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
 		const SCALAR_TYPE isovalue,
@@ -4848,12 +4797,13 @@ namespace {
     VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
     bool flag_map;
 
-		for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsV(); j++) 
+		for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsV(); j++) 
 		{
-			VERTEX_INDEX from_cube = gridn.CubeNeighborV(covered_cube_index, j);
+			VERTEX_INDEX from_cube = 
+        isovert.grid.CubeNeighborV(covered_cube_index, j);
 
       check_extended_corner_cube_and_map
-        (scalar_grid, gridn, isovalue, from_cube, to_cube, isovert,
+        (scalar_grid, isovalue, from_cube, to_cube, isovert,
          gcube_map, flag_map);
 
       if (!flag_map) {
@@ -4877,28 +4827,24 @@ namespace {
   // forward declaraions
 	void check_face_neighbors(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX covered_gcube_index,
 		MERGESHARP::ISOVERT & isovert,
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 	void check_edge_neighbors(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX covered_gcube_index,
 		MERGESHARP::ISOVERT & isovert,
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 	void check_vertex_neighbors(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX covered_gcube_index,
 		MERGESHARP::ISOVERT & isovert,
 		std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 	void check_extended_and_map
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX from_cube,
    const VERTEX_INDEX to_cube,
@@ -4916,10 +4862,6 @@ namespace {
 		using namespace MERGESHARP;
 		const NUM_TYPE num_gcube = isovert.gcube_list.size();
 		VERTEX_INDEX cube_index_covered, neighbor_cube_index, neighbor_index;
-
-		SHARPISO_GRID_NEIGHBORS gridn;
-		// Set size of grid neighbors grid.
-		gridn.SetSize(isovert.index_grid);
 
 		//setup the  sharp_gcube_list
 		get_corner_or_edge_cubes(isovert.gcube_list, sharp_gcube_list);
@@ -4943,14 +4885,13 @@ namespace {
 					VERTEX_INDEX selected_cube_index= 
 						isovert.gcube_list[gcube_index].cube_index;
 
-					for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsF(); j++) 
+					for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsF(); j++) 
 					{
 						VERTEX_INDEX covered_cube_index = 
-              gridn.CubeNeighborF(selected_cube_index, j);
+              isovert.grid.CubeNeighborF(selected_cube_index, j);
 
-            extend_mapping(scalar_grid, gridn, isovalue,
-                           covered_cube_index, selected_cube_index, 
-                           isovert, gcube_map);
+            extend_mapping(scalar_grid, isovalue, covered_cube_index, 
+                           selected_cube_index, isovert, gcube_map);
 					}
 				}
 			}
@@ -4970,14 +4911,13 @@ namespace {
 					VERTEX_INDEX selected_cube_index= 
 						isovert.gcube_list[gcube_index].cube_index;
 
-					for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsE(); j++) 
+					for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsE(); j++) 
 					{
 						VERTEX_INDEX covered_cube_index = 
-              gridn.CubeNeighborE(selected_cube_index, j);
+              isovert.grid.CubeNeighborE(selected_cube_index, j);
 
-            extend_mapping(scalar_grid, gridn, isovalue,
-                           covered_cube_index, selected_cube_index, 
-                           isovert, gcube_map);
+            extend_mapping(scalar_grid, isovalue, covered_cube_index, 
+                           selected_cube_index, isovert, gcube_map);
 					}
 				}
 			}
@@ -4999,14 +4939,13 @@ namespace {
 					VERTEX_INDEX selected_cube_index= 
 						isovert.gcube_list[gcube_index].cube_index;
 
-					for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsV(); j++) 
+					for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsV(); j++) 
 					{
 						VERTEX_INDEX covered_cube_index = 
-              gridn.CubeNeighborV(selected_cube_index, j);
+              isovert.grid.CubeNeighborV(selected_cube_index, j);
 
-            extend_mapping(scalar_grid, gridn, isovalue,
-                           covered_cube_index, selected_cube_index, 
-                           isovert, gcube_map);
+            extend_mapping(scalar_grid, isovalue, covered_cube_index, 
+                           selected_cube_index, isovert, gcube_map);
 					}
 				}
 			}
@@ -5018,7 +4957,6 @@ namespace {
   /// @param to_cube Extend mapping to cube to_cube.
 	void extend_mapping
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX extend_from_cube,
    const VERTEX_INDEX to_cube,
@@ -5037,11 +4975,11 @@ namespace {
 
       if (isovert.gcube_list[extend_from_gcube].boundary_bits == 0) {
         check_face_neighbors
-          (scalar_grid, grid, isovalue, extend_from_gcube, isovert, gcube_map);
+          (scalar_grid, isovalue, extend_from_gcube, isovert, gcube_map);
         check_edge_neighbors
-          (scalar_grid, grid, isovalue, extend_from_gcube, isovert, gcube_map);
+          (scalar_grid, isovalue, extend_from_gcube, isovert, gcube_map);
         check_vertex_neighbors
-          (scalar_grid, grid, isovalue, extend_from_gcube, isovert, gcube_map);
+          (scalar_grid, isovalue, extend_from_gcube, isovert, gcube_map);
       }
     }
 
@@ -5054,7 +4992,6 @@ namespace {
 	*/
 	void check_face_neighbors(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX covered_gcube_index,
 		MERGESHARP::ISOVERT & isovert,
@@ -5066,12 +5003,12 @@ namespace {
     VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
 
 		VERTEX_INDEX neighbor_cube_index;
-		for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsF(); j++) 
+		for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsF(); j++) 
 		{
-			neighbor_cube_index = gridn.CubeNeighborF(covered_cube_index, j);
+			neighbor_cube_index = isovert.grid.CubeNeighborF(covered_cube_index, j);
 
       check_extended_and_map
-        (scalar_grid, gridn, isovalue, neighbor_cube_index, 
+        (scalar_grid, isovalue, neighbor_cube_index, 
          to_cube, isovert, gcube_map);
 		}
 	}
@@ -5083,7 +5020,6 @@ namespace {
 	*/
 	void check_edge_neighbors(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS &gridn,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX covered_gcube_index,
 		MERGESHARP::ISOVERT & isovert,
@@ -5095,12 +5031,12 @@ namespace {
     VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
 
 		VERTEX_INDEX neighbor_cube_index;
-		for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsE(); j++) 
+		for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsE(); j++) 
 		{
-			neighbor_cube_index = gridn.CubeNeighborE(covered_cube_index, j);
+			neighbor_cube_index = isovert.grid.CubeNeighborE(covered_cube_index, j);
 
       check_extended_and_map
-        (scalar_grid, gridn, isovalue, neighbor_cube_index, 
+        (scalar_grid, isovalue, neighbor_cube_index, 
          to_cube, isovert, gcube_map);
 		}
 	}
@@ -5112,7 +5048,6 @@ namespace {
 	*/
 	void check_vertex_neighbors(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
-		const SHARPISO_GRID_NEIGHBORS & gridn,
 		const SCALAR_TYPE isovalue,
 		const VERTEX_INDEX covered_gcube_index,
 		MERGESHARP::ISOVERT & isovert,
@@ -5124,19 +5059,19 @@ namespace {
     VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
 
 		VERTEX_INDEX neighbor_cube_index;
-		for (NUM_TYPE j = 0; j < gridn.NumCubeNeighborsV(); j++) 
+		for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsV(); j++) 
 		{
-			neighbor_cube_index = gridn.CubeNeighborV(covered_cube_index, j);
+			neighbor_cube_index = isovert.grid.CubeNeighborV(covered_cube_index, j);
 
       check_extended_and_map
-        (scalar_grid, gridn, isovalue, neighbor_cube_index, 
+        (scalar_grid, isovalue, neighbor_cube_index, 
          to_cube, isovert, gcube_map);
 		}
 	}
 
   /// Extend mapping of pairs of adjacent cubes.
   /// One cube is covered while the other may not be covered.
-	void extend_map_adjacent_pairs
+	void extend_map_adjacent_pairs_covered
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
@@ -5194,7 +5129,7 @@ namespace {
   /// Extend mapping of pairs of adjacent cubes.
   /// One cube is covered while the other may not be covered.
   /// Version which creates sharp_gcube_list[].
-	void extend_map_adjacent_pairs
+	void extend_map_adjacent_pairs_covered
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
@@ -5206,7 +5141,7 @@ namespace {
 
 		get_corner_or_edge_cubes(isovert.gcube_list, sharp_gcube_list);
 
-    extend_map_adjacent_pairs
+    extend_map_adjacent_pairs_covered
       (scalar_grid, isodual_table, ambig_info, isovalue, isovert, 
        sharp_gcube_list, gcube_map);
   }
@@ -6631,7 +6566,6 @@ namespace {
   /// Check extended mapping and map from cube from_cube to cube to_cube.
 	void check_extended_and_map
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SHARPISO_GRID_NEIGHBORS & grid,
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX from_cube,
    const VERTEX_INDEX to_cube,
@@ -6650,11 +6584,9 @@ namespace {
 
     MSDEBUG();
     if (flag_debug) {
-      cerr << "*** Checking mapping from " << from_cube << " ";
-      ijkgrid_output_vertex_coord(cerr, grid, from_cube);
-      cerr << " to " << to_cube << " ";
-      ijkgrid_output_vertex_coord(cerr, grid, to_cube);
-      cerr << endl;
+      scalar_grid.PrintIndexAndCoord
+        (cerr, "*** Checking mapping from ", from_cube,
+         " to ", to_cube, "\n");
     }
       
 
@@ -6696,7 +6628,7 @@ namespace {
 		find_connected_sharp(scalar_grid, isovalue, from_cube, isovert, 
                          gcube_map, connected_sharp);
 
-    if (!check_adjacent_cubes(scalar_grid, grid, isovalue, from_cube,
+    if (!check_adjacent_cubes(scalar_grid, isovalue, from_cube,
                               isovert, gcube_map, connected_sharp))
       { 
         /// *** DEBUG ***
