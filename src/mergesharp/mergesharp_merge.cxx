@@ -29,7 +29,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "ijkmesh.txx"
 #include "ijkgrid_macros.h"
 
+#include "mergesharp_apply.txx"
 #include "sharpiso_array.txx"
+
 #include "mergesharp_types.h"
 #include "mergesharp_datastruct.h"
 #include "mergesharp_merge.h"
@@ -4931,6 +4933,14 @@ namespace {
    MERGESHARP::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
+	void check_extended_and_map_B
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX from_cube,
+   const VERTEX_INDEX to_cube,
+   MERGESHARP::ISOVERT & isovert, 
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
+
 
   /// Extend mapping of isosurface vertices
 	void extend_mapping
@@ -4940,9 +4950,6 @@ namespace {
    MERGESHARP::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
 	{
-		const NUM_TYPE num_gcube = isovert.gcube_list.size();
-		VERTEX_INDEX cube_index_covered, neighbor_cube_index, neighbor_index;
-
     MSDEBUG();
     if (flag_debug)
       { cerr << "In " << __func__ << endl; }
@@ -6591,6 +6598,7 @@ namespace {
 		}
   }
 
+
   /// Check extended mapping and map from cube from_cube to cube to_cube.
   /// Cube from_cube is (facet, edge or vertex) adjacent to cubeA.
 	void check_extended_and_map
@@ -6680,7 +6688,6 @@ namespace {
                    from_gcube, to_gcube, gcube_map);
     isovert.gcube_list[from_gcube].flag = COVERED_B_GCUBE;
 	}
-
 
   /// Check extended mapping of cubeA and cubeB to to_cube and map.
 	void check_extended_and_mapII
