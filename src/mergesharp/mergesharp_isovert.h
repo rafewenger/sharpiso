@@ -153,22 +153,7 @@ public:
 
     if (num_eigen_i == num_eigen_j) {
 
-      /* OBSOLETE
-      int flag_i = int(gcube_list->at(i).flag_coord_from_other_cube);
-      int flag_j = int(gcube_list->at(j).flag_coord_from_other_cube);
-      */
-
       return ((gcube_list->at(i).linf_dist) < (gcube_list->at(j).linf_dist)); 
-
-      /* OBSOLETE
-      if (flag_i == flag_j) {
-        return ((gcube_list->at(i).linf_dist) < (gcube_list->at(j).linf_dist)); 
-      }
-      else {
-        // Process first cubes which generated their own iso vertices.
-        return ((flag_i < flag_j));
-      }
-      */
     }
     else {
       return ((num_eigen_i > num_eigen_j));
@@ -439,9 +424,9 @@ inline VTYPE compute_vertex_adjacent_cube
   for (DTYPE d = 0; d < grid.Dimension(); d++) {
 
     if (and_bit(i, d) == 0)
-      { icubeB = grid.PrevVertex(d, icubeB); }
+      { icubeB = grid.PrevVertex(icubeB, d); }
     else
-      { icubeB = grid.NextVertex(d, icubeB); }
+      { icubeB = grid.NextVertex(icubeB, d); }
   }
 
   return(icubeB);
@@ -461,13 +446,85 @@ inline VTYPE compute_edge_adjacent_cube
 
     if (d != edge_dir) {
       if (and_bit(i, d) == 0)
-        { icubeB = grid.PrevVertex(d, icubeB); }
+        { icubeB = grid.PrevVertex(icubeB, d); }
       else
-        { icubeB = grid.NextVertex(d, icubeB); }
+        { icubeB = grid.NextVertex(icubeB, d); }
     }
   }
 
   return(icubeB);
+}
+
+/// Apply to each cube which is facet adjacent to icubeA. (4+4 arguments.)
+template <typename FTYPE, typename GRID_TYPE, 
+          typename VTYPE, typename BTYPE,
+          typename ATYPE1, typename ATYPE2, typename ATYPE3,
+          typename ATYPE4>
+void apply_to_cubes_facet_adjacent_to
+(FTYPE f, const GRID_TYPE & grid, const VTYPE icubeA, const BTYPE boundary_bits,
+ ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4)
+{
+  typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
+
+  if (boundary_bits == 0) {
+    // Cube icubeA is an interior cube.
+
+    for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsF(); j++) {
+      const VTYPE icubeB = grid.CubeNeighborF(icubeA, j);
+      f(icubeA, icubeB, arg1, arg2, arg3, arg4);
+    }
+  }
+  else {
+
+    for (DTYPE d = 0; d < grid.Dimension(); d++) {
+
+      if (and_bit(boundary_bits, 2*d) == 0) {
+        const VTYPE icubeB = grid.PrevVertex(icubeA, d);
+        f(icubeA, icubeB, arg1, arg2, arg3, arg4);
+      }
+
+      if (and_bit(boundary_bits, 2*d+1) == 0) {
+        const VTYPE icubeB = grid.NextVertex(icubeA, d);
+        f(icubeA, icubeB, arg1, arg2, arg3, arg4);
+      }
+    }
+  }
+}
+
+/// Apply to each cube which is facet adjacent to icubeA. (4+5 arguments.)
+template <typename FTYPE, typename GRID_TYPE, 
+          typename VTYPE, typename BTYPE,
+          typename ATYPE1, typename ATYPE2, typename ATYPE3,
+          typename ATYPE4, typename ATYPE5>
+void apply_to_cubes_facet_adjacent_to
+(FTYPE f, const GRID_TYPE & grid, const VTYPE icubeA, const BTYPE boundary_bits,
+ ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4, ATYPE5 & arg5)
+{
+  typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
+
+  if (boundary_bits == 0) {
+    // Cube icubeA is an interior cube.
+
+    for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsF(); j++) {
+      const VTYPE icubeB = grid.CubeNeighborF(icubeA, j);
+      f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5);
+    }
+  }
+  else {
+
+    for (DTYPE d = 0; d < grid.Dimension(); d++) {
+
+      if (and_bit(boundary_bits, 2*d) == 0) {
+        const VTYPE icubeB = grid.PrevVertex(icubeA, d);
+        f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5);
+      }
+
+      if (and_bit(boundary_bits, 2*d+1) == 0) {
+        const VTYPE icubeB = grid.NextVertex(icubeA, d);
+        f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5);
+      }
+    }
+  }
 }
 
 /// Apply to each cube which is facet adjacent to icubeA. (4+8 arguments.)
@@ -496,12 +553,12 @@ void apply_to_cubes_facet_adjacent_to
     for (DTYPE d = 0; d < grid.Dimension(); d++) {
 
       if (and_bit(boundary_bits, 2*d) == 0) {
-        const VTYPE icubeB = grid.PrevVertex(d, icubeA);
+        const VTYPE icubeB = grid.PrevVertex(icubeA, d);
         f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
       }
 
       if (and_bit(boundary_bits, 2*d+1) == 0) {
-        const VTYPE icubeB = grid.NextVertex(d, icubeA);
+        const VTYPE icubeB = grid.NextVertex(icubeA, d);
         f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
       }
     }
@@ -534,13 +591,93 @@ void apply_to_cubes_facet_adjacent_to
     for (DTYPE d = 0; d < grid.Dimension(); d++) {
 
       if (and_bit(boundary_bits, 2*d) == 0) {
-        const VTYPE icubeB = grid.PrevVertex(d, icubeA);
+        const VTYPE icubeB = grid.PrevVertex(icubeA, d);
         f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
       }
 
       if (and_bit(boundary_bits, 2*d+1) == 0) {
-        const VTYPE icubeB = grid.NextVertex(d, icubeA);
+        const VTYPE icubeB = grid.NextVertex(icubeA, d);
         f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+      }
+    }
+  }
+}
+
+/// Apply to each cube which is edge adjacent to icubeA. (4+4 arguments.)
+template <typename FTYPE, typename GRID_TYPE, 
+          typename VTYPE, typename BTYPE,
+          typename ATYPE1, typename ATYPE2, typename ATYPE3,
+          typename ATYPE4>
+void apply_to_cubes_edge_adjacent_to
+(FTYPE f, const GRID_TYPE & grid, const VTYPE icubeA, const BTYPE boundary_bits,
+ ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4)
+{
+  typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
+
+  if (boundary_bits == 0) {
+    // Cube icubeA is an interior cube.
+
+    for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsE(); j++) {
+      const VTYPE icubeB = grid.CubeNeighborE(icubeA, j);
+      f(icubeA, icubeB, arg1, arg2, arg3, arg4);
+    }
+  }
+  else {
+
+    for (DTYPE edge_dir = 0; edge_dir < grid.Dimension(); edge_dir++) {
+
+      BTYPE mask_d = (BTYPE(1) << edge_dir);
+      for (NUM_TYPE j = 0; j < grid.NumCubeVertices(); j++) {
+
+        if ((mask_d & j) != 0) { continue; }
+
+        BTYPE mask;
+        convert2edge_bit_mask(grid.Dimension(), edge_dir, j, mask);
+
+        if ((boundary_bits & mask) == 0) {
+          VTYPE icubeB = compute_edge_adjacent_cube(grid, icubeA, edge_dir, j);
+          f(icubeA, icubeB, arg1, arg2, arg3, arg4);
+        }
+      }
+    }
+  }
+}
+
+/// Apply to each cube which is edge adjacent to icubeA. (4+5 arguments.)
+template <typename FTYPE, typename GRID_TYPE, 
+          typename VTYPE, typename BTYPE,
+          typename ATYPE1, typename ATYPE2, typename ATYPE3,
+          typename ATYPE4, typename ATYPE5>
+void apply_to_cubes_edge_adjacent_to
+(FTYPE f, const GRID_TYPE & grid, const VTYPE icubeA, const BTYPE boundary_bits,
+ ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4, ATYPE5 & arg5)
+{
+  typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
+
+  if (boundary_bits == 0) {
+    // Cube icubeA is an interior cube.
+
+    for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsE(); j++) {
+      const VTYPE icubeB = grid.CubeNeighborE(icubeA, j);
+      f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5);
+    }
+  }
+  else {
+
+    for (DTYPE edge_dir = 0; edge_dir < grid.Dimension(); edge_dir++) {
+
+      BTYPE mask_d = (BTYPE(1) << edge_dir);
+      for (NUM_TYPE j = 0; j < grid.NumCubeVertices(); j++) {
+
+        if ((mask_d & j) != 0) { continue; }
+
+        BTYPE mask;
+        convert2edge_bit_mask(grid.Dimension(), edge_dir, j, mask);
+
+        if ((boundary_bits & mask) == 0) {
+          VTYPE icubeB = compute_edge_adjacent_cube(grid, icubeA, edge_dir, j);
+          f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5);
+        }
       }
     }
   }
@@ -579,7 +716,7 @@ void apply_to_cubes_edge_adjacent_to
         BTYPE mask;
         convert2edge_bit_mask(grid.Dimension(), edge_dir, j, mask);
 
-        if ((j & mask) == 0) {
+        if ((boundary_bits & mask) == 0) {
           VTYPE icubeB = compute_edge_adjacent_cube(grid, icubeA, edge_dir, j);
           f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
@@ -621,11 +758,79 @@ void apply_to_cubes_edge_adjacent_to
         BTYPE mask;
         convert2edge_bit_mask(grid.Dimension(), edge_dir, j, mask);
 
-        if ((j & mask) == 0) {
+        if ((boundary_bits & mask) == 0) {
           VTYPE icubeB = compute_edge_adjacent_cube(grid, icubeA, edge_dir, j);
           f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5, arg6, arg7, 
             arg8, arg9);
         }
+      }
+    }
+  }
+}
+
+/// Apply to each cube which is vertex adjacent to icubeA. (4+4 arguments.)
+template <typename FTYPE, typename GRID_TYPE, 
+          typename VTYPE, typename BTYPE,
+          typename ATYPE1, typename ATYPE2, typename ATYPE3,
+          typename ATYPE4>
+void apply_to_cubes_vertex_adjacent_to
+(FTYPE f, const GRID_TYPE & grid, const VTYPE icubeA, const BTYPE boundary_bits,
+ ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4)
+{
+  typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
+
+  if (boundary_bits == 0) {
+    // Cube icubeA is an interior cube.
+
+    for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsV(); j++) {
+      const VTYPE icubeB = grid.CubeNeighborV(icubeA, j);
+      f(icubeA, icubeB, arg1, arg2, arg3, arg4);
+    }
+  }
+  else {
+
+    for (NUM_TYPE j = 0; j < grid.NumCubeVertices(); j++) {
+
+      BTYPE mask;
+      convert2vertex_bit_mask(grid.Dimension(), j, mask);
+
+      if ((boundary_bits & mask) == 0) {
+        VTYPE icubeB = compute_vertex_adjacent_cube(grid, icubeA, j);
+        f(icubeA, icubeB, arg1, arg2, arg3, arg4);
+      }
+    }
+  }
+}
+
+/// Apply to each cube which is vertex adjacent to icubeA. (4+5 arguments.)
+template <typename FTYPE, typename GRID_TYPE, 
+          typename VTYPE, typename BTYPE,
+          typename ATYPE1, typename ATYPE2, typename ATYPE3,
+          typename ATYPE4, typename ATYPE5>
+void apply_to_cubes_vertex_adjacent_to
+(FTYPE f, const GRID_TYPE & grid, const VTYPE icubeA, const BTYPE boundary_bits,
+ ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4, ATYPE5 & arg5)
+{
+  typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
+
+  if (boundary_bits == 0) {
+    // Cube icubeA is an interior cube.
+
+    for (NUM_TYPE j = 0; j < grid.NumCubeNeighborsV(); j++) {
+      const VTYPE icubeB = grid.CubeNeighborV(icubeA, j);
+      f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5);
+    }
+  }
+  else {
+
+    for (NUM_TYPE j = 0; j < grid.NumCubeVertices(); j++) {
+
+      BTYPE mask;
+      convert2vertex_bit_mask(grid.Dimension(), j, mask);
+
+      if ((boundary_bits & mask) == 0) {
+        VTYPE icubeB = compute_vertex_adjacent_cube(grid, icubeA, j);
+        f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5);
       }
     }
   }
@@ -659,7 +864,7 @@ void apply_to_cubes_vertex_adjacent_to
       BTYPE mask;
       convert2vertex_bit_mask(grid.Dimension(), j, mask);
 
-      if ((j & mask) == 0) {
+      if ((boundary_bits & mask) == 0) {
         VTYPE icubeB = compute_vertex_adjacent_cube(grid, icubeA, j);
         f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
       }
@@ -695,7 +900,7 @@ void apply_to_cubes_vertex_adjacent_to
       BTYPE mask;
       convert2vertex_bit_mask(grid.Dimension(), j, mask);
 
-      if ((j & mask) == 0) {
+      if ((boundary_bits & mask) == 0) {
         VTYPE icubeB = compute_vertex_adjacent_cube(grid, icubeA, j);
         f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
       }
@@ -704,14 +909,12 @@ void apply_to_cubes_vertex_adjacent_to
 }
 
 /// Apply to each cube which is facet adjacent to a cube in gcube_list.
-/// (3 + 7 arguments.)
-template <typename FTYPE, typename ATYPE1, typename ATYPE2,
-          typename ATYPE3,typename ATYPE4, typename ATYPE5,
-          typename ATYPE6, typename ATYPE7>
+/// (3 + 4 arguments.)
+template <typename FTYPE, typename ATYPE1, typename ATYPE2, 
+          typename ATYPE3, typename ATYPE4>
 void apply_to_cubes_facet_adjacent_to_list
 (FTYPE f, const std::vector<NUM_TYPE> & gcube_list, const ISOVERT & isovert,
- ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4, ATYPE5 & arg5,
- ATYPE6 & arg6, ATYPE7 & arg7)
+ ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4)
 {
   for (NUM_TYPE i = 0; i < gcube_list.size(); i++) {
 
@@ -722,19 +925,42 @@ void apply_to_cubes_facet_adjacent_to_list
       isovert.gcube_list[to_gcube].boundary_bits;
 
     apply_to_cubes_facet_adjacent_to
-      (f, isovert.grid, to_cube, boundary_bits, isovert,
-       arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+      (f, isovert.grid, to_cube, boundary_bits, arg1, arg2, arg3, arg4);
   }
 }
 
-/// Apply to each cube which is edge adjacent to a in gcube_list.
+
+/// Apply to each cube which is facet adjacent to a cube in gcube_list.
+/// (3 + 8 arguments.)
 template <typename FTYPE, typename ATYPE1, typename ATYPE2,
           typename ATYPE3,typename ATYPE4, typename ATYPE5,
-          typename ATYPE6, typename ATYPE7>
-void apply_to_cubes_edge_adjacent_to_list
+          typename ATYPE6, typename ATYPE7, typename ATYPE8>
+void apply_to_cubes_facet_adjacent_to_list
 (FTYPE f, const std::vector<NUM_TYPE> & gcube_list, const ISOVERT & isovert,
  ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4, ATYPE5 & arg5,
- ATYPE6 & arg6, ATYPE7 & arg7)
+ ATYPE6 & arg6, ATYPE7 & arg7, ATYPE8 & arg8)
+{
+  for (NUM_TYPE i = 0; i < gcube_list.size(); i++) {
+
+    NUM_TYPE to_gcube = gcube_list[i];
+    VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
+
+    BOUNDARY_BITS_TYPE boundary_bits = 
+      isovert.gcube_list[to_gcube].boundary_bits;
+
+    apply_to_cubes_facet_adjacent_to
+      (f, isovert.grid, to_cube, boundary_bits,
+       arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+  }
+}
+
+/// Apply to each cube which is vertex adjacent to a in gcube_list.
+/// (3 + 4 arguments.)
+template <typename FTYPE, typename ATYPE1, typename ATYPE2, 
+          typename ATYPE3, typename ATYPE4>
+void apply_to_cubes_edge_adjacent_to_list
+(FTYPE f, const std::vector<NUM_TYPE> & gcube_list, const ISOVERT & isovert,
+ ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4)
 {
   for (NUM_TYPE i = 0; i < gcube_list.size(); i++) {
 
@@ -745,19 +971,42 @@ void apply_to_cubes_edge_adjacent_to_list
       isovert.gcube_list[to_gcube].boundary_bits;
 
     apply_to_cubes_edge_adjacent_to
-      (f, isovert.grid, to_cube, boundary_bits, isovert,
-       arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+      (f, isovert.grid, to_cube, boundary_bits, arg1, arg2, arg3, arg4);
+  }
+}
+
+
+/// Apply to each cube which is edge adjacent to a in gcube_list.
+/// (3 + 8 arguments.)
+template <typename FTYPE, typename ATYPE1, typename ATYPE2,
+          typename ATYPE3,typename ATYPE4, typename ATYPE5,
+          typename ATYPE6, typename ATYPE7, typename ATYPE8>
+void apply_to_cubes_edge_adjacent_to_list
+(FTYPE f, const std::vector<NUM_TYPE> & gcube_list, const ISOVERT & isovert,
+ ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4, ATYPE5 & arg5,
+ ATYPE6 & arg6, ATYPE7 & arg7, ATYPE8 & arg8)
+{
+  for (NUM_TYPE i = 0; i < gcube_list.size(); i++) {
+
+    NUM_TYPE to_gcube = gcube_list[i];
+    VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
+
+    BOUNDARY_BITS_TYPE boundary_bits = 
+      isovert.gcube_list[to_gcube].boundary_bits;
+
+    apply_to_cubes_edge_adjacent_to
+      (f, isovert.grid, to_cube, boundary_bits,
+       arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
   }
 }
 
 /// Apply to each cube which is vertex adjacent to a in gcube_list.
-template <typename FTYPE, typename ATYPE1, typename ATYPE2,
-          typename ATYPE3,typename ATYPE4, typename ATYPE5,
-          typename ATYPE6, typename ATYPE7>
+/// (3 + 4 arguments.)
+template <typename FTYPE, typename ATYPE1, typename ATYPE2, 
+          typename ATYPE3, typename ATYPE4>
 void apply_to_cubes_vertex_adjacent_to_list
 (FTYPE f, const std::vector<NUM_TYPE> & gcube_list, const ISOVERT & isovert,
- ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4, ATYPE5 & arg5,
- ATYPE6 & arg6, ATYPE7 & arg7)
+ ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4)
 {
   for (NUM_TYPE i = 0; i < gcube_list.size(); i++) {
 
@@ -768,8 +1017,32 @@ void apply_to_cubes_vertex_adjacent_to_list
       isovert.gcube_list[to_gcube].boundary_bits;
 
     apply_to_cubes_vertex_adjacent_to
-      (f, isovert.grid, to_cube, boundary_bits, isovert,
-       arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+      (f, isovert.grid, to_cube, boundary_bits, arg1, arg2, arg3, arg4);
+  }
+}
+
+
+/// Apply to each cube which is vertex adjacent to a in gcube_list.
+/// (3 + 8 arguments.)
+template <typename FTYPE, typename ATYPE1, typename ATYPE2,
+          typename ATYPE3,typename ATYPE4, typename ATYPE5,
+          typename ATYPE6, typename ATYPE7, typename ATYPE8>
+void apply_to_cubes_vertex_adjacent_to_list
+(FTYPE f, const std::vector<NUM_TYPE> & gcube_list, const ISOVERT & isovert,
+ ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4, ATYPE5 & arg5,
+ ATYPE6 & arg6, ATYPE7 & arg7, ATYPE8 & arg8)
+{
+  for (NUM_TYPE i = 0; i < gcube_list.size(); i++) {
+
+    NUM_TYPE to_gcube = gcube_list[i];
+    VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
+
+    BOUNDARY_BITS_TYPE boundary_bits = 
+      isovert.gcube_list[to_gcube].boundary_bits;
+
+    apply_to_cubes_vertex_adjacent_to
+      (f, isovert.grid, to_cube, boundary_bits,
+       arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
   }
 }
 
