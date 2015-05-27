@@ -135,10 +135,9 @@ namespace {
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
 	void extend_mapping_to_cube
-  (const VERTEX_INDEX to_cube_index,
-   const VERTEX_INDEX cubeA_index,
-   const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
+   const MERGESHARP::GRID_CUBE_DATA & to_gcube,
    MERGESHARP::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
@@ -4933,14 +4932,6 @@ namespace {
    MERGESHARP::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
-	void check_extended_and_map_B
-  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-   const SCALAR_TYPE isovalue,
-   const VERTEX_INDEX from_cube,
-   const VERTEX_INDEX to_cube,
-   MERGESHARP::ISOVERT & isovert, 
-   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
-
 
   /// Extend mapping of isosurface vertices
 	void extend_mapping
@@ -4954,18 +4945,15 @@ namespace {
     if (flag_debug)
       { cerr << "In " << __func__ << endl; }
 
-    apply_to_cubes_facet_adjacent_to_list
-      (extend_mapping_to_cube, selected_gcube_list, isovert,
-       scalar_grid, isovalue, isovert, gcube_map);
+    for (NUM_TYPE i = 0; i < selected_gcube_list.size(); i++) {
 
-    apply_to_cubes_edge_adjacent_to_list
-      (extend_mapping_to_cube, selected_gcube_list, isovert,
-       scalar_grid, isovalue, isovert, gcube_map);
-
-    apply_to_cubes_vertex_adjacent_to_list
-      (extend_mapping_to_cube, selected_gcube_list, isovert,
-       scalar_grid, isovalue, isovert, gcube_map);
+      const NUM_TYPE gcube_index = selected_gcube_list[i];
+      extend_mapping_to_cube
+        (scalar_grid, isovalue, isovert.gcube_list[gcube_index], 
+         isovert, gcube_map);
+    }
 	}
+
 
   /// Extend mapping of pairs of isosurface vertices
 	void extend_mappingII
@@ -4995,41 +4983,44 @@ namespace {
        scalar_grid, isovalue, isovert, gcube_map);
 	}
 
-  /// Extend mapping of isosurface vertices to cube to_cube.
-  /// @param cubeA_index Extend mapping from neighbors of cubeA_index.
-  /// @param to_cube Extend mapping to cube to_cube.
+  /// Extend mapping of isosurface vertices to cube
 	void extend_mapping_to_cube
-  (const VERTEX_INDEX to_cube,
-   const VERTEX_INDEX cubeA_index,
-   const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
+   const GRID_CUBE_DATA & to_gcube,
    MERGESHARP::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
-    INDEX_DIFF_TYPE gcubeA_index = isovert.GCubeIndex(cubeA_index);
-    INDEX_DIFF_TYPE to_gcube = isovert.GCubeIndex(to_cube);
+    const INDEX_DIFF_TYPE to_cube_index = to_gcube.cube_index;
+    GRID_COORD_TYPE distance2boundary;
+    scalar_grid.ComputeCubeDistanceToGridBoundary
+      (to_gcube.cube_coord, distance2boundary);
 
-    if (gcubeA_index == ISOVERT::NO_INDEX) { return; }
-    if (gcube_map[gcubeA_index] != to_gcube) { return; }
+    if (distance2boundary >= 2) {
 
-    GRID_CUBE_FLAG gcube_flag = isovert.gcube_list[gcubeA_index].flag;
+      // Since dist2boundary >= 2, no need to worry about boundary.
+      const BOUNDARY_BITS_TYPE boundary_bits = 0;
 
-    if (gcube_flag == COVERED_A_GCUBE || gcube_flag == COVERED_CORNER_GCUBE ) {
+      for (int d0 = 0; d0 < DIM3; d0++) {
+        for (int j0 = -1; j0 < 2; j0 += 2) {
 
-      const BOUNDARY_BITS_TYPE boundary_bits =
-        isovert.gcube_list[gcubeA_index].boundary_bits;
+          const VERTEX_INDEX cubeA_index =
+            to_cube_index + 2*j0*scalar_grid.AxisIncrement(d0);
 
-      apply_to_cubes_facet_adjacent_to
-        (check_extended_and_map, isovert.grid, cubeA_index,
-         boundary_bits, scalar_grid, isovalue, to_cube, isovert, gcube_map);
-      apply_to_cubes_edge_adjacent_to
-        (check_extended_and_map, isovert.grid, cubeA_index,
-         boundary_bits, scalar_grid, isovalue, to_cube, isovert, gcube_map);
-      apply_to_cubes_vertex_adjacent_to
-        (check_extended_and_map, isovert.grid, cubeA_index,
-         boundary_bits, scalar_grid, isovalue, to_cube, isovert, gcube_map);
+          check_extended_and_map
+            (cubeA_index, cubeA_index, scalar_grid, isovalue, to_cube_index,
+             isovert, gcube_map);
+
+          apply_to_cubes_in_plane_facet_adjacent_to
+            (check_extended_and_map, isovert.grid, cubeA_index, boundary_bits, d0, 
+             scalar_grid, isovalue, to_cube_index, isovert, gcube_map);
+
+          apply_to_cubes_in_plane_edge_adjacent_to
+            (check_extended_and_map, isovert.grid, cubeA_index, boundary_bits, d0, 
+             scalar_grid, isovalue, to_cube_index, isovert, gcube_map);
+        }
+      }
     }
-
   }
 
   /// Extend mapping of pairs of isosurface vertices to cube to_cube.
@@ -6600,7 +6591,7 @@ namespace {
 
 
   /// Check extended mapping and map from cube from_cube to cube to_cube.
-  /// Cube from_cube is (facet, edge or vertex) adjacent to cubeA.
+  /// Cube from_cube is (facet, edge or vertex) adjacent to cubeA or equals cubeA.
 	void check_extended_and_map
   (const VERTEX_INDEX cubeA_index,
    const VERTEX_INDEX from_cube,
@@ -6688,6 +6679,7 @@ namespace {
                    from_gcube, to_gcube, gcube_map);
     isovert.gcube_list[from_gcube].flag = COVERED_B_GCUBE;
 	}
+
 
   /// Check extended mapping of cubeA and cubeB to to_cube and map.
 	void check_extended_and_mapII

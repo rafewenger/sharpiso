@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 namespace MERGESHARP {
 
   // **************************************************
-  // APPLY TEMPLATES
+  // UTILITY TEMPLATES
   // **************************************************
 
   /// Return (b & (1 << i))
@@ -112,6 +112,10 @@ namespace MERGESHARP {
 
     return(icubeB);
   }
+
+  // **************************************************
+  // FACET ADJACENT APPLY TEMPLATES
+  // **************************************************
 
   /// Apply to each cube which is facet adjacent to icubeA. (4+4 arguments.)
   template <typename FTYPE, typename GRID_TYPE, 
@@ -260,6 +264,64 @@ namespace MERGESHARP {
       }
     }
   }
+
+
+  // **************************************************
+  // FACET ADJACENT IN PLANE APPLY TEMPLATES
+  // **************************************************
+
+  /// Apply to each cube in the plane which is facet adjacent to icubeA. 
+  /// (4+5 arguments.)
+  template <typename FTYPE, typename GRID_TYPE, 
+            typename VTYPE, typename BTYPE, typename DIR_TYPE,
+            typename ATYPE1, typename ATYPE2, typename ATYPE3,
+            typename ATYPE4, typename ATYPE5>
+  void apply_to_cubes_in_plane_facet_adjacent_to
+  (FTYPE f, const GRID_TYPE & grid, const VTYPE icubeA, 
+   const BTYPE boundary_bits, const DIR_TYPE orth_dir,
+   ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4, ATYPE5 & arg5)
+  {
+    typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
+
+    if (boundary_bits == 0) {
+      // Cube icubeA is an interior cube.
+      for (DTYPE d = 0; d < grid.Dimension(); d++) {
+
+        if (d != orth_dir) {
+          VTYPE icubeB;
+
+          icubeB = grid.PrevVertex(icubeA, d);
+          f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5);
+
+          icubeB = grid.NextVertex(icubeA, d);
+          f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5);
+        }
+      }
+    }
+    else {
+
+      for (DTYPE d = 0; d < grid.Dimension(); d++) {
+
+        if (d != orth_dir) {
+
+          if (and_bit(boundary_bits, 2*d) == 0) {
+            const VTYPE icubeB = grid.PrevVertex(icubeA, d);
+            f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5);
+          }
+
+          if (and_bit(boundary_bits, 2*d+1) == 0) {
+            const VTYPE icubeB = grid.NextVertex(icubeA, d);
+            f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5);
+          }
+        }
+      }
+    }
+  }
+
+
+  // **************************************************
+  // EDGE ADJACENT APPLY TEMPLATES
+  // **************************************************
 
   /// Apply to each cube which is edge adjacent to icubeA. (4+4 arguments.)
   template <typename FTYPE, typename GRID_TYPE, 
@@ -426,6 +488,57 @@ namespace MERGESHARP {
     }
   }
 
+
+  // **************************************************
+  // EDGE ADJACENT IN PLANE APPLY TEMPLATES
+  // **************************************************
+
+  /// Apply to each cube which is edge adjacent to icubeA. (4+5 arguments.)
+  template <typename FTYPE, typename GRID_TYPE, 
+            typename VTYPE, typename BTYPE, typename DIR_TYPE,
+            typename ATYPE1, typename ATYPE2, typename ATYPE3,
+            typename ATYPE4, typename ATYPE5>
+  void apply_to_cubes_in_plane_edge_adjacent_to
+  (FTYPE f, const GRID_TYPE & grid, const VTYPE icubeA, 
+   const BTYPE boundary_bits, const DIR_TYPE orth_dir,
+   ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4, ATYPE5 & arg5)
+  {
+    typedef typename GRID_TYPE::DIMENSION_TYPE DTYPE;
+    const BTYPE mask_d = (BTYPE(1) << orth_dir);
+
+    if (boundary_bits == 0) {
+      // Cube icubeA is an interior cube.
+
+      for (NUM_TYPE j = 0; j < grid.NumCubeVertices(); j++) {
+
+        if ((mask_d & j) != 0) { continue; }
+
+        VTYPE icubeB = compute_edge_adjacent_cube(grid, icubeA, orth_dir, j);
+        f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5);
+      }
+    }
+    else {
+
+      for (NUM_TYPE j = 0; j < grid.NumCubeVertices(); j++) {
+
+        if ((mask_d & j) != 0) { continue; }
+
+        BTYPE mask;
+        convert2edge_bit_mask(grid.Dimension(), orth_dir, j, mask);
+
+        if ((boundary_bits & mask) == 0) {
+          VTYPE icubeB = compute_edge_adjacent_cube(grid, icubeA, orth_dir, j);
+          f(icubeA, icubeB, arg1, arg2, arg3, arg4, arg5);
+        }
+      }
+    }
+  }
+
+
+  // **************************************************
+  // VERTEX ADJACENT APPLY TEMPLATES
+  // **************************************************
+
   /// Apply to each cube which is vertex adjacent to icubeA. (4+4 arguments.)
   template <typename FTYPE, typename GRID_TYPE, 
             typename VTYPE, typename BTYPE,
@@ -566,6 +679,11 @@ namespace MERGESHARP {
     }
   }
 
+
+  // **************************************************
+  // FACET ADJACENT TO LIST APPLY TEMPLATES
+  // **************************************************
+
   /// Apply to each cube which is facet adjacent to a cube in gcube_list.
   /// (3 + 4 arguments.)
   template <typename FTYPE, typename ATYPE1, typename ATYPE2, 
@@ -611,6 +729,11 @@ namespace MERGESHARP {
          arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
     }
   }
+
+
+  // **************************************************
+  // EDGE ADJACENT TO LIST APPLY TEMPLATES
+  // **************************************************
 
   /// Apply to each cube which is vertex adjacent to a in gcube_list.
   /// (3 + 4 arguments.)
@@ -657,6 +780,11 @@ namespace MERGESHARP {
          arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
     }
   }
+
+
+  // **************************************************
+  // VERTEX ADJACENT TO LIST APPLY TEMPLATES
+  // **************************************************
 
   /// Apply to each cube which is vertex adjacent to a in gcube_list.
   /// (3 + 4 arguments.)
