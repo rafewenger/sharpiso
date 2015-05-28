@@ -5197,6 +5197,15 @@ namespace {
     scalar_grid.ComputeCubeDistanceToGridBoundary
       (to_gcube.cube_coord, distance2boundary);
 
+    // *** DEBUG ***
+    MSDEBUG();
+    if (flag_debug) {
+      scalar_grid.PrintIndexAndCoord
+        (cerr, "In extend_mapping_to_cubeIII. Cube ", to_cube_index, "\n");
+      cerr << "distance2boundary: " << distance2boundary << endl;
+    }
+
+
     if (distance2boundary >= 2) {
 
       // Since dist2boundary >= 2, no need to worry about boundary.
@@ -6174,8 +6183,8 @@ namespace {
   }
 
   /// Return true if 3 cubes in given direction from icubeA are mapped
-  /// @param j1 -1 or 1.
-  /// @param j2 -1 or 1.
+  /// @param j1 Backward (-1) or forward (1).
+  /// @param j2 Backward (-1) or forward (1).
   bool are_cubes_mapped_III
   (const SHARPISO_GRID & grid, const VERTEX_INDEX cubeA_index,
    const int d1, const int j1, const int d2, const int j2,
@@ -6192,6 +6201,52 @@ namespace {
       const INDEX_DIFF_TYPE gcube_index = isovert.GCubeIndex(cube_index[i]);
       if (gcube_index == ISOVERT::NO_INDEX) { continue; }
       if (gcube_map[gcube_index] == gcube_index) { return(false); }
+    }
+
+    return(true);
+  }
+
+  // *** NOT CURRENTLY USED ***
+  /// Return true if 7 cubes in given direction from icubeA are mapped
+  /// @param j0 Backward (-1) or forward (1).
+  /// @param j1 Backward (-1) or forward (1).
+  /// @param j2 Backward (-1) or forward (1).
+  bool are_cubes_mapped_VII
+  (const SHARPISO_GRID & grid, const VERTEX_INDEX cubeA_index,
+   const int j0, const int j1, const int j2,
+   const ISOVERT & isovert,
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+  {
+    VERTEX_INDEX cube_index[7];
+
+    cube_index[0] = cubeA_index + grid.AxisIncrement(0)*j0;
+    cube_index[1] = cubeA_index + grid.AxisIncrement(1)*j1;
+    cube_index[2] = cubeA_index + grid.AxisIncrement(2)*j2;
+    cube_index[3] = cube_index[0] + grid.AxisIncrement(1)*j1;
+    cube_index[4] = cube_index[0] + grid.AxisIncrement(2)*j2;
+    cube_index[5] = cube_index[1] + grid.AxisIncrement(2)*j2;
+    cube_index[6] = cube_index[3] + grid.AxisIncrement(2)*j2;
+
+    for (int i = 0; i < 7; i++) {
+      const INDEX_DIFF_TYPE gcube_index = isovert.GCubeIndex(cube_index[i]);
+      if (gcube_index == ISOVERT::NO_INDEX) { continue; }
+      if (gcube_map[gcube_index] == gcube_index) { 
+
+        // *** DEBUG ***
+        MSDEBUG();
+        if (flag_debug) {
+          isovert.grid.PrintIndexAndCoord
+            (cerr, "Cube ", cube_index[i], " is not mapped.\n");
+        }
+
+        return(false); 
+      }
+    }
+
+    // *** DEBUG ***
+    MSDEBUG();
+    if (flag_debug) {
+      cerr << "Returning true from " << __func__ << endl;
     }
 
     return(true);
