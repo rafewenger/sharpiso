@@ -6564,6 +6564,24 @@ namespace {
               const GRID_COORD_TYPE * to_coordB = 
                 isovert.gcube_list[to_gcubeB].cube_coord;
 
+              const GRID_COORD_TYPE * coordB =
+                isovert.gcube_list[gcubeB_index].cube_coord;
+
+              if (IJK::is_coord_in_rectangular_region
+                  (DIM3, from_coord, coordB, to_coord) && 
+                  !IJK::is_some_coord_equal(DIM3, from_coord, coordB)) {
+
+                // *** DEBUG ***
+                MSDEBUG();
+                if (flag_debug) {
+                  grid.PrintIndexAndCoord
+                    (cerr, "  From cube: ", from_cube, " between ",
+                     cubeB_index, " and ", to_cube, "\n");
+                }
+
+                continue;
+              }
+
               // *** DEBUG ***
               if (flag_debug) {
                 grid.PrintIndexAndCoord
