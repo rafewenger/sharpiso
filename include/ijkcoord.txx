@@ -888,8 +888,23 @@ namespace IJK {
     return(true);
   }
 
+  /// Return true if some coordinate is the same.
+  /// @param dimension Coordinate dimension (= number of coordinates.)
+  /// @param coord0[] Input coordinates.
+  /// @param coord1[] Input coordinates.
+  template <typename DTYPE, typename CTYPE0, typename CTYPE1>
+  bool is_some_coord_equal(const DTYPE dimension, 
+                           const CTYPE0 coord0[], const CTYPE1 coord1[])
+  {
+    for (DTYPE d = 0; d < dimension; d++)
+      { if (coord0[d] == coord1[d]) { return(true); }; }
+
+    return(false);
+  }
+
   /// Return true if all elements of coord0[] are less than or equal
   ///   to all elements of coord1[].
+  // *** SHOULD USE coord0[] and coord1[] IN PARAMETER LIST? ***
   template <typename DTYPE, typename CTYPE0, typename CTYPE1>
   bool is_coord_less_than_or_equal
   (const DTYPE dimension, const CTYPE0 coord0, const CTYPE1 coord1)
@@ -899,6 +914,51 @@ namespace IJK {
 
     return(true);
   }
+
+  /// Return true if coord0[] is contained in the rectangular region
+  ///   with opposing corners coord1[] and coord2[].
+  template <typename DTYPE, typename CTYPE0, 
+            typename CTYPE1, typename CTYPE2>
+  bool is_coord_in_rectangular_region
+  (const DTYPE dimension, 
+   const CTYPE0 coord0[], const CTYPE1 coord1[], const CTYPE2 coord2[])
+  {
+    for (DTYPE d = 0; d < dimension; d++) {
+      if (coord0[d] < coord1[d]) {
+        if (coord0[d] < coord2[d]) { return(false); }
+      }
+      else if (coord0[d] > coord1[d]) {
+        if (coord0[d] > coord2[d]) { return(false); }
+      }
+    }
+
+    return(true);
+  }
+
+  /// Return true if coord0[] is contained in the interior 
+  ///   of the rectangular region with opposing corners coord1[] and coord2[].
+  template <typename DTYPE, typename CTYPE0, 
+            typename CTYPE1, typename CTYPE2>
+  bool is_coord_in_interior_of_rectangular_region
+  (const DTYPE dimension, 
+   const CTYPE0 coord0[], const CTYPE1 coord1[], const CTYPE2 coord2[])
+  {
+    for (DTYPE d = 0; d < dimension; d++) {
+      if (coord0[d] < coord1[d]) {
+        if (coord0[d] <= coord2[d]) { return(false); }
+      }
+      else if (coord0[d] > coord1[d]) {
+        if (coord0[d] >= coord2[d]) { return(false); }
+      }
+      else {
+        // coord0[d] == coord1[d]
+        return(false); 
+      }
+    }
+
+    return(true);
+  }
+
 
   // **************************************************
   // Rounding operators

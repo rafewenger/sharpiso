@@ -1085,8 +1085,7 @@ namespace IJK {
   (const DTYPE dimension, const ATYPE * axis_size, const WTYPE boundary_width,
    NTYPE & num_vertices)
   {
-    //ATYPE interior_axis_size[dimension];
-	IJK::ARRAY<ATYPE> interior_axis_size(dimension);
+    IJK::ARRAY<ATYPE> interior_axis_size(dimension);
     num_vertices = 0;
     for (DTYPE d = 0; d < dimension; d++) {
       if (axis_size[d] <= 2*boundary_width) { return; };
@@ -3321,9 +3320,8 @@ namespace IJK {
       return;
     }
 
-	//ATYPE axis_increment[dimension];
     IJK::ARRAY<ATYPE> axis_increment(dimension);
-	compute_increment(dimension, axis_size, axis_increment.Ptr());
+    compute_increment(dimension, axis_size, axis_increment.Ptr());
 
     // get vertices in lower facet
     VTYPE num_vertices_in_grid_facet;
