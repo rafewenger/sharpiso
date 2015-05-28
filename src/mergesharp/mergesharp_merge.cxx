@@ -2054,9 +2054,6 @@ namespace {
    VERTEX_INDEX & separating_cube)
   {
     GRID_BOX region(DIM3);
-    /* OBSOLETE
-    GRID_COORD_TYPE c0, c1;
-    */
     bool flag_found = false;
 
     // Initialize
@@ -2536,8 +2533,7 @@ namespace {
       extend_mappingII
         (scalar_grid, isovalue, selected_gcube_list, isovert, gcube_map);
 
-      extend_mappingIII
-        (scalar_grid, isovalue, selected_gcube_list, isovert, gcube_map);
+      // *** COULD CALL extend_mappingIII HERE. ***
 
       // Redo map to adjacent cubes.
       map_adjacent_cubes_multi_simple
@@ -5075,6 +5071,7 @@ namespace {
     }
 	}
 
+  // *** CURRENTLY NOT USED. ***
   /// Extend mapping of triples of isosurface vertices
 	void extend_mappingIII
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
@@ -5178,21 +5175,7 @@ namespace {
              scalar_grid, isovalue, to_cube_index, isovert, gcube_map);
 
 
-          /* NOT YET TESTED
-          extend_map_edge_adjacent_pairs
-            (cubeA_index, cubeA_index, scalar_grid, isovalue,
-             to_cube_index, isovert, gcube_map);
-
-          apply_to_cubes_in_plane_facet_adjacent_to
-            (extend_map_edge_adjacent_pairs, isovert.grid, 
-             cubeA_index, boundary_bits, d0, 
-             scalar_grid, isovalue, to_cube_index, isovert, gcube_map);
-
-          apply_to_cubes_in_plane_edge_adjacent_to
-            (extend_map_edge_adjacent_pairs, isovert.grid, 
-             cubeA_index, boundary_bits, d0, 
-             scalar_grid, isovalue, to_cube_index, isovert, gcube_map);
-          */
+          // *** COULD CALL extend_map_edge_adjacent_pairs HERE ***
         }
       }
     }
@@ -7273,6 +7256,7 @@ namespace {
     }
   }
 
+  // *** CURRENTLY NOT USED ***
   /// Map cube pairs (cubeB,cubeC) to cube to_cube using extended mapping
   ///   where cubeC is edge adjacent to cubeB.
   void extend_map_edge_adjacent_pairs
