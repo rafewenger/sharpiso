@@ -5989,26 +5989,25 @@ namespace {
 	bool does_merge_reverse_isovert_order(
 		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
 		const MERGESHARP::ISOVERT & isovert,
-		const INDEX_DIFF_TYPE from_cube_gcube_index,
-		const INDEX_DIFF_TYPE to_cube_gcube_index,
+		const INDEX_DIFF_TYPE from_gcube_index,
+		const INDEX_DIFF_TYPE to_gcube_index,
 		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
 	{
+		VERTEX_INDEX to_cube_index = 
+      isovert.gcube_list[to_gcube_index].cube_index;
+		VERTEX_INDEX from_cube_index = 
+      isovert.gcube_list[from_gcube_index].cube_index;
 
-		COORD_TYPE from_cube_cc[DIM3] = {0.0,0.0,0.0};
-		COORD_TYPE to_cube_cc[DIM3] = {0.0,0.0,0.0};
-		VERTEX_INDEX to_cube_cube_index = 
-      isovert.gcube_list[to_cube_gcube_index].cube_index;
-		VERTEX_INDEX from_cube_cube_index = 
-      isovert.gcube_list[from_cube_gcube_index].cube_index;
+    const GRID_COORD_TYPE * from_cube_cc =
+      isovert.gcube_list[from_gcube_index].cube_coord;
+    const GRID_COORD_TYPE * to_cube_cc =
+      isovert.gcube_list[to_gcube_index].cube_coord;
 
-		scalar_grid.ComputeCoord(from_cube_cube_index, from_cube_cc);
-		scalar_grid.ComputeCoord(to_cube_cube_index, to_cube_cc);
-
-		if (isovert.gcube_list[from_cube_gcube_index].boundary_bits == 0) {
+		if (isovert.gcube_list[from_gcube_index].boundary_bits == 0) {
 			for (int d = 0; d < DIM3; d++)
 			{
 				VERTEX_INDEX prev_v_cube_index = 
-          scalar_grid.PrevVertex(from_cube_cube_index,d);
+          scalar_grid.PrevVertex(from_cube_index,d);
 				COORD_TYPE prev_v_cc[DIM3] = {0.0,0.0,0.0};
 				scalar_grid.ComputeCoord(prev_v_cube_index, prev_v_cc);
 
@@ -6037,7 +6036,7 @@ namespace {
 				}
 
 				VERTEX_INDEX next_v_cube_index = 
-          scalar_grid.NextVertex(from_cube_cube_index,d);
+          scalar_grid.NextVertex(from_cube_index,d);
 				COORD_TYPE next_v_cc[DIM3] = {0.0,0.0,0.0};
 				scalar_grid.ComputeCoord(next_v_cube_index, next_v_cc);
 
@@ -6080,11 +6079,9 @@ namespace {
     const INDEX_DIFF_TYPE gcubeC_index,
 		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
 	{
-		COORD_TYPE to_coord[DIM3], to_coordB[DIM3];
 		VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
 		VERTEX_INDEX from_cube = isovert.CubeIndex(from_gcube);
-
-		grid.ComputeCoord(to_cube, to_coord);
+    const GRID_COORD_TYPE * to_coord = isovert.gcube_list[to_gcube].cube_coord;
 
 		if (isovert.gcube_list[from_gcube].boundary_bits == 0) {
 			for (int d = 0; d < DIM3; d++)
@@ -6098,7 +6095,8 @@ namespace {
 					if (to_gcubeB != to_gcube) {
 
             VERTEX_INDEX to_cubeB = isovert.CubeIndex(to_gcubeB);
-            grid.ComputeCoord(to_cubeB, to_coordB);
+            const GRID_COORD_TYPE * to_coordB = 
+              isovert.gcube_list[to_gcubeB].cube_coord;
 
             if (to_gcubeB == gcubeC_index) { 
               if (to_coord[d] < to_coordB[d]) { return(true); }
@@ -6117,7 +6115,8 @@ namespace {
 					if (to_gcubeB != to_gcube) {
 
             VERTEX_INDEX to_cubeB = isovert.CubeIndex(to_gcubeB);
-            grid.ComputeCoord(to_cubeB, to_coordB);
+            const GRID_COORD_TYPE * to_coordB = 
+              isovert.gcube_list[to_gcubeB].cube_coord;
 
             if (to_gcubeB != gcubeC_index) { 
               if (to_coord[d] > to_coordB[d]) { return true; }
@@ -6166,7 +6165,7 @@ namespace {
   ///          If 1, return true if coordA[d]+1 >= coordB[d]
   bool is_difference_bounded
   (const int d, const int j, 
-   const COORD_TYPE coordA[DIM3], const COORD_TYPE coordB[DIM3])
+   const GRID_COORD_TYPE coordA[DIM3], const GRID_COORD_TYPE coordB[DIM3])
   {
     if (j < 0)
       { return((coordA[d] <= coordB[d]+1)); }
@@ -6240,7 +6239,6 @@ namespace {
 	{
     const VERTEX_INDEX * axis_increment = grid.AxisIncrement();
     const GRID_COORD_TYPE * to_coord = isovert.gcube_list[to_gcube].cube_coord;
-    GRID_COORD_TYPE to_coordB[DIM3];
 		VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
 		VERTEX_INDEX from_cube = isovert.CubeIndex(from_gcube);
 
@@ -6278,7 +6276,8 @@ namespace {
             if (to_gcubeB != to_gcube) {
 
               VERTEX_INDEX to_cubeB = isovert.CubeIndex(to_gcubeB);
-              grid.ComputeCoord(to_cubeB, to_coordB);
+              const GRID_COORD_TYPE * to_coordB = 
+                isovert.gcube_list[to_gcubeB].cube_coord;
 
               if (to_gcubeB == gcubeC_index) {
 
@@ -6330,7 +6329,6 @@ namespace {
     const GRID_COORD_TYPE * to_coord = isovert.gcube_list[to_gcube].cube_coord;
     const GRID_COORD_TYPE * from_coord = 
       isovert.gcube_list[from_gcube].cube_coord;
-    GRID_COORD_TYPE to_coordB[DIM3];
 		VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
 		VERTEX_INDEX from_cube = isovert.CubeIndex(from_gcube);
 
@@ -6366,7 +6364,8 @@ namespace {
             if (to_gcubeB != to_gcube) {
 
               VERTEX_INDEX to_cubeB = isovert.CubeIndex(to_gcubeB);
-              grid.ComputeCoord(to_cubeB, to_coordB);
+              const GRID_COORD_TYPE * to_coordB = 
+                isovert.gcube_list[to_gcubeB].cube_coord;
 
               // *** DEBUG ***
               /*
@@ -6385,26 +6384,7 @@ namespace {
               }
               */
 
-              /*
-              if (to_gcubeB != gcubeB_index ||
-                  !IJK::is_coord_in_rectangular_region
-                  (DIM3, to_coordB, from_coord, to_coord)) {
-              */
-
               if (to_gcubeB != gcubeB_index) {
-
-                // *** DEBUG ***
-                MSDEBUG();
-                if (flag_debug) {
-                  cerr << "  Calling is_order_correct.";
-                  grid.PrintIndexAndCoord
-                    (cerr, "  to_cubeB: ", to_cubeB, "\n");
-                }
-
-                /* 
-                const GRID_COORD_TYPE * coordB =
-                  isovert.gcube_list[gcubeB_index].cube_coord;
-                */
 
                 if (are_cubes_mapped_III
                     (grid, from_cube, d1, j1, d2, j2, isovert, gcube_map))
@@ -6449,14 +6429,12 @@ namespace {
 		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
 	{
     const VERTEX_INDEX * axis_increment = grid.AxisIncrement();
-		COORD_TYPE to_coord[DIM3], to_coordB[DIM3];
 		VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
 		VERTEX_INDEX from_cube = isovert.CubeIndex(from_gcube);
+    const GRID_COORD_TYPE * to_coord = 
+      isovert.gcube_list[to_gcube].cube_coord;
     const GRID_COORD_TYPE * from_coord =
       isovert.gcube_list[from_gcube].cube_coord;
-
-    // *** REPLACE BY to_coord = isovert.gcube_list[to_gcube].cube_coord.
-		grid.ComputeCoord(to_cube, to_coord);
 
     MSDEBUG();
     if (flag_debug) {
@@ -6499,7 +6477,8 @@ namespace {
               }
 
               VERTEX_INDEX to_cubeB = isovert.CubeIndex(to_gcubeB);
-              grid.ComputeCoord(to_cubeB, to_coordB);
+              const GRID_COORD_TYPE * to_coordB = 
+                isovert.gcube_list[to_gcubeB].cube_coord;
 
               // *** DEBUG ***
               if (flag_debug) {
@@ -6546,11 +6525,12 @@ namespace {
 		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
 	{
     const VERTEX_INDEX * axis_increment = grid.AxisIncrement();
-		COORD_TYPE to_coord[DIM3], to_coordB[DIM3];
 		VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
 		VERTEX_INDEX from_cube = isovert.CubeIndex(from_gcube);
-
-		grid.ComputeCoord(to_cube, to_coord);
+    const GRID_COORD_TYPE * to_coord = 
+      isovert.gcube_list[to_gcube].cube_coord;
+    const GRID_COORD_TYPE * from_coord =
+      isovert.gcube_list[from_gcube].cube_coord;
 
     MSDEBUG();
     if (flag_debug) {
@@ -6581,7 +6561,8 @@ namespace {
             if (to_gcubeB != to_gcube) {
 
               VERTEX_INDEX to_cubeB = isovert.CubeIndex(to_gcubeB);
-              grid.ComputeCoord(to_cubeB, to_coordB);
+              const GRID_COORD_TYPE * to_coordB = 
+                isovert.gcube_list[to_gcubeB].cube_coord;
 
               // *** DEBUG ***
               if (flag_debug) {
