@@ -1104,17 +1104,23 @@ void set_mismatch_near_corner
 
     if (corner_gcube_index == ISOVERT::NO_INDEX) { throw error; }
 
+    const GRID_COORD_TYPE * corner_cube_coord =
+      isovert.gcube_list[corner_gcube_index].cube_coord;
+
     for (int i = 1; i < DIM3; i++) {
 
       const int d1 = (orth_dir+i)%DIM3;
       const int d2 = (orth_dir+2*i)%DIM3;
 
-      for (int j1 = 0; j1 < 2; j1++) {
+      for (int j1 = -1; j1 < 2; j1++) {
         for (int j2 = -1; j2 < 2; j2++) {
 
           const VERTEX_INDEX cubeB_index =
-            cubeA_index + 2*isovert.grid.AxisIncrement(d1)*(2*j1-1) +
+            cubeA_index + isovert.grid.AxisIncrement(d1)*j1 +
             isovert.grid.AxisIncrement(d2)*j2;
+
+          if (cubeB_index == cubeA_index) { continue; }
+
           const INDEX_DIFF_TYPE gcubeB_index = isovert.GCubeIndex(cubeB_index);
 
           if (gcubeB_index == ISOVERT::NO_INDEX) { continue; }
@@ -1127,7 +1133,7 @@ void set_mismatch_near_corner
             isovert.gcube_list[gcubeB_index].cube_coord;
 
           IJK::compute_Linf_distance
-            (DIM3, cubeA_coord, cubeB_coord, linf_distance);
+            (DIM3, corner_cube_coord, cubeB_coord, linf_distance);
 
           if (linf_distance > 2) { continue; }
 
