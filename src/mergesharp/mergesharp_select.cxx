@@ -2646,7 +2646,7 @@ void MERGESHARP::select_sharp_isovert_mod6
   selection_data.mismatch_table.AddSignedPermutations(3, 2, 1, 2);
   selection_data.mismatch_table.AddSignedPermutations(3, 2, 0, 2);
 
-  // *** TEST ***
+  // Mismatches at distance 5.
   selection_data.mismatch_table.AddSignedPermutations(5, 3, 2, 4);
 
   selection_data.mismatch_table.ComputeAllBlockingLocations();
