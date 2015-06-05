@@ -142,6 +142,7 @@ namespace MERGESHARP {
    const VERTEX_INDEX to_cube,
    const int dirAB, const int dirBC, const int relposAB, const int relposBC);
 
+
   /// Compute cos triangle angles.
   void compute_cos_triangle_angles
   (const SHARPISO_GRID & grid, 

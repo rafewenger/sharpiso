@@ -468,46 +468,22 @@ bool MERGESHARP::check_tri_distortion_mapA
   }
 
   if (!flag_small_magnitude) {
-
     if (cos_angle_ABC > cos_min_triangle_angle ||
         cos_angle_ACB > cos_min_triangle_angle) {
 
-      COORD_TYPE cos_original_angle_ABC, cos_original_angle_ACB;
 
-      compute_cos_triangle_angles
-        (grid, unscaled_coordA, unscaled_coordB, unscaled_coordC,
-         min_dist, cos_original_angle_ABC, cos_original_angle_ACB, 
-         flag_small_magnitude);
-
-      if (!flag_small_magnitude) {
-
-        ANGLE_TYPE angle_ABC = acos(cos_angle_ABC);
-        ANGLE_TYPE angle_ACB = acos(cos_angle_ACB);
-        ANGLE_TYPE original_angle_ABC = acos(cos_original_angle_ABC);
-        ANGLE_TYPE original_angle_ACB = acos(cos_original_angle_ACB);
-
-        if ((cos_angle_ABC > cos_min_triangle_angle &&
-             angle_ABC < original_angle_ABC/2.0) ||
-            (cos_angle_ACB > cos_min_triangle_angle &&
-             angle_ACB < original_angle_ACB/2.0)) {
-
-          // *** DEBUG ***
-          if (flag_debug) {
-            MSDEBUG();
-            cerr << "--- Failed angle test." 
-                 << "  angle_ABC: " << angle_ABC * 180.0/M_PI
-                 << " (original: " << original_angle_ABC * 180.0/M_PI << ")"
-                 << "  angle_ACB: " << angle_ACB * 180.0/M_PI
-                 << " (original: " << original_angle_ACB * 180.0/M_PI << ")."
-                 << endl;
-          }
-
-          return(false);
-        }
+      // *** DEBUG ***
+      if (flag_debug) {
+        MSDEBUG();
+        cerr << "--- Failed angle test." 
+             << "  angle_ABC: " << acos(cos_angle_ABC) * 180.0/M_PI
+             << "  angle_ACB: " << acos(cos_angle_ACB) * 180.0/M_PI
+             << endl;
       }
+
+      return(false);
     }
   }
-
 
   // Dihedral angle test
   const COORD_TYPE min_dihedral_angle = 30;
@@ -713,7 +689,6 @@ bool MERGESHARP::check_tri_distortion_mapB
     if (cos_angle_BAC > cos_min_triangle_angle ||
         cos_angle_BCA > cos_min_triangle_angle) {
 
-      // *** DEBUG ***
       if (flag_debug) {
         MSDEBUG();
         cerr << "--- Failed angle test." 
@@ -783,6 +758,7 @@ bool MERGESHARP::check_tri_distortion_mapB
   if (orient == cube_orient) { return(true); }
   else { return(false); }
 }
+
 
 // Compute projected triangle orientation.
 // @param orth_dir Direction of orthogonal projection onto plane.
