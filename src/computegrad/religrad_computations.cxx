@@ -1721,7 +1721,7 @@ float angle_between(const VERTEX_INDEX v,
 }
 			
 //debug
-static int x11=0,x22=0,x33=0,x44=0,x55=0,x66=0;
+//static int x11=0,x22=0,x33=0,x44=0,x55=0,x66=0;
 
 
 bool does_ortho_matchA
@@ -1770,7 +1770,6 @@ bool does_ortho_matchA
 			grad_mag_grid, io_info); 
 		if(angle_iv_v1 <= alpha1 && 0)
 		{
-			x44++;
 			numAgree++;
 		}
 		else
@@ -1781,14 +1780,12 @@ bool does_ortho_matchA
 				(iv, v3, v2, 2, scalar_grid, gradient_grid, grad_mag_grid)
 				<= alpha))
 			{
-				x55++;
 				numAgree++;
 			}
 		}
 	}
 	if(numAgree >= 2)
 	{
-		x66++;
 		return true;
 	}
 	else
@@ -1912,14 +1909,12 @@ bool does_ortho_match(
 					(iv, v3, v2, 2, scalar_grid, gradient_grid, grad_mag_grid)
 					<= alpha)
 				{
-					x11++;
 					return true;
 				}
 				float angle = angle_between(iv, v2, scalar_grid, gradient_grid,
 					grad_mag_grid, io_info); 
 				if( angle < 5)
 				{
-					x22++;
 					return true;
 				}
 			}
@@ -1946,7 +1941,6 @@ bool does_ortho_match(
 
 		if( anglev1 <= 5)
 		{
-			x33++;
 			return true;
 		}
 	}
@@ -2104,8 +2098,6 @@ void compute_reliable_gradients_curvature_basedB(
 				grad_mag_grid, reliable_grid, io_info);
 		}
 	}
-	cerr <<"x11 "<< x11 <<", x22 "<< x22 <<", x33 "<<x33 <<endl;
-	cerr <<"x44 "<<x44 <<",x55 "<< x55<<",x66 "<<x66 << endl;
 	cerr <<"Starting Extended Correct Gradients." << endl;
 	// check if extended
 	if (io_info.extended_curv_based)
