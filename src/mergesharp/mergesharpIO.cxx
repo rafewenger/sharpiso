@@ -2375,8 +2375,9 @@ namespace {
     cerr << "  [-manifold] [-select_split]" << endl;
     cerr << "  [-trimesh]" << endl;
     cerr << "  [-max_eigen {max}]" << endl;
-    cerr << "  [-max_dist {D}] [-max_mag {M}] [-snap_dist {D}]" << endl;
+    cerr << "  [-max_dist {D}] [-max_mag {M}] [-snap_dist {D}]" << endl;    
     cerr << "  [-gradS_offset {offset}] [-min_gradS_offset {offset}] [-max_grad_dist {D}]" << endl;
+    cerr << "  [-min_triangle_angle {A}] [-min_dihedral_angle {A}]" << endl;
     cerr << "  [-sharp_edgeI | -interpolate_edgeI]" << endl;
     cerr << "  [-lindstrom]" << endl;
     cerr << "  [-single_isov | -multi_isov | -split_non_manifold]" << endl;
@@ -2534,6 +2535,10 @@ void MERGESHARP::help(const char * command_path)
   cerr << "  -gradS_offset {offset}: Set cube offset for gradient selection to offset."
        << endl;
   cerr << "           Offset measures distance from cube boundary." << endl;
+  cerr << "  -min_triangle_angle {A}:  Avoid cube merging which creates triangles" << endl
+       << "             with angle less than {A}." << endl;
+  cerr << "  -min_dihedral_angle {A}:  Allow cube merging if angle between" << endl
+       << "             new and old triangle is less than {A}." << endl;
   cout << "  -lindstrom:   Use Lindstrom's equation to compute sharp point."
        << endl;
   cout << "  -allow_conflict:  Allow more than one isosurface vertex in a cube."
