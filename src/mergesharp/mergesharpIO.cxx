@@ -89,6 +89,7 @@ namespace {
     OUTPUT_FILENAME_PARAM, STDOUT_PARAM, NOWRITE_PARAM, 
     OUTPUT_PARAM_PARAM, OUTPUT_INFO_PARAM, 
     OUTPUT_SELECTED_PARAM, OUTPUT_SHARP_PARAM, OUTPUT_ACTIVE_PARAM,
+    OUTPUT_MAP_TO_SELF_PARAM, 
     OUTPUT_MAP_TO_PARAM, OUTPUT_NEIGHBORS_PARAM,
     OUTPUT_ISOVERT_PARAM,
     WRITE_ISOV_INFO_PARAM, SILENT_PARAM, TIME_PARAM, 
@@ -124,7 +125,7 @@ namespace {
       "-help", "-off", "-iv", 
       "-o", "-stdout", "-nowrite", 
       "-out_param", "-info", "-out_selected", "-out_sharp", "-out_active",
-      "-out_map_to", "-out_neighbors", "-out_isovert",
+      "-out_map_to_self", "-out_map_to", "-out_neighbors", "-out_isovert",
       "-write_isov_info", "-s", "-time", "-unknown"};
 
   PARAMETER get_parameter_token(const char * s)
@@ -560,6 +561,10 @@ namespace {
 
     case OUTPUT_ACTIVE_PARAM:
       input_info.flag_output_active = true;
+      break;
+
+    case OUTPUT_MAP_TO_SELF_PARAM:
+      input_info.flag_output_map_to_self = true;
       break;
 
     case STDOUT_PARAM:
@@ -2114,6 +2119,22 @@ void MERGESHARP::report_active_cubes
   cout << endl;
 }
 
+/// Report information about cubes which map to themselves.
+void MERGESHARP::report_cubes_which_map_to_self
+(const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
+ const ISOVERT & isovert)
+{
+  cout << endl;
+  cout << "Cubes which map to themselves:" << endl;
+  for (NUM_TYPE i = 0; i < isovert.gcube_list.size(); i++) {
+    VERTEX_INDEX cube_index = isovert.CubeIndex(i);
+    if (isovert.gcube_list[i].maps_to_cube == cube_index) {
+      report_isovert_cube_info(output_info, grid, isovert, cube_index);
+    }
+  }
+  cout << endl;
+}
+
 /// Report information about cubes which map to a specific cube.
 void MERGESHARP::report_cubes_which_map_to
 (const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
@@ -2169,6 +2190,9 @@ void MERGESHARP::report_isovert_info
 
   if (output_info.flag_output_active) 
     { report_active_cubes(output_info, grid, isovert); }
+
+  if (output_info.flag_output_map_to_self) 
+    { report_cubes_which_map_to_self(output_info, grid, isovert); }
 
   if (output_info.flag_output_map_to) {
     report_cubes_which_map_to
@@ -2358,7 +2382,9 @@ namespace {
     cerr << "  [-keepv]" << endl;
     cerr << "  [-off|-iv] [-o {output_filename}] [-stdout]"
          << endl;
-    cerr << "  [-s] [-out_param] [-info] [-out_selected] [-out_sharp] [-out_active]" << endl;
+    cerr << "  [-s] [-out_param] [-info]" << endl;
+    cerr << "  [-out_selected] [-out_sharp] [-out_active] [-out_map_to_self]" 
+         << endl;
     cerr << "  [-out_map_to {cube index}] [-out_neighbors \" 222|22x|32x|33x \"]" 
          << endl;
     cerr << "  [-out_isovert [corner|edge|sharp|smooth|all] [selected|all|uncovered]" << endl;
@@ -2548,6 +2574,8 @@ void MERGESHARP::help(const char * command_path)
   cout << "  -out_selected: Output list of selected cubes." << endl;
   cout << "  -out_sharp: Output list of cubes containing corner or edge vertices." << endl;
   cout << "  -out_active: Output list of active cubes." << endl;
+  cout << "  -out_map_to_self: Output list of cubes which map to themselves." 
+       << endl;
   cout << "  -out_map_to {cube index}: Output list of cubes which map to given cube index." << endl;
   cerr << "  -out_neighbors {\" 222 | 22x | 32x | 33x \"}:" << endl;
   cerr << "       Output pairs of selected neighboring cubes at given distances." << endl;
@@ -2596,6 +2624,7 @@ void MERGESHARP::IO_INFO::Init()
   flag_output_selected = false;
   flag_output_sharp = false;
   flag_output_active = false;
+  flag_output_map_to_self = false;
   flag_output_map_to = false;
   to_cube = 0;
   flag_output_isovert = false;

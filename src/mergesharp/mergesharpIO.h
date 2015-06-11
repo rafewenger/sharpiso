@@ -104,6 +104,7 @@ namespace MERGESHARP {
     bool flag_output_selected;   ///< Output information about selected cubes.
     bool flag_output_sharp;      ///< Output information about sharp cubes.
     bool flag_output_active;     ///< Output information about active cubes.
+    bool flag_output_map_to_self;   ///< Output cubes which map to themselves.
     bool flag_output_map_to;     ///< Output cubes which map to a specific cube.
     VERTEX_INDEX to_cube;        ///< Index of cube specified by map to.
     ISOVERT_TYPE output_isovert_type;
@@ -435,6 +436,11 @@ namespace MERGESHARP {
   void report_active_cubes
     (const OUTPUT_INFO & output_info,
      const SHARPISO_GRID & grid, const ISOVERT & isovert);
+
+  /// Report information about cubes which map to themselves.
+  void report_cubes_which_map_to_self
+  (const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
+   const ISOVERT & isovert);
 
   /// Report information about cubes which map to a specific cube.
   void report_cubes_which_map_to
