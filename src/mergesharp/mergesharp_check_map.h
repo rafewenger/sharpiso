@@ -41,7 +41,8 @@ namespace MERGESHARP {
    const ISOVERT & isovert,
    const std::vector<VERTEX_INDEX> & gcube_map,
    const VERTEX_INDEX from_cube,
-   const VERTEX_INDEX to_cube);
+   const VERTEX_INDEX to_cube,
+   const MERGE_PARAM & param);
 
   /// Return true if mapping of from_cube to to_cube does not reverse any
   ///   triangles incident on vertex in from_cube 
@@ -53,7 +54,8 @@ namespace MERGESHARP {
    const ISOVERT & isovert,
    const std::vector<VERTEX_INDEX> & gcube_map,
    const VERTEX_INDEX from_cube,
-   const VERTEX_INDEX to_cube);
+   const VERTEX_INDEX to_cube,
+   const MERGE_PARAM & param);
 
   /// Return true if simultaneous mapping of from_cube0 to to_cube0
   ///   and from_cube1 to to_cube1 does not reverse any triangles 
@@ -65,7 +67,8 @@ namespace MERGESHARP {
    const ISOVERT & isovert,
    std::vector<VERTEX_INDEX> & gcube_map,
    const VERTEX_INDEX from_cube0, const VERTEX_INDEX to_cube0,
-   const VERTEX_INDEX from_cube1, const VERTEX_INDEX to_cube1);
+   const VERTEX_INDEX from_cube1, const VERTEX_INDEX to_cube1,
+   const MERGE_PARAM & param);
 
   // Return true if simultaneous mapping of three cubes to to_cube
   //   does not reverse any triangles incident on vertices on cubes
@@ -75,7 +78,8 @@ namespace MERGESHARP {
    const SCALAR_TYPE isovalue,
    const ISOVERT & isovert,
    std::vector<VERTEX_INDEX> & gcube_map,
-   const VERTEX_INDEX cube_index[3], const VERTEX_INDEX to_cube);
+   const VERTEX_INDEX cube_index[3], const VERTEX_INDEX to_cube,
+   const MERGE_PARAM & param);
 
   /// Return true if mapping of from_cube to to_cube does not reverse/distort
   ///   any triangles on quad dual to (iend0,iend1).
@@ -89,7 +93,8 @@ namespace MERGESHARP {
    const int edge_direction,
    const VERTEX_INDEX iend0,
    const int j1,
-   const int j2);
+   const int j2,
+   const MERGE_PARAM & param);
 
   /// Return true if mapping of from_cube to to_cube does not reverse/distort
   ///   triangles FAB or FBC on quad (FABC) dual to (iend0, iend1).
@@ -103,7 +108,9 @@ namespace MERGESHARP {
    const int edge_direction,
    const VERTEX_INDEX iend0,
    const int j1,
-   const int j2);
+   const int j2,
+   const MERGE_PARAM & param);
+
 
   /// Return true if mapping of icubA to to_cube does not reverse/distort
   ///   triangles FAB or FBC on quad (FABC) dual to (iend0, iend1)
@@ -122,7 +129,8 @@ namespace MERGESHARP {
    const VERTEX_INDEX icubeA, const VERTEX_INDEX icubeB, 
    const VERTEX_INDEX icubeC,
    const VERTEX_INDEX to_cube,
-   const int dirAB, const int dirBC, const int relposAB, const int relposBC);
+   const int dirAB, const int dirBC, const int relposAB, const int relposBC,
+   const MERGE_PARAM & param);
 
   /// Return true if mapping of icubeB to to_cube does not reverse/distort
   ///   triangle with vertices in (icubeA,icubeB,icubeC).
@@ -140,7 +148,8 @@ namespace MERGESHARP {
    const VERTEX_INDEX icubeA, const VERTEX_INDEX icubeB, 
    const VERTEX_INDEX icubeC,
    const VERTEX_INDEX to_cube,
-   const int dirAB, const int dirBC, const int relposAB, const int relposBC);
+   const int dirAB, const int dirBC, const int relposAB, const int relposBC,
+   const MERGE_PARAM & param);
 
 
   /// Compute cos triangle angles.

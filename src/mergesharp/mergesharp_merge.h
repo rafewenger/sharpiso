@@ -54,7 +54,7 @@ namespace MERGESHARP {
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    ISOVERT & isovert, 
-   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+   const MERGE_PARAM & merge_param,
    std::vector<VERTEX_INDEX> & isoquad_cube,
    std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info);
 
@@ -62,7 +62,7 @@ namespace MERGESHARP {
   void merge_sharp_iso_vertices
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, const SCALAR_TYPE isovalue,
    ISOVERT & isovert, 
-   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+   const MERGE_PARAM & merge_param,
    std::vector<VERTEX_INDEX> & isoquad_cube,
    SHARPISO_INFO & sharpiso_info);
 
@@ -75,7 +75,7 @@ namespace MERGESHARP {
    const SCALAR_TYPE isovalue,
    const std::vector<DUAL_ISOVERT> & iso_vlist,
    ISOVERT & isovert,
-   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+   const MERGE_PARAM & merge_param,
    std::vector<VERTEX_INDEX> & poly_vert,
    std::vector<VERTEX_INDEX> & gcube_map, SHARPISO_INFO & sharpiso_info);
 
@@ -88,7 +88,7 @@ namespace MERGESHARP {
    const SCALAR_TYPE isovalue,
    const std::vector<DUAL_ISOVERT> & iso_vlist,
    ISOVERT & isovert,
-   const SHARP_ISOVERT_PARAM & sharp_isovert_param,
+   const MERGE_PARAM & merge_param,
    std::vector<VERTEX_INDEX> & poly_vert,
    SHARPISO_INFO & sharpiso_info);
 

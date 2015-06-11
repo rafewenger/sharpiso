@@ -58,6 +58,7 @@ namespace {
     MAX_EIGEN_PARAM, MAX_DIST_PARAM, 
     GRAD_S_OFFSET_PARAM, MIN_GRAD_S_OFFSET_PARAM,
     MAX_MAG_PARAM, SNAP_DIST_PARAM, MAX_GRAD_DIST_PARAM,
+    MIN_TRIANGLE_ANGLE_PARAM, MIN_DIHEDRAL_ANGLE_PARAM,
     SHARP_EDGEI_PARAM, INTERPOLATE_EDGEI_PARAM,
     ALLOW_CONFLICT_PARAM,
     CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
@@ -101,6 +102,7 @@ namespace {
       "-grad2hermite", "-grad2hermiteI",
       "-max_eigen", "-max_dist", "-gradS_offset", "-min_gradS_offset", 
       "-max_mag", "-snap_dist", "-max_grad_dist",
+      "-min_triangle_angle", "-min_dihedral_angle",
       "-sharp_edgeI", "-interpolate_edgeI",
       "-allow_conflict", "-clamp_conflict", "-centroid_conflict", 
       "-merge_sharp","-no_merge_sharp", "-merge_linf_th",
@@ -641,6 +643,16 @@ namespace {
 
     case MAX_MAG_PARAM:
       input_info.max_small_magnitude = 
+        get_option_float(option_string, value_string);
+      break;
+
+    case MIN_TRIANGLE_ANGLE_PARAM:
+      input_info.min_triangle_angle = 
+        get_option_float(option_string, value_string);
+      break;
+
+    case MIN_DIHEDRAL_ANGLE_PARAM:
+      input_info.min_dihedral_angle = 
         get_option_float(option_string, value_string);
       break;
 

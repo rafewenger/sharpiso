@@ -210,6 +210,27 @@ public:
 
 
 // **************************************************
+// MERGE PARAMETERS
+// **************************************************
+
+/// dual contouring parameters
+class MERGE_PARAM:public SHARPISO::SHARP_ISOVERT_PARAM {
+
+public:
+  
+  ANGLE_TYPE min_triangle_angle;
+  ANGLE_TYPE min_dihedral_angle;
+
+protected:
+  void Init();
+
+public:
+  
+  MERGE_PARAM() { Init(); };
+};
+
+
+// **************************************************
 // ISOVERT INFO
 // **************************************************
 

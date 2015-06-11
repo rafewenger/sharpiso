@@ -76,7 +76,8 @@ bool MERGESHARP::check_distortion_strict
  const ISOVERT & isovert,
  const std::vector<VERTEX_INDEX> & gcube_map,
  const VERTEX_INDEX from_cube,
- const VERTEX_INDEX to_cube)
+ const VERTEX_INDEX to_cube,
+ const MERGE_PARAM & param)
 {
   IJK::PROCEDURE_ERROR error("check_distortion_strict");
   const INDEX_DIFF_TYPE from_gcube_index = 
@@ -101,7 +102,7 @@ bool MERGESHARP::check_distortion_strict
 
           if (!check_quad_distortion_strict
               (scalar_grid, isovalue, isovert, gcube_map, from_cube, to_cube,
-              edge_dir, iend0, j1, j2)) 
+               edge_dir, iend0, j1, j2, param)) 
             { return(false); }
         }
       }
@@ -123,7 +124,8 @@ bool MERGESHARP::check_distortion_loose
  const ISOVERT & isovert,
  const std::vector<VERTEX_INDEX> & gcube_map,
  const VERTEX_INDEX from_cube,
- const VERTEX_INDEX to_cube)
+ const VERTEX_INDEX to_cube,
+ const MERGE_PARAM & param)
 {
   IJK::PROCEDURE_ERROR error("check_distortion_loose");
   const INDEX_DIFF_TYPE from_gcube_index = 
@@ -148,7 +150,7 @@ bool MERGESHARP::check_distortion_loose
 
           if (!check_quad_distortion_loose
               (scalar_grid, isovalue, isovert, gcube_map, from_cube, to_cube,
-              edge_dir, iend0, j1, j2)) 
+               edge_dir, iend0, j1, j2, param)) 
             { return(false); }
         }
       }
@@ -172,7 +174,8 @@ bool MERGESHARP::check_distortionII
  const ISOVERT & isovert,
  std::vector<VERTEX_INDEX> & gcube_map,
  const VERTEX_INDEX from_cube0, const VERTEX_INDEX to_cube0,
- const VERTEX_INDEX from_cube1, const VERTEX_INDEX to_cube1)
+ const VERTEX_INDEX from_cube1, const VERTEX_INDEX to_cube1,
+ const MERGE_PARAM & param)
 {
   IJK::PROCEDURE_ERROR error("check_distortionII");
   const INDEX_DIFF_TYPE from_gcube0_index = 
@@ -198,7 +201,7 @@ bool MERGESHARP::check_distortionII
   gcube_map[from_gcube1_index] = to_gcube1_index;
 
   flag = check_distortion_strict
-    (scalar_grid, isovalue, isovert, gcube_map, from_cube0, to_cube0);
+    (scalar_grid, isovalue, isovert, gcube_map, from_cube0, to_cube0, param);
 
   // restore gcube_map[from_gcube1_index]
   gcube_map[from_gcube1_index] = store_map[1];
@@ -209,7 +212,7 @@ bool MERGESHARP::check_distortionII
   gcube_map[from_gcube0_index] = to_gcube0_index;
 
   flag = check_distortion_strict
-    (scalar_grid, isovalue, isovert, gcube_map, from_cube1, to_cube1);
+    (scalar_grid, isovalue, isovert, gcube_map, from_cube1, to_cube1, param);
 
   // restore gcube_map[from_gcube0_index]
   gcube_map[from_gcube0_index] = store_map[0];
@@ -228,7 +231,8 @@ bool MERGESHARP::check_distortionIII
  const SCALAR_TYPE isovalue,
  const ISOVERT & isovert,
  std::vector<VERTEX_INDEX> & gcube_map,
- const VERTEX_INDEX cube_index[3], const VERTEX_INDEX to_cube)
+ const VERTEX_INDEX cube_index[3], const VERTEX_INDEX to_cube,
+ const MERGE_PARAM & param)
 {
   INDEX_DIFF_TYPE gcube_index[3], to_gcube;
   IJK::PROCEDURE_ERROR error("check_distortionIII");
@@ -255,7 +259,8 @@ bool MERGESHARP::check_distortionIII
     gcube_map[gcube_index[i2]] = to_gcube;
 
     flag = check_distortion_strict
-      (scalar_grid, isovalue, isovert, gcube_map, cube_index[i0], to_cube);
+      (scalar_grid, isovalue, isovert, gcube_map, cube_index[i0], 
+       to_cube, param);
 
     // restore gcube_map[]
     gcube_map[gcube_index[i1]] = store_map[i1];
@@ -280,7 +285,8 @@ bool MERGESHARP::check_quad_distortion_strict
  const int edge_dir,
  const VERTEX_INDEX iend0,
  const int j1,
- const int j2)
+ const int j2,
+ const MERGE_PARAM & param)
 {
   const VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0, edge_dir);
 
@@ -298,12 +304,12 @@ bool MERGESHARP::check_quad_distortion_strict
 
   if (!check_tri_distortion_mapA
       (scalar_grid, isovert, gcube_map, from_cube, icubeA, icubeB, 
-       to_cube, dir1, dir2, j1, j2))
+       to_cube, dir1, dir2, j1, j2, param))
     { return(false); }
 
   if (!check_tri_distortion_mapA
       (scalar_grid, isovert, gcube_map, from_cube, icubeC, icubeB, 
-       to_cube, dir2, dir1, j2, j1))
+       to_cube, dir2, dir1, j2, j1, param))
     { return(false); }
 
   return(true);
@@ -322,7 +328,8 @@ bool MERGESHARP::check_quad_distortion_loose
  const int edge_dir,
  const VERTEX_INDEX iend0,
  const int j1,
- const int j2)
+ const int j2,
+ const MERGE_PARAM & param)
 {
   const VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0, edge_dir);
   IJK::PROCEDURE_ERROR error("check_quad_distortion_loose");
@@ -350,7 +357,7 @@ bool MERGESHARP::check_quad_distortion_loose
       gcube_map[gcubeC_index] != to_gcube_index) {
     if (check_tri_distortion_mapB
         (scalar_grid, isovert, gcube_map, icubeA, from_cube, icubeC,
-         to_cube, dir2, dir1, j2, j1)) { 
+         to_cube, dir2, dir1, j2, j1, param)) { 
       // Does not reverse FAC.
       return(true);
     }
@@ -358,14 +365,14 @@ bool MERGESHARP::check_quad_distortion_loose
 
   if (!check_tri_distortion_mapA
       (scalar_grid, isovert, gcube_map, from_cube, icubeA, icubeB, 
-       to_cube, dir1, dir2, j1, j2)) {
+       to_cube, dir1, dir2, j1, j2, param)) {
     // Reverses FAB
     return(false); 
   }
 
   if (!check_tri_distortion_mapA
       (scalar_grid, isovert, gcube_map, from_cube, icubeC, icubeB, 
-       to_cube, dir2, dir1, j2, j1)) {
+       to_cube, dir2, dir1, j2, j1, param)) {
     // Reverses FBC
     return(false); 
   }
@@ -390,7 +397,8 @@ bool MERGESHARP::check_tri_distortion_mapA
  const VERTEX_INDEX icubeA, const VERTEX_INDEX icubeB, 
  const VERTEX_INDEX icubeC,
  const VERTEX_INDEX to_cube,
- const int dirAB, const int dirBC, const int relposAB, const int relposBC)
+ const int dirAB, const int dirBC, const int relposAB, const int relposBC,
+ const MERGE_PARAM & param)
 {
   const COORD_TYPE * spacing = grid.SpacingPtrConst();
   IJK::PROCEDURE_ERROR error("check_tri_distortion_mapA");
@@ -440,7 +448,7 @@ bool MERGESHARP::check_tri_distortion_mapA
 
   // Triangle angle test.
   const COORD_TYPE min_dist = 0.01;
-  const COORD_TYPE min_triangle_angle = 5;
+  const COORD_TYPE min_triangle_angle = param.min_triangle_angle;
   const COORD_TYPE cos_min_triangle_angle =
     cos(min_triangle_angle*M_PI/180.0);
   COORD_TYPE cos_angle_ABC, cos_angle_ACB;
@@ -486,7 +494,7 @@ bool MERGESHARP::check_tri_distortion_mapA
   }
 
   // Dihedral angle test
-  const COORD_TYPE min_dihedral_angle = 30;
+  const COORD_TYPE min_dihedral_angle = param.min_dihedral_angle;
   const COORD_TYPE cos_min_dihedral_angle = 
     cos(min_dihedral_angle*M_PI/180.0);
 
@@ -537,6 +545,7 @@ bool MERGESHARP::check_tri_distortion_mapA
       }
     }
   }
+
 
   if (orient == cube_orient) { return(true); }
 
@@ -607,7 +616,8 @@ bool MERGESHARP::check_tri_distortion_mapB
  const VERTEX_INDEX icubeA, const VERTEX_INDEX icubeB, 
  const VERTEX_INDEX icubeC,
  const VERTEX_INDEX to_cube,
- const int dirAB, const int dirBC, const int relposAB, const int relposBC)
+ const int dirAB, const int dirBC, const int relposAB, const int relposBC,
+ const MERGE_PARAM & param)
 {
   const COORD_TYPE * spacing = grid.SpacingPtrConst();
   IJK::PROCEDURE_ERROR error("check_tri_distortion_mapB");
@@ -657,7 +667,7 @@ bool MERGESHARP::check_tri_distortion_mapB
 
   // Triangle angle test.
   const COORD_TYPE min_dist = 0.01;
-  const COORD_TYPE min_triangle_angle = 5;
+  const COORD_TYPE min_triangle_angle = param.min_triangle_angle;
   const COORD_TYPE cos_min_triangle_angle =
     cos(min_triangle_angle*M_PI/180.0);
   COORD_TYPE cos_angle_BAC, cos_angle_BCA;
@@ -703,7 +713,7 @@ bool MERGESHARP::check_tri_distortion_mapB
 
 
   // Dihedral angle test
-  const COORD_TYPE min_dihedral_angle = 30;
+  const COORD_TYPE min_dihedral_angle = param.min_dihedral_angle;
   const COORD_TYPE cos_min_dihedral_angle = 
     cos(min_dihedral_angle*M_PI/180.0);
 

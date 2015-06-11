@@ -31,8 +31,9 @@ my $use_all_data = 0;
 
 # mergesharp arguments which take an input value/string.
 my @mergesharp_options = ( "-subsample",  "-position", "-round", 
-                          "-max_dist", "-max_grad_dist",
-                          "-max_eigen", "-merge_linf_th" );
+                           "-max_dist", "-max_grad_dist",
+                           "-max_eigen", "-merge_linf_th",
+                           "-min_triangle_angle", "-min_dihedral_angle");
 
 while (scalar(@proglist) > 0 &&
        $proglist[0] =~ /^\-.*/) {

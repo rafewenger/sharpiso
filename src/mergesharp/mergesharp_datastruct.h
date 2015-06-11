@@ -114,7 +114,7 @@ namespace MERGESHARP {
   // **************************************************
 
   /// dual contouring parameters
-  class MERGESHARP_PARAM:public SHARPISO::SHARP_ISOVERT_PARAM {
+  class MERGESHARP_PARAM:public MERGESHARP::MERGE_PARAM {
 
   protected:
     void Init();
@@ -178,6 +178,7 @@ namespace MERGESHARP {
 
 
   public:
+
     MERGESHARP_PARAM() { Init(); };
     ~MERGESHARP_PARAM() { Init(); };
 
