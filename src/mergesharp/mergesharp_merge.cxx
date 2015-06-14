@@ -988,7 +988,7 @@ namespace {
   }
 
   /// Returns true if mapping of adjacent cubes causes possible non-manifold.
-  bool check_adjacent_cubes
+  bool check_adjacent_cubes_manifold
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX cube0_index,
@@ -1022,7 +1022,7 @@ namespace {
 
   /// Returns true if mapping of cubes adjacent to cubeA or cubeB causes 
   ///   possible non-manifold.
-  bool check_adjacent_cubesII
+  bool check_adjacent_cubes_manifoldII
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX cubeA_index,
@@ -1031,7 +1031,7 @@ namespace {
    const MERGESHARP::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
-    IJK::PROCEDURE_ERROR error("check_adjacent_cubesII");
+    IJK::PROCEDURE_ERROR error("check_adjacent_cubes_manifoldII");
     const INDEX_DIFF_TYPE gcubeA_index = 
       isovert.GCubeIndex(cubeA_index, error);
     const INDEX_DIFF_TYPE gcubeB_index = 
@@ -1061,7 +1061,7 @@ namespace {
                            gcube_map, connected_sharp);
 
       bool flag_passed_check =
-        check_adjacent_cubes
+        check_adjacent_cubes_manifold
         (scalar_grid, isovalue, cube_index[i0], isovert, gcube_map,
          connected_sharp);
 
@@ -1076,7 +1076,7 @@ namespace {
 
   /// Returns true if mapping of cubes adjacent to cube_index[i] causes
   ///   possible non-manifold.
-  bool check_adjacent_cubesIII
+  bool check_adjacent_cubes_manifoldIII
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX cube_index[3],
@@ -1084,7 +1084,7 @@ namespace {
    const MERGESHARP::ISOVERT & isovert, 
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
-    IJK::PROCEDURE_ERROR error("check_adjacent_cubesIII");
+    IJK::PROCEDURE_ERROR error("check_adjacent_cubes_manifoldIII");
     const INDEX_DIFF_TYPE to_gcube_index = 
       isovert.GCubeIndex(to_cube_index, error);
     INDEX_DIFF_TYPE gcube_index[3];
@@ -1119,7 +1119,7 @@ namespace {
       gcube_map[gcube_index[i2]] = to_gcube_index;
 
       bool flag_passed_check =
-        check_adjacent_cubes
+        check_adjacent_cubes_manifold
         (scalar_grid, isovalue, cube_index[i0], isovert, gcube_map,
          connected_sharp);
 
@@ -4012,12 +4012,12 @@ namespace {
 		find_connected_sharp(scalar_grid, isovalue, from_cube, isovert, 
                          gcube_map, connected_sharp);
 
-    if (!check_adjacent_cubes(scalar_grid, isovalue, from_cube,
+    if (!check_adjacent_cubes_manifold(scalar_grid, isovalue, from_cube,
                               isovert, gcube_map, connected_sharp))
       { 
         /// *** DEBUG ***
         if (flag_debug) 
-          { cerr << "  Failed check_adjacent_cubes." << endl; }
+          { cerr << "  Failed check_adjacent_cubes_manifold." << endl; }
         
         return; }
 
@@ -6188,12 +6188,12 @@ namespace {
 		find_connected_sharp(scalar_grid, isovalue, from_cube, isovert, 
                          gcube_map, connected_sharp);
 
-    if (!check_adjacent_cubes(scalar_grid, isovalue, from_cube,
+    if (!check_adjacent_cubes_manifold(scalar_grid, isovalue, from_cube,
                               isovert, gcube_map, connected_sharp))
       { 
         /// *** DEBUG ***
         if (flag_debug) 
-          { cerr << "  Failed check_adjacent_cubes." << endl; }
+          { cerr << "  Failed check_adjacent_cubes_manifold." << endl; }
         
         return; }
 
@@ -6308,13 +6308,13 @@ namespace {
       return; 
     }
 
-    if (!check_adjacent_cubesII
+    if (!check_adjacent_cubes_manifoldII
         (scalar_grid, isovalue, cubeA_index, cubeB_index, to_cube_index,
          isovert, gcube_map))
       { 
         /// *** DEBUG ***
         if (flag_debug) 
-          { cerr << "  Failed check_adjacent_cubesII." << endl; }
+          { cerr << "  Failed check_adjacent_cubes_manifoldII." << endl; }
         
         return; }
 
@@ -6430,12 +6430,12 @@ namespace {
       return; 
     }
 
-    if (!check_adjacent_cubesIII
+    if (!check_adjacent_cubes_manifoldIII
         (scalar_grid, isovalue, cube_index, to_cube_index, isovert, gcube_map))
       { 
         /// *** DEBUG ***
         if (flag_debug) 
-          { cerr << "  Failed check_adjacent_cubesIII." << endl; }
+          { cerr << "  Failed check_adjacent_cubes_manifoldIII." << endl; }
         
         return; }
 
