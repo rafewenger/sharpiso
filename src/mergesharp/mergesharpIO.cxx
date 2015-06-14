@@ -58,7 +58,7 @@ namespace {
     MAX_EIGEN_PARAM, MAX_DIST_PARAM, 
     GRAD_S_OFFSET_PARAM, MIN_GRAD_S_OFFSET_PARAM,
     MAX_MAG_PARAM, SNAP_DIST_PARAM, MAX_GRAD_DIST_PARAM,
-    MIN_TRIANGLE_ANGLE_PARAM, MIN_DIHEDRAL_ANGLE_PARAM,
+    MIN_TRIANGLE_ANGLE_PARAM, MIN_NORMAL_ANGLE_PARAM,
     SHARP_EDGEI_PARAM, INTERPOLATE_EDGEI_PARAM,
     ALLOW_CONFLICT_PARAM,
     CLAMP_CONFLICT_PARAM, CENTROID_CONFLICT_PARAM,
@@ -102,7 +102,7 @@ namespace {
       "-grad2hermite", "-grad2hermiteI",
       "-max_eigen", "-max_dist", "-gradS_offset", "-min_gradS_offset", 
       "-max_mag", "-snap_dist", "-max_grad_dist",
-      "-min_triangle_angle", "-min_dihedral_angle",
+      "-min_triangle_angle", "-min_normal_angle",
       "-sharp_edgeI", "-interpolate_edgeI",
       "-allow_conflict", "-clamp_conflict", "-centroid_conflict", 
       "-merge_sharp","-no_merge_sharp", "-merge_linf_th",
@@ -651,8 +651,8 @@ namespace {
         get_option_float(option_string, value_string);
       break;
 
-    case MIN_DIHEDRAL_ANGLE_PARAM:
-      input_info.min_dihedral_angle = 
+    case MIN_NORMAL_ANGLE_PARAM:
+      input_info.min_normal_angle = 
         get_option_float(option_string, value_string);
       break;
 
@@ -2377,7 +2377,7 @@ namespace {
     cerr << "  [-max_eigen {max}]" << endl;
     cerr << "  [-max_dist {D}] [-max_mag {M}] [-snap_dist {D}]" << endl;    
     cerr << "  [-gradS_offset {offset}] [-min_gradS_offset {offset}] [-max_grad_dist {D}]" << endl;
-    cerr << "  [-min_triangle_angle {A}] [-min_dihedral_angle {A}]" << endl;
+    cerr << "  [-min_triangle_angle {A}] [-min_normal_angle {A}]" << endl;
     cerr << "  [-sharp_edgeI | -interpolate_edgeI]" << endl;
     cerr << "  [-lindstrom]" << endl;
     cerr << "  [-single_isov | -multi_isov | -split_non_manifold]" << endl;
@@ -2537,8 +2537,9 @@ void MERGESHARP::help(const char * command_path)
   cerr << "           Offset measures distance from cube boundary." << endl;
   cerr << "  -min_triangle_angle {A}:  Avoid cube merging which creates triangles" << endl
        << "             with angle less than {A}." << endl;
-  cerr << "  -min_dihedral_angle {A}:  Allow cube merging if angle between" << endl
-       << "             new and old triangle is less than {A}." << endl;
+  cerr << "  -min_normal_angle {A}:  Allow cube merging if angle between" << endl
+       << "             normals of new and old triangle is less than {A}." 
+       << endl;
   cout << "  -lindstrom:   Use Lindstrom's equation to compute sharp point."
        << endl;
   cout << "  -allow_conflict:  Allow more than one isosurface vertex in a cube."

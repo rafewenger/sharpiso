@@ -529,18 +529,18 @@ bool MERGESHARP::check_tri_distortion_mapA
     }
   }
 
-  // Dihedral angle test
-  const COORD_TYPE min_dihedral_angle = param.min_dihedral_angle;
-  const COORD_TYPE cos_min_dihedral_angle = 
-    cos(min_dihedral_angle*M_PI/180.0);
+  // Normal angle test
+  const COORD_TYPE min_normal_angle = param.min_normal_angle;
+  const COORD_TYPE cos_min_normal_angle = 
+    cos(min_normal_angle*M_PI/180.0);
 
-  COORD_TYPE cos_dihedral_angle;
+  COORD_TYPE cos_normal_angle;
   compute_cos_dihedral_angle
     (grid, unscaled_to_coord, unscaled_coordA, unscaled_coordB, unscaled_coordC,
-     min_dist, cos_dihedral_angle, flag_small_magnitude);
+     min_dist, cos_normal_angle, flag_small_magnitude);
 
   if (!flag_small_magnitude) {
-    if (cos_dihedral_angle >= cos_min_dihedral_angle)
+    if (cos_normal_angle >= cos_min_normal_angle)
       { return(true); }
   }
 
@@ -565,15 +565,15 @@ bool MERGESHARP::check_tri_distortion_mapA
     MSDEBUG();
     if (orient == cube_orient) {
 
-      cerr << "xxx Matches cube orientations. Fails dihedral test." << endl;
+      cerr << "xxx Matches cube orientations. Fails normal test." << endl;
       grid.PrintIndexAndCoord
         (cerr, "    From: ", icubeA, " to ", to_cube, "\n");
       grid.PrintIndexAndCoord
         (cerr, "    cubeB: ", icubeB, " cubeC: ", icubeC, "\n");
       if (!flag_small_magnitude) {
-        if (cos_dihedral_angle < -1) { cos_dihedral_angle = -1; }
-        if (cos_dihedral_angle > 1) { cos_dihedral_angle = 1; }
-        cerr << "    dihedral angle: " << acos(cos_dihedral_angle)*180.0/M_PI
+        if (cos_normal_angle < -1) { cos_normal_angle = -1; }
+        if (cos_normal_angle > 1) { cos_normal_angle = 1; }
+        cerr << "    normal angle: " << acos(cos_normal_angle)*180.0/M_PI
              << endl;
       }
       else {
@@ -601,12 +601,12 @@ bool MERGESHARP::check_tri_distortion_mapA
 
         if (flag_debug) {
           MSDEBUG();
-          cerr << "zzz Passes cube separation test.  Fails dihedral & cube orient tests." << endl;
+          cerr << "zzz Passes cube separation test.  Fails normal & cube orient tests." << endl;
           grid.PrintIndexAndCoord
             (cerr, "    From: ", icubeA, " to ", to_cube, "\n");
           grid.PrintIndexAndCoord
             (cerr, "    cubeB: ", icubeB, " cubeC: ", icubeC, "\n");
-          cerr << "    dihedral angle: " << acos(cos_dihedral_angle*M_PI/180.0)
+          cerr << "    normal angle: " << acos(cos_normal_angle*M_PI/180.0)
                << endl;
         }
 
@@ -749,18 +749,18 @@ bool MERGESHARP::check_tri_distortion_mapB
   }
 
 
-  // Dihedral angle test
-  const COORD_TYPE min_dihedral_angle = param.min_dihedral_angle;
-  const COORD_TYPE cos_min_dihedral_angle = 
-    cos(min_dihedral_angle*M_PI/180.0);
+  // Normal angle test
+  const COORD_TYPE min_normal_angle = param.min_normal_angle;
+  const COORD_TYPE cos_min_normal_angle = 
+    cos(min_normal_angle*M_PI/180.0);
 
-  COORD_TYPE cos_dihedral_angle;
+  COORD_TYPE cos_normal_angle;
   compute_cos_dihedral_angle
     (grid, unscaled_to_coord, unscaled_coordB, unscaled_coordA, unscaled_coordC,
-     min_dist, cos_dihedral_angle, flag_small_magnitude);
+     min_dist, cos_normal_angle, flag_small_magnitude);
 
   if (!flag_small_magnitude) {
-    if (cos_dihedral_angle >= cos_min_dihedral_angle)
+    if (cos_normal_angle >= cos_min_normal_angle)
       { return(true); }
   }
 
@@ -785,15 +785,15 @@ bool MERGESHARP::check_tri_distortion_mapB
     MSDEBUG();
     if (orient == cube_orient) {
 
-      cerr << "xxx Matches cube orientations. Fails dihedral test." << endl;
+      cerr << "xxx Matches cube orientations. Fails normal test." << endl;
       grid.PrintIndexAndCoord
         (cerr, "    From: ", icubeA, " to ", to_cube, "\n");
       grid.PrintIndexAndCoord
         (cerr, "    cubeB: ", icubeB, " cubeC: ", icubeC, "\n");
       if (!flag_small_magnitude) {
-        if (cos_dihedral_angle < -1) { cos_dihedral_angle = -1; }
-        if (cos_dihedral_angle > 1) { cos_dihedral_angle = 1; }
-        cerr << "    dihedral angle: " << acos(cos_dihedral_angle)*180.0/M_PI
+        if (cos_normal_angle < -1) { cos_normal_angle = -1; }
+        if (cos_normal_angle > 1) { cos_normal_angle = 1; }
+        cerr << "    normal angle: " << acos(cos_normal_angle)*180.0/M_PI
              << endl;
       }
       else {
@@ -868,7 +868,7 @@ void MERGESHARP::compute_projected_tri_orientation
 }
 
 
-// Compute cosine of the dihedral angle between (A0,B,C) and (A1,B,C)
+// Compute cosine of the normal angle between (A0,B,C) and (A1,B,C)
 void MERGESHARP::compute_cos_dihedral_angle
 (const SHARPISO_GRID & grid, 
  const COORD_TYPE coordA0[DIM3], const COORD_TYPE coordA1[DIM3],

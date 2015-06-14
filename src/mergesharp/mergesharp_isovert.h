@@ -228,8 +228,11 @@ class MERGE_PARAM:public SHARPISO::SHARP_ISOVERT_PARAM {
 
 public:
   
+  /// Minimum triangle angle.
   ANGLE_TYPE min_triangle_angle;
-  ANGLE_TYPE min_dihedral_angle;
+
+  /// Minimum angle between original and new normal.
+  ANGLE_TYPE min_normal_angle;
 
 protected:
   void Init();

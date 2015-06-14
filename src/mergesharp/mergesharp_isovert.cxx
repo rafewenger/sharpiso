@@ -3044,7 +3044,7 @@ INDEX_DIFF_TYPE ISOVERT::GCubeIndex
 void MERGE_PARAM::Init()
 {
   min_triangle_angle = 5;
-  min_dihedral_angle = 30;
+  min_normal_angle = 30;
 }
 
 
