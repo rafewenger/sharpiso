@@ -1710,7 +1710,9 @@ namespace {
         if (gcubeB_index == ISOVERT::NO_INDEX) { continue; }
 
         // Skip corner cubes.
+        // *** DEBUG ***
         if (isovert.NumEigenvalues(gcubeB_index) == 3) { continue; }
+        // *** SHOULD CHECK ANGLE NOT REGION.
 
         const GRID_COORD_TYPE * coordB = 
           isovert.gcube_list[gcubeB_index].cube_coord;
@@ -1815,17 +1817,20 @@ namespace {
         (scalar_grid, isovalue, isovert, from_cube, to_cube, gcube_map))
       {
         // *** DEBUG ***
-        /*
-        using namespace std;
-        cerr << "******* Unselected cube " << from_cube << " ";
-        ijkgrid_output_vertex_coord(cerr, scalar_grid, from_cube);
-        cerr << " NOT connected to " << to_cube << " ";
-        ijkgrid_output_vertex_coord(cerr, scalar_grid, to_cube);
-        cerr << endl;
-        */
+        MSDEBUG();
+        if (flag_debug) {
+          scalar_grid.PrintIndexAndCoord
+            (cerr, "*** Unselected cube ", from_cube,
+             " NOT connected to ", to_cube, "\n");
+        }
 
         return(false);
       }
+
+    if (!check_separating_cubes
+        (scalar_grid, isovalue, from_cube, to_cube, isovert, 
+         gcube_map, flag_extended))
+      { return(false); }
 
     return(true);
   }
@@ -4548,7 +4553,8 @@ namespace {
 		}
 	}
 
-  /// Check extended mapping from corner_cube and map from cube from_cube to cube to_cube.
+  /// Check extended mapping from corner_cube and map from cube from_cube 
+  ///   to cube to_cube.
 	void check_extended_corner_cube_and_map
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
@@ -6807,7 +6813,8 @@ namespace {
 
 
   /// Check extended mapping and map from cube from_cube to cube to_cube.
-  /// Cube from_cube is (facet, edge or vertex) adjacent to cubeA or equals cubeA.
+  /// Cube from_cube is (facet, edge or vertex) adjacent to cubeA 
+  ///   or equals cubeA.
 	void check_extended_and_map
   (const VERTEX_INDEX cubeA_index,
    const VERTEX_INDEX from_cube,

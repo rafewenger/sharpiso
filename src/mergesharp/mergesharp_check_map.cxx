@@ -427,14 +427,16 @@ bool MERGESHARP::check_tri_distortion_mapA
 
   GRID_CUBE_FLAG gcubeB_flag = isovert.gcube_list[gcube_map[gcubeB_index]].flag;
   GRID_CUBE_FLAG gcubeC_flag = isovert.gcube_list[gcube_map[gcubeC_index]].flag;
-  if (gcubeB_flag == COVERED_A_GCUBE || gcubeB_flag == COVERED_CORNER_GCUBE ||
-      gcubeB_flag == UNAVAILABLE_GCUBE) {
+
+  if (gcubeB_flag == COVERED_A_GCUBE || gcubeB_flag == COVERED_CORNER_GCUBE) {
     return(true);
   }
-  if (gcubeC_flag == COVERED_A_GCUBE || gcubeC_flag == COVERED_CORNER_GCUBE ||
-      gcubeC_flag == UNAVAILABLE_GCUBE) {
+  if (gcubeC_flag == COVERED_A_GCUBE || gcubeC_flag == COVERED_CORNER_GCUBE) {
     return(true);
   }
+
+  if (gcubeB_flag == UNAVAILABLE_GCUBE || gcubeC_flag == UNAVAILABLE_GCUBE)
+    { return(true); }
 
   // Reverse scaling on coordA[], coordB[], coordC[]
   const COORD_TYPE * to_coord = isovert.IsoVertCoord(to_gcube_index);
@@ -461,9 +463,10 @@ bool MERGESHARP::check_tri_distortion_mapA
   if (flag_debug) {
     MSDEBUG();
     grid.PrintIndexAndCoord
-      (cerr, "Cube A: ", icubeA, " cube B: ", icubeB, " cube C: ", icubeC,"\n");
-    cerr << "  Coord A: ";
-    IJK::print_coord3D(cerr, unscaled_coordA);
+      (cerr, "To cube: ", to_cube, " cube B: ", icubeB, 
+       " cube C: ", icubeC,"\n");
+    cerr << "  To coord: ";
+    IJK::print_coord3D(cerr, unscaled_to_coord);
     cerr << "  Coord B: ";
     IJK::print_coord3D(cerr, unscaled_coordB);
     cerr << "  Coord C: ";
@@ -646,14 +649,15 @@ bool MERGESHARP::check_tri_distortion_mapB
 
   GRID_CUBE_FLAG gcubeA_flag = isovert.gcube_list[gcube_map[gcubeA_index]].flag;
   GRID_CUBE_FLAG gcubeC_flag = isovert.gcube_list[gcube_map[gcubeC_index]].flag;
-  if (gcubeA_flag == COVERED_A_GCUBE || gcubeA_flag == COVERED_CORNER_GCUBE ||
-      gcubeA_flag == UNAVAILABLE_GCUBE) {
+  if (gcubeA_flag == COVERED_A_GCUBE || gcubeA_flag == COVERED_CORNER_GCUBE) {
     return(true);
   }
-  if (gcubeC_flag == COVERED_A_GCUBE || gcubeC_flag == COVERED_CORNER_GCUBE ||
-      gcubeC_flag == UNAVAILABLE_GCUBE) {
+  if (gcubeC_flag == COVERED_A_GCUBE || gcubeC_flag == COVERED_CORNER_GCUBE) {
     return(true);
   }
+
+  if (gcubeA_flag == UNAVAILABLE_GCUBE || gcubeC_flag == UNAVAILABLE_GCUBE)
+    { return(true); }
 
   // Reverse scaling on coordA[], coordB[], coordC[]
   const COORD_TYPE * to_coord = isovert.IsoVertCoord(to_gcube_index);
@@ -964,5 +968,5 @@ namespace {
     IJK::normalize_vector
       (DIM3, w, max_small_magnitude, w, magnitude, flag_zero);
   }
-   
+
 }
