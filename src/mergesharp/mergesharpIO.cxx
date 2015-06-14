@@ -606,6 +606,8 @@ namespace {
   (const PARAMETER param, const char * option_string, 
    const char * value_string, INPUT_INFO & input_info)
   {
+    ANGLE_TYPE degrees;
+
     switch(param) {
 
     case SUBSAMPLE_PARAM:
@@ -647,13 +649,15 @@ namespace {
       break;
 
     case MIN_TRIANGLE_ANGLE_PARAM:
-      input_info.min_triangle_angle = 
+      degrees =
         get_option_float(option_string, value_string);
+      input_info.SetMinTriangleAngle(degrees);
       break;
 
     case MIN_NORMAL_ANGLE_PARAM:
-      input_info.min_normal_angle = 
+      degrees = 
         get_option_float(option_string, value_string);
+      input_info.SetMinNormalAngle(degrees);
       break;
 
     case SNAP_DIST_PARAM:

@@ -3043,8 +3043,27 @@ INDEX_DIFF_TYPE ISOVERT::GCubeIndex
 
 void MERGE_PARAM::Init()
 {
-  min_triangle_angle = 5;
-  min_normal_angle = 30;
+  SetMinTriangleAngle(5);
+  SetMinSharpCubeTriangleAngle(5);
+  SetMinNormalAngle(30);
+}
+
+void MERGE_PARAM::SetMinTriangleAngle(const ANGLE_TYPE degrees)
+{
+  min_triangle_angle = degrees;
+  cos_min_triangle_angle = cos(degrees*M_PI/180.0);
+}
+
+void MERGE_PARAM::SetMinSharpCubeTriangleAngle(const ANGLE_TYPE degrees)
+{
+  min_sharp_cube_triangle_angle = degrees;
+  cos_min_sharp_cube_triangle_angle = cos(degrees*M_PI/180.0);
+}
+
+void MERGE_PARAM::SetMinNormalAngle(const ANGLE_TYPE degrees)
+{
+  min_normal_angle = degrees;
+  cos_min_normal_angle = cos(degrees*M_PI/180.0);
 }
 
 

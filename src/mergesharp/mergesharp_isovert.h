@@ -226,13 +226,25 @@ public:
 /// dual contouring parameters
 class MERGE_PARAM:public SHARPISO::SHARP_ISOVERT_PARAM {
 
-public:
+protected:
   
   /// Minimum triangle angle.
-  ANGLE_TYPE min_triangle_angle;
+  ANGLE_TYPE min_triangle_angle;          
+
+  /// Cos minimum triangle angle.
+  COORD_TYPE cos_min_triangle_angle;
+
+  /// Minimum sharp cube triangle angle.
+  ANGLE_TYPE min_sharp_cube_triangle_angle;
+
+  /// Cos minimum triangle angle.
+  COORD_TYPE cos_min_sharp_cube_triangle_angle;
 
   /// Minimum angle between original and new normal.
   ANGLE_TYPE min_normal_angle;
+
+  /// Cos minimum angle between original and new normal.
+  COORD_TYPE cos_min_normal_angle;
 
 protected:
   void Init();
@@ -240,6 +252,30 @@ protected:
 public:
   
   MERGE_PARAM() { Init(); };
+
+  /// Set minimum triangle angle.
+  void SetMinTriangleAngle(const ANGLE_TYPE degrees);
+
+  /// Set minimum sharp cube triangle angle.
+  void SetMinSharpCubeTriangleAngle(const ANGLE_TYPE degrees);
+
+  /// Set minimum normal angle.
+  void SetMinNormalAngle(const ANGLE_TYPE degrees);
+  
+
+  // Get functions
+  ANGLE_TYPE MinTriangleAngle() const
+  { return(min_triangle_angle); }
+  COORD_TYPE CosMinTriangleAngle() const
+  { return(cos_min_triangle_angle); }
+  ANGLE_TYPE MinSharpCubeTriangleAngle() const
+  { return(min_sharp_cube_triangle_angle); }
+  COORD_TYPE CosMinSharpCubeTriangleAngle() const
+  { return(cos_min_sharp_cube_triangle_angle); }
+  ANGLE_TYPE MinNormalAngle() const
+  { return(min_normal_angle); }
+  COORD_TYPE CosMinNormalAngle() const
+  { return(cos_min_normal_angle); }
 };
 
 

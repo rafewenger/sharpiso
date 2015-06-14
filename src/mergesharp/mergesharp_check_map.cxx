@@ -483,9 +483,7 @@ bool MERGESHARP::check_tri_distortion_mapA
 
   // Triangle angle test.
   const COORD_TYPE min_dist = 0.01;
-  const COORD_TYPE min_triangle_angle = param.min_triangle_angle;
-  const COORD_TYPE cos_min_triangle_angle =
-    cos(min_triangle_angle*M_PI/180.0);
+  const COORD_TYPE cos_min_triangle_angle = param.CosMinTriangleAngle();
   COORD_TYPE cos_angle_ABC, cos_angle_ACB;
 
   compute_cos_triangle_angles
@@ -512,9 +510,9 @@ bool MERGESHARP::check_tri_distortion_mapA
   }
 
   if (!flag_small_magnitude) {
+
     if (cos_angle_ABC > cos_min_triangle_angle ||
         cos_angle_ACB > cos_min_triangle_angle) {
-
 
       // *** DEBUG ***
       if (flag_debug) {
@@ -530,9 +528,7 @@ bool MERGESHARP::check_tri_distortion_mapA
   }
 
   // Normal angle test
-  const COORD_TYPE min_normal_angle = param.min_normal_angle;
-  const COORD_TYPE cos_min_normal_angle = 
-    cos(min_normal_angle*M_PI/180.0);
+  const COORD_TYPE cos_min_normal_angle = param.CosMinNormalAngle();
 
   COORD_TYPE cos_normal_angle;
   compute_cos_dihedral_angle
@@ -704,9 +700,7 @@ bool MERGESHARP::check_tri_distortion_mapB
 
   // Triangle angle test.
   const COORD_TYPE min_dist = 0.01;
-  const COORD_TYPE min_triangle_angle = param.min_triangle_angle;
-  const COORD_TYPE cos_min_triangle_angle =
-    cos(min_triangle_angle*M_PI/180.0);
+  const COORD_TYPE cos_min_triangle_angle = param.CosMinTriangleAngle();
   COORD_TYPE cos_angle_BAC, cos_angle_BCA;
 
   compute_cos_triangle_angles
@@ -750,9 +744,7 @@ bool MERGESHARP::check_tri_distortion_mapB
 
 
   // Normal angle test
-  const COORD_TYPE min_normal_angle = param.min_normal_angle;
-  const COORD_TYPE cos_min_normal_angle = 
-    cos(min_normal_angle*M_PI/180.0);
+  const COORD_TYPE cos_min_normal_angle = param.CosMinNormalAngle();
 
   COORD_TYPE cos_normal_angle;
   compute_cos_dihedral_angle
