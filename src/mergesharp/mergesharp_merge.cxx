@@ -1290,7 +1290,7 @@ namespace {
   }
 
   // check for manifold violations caused by edges between sharp cubes.
-  bool check_edges_between_sharp_cubes
+  bool check_edge_manifold
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX from_cube,
@@ -1343,7 +1343,7 @@ namespace {
 
   // check for manifold violations caused by edges between sharp cubes.
   //   caused by mapping from_cube0 to to_cube0 and from_cube1 to to_cube1.
-  bool check_edges_between_sharp_cubesII
+  bool check_edge_manifoldII
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX from_cube0,
@@ -1537,7 +1537,7 @@ namespace {
 
   // check for manifold violations on a single edge with endpoints
   //   in (to_cube,cubeA_index) caused by mapping three cubes to to_cube.
-  bool check_edge_manifoldIII
+  bool check_single_edge_manifoldIII
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX cube_index[3],
@@ -1549,7 +1549,7 @@ namespace {
     INDEX_DIFF_TYPE gcube_index[3], to_gcube;
     NUM_TYPE store_map[3];
     bool flag_maps_to_cubeA[3], flag_maps_to_both_cubes[3];
-    IJK::PROCEDURE_ERROR error("check_edge_manifoldIII");
+    IJK::PROCEDURE_ERROR error("check_single_edge_manifoldIII");
 
     to_gcube = isovert.GCubeIndex(to_cube, error);
     for (int i = 0; i < 3; i++) {
@@ -1606,7 +1606,7 @@ namespace {
 
   // check for manifold violations caused by edges between sharp cubes.
   //   caused by mapping three cubes to to_cube.
-  bool check_all_edges_between_sharp_cubesIII
+  bool check_edge_manifoldIII
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const SCALAR_TYPE isovalue,
    const VERTEX_INDEX cube_index[3],
@@ -1645,7 +1645,7 @@ namespace {
           (scalar_grid, cubeA_index, to_cube, isovalue, isovert, gcube_map, 
            flag_extended)) { continue; }
 
-      if (!check_edge_manifoldIII
+      if (!check_single_edge_manifoldIII
           (scalar_grid, isovalue, cube_index, to_cube, cubeA_index,
            isovert, gcube_map))
         { return(false); }
@@ -1808,7 +1808,7 @@ namespace {
    const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
    const bool flag_extended)
   {
-    if (!check_edges_between_sharp_cubes
+    if (!check_edge_manifold
         (scalar_grid, isovalue, from_cube, to_cube, 
          isovert, gcube_map, flag_extended))
       { return(false); }
@@ -2701,7 +2701,7 @@ namespace {
       return(false);
     }
 
-    if (!check_edges_between_sharp_cubes
+    if (!check_edge_manifold
         (scalar_grid, isovalue, from_cube, to_cube, 
          isovert, gcube_map, flag_extended))
       { return(false); }
@@ -2748,7 +2748,7 @@ namespace {
   /// Check for some violations of manifold conditions by map
   /// (Does not catch all violations.)
   /// Only map cubes contained in the given region.
-  bool check_map_multi
+  bool check_map_multi_region
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
@@ -2847,7 +2847,7 @@ namespace {
     if (from_gcube == ISOVERT::NO_INDEX) { return; }
     if (gcube_map[from_gcube] != from_gcube) { return; }
 
-    if (check_map_multi
+    if (check_map_multi_region
         (scalar_grid, isodual_table, ambig_info, isovalue, 
          from_cube, to_cube, region, isovert, gcube_map, 
          param_flag.extended, param_flag.strict, merge_param)) {
@@ -2952,7 +2952,7 @@ namespace {
 
     if (!flag_connectedA && !flag_connectedB) { return(false); }
 
-    if (!check_edges_between_sharp_cubesII
+    if (!check_edge_manifoldII
         (scalar_grid, isovalue, cube0, to_cube0, cube1, to_cube1,
          isovert, gcube_map, flag_extended)) {
 
@@ -3042,7 +3042,7 @@ namespace {
       return(false); 
     }
 
-    if (!check_all_edges_between_sharp_cubesIII
+    if (!check_edge_manifoldIII
         (scalar_grid, isovalue, cube_index, to_cube, isovert, gcube_map, 
          flag_extended)) {
 
