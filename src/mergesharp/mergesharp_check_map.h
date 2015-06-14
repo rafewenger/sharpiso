@@ -185,4 +185,44 @@ namespace MERGESHARP {
    const COORD_TYPE coordB[DIM3], const COORD_TYPE coordC[DIM3],
    const COORD_TYPE min_dist,
    COORD_TYPE & cos_dihedral, bool & flag_small_magnitude);
+
+
+  // **************************************************
+  //  Check for violation of manifold conditions
+  // **************************************************
+
+  /// Check for manifold violations caused by edges between sharp cubes.
+  bool check_edge_manifold
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX from_cube,
+   const VERTEX_INDEX to_cube,
+   const MERGESHARP::ISOVERT & isovert, 
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   const bool flag_extended);
+
+  /// Check for manifold violations caused by edges between sharp cubes.
+  ///   caused by mapping from_cube0 to to_cube0 and from_cube1 to to_cube1.
+  bool check_edge_manifoldII
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX from_cube0,
+   const VERTEX_INDEX to_cube0,
+   const VERTEX_INDEX from_cube1,
+   const VERTEX_INDEX to_cube1,
+   const MERGESHARP::ISOVERT & isovert, 
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   const bool flag_extended);
+
+  /// Check for manifold violations caused by edges between sharp cubes.
+  ///   caused by mapping three cubes to to_cube.
+  bool check_edge_manifoldIII
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX cube_index[3],
+   const VERTEX_INDEX to_cube,
+   const MERGESHARP::ISOVERT & isovert, 
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   const bool flag_extended);
+
 }

@@ -59,6 +59,39 @@ namespace {
   (const COORD_TYPE pA[DIM3], const COORD_TYPE pB[DIM3], 
    const int orth_dir, const COORD_TYPE max_small_magnitude,
    COORD_TYPE w[DIM3], COORD_TYPE & magnitude, bool & flag_zero);
+
+  void determine_quad_map_to_both_cubes
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX cube0_index,
+   const VERTEX_INDEX cube1_index,
+   const VERTEX_INDEX cube2_index,
+   const ISOVERT & isovert,
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   bool & flag_maps_to_cube1,
+   bool & flag_maps_to_both_cubes);
+
+  void temp_map_determine_quad_map_to_both_cubes
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SCALAR_TYPE isovalue,
+   const NUM_TYPE from_gcube_index,
+   const NUM_TYPE to_gcube_index,
+   const VERTEX_INDEX cube0_index,
+   const VERTEX_INDEX cube1_index,
+   const VERTEX_INDEX cube2_index,
+   const ISOVERT & isovert,
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   bool & flag_maps_to_cube1,
+   bool & flag_maps_to_both_cubes);
+
+	bool are_connected_by_iso_quad
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const VERTEX_INDEX & cube0_index,
+   const VERTEX_INDEX & cube1_index,
+   const SCALAR_TYPE isovalue,
+   const MERGESHARP::ISOVERT & isovert, 
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   const bool flag_extended);
 }
 
 
@@ -909,6 +942,380 @@ void MERGESHARP::compute_cos_triangle_angles
 }
 
 
+// **************************************************
+//  Check for violation of manifold conditions
+// **************************************************
+
+// Check for manifold violations caused by edges between sharp cubes.
+bool MERGESHARP::check_edge_manifold
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+ const SCALAR_TYPE isovalue,
+ const VERTEX_INDEX from_cube,
+ const VERTEX_INDEX to_cube,
+ const MERGESHARP::ISOVERT & isovert, 
+ const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+ const bool flag_extended)
+{
+  static CUBE_CONNECTED_ARRAY connected_sharp;
+
+  find_connected_sharp
+    (scalar_grid, isovalue, from_cube, isovert, gcube_map, connected_sharp);
+
+  for (NUM_TYPE i = 0; i < connected_sharp.NumElements(); i++) {
+
+    if (connected_sharp[i] == to_cube) { continue; }
+
+    const VERTEX_INDEX cubeA_index = connected_sharp[i];
+    bool flag_maps_to_cubeA, flag_maps_to_both_cubes;
+    determine_quad_map_to_both_cubes
+      (scalar_grid, isovalue, from_cube, cubeA_index, to_cube,
+       isovert, gcube_map, flag_maps_to_cubeA, flag_maps_to_both_cubes);
+
+    if (flag_maps_to_cubeA && !flag_maps_to_both_cubes) {
+
+      if (are_connected_by_iso_quad
+          (scalar_grid, cubeA_index, to_cube,
+           isovalue, isovert, gcube_map, flag_extended)) {
+
+        MSDEBUG();
+        if (flag_debug) {
+          scalar_grid.PrintIndexAndCoord
+            (cerr, "  Cubes ", cubeA_index, "");
+          scalar_grid.PrintIndexAndCoord
+            (cerr, " and ", to_cube, " are connected by isoquad.\n");
+          scalar_grid.PrintIndexAndCoord
+            (cerr, "  Merge of ", from_cube, "");
+          scalar_grid.PrintIndexAndCoord
+            (cerr, " to ", to_cube, " fails.\n");
+        }
+            
+
+        return(false); 
+      }
+    }
+  }
+
+  return(true);
+}
+
+// Check for manifold violations caused by edges between sharp cubes.
+//   caused by mapping from_cube0 to to_cube0 and from_cube1 to to_cube1.
+bool MERGESHARP::check_edge_manifoldII
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+ const SCALAR_TYPE isovalue,
+ const VERTEX_INDEX from_cube0,
+ const VERTEX_INDEX to_cube0,
+ const VERTEX_INDEX from_cube1,
+ const VERTEX_INDEX to_cube1,
+ const MERGESHARP::ISOVERT & isovert, 
+ std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+ const bool flag_extended)
+{
+  IJK::PROCEDURE_ERROR error("check_edge_between_sharp_cubesII");
+  static CUBE_CONNECTED_ARRAY connected_sharp;
+  INDEX_DIFF_TYPE from_gcube0_index = isovert.GCubeIndex(from_cube0, error);
+  INDEX_DIFF_TYPE from_gcube1_index = isovert.GCubeIndex(from_cube1, error);
+  INDEX_DIFF_TYPE to_gcube0_index = isovert.GCubeIndex(to_cube0, error);
+  INDEX_DIFF_TYPE to_gcube1_index = isovert.GCubeIndex(to_cube1, error);
+
+
+  if (from_gcube0_index == ISOVERT::NO_INDEX) { throw error; }
+  if (from_gcube1_index == ISOVERT::NO_INDEX) { throw error; }
+  if (to_gcube0_index == ISOVERT::NO_INDEX) { throw error; }
+  if (to_gcube1_index == ISOVERT::NO_INDEX) { throw error; }
+
+  find_connected_sharp
+    (scalar_grid, isovalue, from_cube0, isovert, gcube_map, connected_sharp);
+  add2list_connected_sharp
+    (scalar_grid, isovalue, from_cube1, isovert, 
+     gcube_map, connected_sharp);
+
+  for (NUM_TYPE i = 0; i < connected_sharp.NumElements(); i++) {
+
+    const VERTEX_INDEX cubeA_index = connected_sharp[i];
+
+    if (to_cube0 == to_cube1) {
+      if (to_cube0 == cubeA_index) { 
+        // Case I: to_cube0 == to_cube1 == cubeA_index
+        continue; 
+      }
+    }
+
+    bool flag_connected_cubeA_and_cube0(false);
+    bool flag_connected_cubeA_and_cube1(false);
+
+    if (to_cube0 != cubeA_index) {
+      flag_connected_cubeA_and_cube0 =
+        are_connected_by_iso_quad
+        (scalar_grid, cubeA_index, to_cube0,
+         isovalue, isovert, gcube_map, flag_extended);
+    }
+
+    if (to_cube1 == to_cube0) 
+      { flag_connected_cubeA_and_cube1 = flag_connected_cubeA_and_cube0; }
+    else if (to_cube1 != cubeA_index) {
+      flag_connected_cubeA_and_cube1 =
+        are_connected_by_iso_quad
+        (scalar_grid, cubeA_index, to_cube1,
+         isovalue, isovert, gcube_map, flag_extended);
+    }
+
+    if (to_cube0 == cubeA_index) {
+      // Note: to_cube1 != cubeA_index
+      if (!flag_connected_cubeA_and_cube1)
+        { continue; }
+    }
+    else if (to_cube1 == cubeA_index) {
+      // Note: to_cube0 != cubeA_index
+      if (!flag_connected_cubeA_and_cube0)
+        { continue; }
+    }
+    else {
+      // to_cube0 != cubeA_index && to_cube1 != cubeA_index
+      if (!flag_connected_cubeA_and_cube0 && !flag_connected_cubeA_and_cube1)
+        { continue; }
+    }
+
+    bool flag0_maps_to_cubeA, flag0_maps_to_both_cubes;
+    bool flag1_maps_to_cubeA, flag1_maps_to_both_cubes;
+    bool flag0(true), flag1(true);
+
+    if (flag_debug) {
+      MSDEBUG();
+      isovert.grid.PrintIndexAndCoord
+        (cerr, "  -- Checking from ", from_cube0, " to ", to_cube0,
+         " connected to ", cubeA_index, "\n");
+    }
+
+    if (to_cube0 != cubeA_index) {
+      determine_quad_map_to_both_cubes
+        (scalar_grid, isovalue, from_cube0, cubeA_index, to_cube0,
+         isovert, gcube_map, flag0_maps_to_cubeA, flag0_maps_to_both_cubes);
+
+      flag0 = (flag0_maps_to_cubeA && !flag0_maps_to_both_cubes);
+    }
+
+    if (flag_debug) {
+      MSDEBUG();
+      isovert.grid.PrintIndexAndCoord
+        (cerr, "  -- Checking from ", from_cube1, " to ", to_cube1,
+         " connected to ", cubeA_index, "\n");
+    }
+
+    if (to_cube1 != cubeA_index) {
+      determine_quad_map_to_both_cubes
+        (scalar_grid, isovalue, from_cube1, cubeA_index, to_cube1,
+         isovert, gcube_map, flag1_maps_to_cubeA, flag1_maps_to_both_cubes);
+
+      flag1 = (flag1_maps_to_cubeA && !flag1_maps_to_both_cubes);
+    }
+
+    // *** DEBUG ***
+    if (flag_debug) {
+      MSDEBUG();
+      cerr << "  flag0_maps_to_cubeA: " << int(flag0_maps_to_cubeA)
+           << "  flag0_maps_to_both_cubes: " << int(flag0_maps_to_both_cubes)
+           << "  flag1_maps_to_cubeA: " << int(flag1_maps_to_cubeA)
+           << "  flag1_maps_to_both_cubes: " << int(flag1_maps_to_both_cubes)
+           << endl;
+    }
+
+    if (to_cube0 == cubeA_index) {
+      // Note: to_cube1 != cubeA_index
+      // Case IIa: to_cube0 == cubeA_index and to_cube0 != to_cube1
+      if (flag1) { return(false); }
+      else {
+        temp_map_determine_quad_map_to_both_cubes
+          (scalar_grid, isovalue, from_gcube0_index, to_gcube0_index,
+           from_cube1, cubeA_index, to_cube1,
+           isovert, gcube_map, flag1_maps_to_cubeA, flag1_maps_to_both_cubes);
+        flag1 = (flag1_maps_to_cubeA && !flag1_maps_to_both_cubes);
+        if (flag1) { return(false); }
+        else { return(true); }
+      }
+    }
+    else if (to_cube1 == cubeA_index) {
+      // Note: to_cube0 != cubeA_index
+      // Case IIb: to_cube1 == cubeA_index and to_cube0 != to_cube1
+      if (flag0) { return(false); }
+      else {
+        temp_map_determine_quad_map_to_both_cubes
+          (scalar_grid, isovalue, from_gcube1_index, to_gcube1_index,
+           from_cube0, cubeA_index, to_cube0,
+           isovert, gcube_map, flag0_maps_to_cubeA, flag0_maps_to_both_cubes);
+
+        flag0 = (flag0_maps_to_cubeA && !flag0_maps_to_both_cubes);
+        if (flag0) { return(false); }
+        else { return(true); }
+      }
+
+    }
+    else {
+      // Case III: to_cube0 != cubeA_index && to_cube1 != cubeA_index
+      if (flag0 && flag1) { 
+
+        MSDEBUG();
+        if (flag_debug) {
+          isovert.grid.PrintIndexAndCoord
+            (cerr, "  Both maps fail. From: ", from_cube0, " to ", 
+             to_cube0, "\n");
+          isovert.grid.PrintIndexAndCoord
+            (cerr, "                  and ", from_cube1, " to ", 
+             to_cube1, "\n");
+        }
+
+        return(false); 
+      }
+
+      if (flag0) {
+        temp_map_determine_quad_map_to_both_cubes
+          (scalar_grid, isovalue, from_gcube1_index, to_gcube1_index,
+           from_cube0, cubeA_index, to_cube0,
+           isovert, gcube_map, flag0_maps_to_cubeA, flag0_maps_to_both_cubes);
+
+        flag0 = (flag0_maps_to_cubeA && !flag0_maps_to_both_cubes);
+        if (flag0) { return(false); }
+        else { return(true); }
+      }
+      else {
+        // flag1 == true
+        temp_map_determine_quad_map_to_both_cubes
+          (scalar_grid, isovalue, from_gcube0_index, to_gcube0_index,
+           from_cube1, cubeA_index, to_cube1,
+           isovert, gcube_map, flag1_maps_to_cubeA, flag1_maps_to_both_cubes);
+        flag1 = (flag1_maps_to_cubeA && !flag1_maps_to_both_cubes);
+        if (flag1) { return(false); }
+        else { return(true); }
+      }
+    }
+  }
+
+  return(true);
+}
+
+namespace {
+
+  // check for manifold violations on a single edge with endpoints
+  //   in (to_cube,cubeA_index) caused by mapping three cubes to to_cube.
+  bool check_single_edge_manifoldIII
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX cube_index[3],
+   const VERTEX_INDEX to_cube,
+   const VERTEX_INDEX cubeA_index,
+   const MERGESHARP::ISOVERT & isovert, 
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+  {
+    INDEX_DIFF_TYPE gcube_index[3], to_gcube;
+    NUM_TYPE store_map[3];
+    bool flag_maps_to_cubeA[3], flag_maps_to_both_cubes[3];
+    IJK::PROCEDURE_ERROR error("check_single_edge_manifoldIII");
+
+    to_gcube = isovert.GCubeIndex(to_cube, error);
+    for (int i = 0; i < 3; i++) {
+      gcube_index[i] = isovert.GCubeIndex(cube_index[i], error); 
+      if (gcube_index[i] == ISOVERT::NO_INDEX) { throw error; }
+      store_map[i] = gcube_map[gcube_index[i]];
+    }
+
+    for (int i0 = 0; i0 < 3; i0++) {
+
+      determine_quad_map_to_both_cubes
+        (scalar_grid, isovalue, cube_index[i0], cubeA_index, to_cube,
+         isovert, gcube_map, flag_maps_to_cubeA[0], flag_maps_to_both_cubes[0]);
+
+      if (!flag_maps_to_cubeA[0] || flag_maps_to_both_cubes[0]) {
+
+        gcube_map[gcube_index[i0]] = to_gcube;
+
+        for (int k = 1; k <= 2; k++) {
+
+          int i1 = (i0+k)%3;
+          int i2 = (i0+2*k)%3;
+
+          determine_quad_map_to_both_cubes
+            (scalar_grid, isovalue, cube_index[i1], cubeA_index, to_cube, 
+             isovert, gcube_map, flag_maps_to_cubeA[1], 
+             flag_maps_to_both_cubes[1]);
+
+          if (!flag_maps_to_cubeA[1] || flag_maps_to_both_cubes[1]) {
+            gcube_map[gcube_index[i1]] = to_gcube;
+
+            determine_quad_map_to_both_cubes
+              (scalar_grid, isovalue, cube_index[i2], cubeA_index, to_cube, 
+               isovert, gcube_map, flag_maps_to_cubeA[2], 
+               flag_maps_to_both_cubes[2]);
+
+            if (!flag_maps_to_cubeA[2] || flag_maps_to_both_cubes[2]) {
+
+              // restore gcube_map
+              gcube_map[gcube_index[i0]] = store_map[i0];
+              gcube_map[gcube_index[i1]] = store_map[i1];
+              return(true);
+            }
+          }
+        }
+      }
+
+      // restore gcube_map
+      gcube_map[gcube_index[i0]] = store_map[i0];
+    }
+
+    return(false);
+  }
+
+}
+
+// check for manifold violations caused by edges between sharp cubes.
+//   caused by mapping three cubes to to_cube.
+bool MERGESHARP::check_edge_manifoldIII
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+ const SCALAR_TYPE isovalue,
+ const VERTEX_INDEX cube_index[3],
+ const VERTEX_INDEX to_cube,
+ const MERGESHARP::ISOVERT & isovert, 
+ std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+ const bool flag_extended)
+{
+  INDEX_DIFF_TYPE gcube_index[3], to_gcube_index;
+  static CUBE_CONNECTED_ARRAY connected_sharp;
+  IJK::PROCEDURE_ERROR error("check_edge_between_sharp_cubesIII");
+
+  to_gcube_index = isovert.GCubeIndex(to_cube, error);
+  for (int i = 0; i < 3; i++) {
+    gcube_index[i] = isovert.GCubeIndex(cube_index[i], error); 
+    if (gcube_index[i] == ISOVERT::NO_INDEX) { throw error; }
+  }
+
+  find_connected_sharp
+    (scalar_grid, isovalue, cube_index[0], isovert, gcube_map, 
+     connected_sharp);
+  add2list_connected_sharp
+    (scalar_grid, isovalue, cube_index[1], isovert, 
+     gcube_map, connected_sharp);
+  add2list_connected_sharp
+    (scalar_grid, isovalue, cube_index[2], isovert, 
+     gcube_map, connected_sharp);
+
+  for (NUM_TYPE i = 0; i < connected_sharp.NumElements(); i++) {
+
+    const VERTEX_INDEX cubeA_index = connected_sharp[i];
+
+    if (cubeA_index == to_cube) { continue; }
+
+    if (!are_connected_by_iso_quad
+        (scalar_grid, cubeA_index, to_cube, isovalue, isovert, gcube_map, 
+         flag_extended)) { continue; }
+
+    if (!check_single_edge_manifoldIII
+        (scalar_grid, isovalue, cube_index, to_cube, cubeA_index,
+         isovert, gcube_map))
+      { return(false); }
+  }
+
+  return(true);
+}
+
 
 // **************************************************
 //  Local routines
@@ -967,6 +1374,250 @@ namespace {
 
     IJK::normalize_vector
       (DIM3, w, max_small_magnitude, w, magnitude, flag_zero);
+  }
+
+	/// Compute the overlap region between two cube indices
+  /// @param dist2boundary Distance from cube to region boundary
+  //         region size = (2*dist2boundary+1)
+	bool find_overlap(
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const VERTEX_INDEX & cube_index1,
+		const VERTEX_INDEX & cube_index2,
+    const GRID_COORD_TYPE dist2boundary,
+		GRID_COORD_TYPE rmin[],
+		GRID_COORD_TYPE rmax[])
+	{
+		COORD_TYPE coord1[DIM3], coord2[DIM3];
+		scalar_grid.ComputeCoord(cube_index1, coord1);
+		scalar_grid.ComputeCoord(cube_index2, coord2);
+		for (int d=0;d<DIM3;d++){
+			rmin[d] = std::max(coord1[d]-dist2boundary, coord2[d]-dist2boundary);
+      rmin[d] = std::max(rmin[d], 0);
+			rmax[d] = std::min(coord1[d]+dist2boundary+1, coord2[d]+dist2boundary+1);
+      rmax[d] = std::min(rmax[d], scalar_grid.AxisSize(d)-1);
+		}
+
+		// track the dimension of the tracked,
+		// if the tracked regions has at least 2 dimension
+		int dim_of_overlap=0;
+		for (int d=0;d<DIM3;d++)
+		{
+			if(rmin[d] > rmax[d])
+			{ return false; }
+			if(rmin[d] < rmax[d])
+				dim_of_overlap++;
+		}
+		if (dim_of_overlap>=2)
+			return true;
+		else
+			return false;
+	}
+
+	bool find_overlap(
+		const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+		const VERTEX_INDEX & cube_index1,
+		const VERTEX_INDEX & cube_index2,
+		GRID_COORD_TYPE rmin[],
+		GRID_COORD_TYPE rmax[])
+  {
+    return(find_overlap
+           (scalar_grid, cube_index1, cube_index2, 1, rmin, rmax));
+  }
+
+  /// Determine if isosurface quad dual to grid edge (iend0, edge_dir)
+  ///   maps to cube0 or cube1.
+  /// @param iend0 Lower endpoint of edge.
+  /// @param edge_dir Edge direction.
+  /// @pre Edge (iend0, edge_dir) is an internal edge.
+  /// @pre Edge (iend0, edge_dir) is bipolar.
+  void determine_quad_map_to_cubes
+  (const VERTEX_INDEX iend0, const int edge_dir,
+   const VERTEX_INDEX cube0_index,
+   const VERTEX_INDEX cube1_index,
+   const ISOVERT & isovert,
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   bool & flag_maps_to_cube0,
+   bool & flag_maps_to_cube1)
+  {
+    const NUM_TYPE gcube0_index = isovert.GCubeIndex(cube0_index);
+    const NUM_TYPE gcube1_index = isovert.GCubeIndex(cube1_index);
+
+    // Initialize
+    flag_maps_to_cube0 = false;
+    flag_maps_to_cube1 = false;
+
+    int d1 = (edge_dir+1)%DIM3;
+    int d2 = (edge_dir+2)%DIM3;
+
+    VERTEX_INDEX iv0 = 
+      iend0 - isovert.grid.AxisIncrement(d1) - isovert.grid.AxisIncrement(d2);
+    for (int j = 0; j < NUM_VERT_PER_QUAD; j++) {
+      VERTEX_INDEX cube2_index = isovert.grid.FacetVertex(iv0, edge_dir, j);
+      NUM_TYPE gcube2_index = isovert.GCubeIndex(cube2_index);
+
+      NUM_TYPE to_gcube = gcube_map[gcube2_index];
+      if (to_gcube == gcube0_index) { flag_maps_to_cube0 = true; }
+      else if (to_gcube == gcube1_index) { flag_maps_to_cube1 = true; }
+    }
+  }
+
+  /// Determine if some isosurface quad dual to an edge of cube0
+  ///   maps to both cube1 and cube2.
+  void determine_quad_map_to_both_cubes
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX cube0_index,
+   const VERTEX_INDEX cube1_index,
+   const VERTEX_INDEX cube2_index,
+   const ISOVERT & isovert,
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   bool & flag_maps_to_cube1,
+   bool & flag_maps_to_both_cubes)
+  {
+    const INDEX_DIFF_TYPE gcube0_index = isovert.GCubeIndex(cube0_index);
+
+    flag_maps_to_cube1 = false;
+    flag_maps_to_both_cubes = false;
+
+    if (gcube0_index == ISOVERT::NO_INDEX) { return; }
+
+    BOUNDARY_BITS_TYPE boundary_bits = 
+      isovert.gcube_list[gcube0_index].boundary_bits;
+
+    if (boundary_bits == 0) {
+      for (int edge_dir = 0; edge_dir < DIM3; edge_dir++) {
+
+        for (NUM_TYPE j = 0; j < NUM_CUBE_FACET_VERTICES3D; j++) {
+
+          VERTEX_INDEX iend0 = 
+            scalar_grid.FacetVertex(cube0_index, edge_dir, j);
+          VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0, edge_dir);
+
+          if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
+
+            bool flagB_maps_to_cube1;
+            bool flagB_maps_to_cube2;
+            determine_quad_map_to_cubes
+              (iend0, edge_dir, cube1_index, cube2_index,
+               isovert, gcube_map, flagB_maps_to_cube1, flagB_maps_to_cube2);
+
+            if (flagB_maps_to_cube1) {
+              flag_maps_to_cube1 = true;
+
+              if (flagB_maps_to_cube2) {
+                flag_maps_to_both_cubes = true;
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+    else {
+      // Handle boundary case.
+    }
+  }
+
+  /// Temporarily map from_gcube to to_gcube and then determine if some 
+  ///   isosurface quad dual to an edge of cube0 maps to both cube1 and cube2.
+  void temp_map_determine_quad_map_to_both_cubes
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SCALAR_TYPE isovalue,
+   const NUM_TYPE from_gcube_index,
+   const NUM_TYPE to_gcube_index,
+   const VERTEX_INDEX cube0_index,
+   const VERTEX_INDEX cube1_index,
+   const VERTEX_INDEX cube2_index,
+   const ISOVERT & isovert,
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   bool & flag_maps_to_cube1,
+   bool & flag_maps_to_both_cubes)
+  {
+    const NUM_TYPE store_from_map = gcube_map[from_gcube_index];
+
+    // temporarily set gcube_map[from_gcube_index] to to_gcube_index.
+    gcube_map[from_gcube_index] = to_gcube_index;
+    determine_quad_map_to_both_cubes
+      (scalar_grid, isovalue, cube0_index, cube1_index, cube2_index,
+       isovert, gcube_map, flag_maps_to_cube1, flag_maps_to_both_cubes);
+
+    // restore gcube_map[from_gcube_index]
+    gcube_map[from_gcube_index] = store_from_map;
+  }
+
+	// Return true if two cubes are connected by an isosurface quadrilaterals.
+	bool are_connected_by_iso_quad
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const VERTEX_INDEX & cube0_index,
+   const VERTEX_INDEX & cube1_index,
+   const SCALAR_TYPE isovalue,
+   const MERGESHARP::ISOVERT & isovert, 
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   const bool flag_extended)
+  {
+    int dist2boundary;      // Distance from cube to region boundary
+		GRID_COORD_TYPE rmin[DIM3], rmax[DIM3];
+
+    if (flag_extended) 
+      { dist2boundary = 2; }
+    else
+      { dist2boundary = 1; }
+
+		// find the overlap region
+		bool is_overlap =
+			find_overlap(scalar_grid, cube0_index, cube1_index, 
+                   dist2boundary, rmin, rmax);
+
+		if (!is_overlap) { return false; }
+
+		VERTEX_INDEX vbase = scalar_grid.ComputeVertexIndex(rmin);
+
+    for (int edge_dir = 0; edge_dir < DIM3; edge_dir++) {
+
+      int d1 = (edge_dir+1)%DIM3;
+      int d2 = (edge_dir+2)%DIM3;
+
+      VERTEX_INDEX v0 = vbase;
+      for (GRID_COORD_TYPE x0 = rmin[edge_dir]; x0 < rmax[edge_dir]; x0++) {
+
+        VERTEX_INDEX v1 = v0;
+        for (GRID_COORD_TYPE x1 = rmin[d1]; x1 <= rmax[d1]; x1++) {
+
+          if (x1 == 0 || x1 >= scalar_grid.AxisSize(d1)) { continue; }
+
+          VERTEX_INDEX v2 = v1;
+          for (GRID_COORD_TYPE x2 = rmin[d2]; x2 <= rmax[d2]; x2++) {
+
+            if (x2 == 0 || x2 >= scalar_grid.AxisSize(d2)) { continue; }
+
+            const VERTEX_INDEX iend0 = v2;
+            const VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0, edge_dir);
+
+            if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
+
+              bool flag_maps_to_cube0;
+              bool flag_maps_to_cube1;
+
+              determine_quad_map_to_cubes
+                (iend0, edge_dir, cube0_index, cube1_index,
+                 isovert, gcube_map, flag_maps_to_cube0, flag_maps_to_cube1);
+
+              if (flag_maps_to_cube0 && flag_maps_to_cube1) {
+                return(true); 
+              }
+            }
+
+            v2 = scalar_grid.NextVertex(v2, d2);
+          }
+
+          v1 = scalar_grid.NextVertex(v1, d1);
+        }
+
+        v0 = scalar_grid.NextVertex(v0, edge_dir);
+      }
+    }
+
+    return(false);
   }
 
 }

@@ -2793,6 +2793,94 @@ bool MERGESHARP::find_3x3x3_overlap
 }
 
 
+// Add to list selected cubes whose vertices are "connected" 
+//   to vertex in cube0_index
+// @param[out] connected_sharp List of selected cubes.
+void MERGESHARP::add2list_connected_sharp
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+ const SCALAR_TYPE isovalue,
+ const VERTEX_INDEX cube0_index,
+ const MERGESHARP::ISOVERT & isovert, 
+ const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+ CUBE_CONNECTED_ARRAY & connected_sharp)
+{
+  NUM_TYPE gcube0_index = isovert.GCubeIndex(cube0_index);
+
+  if (gcube0_index == ISOVERT::NO_INDEX) { return; }
+
+  if (isovert.gcube_list[gcube0_index].boundary_bits == 0) {
+
+    for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsF(); j++) 
+			{  
+				VERTEX_INDEX cube1_index = isovert.grid.CubeNeighborF(cube0_index, j);
+        INDEX_DIFF_TYPE gcube1_index = isovert.GCubeIndex(cube1_index);
+
+				if (gcube1_index == ISOVERT::NO_INDEX) { continue; }
+
+				VERTEX_INDEX to_gcube = gcube_map[gcube1_index]; 
+
+				if (isovert.gcube_list[to_gcube].flag == SELECTED_GCUBE) {
+
+          // Note: Assumes j'th facet neighbor shares j'th facet with cube.
+          if (is_gt_facet_min_le_facet_max
+              (scalar_grid, cube0_index, j, isovalue)) {
+
+            NUM_TYPE to_cube = isovert.CubeIndex(to_gcube);
+            if (!connected_sharp.Contains(to_cube)) 
+              { connected_sharp.PushBack(to_cube); }
+					}
+				}
+			}//for_end
+
+
+    //edges
+    for (NUM_TYPE j = 0; j < isovert.grid.NumCubeNeighborsE(); j++) 
+			{
+				VERTEX_INDEX cube1_index = isovert.grid.CubeNeighborE(cube0_index, j);
+        INDEX_DIFF_TYPE gcube1_index = isovert.GCubeIndex(cube1_index);
+				
+				if (gcube1_index == ISOVERT::NO_INDEX) {	continue; }
+
+				VERTEX_INDEX to_gcube = gcube_map[gcube1_index];
+
+				if (isovert.gcube_list[to_gcube].flag == SELECTED_GCUBE) {
+
+          // Check that edge is bipolar
+          // Note: Computation of (iv0,iv1) relies on specific ordering
+          //   of cube edge neighbors.
+          int edge_dir = int(j/isovert.grid.NumFacetVertices());
+          int k = j%isovert.grid.NumFacetVertices();
+          VERTEX_INDEX iv0 = isovert.grid.FacetVertex(cube0_index, edge_dir, k);
+          VERTEX_INDEX iv1 = isovert.grid.NextVertex(iv0, edge_dir);
+
+          if (is_gt_min_le_max(scalar_grid, iv0, iv1, isovalue)) {
+
+            NUM_TYPE to_cube = isovert.CubeIndex(to_gcube);
+            if (!connected_sharp.Contains(to_cube)) 
+              { connected_sharp.PushBack(to_cube); }
+          }
+				}
+			}
+  }
+}
+
+// Find selected cubes whose vertices are "connected" to vertex in cube0_index
+// @param[out] connected_sharp List of selected cubes.
+void MERGESHARP::find_connected_sharp
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+ const SCALAR_TYPE isovalue,
+ const VERTEX_INDEX cube0_index,
+ const MERGESHARP::ISOVERT & isovert, 
+ const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+ CUBE_CONNECTED_ARRAY & connected_sharp)
+{
+  connected_sharp.Clear();
+  add2list_connected_sharp
+    (scalar_grid, isovalue, cube0_index, isovert, gcube_map, 
+     connected_sharp);
+}
+
+
 // **************************************************
 // Convert types to strings
 // **************************************************

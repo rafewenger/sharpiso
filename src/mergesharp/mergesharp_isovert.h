@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "ijkdualtable.h"
 
+#include "sharpiso_array.txx"
 #include "sharpiso_grids.h"
 #include "sharpiso_feature.h"
 #include "mergesharp_types.h"
@@ -31,6 +32,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <vector>
 
 namespace MERGESHARP {
+
+// **************************************************
+// TYPES
+// **************************************************
+
+typedef SHARPISO::FIXED_ARRAY
+  <SHARPISO::NUM_CUBE_NEIGHBORS3D, SHARPISO::VERTEX_INDEX, SHARPISO::NUM_TYPE>
+  CUBE_CONNECTED_ARRAY;
+
 
 // **************************************************
 // GRID CUBE DATA
@@ -390,6 +400,27 @@ bool find_3x3x3_overlap
  const VERTEX_INDEX cubeA_index, const VERTEX_INDEX cubeB_index,
  GRID_COORD_TYPE rmin[DIM3], GRID_COORD_TYPE rmax[DIM3],
  int & overlap_dim);
+
+/// Add to list selected cubes whose vertices are "connected" 
+///   to vertex in cube0_index
+/// @param[out] connected_sharp List of selected cubes.
+void add2list_connected_sharp
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+ const SCALAR_TYPE isovalue,
+ const VERTEX_INDEX cube0_index,
+ const MERGESHARP::ISOVERT & isovert, 
+ const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+ CUBE_CONNECTED_ARRAY & connected_sharp);
+
+// Find selected cubes whose vertices are "connected" to vertex in cube0_index
+// @param[out] connected_sharp List of selected cubes.
+void find_connected_sharp
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+ const SCALAR_TYPE isovalue,
+ const VERTEX_INDEX cube0_index,
+ const MERGESHARP::ISOVERT & isovert, 
+ const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+ CUBE_CONNECTED_ARRAY & connected_sharp);
 
 
 // **************************************************
