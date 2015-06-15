@@ -484,6 +484,8 @@ bool MERGESHARP::check_tri_distortion_mapA
   // Triangle angle test.
   const COORD_TYPE min_dist = 0.01;
   const COORD_TYPE cos_min_triangle_angle = param.CosMinTriangleAngle();
+  const COORD_TYPE cos_min_sharp_cube_triangle_angle = 
+    param.CosMinSharpCubeTriangleAngle();
   COORD_TYPE cos_angle_ABC, cos_angle_ACB;
 
   compute_cos_triangle_angles
@@ -525,6 +527,46 @@ bool MERGESHARP::check_tri_distortion_mapA
 
       return(false);
     }
+
+    /* DEBUG. NOT YET IMPLEMENTED/TESTED.
+    if (isovert.gcube_list[gcube_map[gcubeB_index]].flag == SELECTED_GCUBE) {
+      if (cos_angle_ABC > cos_min_sharp_cube_triangle_angle) { 
+        return(true); 
+      }
+    }
+    else {
+      if (cos_angle_ABC > cos_min_triangle_angle) {
+        // *** DEBUG ***
+        if (flag_debug) {
+          MSDEBUG();
+          cerr << "--- Failed angle ABC test." 
+               << "  angle_ABC: " << acos(cos_angle_ABC) * 180.0/M_PI
+               << "  angle_ACB: " << acos(cos_angle_ACB) * 180.0/M_PI
+               << endl;
+        }
+
+        return(false);
+      }
+    }
+
+    if (isovert.gcube_list[gcube_map[gcubeC_index]].flag == SELECTED_GCUBE) {
+      if (cos_angle_ACB > cos_min_sharp_cube_triangle_angle) { return(true); }
+    }
+    else {
+      if (cos_angle_ACB > cos_min_triangle_angle) {
+        // *** DEBUG ***
+        if (flag_debug) {
+          MSDEBUG();
+          cerr << "--- Failed angle ACB test." 
+               << "  angle_ABC: " << acos(cos_angle_ABC) * 180.0/M_PI
+               << "  angle_ACB: " << acos(cos_angle_ACB) * 180.0/M_PI
+               << endl;
+        }
+
+        return(false);
+      }
+    }
+    */
   }
 
   // Normal angle test
@@ -701,6 +743,8 @@ bool MERGESHARP::check_tri_distortion_mapB
   // Triangle angle test.
   const COORD_TYPE min_dist = 0.01;
   const COORD_TYPE cos_min_triangle_angle = param.CosMinTriangleAngle();
+  const COORD_TYPE cos_min_sharp_cube_triangle_angle = 
+    param.CosMinSharpCubeTriangleAngle();
   COORD_TYPE cos_angle_BAC, cos_angle_BCA;
 
   compute_cos_triangle_angles
@@ -730,16 +774,57 @@ bool MERGESHARP::check_tri_distortion_mapB
     if (cos_angle_BAC > cos_min_triangle_angle ||
         cos_angle_BCA > cos_min_triangle_angle) {
 
+      // *** DEBUG ***
       if (flag_debug) {
         MSDEBUG();
         cerr << "--- Failed angle test." 
              << "  angle_BAC: " << acos(cos_angle_BAC) * 180.0/M_PI
              << "  angle_BCA: " << acos(cos_angle_BCA) * 180.0/M_PI
              << endl;
+      }
+      
+      return(false);
+    }
+
+    /* DEBUG. NOT YET IMPLEMENTED/TESTED.
+    if (isovert.gcube_list[gcube_map[gcubeA_index]].flag == SELECTED_GCUBE) {
+      if (cos_angle_BAC > cos_min_sharp_cube_triangle_angle) { 
+        return(true); 
+      }
+    }
+    else {
+      if (cos_angle_BAC > cos_min_triangle_angle) {
+        // *** DEBUG ***
+        if (flag_debug) {
+          MSDEBUG();
+        cerr << "--- Failed angle test." 
+             << "  angle_BAC: " << acos(cos_angle_BAC) * 180.0/M_PI
+             << "  angle_BCA: " << acos(cos_angle_BCA) * 180.0/M_PI
+             << endl;
+        }
 
         return(false);
       }
     }
+
+    if (isovert.gcube_list[gcube_map[gcubeC_index]].flag == SELECTED_GCUBE) {
+      if (cos_angle_BCA > cos_min_sharp_cube_triangle_angle) { return(true); }
+    }
+    else {
+      if (cos_angle_BCA > cos_min_triangle_angle) {
+        // *** DEBUG ***
+        if (flag_debug) {
+          MSDEBUG();
+          cerr << "--- Failed angle BCA test." 
+               << "  angle_BAC: " << acos(cos_angle_BAC) * 180.0/M_PI
+               << "  angle_BCA: " << acos(cos_angle_BCA) * 180.0/M_PI
+               << endl;
+        }
+
+        return(false);
+      }
+    }
+    */
   }
 
 

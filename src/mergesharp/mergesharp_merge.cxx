@@ -1274,6 +1274,55 @@ namespace {
     return(true);
   }
 
+  // Check for edges connecting two cubes separated 
+  //   by a third selected edge cube.
+  // Check for edges where three cubes are mapped
+  bool check_separating_cubesIII
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const SCALAR_TYPE isovalue,
+   const VERTEX_INDEX cube_index[3],
+   const VERTEX_INDEX to_cube_index,
+   const MERGESHARP::ISOVERT & isovert,
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+   const bool flag_extended)
+  {
+    IJK::PROCEDURE_ERROR error("check_separating_cubesIII");
+    const INDEX_DIFF_TYPE to_gcube_index = 
+      isovert.GCubeIndex(to_cube_index, error);
+    INDEX_DIFF_TYPE gcube_index[3];
+    NUM_TYPE store_map[3];
+
+    if (to_gcube_index == ISOVERT::NO_INDEX) { throw error; }
+    for (int i = 0; i < 3; i++) {
+      gcube_index[i] = isovert.GCubeIndex(cube_index[i], error); 
+      if (gcube_index[i] == ISOVERT::NO_INDEX) { throw error; }
+      store_map[i] = gcube_map[gcube_index[i]];
+    }
+
+    for (int i0 = 0; i0 < 3; i0++) {
+      
+      int i1 = (i0+1) % 3;
+      int i2 = (i0+2) % 3;
+
+      // Temporarily set gcube_index[i1] and gcube_map[i2] to map to to_cube.
+      gcube_map[gcube_index[i1]] = to_gcube_index;
+      gcube_map[gcube_index[i2]] = to_gcube_index;
+
+      bool flag_passed_check =
+        check_separating_cubes
+        (scalar_grid, isovalue, cube_index[i0], to_cube_index, isovert, 
+         gcube_map, flag_extended);
+
+      // Reset gcube_map[]
+      gcube_map[gcube_index[i1]] = store_map[i1];
+      gcube_map[gcube_index[i2]] = store_map[i2];
+
+      if (!flag_passed_check) { return(false); }
+    }
+
+    return(true);
+  }
+
 
   // check for some violations of manifold conditions by map
   // (Does not catch all violations.)
@@ -2552,7 +2601,10 @@ namespace {
       return(false);
     }
 
-    // *** Should add check for separating cubes.
+    if (!check_separating_cubesIII
+        (scalar_grid, isovalue, cube_index, to_cube, 
+         isovert, gcube_map, flag_extended))
+      { return(false); }
 
     return(true);
   }
@@ -4597,6 +4649,10 @@ namespace {
   {
     const bool flag_extended = true;
     BOUNDARY_BITS_TYPE boundary_bits;
+
+    MSDEBUG();
+    if (flag_debug)
+      { cerr << endl << "In " << __func__ << endl; }
 
 		for (NUM_TYPE i = 0; i < sharp_gcube_list.size(); i++) {
 
