@@ -92,6 +92,18 @@ namespace MERGESHARP {
    std::vector<VERTEX_INDEX> & poly_vert,
    SHARPISO_INFO & sharpiso_info);
 
+  // **************************************************
+  // Merge vertices in triangles with small angles
+  // **************************************************
+
+  void collapse_triangles_with_small_angles
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const SCALAR_TYPE isovalue,
+   const MERGE_PARAM & param,
+   MERGESHARP::ISOVERT & isovert, 
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
+
 
   // **************************************************
   // ROUTINE: is_isopatch_disk3D

@@ -246,6 +246,17 @@ protected:
   /// Cos minimum angle between original and new normal.
   COORD_TYPE cos_min_normal_angle;
 
+  /// Attempt to collapse triangles with angles less than collapse angle.
+  ANGLE_TYPE collapse_angle;
+
+  /// Cos collapse_angle.
+  COORD_TYPE cos_collapse_angle;
+
+public:
+
+  /// if true, attempt to collapse triangles with small angles.
+  bool flag_collapse_triangles_with_small_angles;
+
 protected:
   void Init();
 
@@ -261,7 +272,10 @@ public:
 
   /// Set minimum normal angle.
   void SetMinNormalAngle(const ANGLE_TYPE degrees);
-  
+
+  /// Set collapse angle
+  void SetCollapseAngle(const ANGLE_TYPE degrees);
+
 
   // Get functions
   ANGLE_TYPE MinTriangleAngle() const
@@ -276,6 +290,10 @@ public:
   { return(min_normal_angle); }
   COORD_TYPE CosMinNormalAngle() const
   { return(cos_min_normal_angle); }
+  ANGLE_TYPE CollapseAngle() const
+  { return(collapse_angle); }
+  COORD_TYPE CosCollapseAngle() const
+  { return(cos_collapse_angle); }
 };
 
 
@@ -460,6 +478,14 @@ void find_connected_sharp
  const MERGESHARP::ISOVERT & isovert, 
  const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
  CUBE_CONNECTED_ARRAY & connected_sharp);
+
+// Compute the cosine of the angle between (v2,v1) and (v2,v3)
+void compute_cos_angle
+(const ISOVERT & isovert,
+ const VERTEX_INDEX gcube_list_index_v1,
+ const VERTEX_INDEX gcube_list_index_v2,
+ const VERTEX_INDEX gcube_list_index_v3,
+ SCALAR_TYPE & cos_angle);
 
 
 // **************************************************

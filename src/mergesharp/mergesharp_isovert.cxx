@@ -3045,6 +3045,29 @@ void MERGESHARP::find_connected_sharp
 }
 
 
+// Compute the cosine of the angle between (v2,v1) and (v2,v3)
+void MERGESHARP::compute_cos_angle
+(const ISOVERT & isovert,
+ const VERTEX_INDEX gcube_list_index_v1,
+ const VERTEX_INDEX gcube_list_index_v2,
+ const VERTEX_INDEX gcube_list_index_v3,
+ SCALAR_TYPE & cos_angle)
+{
+  COORD_TYPE coord0[DIM3], coord1[DIM3],
+    coord2[DIM3],vec12[DIM3], vec32[DIM3];
+
+  subtract_coord(DIM3, isovert.gcube_list[gcube_list_index_v2].isovert_coord,
+                 isovert.gcube_list[gcube_list_index_v1].isovert_coord, vec12);
+  normalize_vector(DIM3, vec12, 0.001, vec12);
+  
+  subtract_coord(DIM3, isovert.gcube_list[gcube_list_index_v2].isovert_coord,
+                 isovert.gcube_list[gcube_list_index_v3].isovert_coord, vec32);
+  normalize_vector(DIM3, vec32, 0.001, vec32);
+
+  compute_inner_product(DIM3, vec12, vec32, cos_angle);
+}
+
+
 // **************************************************
 // Convert types to strings
 // **************************************************
@@ -3210,6 +3233,7 @@ void MERGE_PARAM::Init()
   SetMinTriangleAngle(5);
   SetMinSharpCubeTriangleAngle(5);
   SetMinNormalAngle(30);
+  SetCollapseAngle(20);
 }
 
 void MERGE_PARAM::SetMinTriangleAngle(const ANGLE_TYPE degrees)
@@ -3228,6 +3252,12 @@ void MERGE_PARAM::SetMinNormalAngle(const ANGLE_TYPE degrees)
 {
   min_normal_angle = degrees;
   cos_min_normal_angle = cos(degrees*M_PI/180.0);
+}
+
+void MERGE_PARAM::SetCollapseAngle(const ANGLE_TYPE degrees)
+{
+  collapse_angle = degrees;
+  cos_collapse_angle = cos(degrees*M_PI/180.0);
 }
 
 
@@ -3560,28 +3590,6 @@ namespace {
     }
 
     return false;
-  }
-
-  // Compute the cosine of the angle between (v2,v1) and (v2,v3)
-  void compute_cos_angle
-  (const ISOVERT & isovert,
-   const VERTEX_INDEX gcube_list_index_v1,
-   const VERTEX_INDEX gcube_list_index_v2,
-   const VERTEX_INDEX gcube_list_index_v3,
-   SCALAR_TYPE & cos_angle)
-  {
-    COORD_TYPE coord0[DIM3], coord1[DIM3],
-      coord2[DIM3],vec12[DIM3], vec32[DIM3];
-
-    subtract_coord(DIM3, isovert.gcube_list[gcube_list_index_v2].isovert_coord,
-                   isovert.gcube_list[gcube_list_index_v1].isovert_coord, vec12);
-    normalize_vector(DIM3, vec12, 0.001, vec12);
-
-    subtract_coord(DIM3, isovert.gcube_list[gcube_list_index_v2].isovert_coord,
-                   isovert.gcube_list[gcube_list_index_v3].isovert_coord, vec32);
-    normalize_vector(DIM3, vec32, 0.001, vec32);
-
-    compute_inner_product(DIM3, vec12, vec32, cos_angle);
   }
 
 

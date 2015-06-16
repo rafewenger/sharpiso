@@ -85,7 +85,9 @@ namespace {
     ROUND_PARAM, NO_ROUND_PARAM,
     KEEPV_PARAM,
     MINC_PARAM, MAXC_PARAM,
-    MAP_EXTENDED_PARAM, SELECT_MOD3_PARAM, SELECT_MOD6_PARAM,
+    MAP_EXTENDED_PARAM, NO_MAP_EXTENDED_PARAM,
+    COLLAPSE_TRIANGLES_PARAM, NO_COLLAPSE_TRIANGLES_PARAM,
+    SELECT_MOD3_PARAM, SELECT_MOD6_PARAM,
     HELP_PARAM, OFF_PARAM, IV_PARAM, 
     OUTPUT_FILENAME_PARAM, STDOUT_PARAM, NOWRITE_PARAM, 
     OUTPUT_PARAM_PARAM, OUTPUT_INFO_PARAM, 
@@ -123,7 +125,9 @@ namespace {
       "-round", "-no_round",
       "-keepv",
       "-minc", "-maxc",
-      "-map_extended", "-select_mod3", "-select_mod6",
+      "-map_extended", "-no_map_extended",
+      "-collapse_triangles", "-no_collapse_triangles",
+      "-select_mod3", "-select_mod6",
       "-help", "-off", "-iv", 
       "-o", "-stdout", "-nowrite", 
       "-out_param", "-info", "-out_selected", "-out_sharp", "-out_active",
@@ -503,8 +507,16 @@ namespace {
       input_info.flag_map_extended = true;
       break;
 
-    case SELECT_MOD3_PARAM:
-      input_info.flag_select_mod3 = true;
+    case NO_MAP_EXTENDED_PARAM:
+      input_info.flag_map_extended = false;
+      break;
+
+    case COLLAPSE_TRIANGLES_PARAM:
+      input_info.flag_collapse_triangles_with_small_angles = true;
+      break;
+
+    case NO_COLLAPSE_TRIANGLES_PARAM:
+      input_info.flag_collapse_triangles_with_small_angles = false;
       break;
 
     case SELECT_MOD6_PARAM:

@@ -461,7 +461,8 @@ void MERGESHARP::merge_sharp_iso_vertices_multi
 		VERTEX_INDEX cube_index0 = iso_vlist[k].cube_index;
 		NUM_TYPE gcube_index0 = isovert.GCubeIndex(cube_index0);
 		VERTEX_INDEX gcube_index1 = gcube_map[gcube_index0];
-		if (isovert.gcube_list[gcube_index1].flag == SELECTED_GCUBE) {
+		if (gcube_index0 != gcube_index1 ||
+        isovert.gcube_list[gcube_index1].flag == SELECTED_GCUBE) {
 			// Reset poly_vert[i] to first isosurface vertex for cube_index1.
 			poly_vert[i] = first_gcube_isov[gcube_index1];
 		}
@@ -2099,6 +2100,12 @@ namespace {
     map_adjacent_cubes_multi_simple
       (scalar_grid, isodual_table, ambig_info, isovalue, isovert, 
        selected_gcube_list, flag_strict, merge_param, gcube_map);
+
+    if (merge_param.flag_collapse_triangles_with_small_angles) {
+      // Try to remove some small angle triangles.
+      collapse_triangles_with_small_angles
+        (scalar_grid, isodual_table, isovalue, merge_param, isovert, gcube_map);
+    }
 	}
 
 	void set_first_gcube_isov
@@ -4703,6 +4710,170 @@ namespace {
        sharp_gcube_list, merge_param, gcube_map);
   }
 
+}
+
+
+// **************************************************
+// Merge vertices in triangles with small angles
+// **************************************************
+
+namespace {
+
+  /// Return true if mapping of from_cube to to_cube 
+  ///   does not reverse/distort triangles 
+  ///   and does not violate (some) manifold conditions.
+  bool check_collapse_map
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const std::vector<VERTEX_INDEX> & gcube_map,
+   const VERTEX_INDEX from_cube,
+   const VERTEX_INDEX to_cube,
+   const MERGE_PARAM & param)
+  {
+    if (!check_distortion_strict
+        (scalar_grid, isovalue, isovert, gcube_map, 
+         from_cube, to_cube, param)) 
+      { return(false); }
+
+    if (!check_edge_manifold
+        (scalar_grid, isovalue, from_cube, to_cube, 
+         isovert, gcube_map, true))
+      { return(false); }
+
+    return(true);
+  }
+
+}
+
+void MERGESHARP::collapse_triangles_with_small_angles
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+ const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+ const SCALAR_TYPE isovalue,
+ const MERGE_PARAM & param,
+ MERGESHARP::ISOVERT & isovert, 
+ std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+{
+  IJK::PROCEDURE_ERROR error("merge_small_triangle_angles");
+  VERTEX_INDEX quad_cube[NUM_VERT_PER_QUAD];
+  INDEX_DIFF_TYPE quad_gcube[NUM_VERT_PER_QUAD];
+  NUM_TYPE tri_gcube[NUM_VERT_PER_TRI];
+  const COORD_TYPE cos_min_angle = param.CosCollapseAngle();
+
+  IJK_FOR_EACH_INTERIOR_GRID_EDGE
+    (iend0, edge_dir, scalar_grid, VERTEX_INDEX) {
+
+    const VERTEX_INDEX iend1 = scalar_grid.NextVertex(iend0, edge_dir);
+
+    if (is_gt_min_le_max(scalar_grid, iend0, iend1, isovalue)) {
+      // Edge (iend0, iend1) is bipolar.
+
+      int dir1 = (edge_dir+1)%DIM3;
+      int dir2 = (edge_dir+2)%DIM3;
+
+      quad_cube[0] = iend0 - scalar_grid.AxisIncrement(dir1)
+        - scalar_grid.AxisIncrement(dir2);
+      quad_cube[1] = scalar_grid.NextVertex(quad_cube[0], dir1);
+      quad_cube[2] = scalar_grid.NextVertex(quad_cube[1], dir2);
+      quad_cube[3] = scalar_grid.NextVertex(quad_cube[0], dir2);
+
+      for (int i = 0; i < NUM_VERT_PER_QUAD; i++) {
+        quad_gcube[i] = isovert.GCubeIndex(quad_cube[i], error);
+
+        if (quad_gcube[i] == ISOVERT::NO_INDEX) { throw error; }
+
+        quad_gcube[i] = gcube_map[quad_gcube[i]];
+      }
+
+      int num_distinct_vert = 1;
+      tri_gcube[0] = quad_gcube[0];
+      if (quad_gcube[1] != quad_gcube[0]) {
+        tri_gcube[1] = quad_gcube[1];
+        num_distinct_vert++;
+      }
+      if (quad_gcube[2] != quad_gcube[1]) {
+        tri_gcube[num_distinct_vert] = quad_gcube[2];
+        num_distinct_vert++;
+      }
+      if (quad_gcube[3] != quad_gcube[2] &&
+          quad_gcube[3] != quad_gcube[0]) {
+        if (num_distinct_vert == 3) { 
+          // all four vertices are distinct
+          continue;
+        }
+
+        tri_gcube[num_distinct_vert] = quad_gcube[3];
+        num_distinct_vert++;
+      }
+
+      if (num_distinct_vert != 3) { continue; }
+
+
+      for (int i0 = 0; i0 < NUM_VERT_PER_TRI; i0++) {
+
+        const int i1 = (i0+1)%NUM_VERT_PER_TRI;
+        const int i2 = (i0+2)%NUM_VERT_PER_TRI;
+        const IJKDUALTABLE::TABLE_INDEX it0 = 
+          isovert.gcube_list[tri_gcube[i0]].table_index;
+        const IJKDUALTABLE::TABLE_INDEX it2 = 
+          isovert.gcube_list[tri_gcube[i2]].table_index;
+
+        if (isodual_table.NumIsoVertices(it0) != 1)
+          { continue; }
+        if (isodual_table.NumIsoVertices(it2) != 1)
+          { continue; }
+
+        COORD_TYPE cos_angle;
+        compute_cos_angle
+          (isovert, tri_gcube[i0], tri_gcube[i1], tri_gcube[i2], cos_angle);
+
+        MSDEBUG();
+        if (flag_debug) {
+          scalar_grid.PrintIndexAndCoord
+            (cerr, "Angle cubes: ", isovert.CubeIndex(tri_gcube[i0]),
+             " ", isovert.CubeIndex(tri_gcube[i1]), "\n");
+          scalar_grid.PrintIndexAndCoord
+            (cerr, "     ", isovert.CubeIndex(tri_gcube[i2]), ": ");
+          cerr << acos(cos_angle)*180.0/M_PI << endl;
+        }
+
+        if (cos_angle >= cos_min_angle) {
+
+          const VERTEX_INDEX cube0_index = isovert.CubeIndex(tri_gcube[i0]);
+          const VERTEX_INDEX cube2_index = isovert.CubeIndex(tri_gcube[i2]);
+
+          if (check_collapse_map
+              (scalar_grid, isovalue, isovert, gcube_map, cube2_index,
+               cube0_index, param)) {
+
+            gcube_map[tri_gcube[i2]] = tri_gcube[i0];
+
+            MSDEBUG();
+            if (flag_debug) {
+              scalar_grid.PrintIndexAndCoord
+                (cerr, "*** Mapping ", isovert.CubeIndex(tri_gcube[i2]),
+                 " to ", isovert.CubeIndex(tri_gcube[i0]), "\n");
+                  
+            }
+          }
+          else if (check_collapse_map
+                   (scalar_grid, isovalue, isovert, gcube_map, cube0_index,
+                    cube2_index, param)) {
+
+            gcube_map[tri_gcube[i0]] = tri_gcube[i2];
+
+            MSDEBUG();
+            if (flag_debug) {
+              scalar_grid.PrintIndexAndCoord
+                (cerr, "*** Mapping ", isovert.CubeIndex(tri_gcube[i0]),
+                 " to ", isovert.CubeIndex(tri_gcube[i2]), "\n");
+                  
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 
