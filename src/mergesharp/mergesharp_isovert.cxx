@@ -1,4 +1,4 @@
-// \file mergesharp_isovert.cxx
+/// \file mergesharp_isovert.cxx
 /// Data structures for creating and processing sharp isosurface vertices.
 
 /*
@@ -173,6 +173,11 @@ void set_isovert_position
 (const SHARPISO_GRID & grid, const NUM_TYPE gcube_index, 
  const COORD_TYPE * new_coord, const NUM_TYPE num_eigenvalues,
  ISOVERT & isovert);
+
+void set_isovert_position_and_direction
+(const SHARPISO_GRID & grid, const NUM_TYPE gcube_index, 
+ const COORD_TYPE * new_coord, const COORD_TYPE * new_direction,
+ const NUM_TYPE num_eigenvalues, ISOVERT & isovert);
 
 void set_isovert_position_from_other_cube
 (const SHARPISO_GRID & grid, const NUM_TYPE gcube_index, 
@@ -860,6 +865,7 @@ void MERGESHARP::recompute_using_adjacent
 
 
 /// Set isovert position from grid vertex or grid edge.
+/// *** SHOULD ALSO PASS AND SET new_direction ***
 void set_isovert_position_from_face
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
@@ -1128,6 +1134,81 @@ void compute_isovert_on_plane_from_sharp_edges_B
 
 }
 
+/// Set isovert position around vertex to new_isovert_coord.
+void set_isovert_position_around_vertex
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+ const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
+ const COORD_TYPE new_isovert_coord[DIM3], 
+ ISOVERT & isovert, bool & flag_set)
+{
+  const NUM_TYPE index_lastv = NUM_CUBE_VERTICES3D - 1;
+  const VERTEX_INDEX cube0_index = 
+    iv - scalar_grid.CubeVertexIncrement(index_lastv);
+
+  bool flag_in_active_cube = false;
+  for (NUM_TYPE i = 0; i < NUM_CUBE_VERTICES3D; i++) {
+    VERTEX_INDEX cube1_index = scalar_grid.CubeVertex(cube0_index, i);
+    const INDEX_DIFF_TYPE gcube1_index = isovert.GCubeIndex(cube1_index);
+
+    if (gcube1_index == ISOVERT::NO_INDEX) { continue; }
+
+    if (cube_contains_point(scalar_grid, cube1_index, new_isovert_coord)) {
+
+      flag_in_active_cube = true;
+
+      const COORD_TYPE * isovert_coord = isovert.IsoVertCoord(gcube1_index);
+      if (cube_contains_point(scalar_grid, cube1_index, isovert_coord))
+        { continue; }
+
+      bool flag_set1;
+      set_isovert_position_from_face
+        (scalar_grid, isovalue, cube1_index, new_isovert_coord, 2, true, 
+         isovert, flag_set1);
+
+      if (flag_set1) { flag_set = true; }
+    }
+  }
+
+  if (flag_in_active_cube) { return; }
+
+  // Cube containing point is not active.
+  // Assign point to all active cubes around vertex 
+  //   other than fixed_cube[0] and fixed_cube[1].
+
+  for (NUM_TYPE i = 0; i < NUM_CUBE_VERTICES3D; i++) {
+    const VERTEX_INDEX cube1_index = scalar_grid.CubeVertex(cube0_index, i);
+    const INDEX_DIFF_TYPE gcube1_index = isovert.GCubeIndex(cube1_index);
+
+    if (gcube1_index == ISOVERT::NO_INDEX) { continue; }
+
+    const COORD_TYPE * isovert_coord = isovert.IsoVertCoord(gcube1_index);
+    if (cube_contains_point(scalar_grid, cube1_index, isovert_coord))
+      { continue; }
+
+    set_isovert_position_from_face
+      (scalar_grid, isovalue, cube1_index, new_isovert_coord, 2, 
+       true, isovert);
+  }
+}
+
+// Return true if cube is active and contains sharp isosurface vertex.
+bool does_cube_contain_sharp_isovert
+(const SHARPISO_GRID & grid, const VERTEX_INDEX cube_index,
+ const ISOVERT & isovert)
+{
+  const INDEX_DIFF_TYPE gcube_index = isovert.GCubeIndex(cube_index);
+
+  if (gcube_index == ISOVERT::NO_INDEX) { return(false); }
+  if (isovert.NumEigenvalues(gcube_index) < 2) { return(false); }
+
+  const COORD_TYPE * isovert_coord = isovert.IsoVertCoord(gcube_index);
+  if (!cube_contains_point(grid, cube_index, isovert_coord))
+    { return(false); }
+
+  return(true);
+}
+
+
 /// Recompute isovert position around vertex.
 /// Use voxel for gradient cube offset, 
 ///   not isovert_param.grad_selection_cube_offset.
@@ -1153,10 +1234,11 @@ void recompute_isovert_position_around_vertex
   BOUNDARY_BITS_TYPE boundary_bits;
   VERTEX_INDEX fixed_cube[2];
   COORD_TYPE pointX[DIM3];
-  GRID_COORD_TYPE cube_coord[2][DIM3];
   COORD_TYPE plane_normal[DIM3];
   COORD_TYPE new_isovert_coord[DIM3];
   COORD_TYPE intersection_point[DIM3];
+  GRID_COORD_TYPE * cube_coord[2];
+  bool flag_set;
   SVD_INFO svd_info;
 
   // Note: Compute vertex (not cube) boundary bits.
@@ -1175,125 +1257,86 @@ void recompute_isovert_position_around_vertex
   VERTEX_INDEX cube0_index = 
     iv - scalar_grid.CubeVertexIncrement(index_lastv);
 
-  for (NUM_TYPE i = 0; i < NUM_CUBE_VERTICES3D; i++) {
-    VERTEX_INDEX cube1_index = scalar_grid.CubeVertex(cube0_index, i);
-    INDEX_DIFF_TYPE gcube1_index = isovert.GCubeIndex(cube1_index);
-
-    if (gcube1_index == ISOVERT::NO_INDEX) { continue; }
-
-    num_active_cubes++;
-
-    const COORD_TYPE * isovert_coord = isovert.IsoVertCoord(gcube1_index);
-    if (cube_contains_point(scalar_grid, cube1_index, isovert_coord)) {
-
-      NUM_TYPE num_eigenvalues = isovert.NumEigenvalues(gcube1_index);
-
-      if (num_eigenvalues < 2) { 
-        // This cube will connect sharp cubes, if they exist.
-        return; 
-      }
-      else if (num_eigenvalues == 2) {
-        num_fixed_cubes_with_eigenvalue_two++;
-      }
-
-      if (num_fixed_cubes >= 2) { return; }
-
-      fixed_cube[num_fixed_cubes] = cube1_index;
-      num_fixed_cubes++;
-    }
-  }
-
-  if (num_fixed_cubes != 2) { return; }
-  if (num_active_cubes <= 2) { return; }
-
-  for (int i = 0; i < 2; i++)
-    { scalar_grid.ComputeCoord(fixed_cube[i], cube_coord[i]); }
-
-  for (int d = 0; d < DIM3; d++) {
-
-    if (cube_coord[0][d] == cube_coord[1][d]) { return; }
-    else if (cube_coord[0][d] < cube_coord[1][d])
-      { plane_normal[d] = ONE_DIV_SQRT3; }
-    else
-      { plane_normal[d] = -ONE_DIV_SQRT3; }
-  }
-
-  for (int i = 0; i < 2; i++) {
-    NUM_TYPE gcube_index = isovert.GCubeIndex(fixed_cube[i]);
-
-    if (isovert.NumEigenvalues(gcube_index) == 2) {
-
-      if (!does_sharp_edge_point_to_cube
-          (scalar_grid, isovert, fixed_cube[i], fixed_cube[1-i], 0.5)) {
-        // Sharp edge in fixed_cube[i] does not point to fixed_cube[1-i].
-        return;
-      }
-    }
-  }
-
   scalar_grid.ComputeScaledCoord(iv, pointX);
 
-  compute_isovert_on_plane_from_sharp_edges
-    (scalar_grid, isovert, isovert_param, fixed_cube, pointX, plane_normal,
-     new_isovert_coord);
+  for (int j0 = 0; j0 < 2; j0++) {
+    for (int j1 = 0; j1 < 2; j1++) {
 
-  MSDEBUG();
-  if (flag_debug) {
-    cerr << "--- Function: " << __func__ << endl;
-    scalar_grid.PrintIndexAndCoord(cerr, "  Vertex: ", iv, "\n");
-    scalar_grid.PrintIndexAndCoord
-      (cerr, "  Fixed cubes: ", fixed_cube[0], " and ");
-    scalar_grid.PrintIndexAndCoord(cerr, "", fixed_cube[1], "\n");
-    cerr << "  pointX: ";
-    IJK::print_coord3D(cerr, pointX);
-    cerr << " plane_normal: ";
-    IJK::print_coord3D(cerr, plane_normal);
-    cerr << endl;
-    cerr << "  new_isovert_coord: ";
-    IJK::print_coord3D(cerr, new_isovert_coord);
-    cerr << endl;
-  }
+      // cubeA and cubeB intersect only at vertex iv.
+      const VERTEX_INDEX cubeA_index =
+        cube0_index + j0*scalar_grid.AxisIncrement(0) +
+        j1*scalar_grid.AxisIncrement(1);
+      const VERTEX_INDEX cubeB_index =
+        cube0_index + (1-j0)*scalar_grid.AxisIncrement(0) +
+        (1-j1)*scalar_grid.AxisIncrement(1) + scalar_grid.AxisIncrement(2);
 
-  COORD_TYPE Linf_distance;
-  compute_rescaled_Linf_distance
-    (pointX, new_isovert_coord, spacing, Linf_distance);
-  if (Linf_distance > 1) { return; }
-
-  bool flag_set = false;
-  for (NUM_TYPE i = 0; i < NUM_CUBE_VERTICES3D; i++) {
-    VERTEX_INDEX cube1_index = scalar_grid.CubeVertex(cube0_index, i);
-
-    if (cube1_index == fixed_cube[0] || cube1_index == fixed_cube[1]) 
-      { continue; }
-
-    if (cube_contains_point(scalar_grid, cube1_index, new_isovert_coord)) {
-
-      bool flag_set1;
-      set_isovert_position_from_face
-        (scalar_grid, isovalue, cube1_index, new_isovert_coord, 2, true, 
-         isovert, flag_set1);
-
-      if (flag_set1) { flag_set = true; }
-    }
-  }
-
-  if (!flag_set) {
-    // Cube containing point is not active.
-    // Assign point to all active cubes around vertex 
-    //   other than fixed_cube[0] and fixed_cube[1].
-
-    for (NUM_TYPE i = 0; i < NUM_CUBE_VERTICES3D; i++) {
-      VERTEX_INDEX cube1_index = scalar_grid.CubeVertex(cube0_index, i);
-
-      if (cube1_index == fixed_cube[0] || cube1_index == fixed_cube[1]) 
+      if (!does_cube_contain_sharp_isovert(scalar_grid, cubeA_index, isovert))
+        { continue; }
+      if (!does_cube_contain_sharp_isovert(scalar_grid, cubeB_index, isovert))
         { continue; }
 
-      set_isovert_position_from_face
-        (scalar_grid, isovalue, cube1_index, new_isovert_coord, 2, 
-         true, isovert);
+      NUM_TYPE gcubeA_index = isovert.GCubeIndex(cubeA_index);
+      NUM_TYPE gcubeB_index = isovert.GCubeIndex(cubeB_index);
+      cube_coord[0] = isovert.gcube_list[gcubeA_index].cube_coord;
+      cube_coord[1] = isovert.gcube_list[gcubeB_index].cube_coord;
+      fixed_cube[0] = cubeA_index;
+      fixed_cube[1] = cubeB_index;
+
+      bool flag_skip = false;
+      for (int i = 0; i < 2; i++) {
+        NUM_TYPE gcube_index = isovert.GCubeIndex(fixed_cube[i]);
+
+        if (isovert.NumEigenvalues(gcube_index) == 2) {
+
+          if (!does_sharp_edge_point_to_cube
+              (scalar_grid, isovert, fixed_cube[i], fixed_cube[1-i], 0.5)) {
+            // Sharp edge in fixed_cube[i] does not point to fixed_cube[1-i].
+
+            flag_skip = true;
+          }
+        }
+      }
+
+      if (flag_skip) { continue; }
+
+      for (int d = 0; d < DIM3; d++) {
+        if (cube_coord[0][d] < cube_coord[1][d])
+          { plane_normal[d] = ONE_DIV_SQRT3; }
+        else
+          { plane_normal[d] = -ONE_DIV_SQRT3; }
+      }
+
+      compute_isovert_on_plane_from_sharp_edges
+        (scalar_grid, isovert, isovert_param, fixed_cube, pointX, plane_normal,
+         new_isovert_coord);
+
+      MSDEBUG();
+      if (flag_debug) {
+        cerr << "--- Function: " << __func__ << endl;
+        scalar_grid.PrintIndexAndCoord(cerr, "  Vertex: ", iv, "\n");
+        scalar_grid.PrintIndexAndCoord
+          (cerr, "  Fixed cubes: ", fixed_cube[0], " and ");
+        scalar_grid.PrintIndexAndCoord(cerr, "", fixed_cube[1], "\n");
+        cerr << "  pointX: ";
+        IJK::print_coord3D(cerr, pointX);
+        cerr << " plane_normal: ";
+        IJK::print_coord3D(cerr, plane_normal);
+        cerr << endl;
+        cerr << "  new_isovert_coord: ";
+        IJK::print_coord3D(cerr, new_isovert_coord);
+        cerr << endl;
+      }
+
+      COORD_TYPE Linf_distance;
+      compute_rescaled_Linf_distance
+        (pointX, new_isovert_coord, spacing, Linf_distance);
+      if (Linf_distance > 1) { return; }
+
+      bool flag_set;
+      set_isovert_position_around_vertex
+        (scalar_grid, isovalue, iv, new_isovert_coord, isovert, flag_set);
     }
   }
-
 }
 
 /// Recompute isovert position around vertices.
@@ -1453,6 +1496,7 @@ void recompute_isovert_position_around_edge
         // Sharp edge in fixed_cube[i] does not point to fixed_cube[1-i].
         return;
       }
+
     }
   }
 
@@ -1968,6 +2012,19 @@ void set_isovert_position
   compute_Linf_distance_from_cube_center(grid, gcube_index, isovert);
 }
 
+/// Set isovert position and sharp edge direction or direction
+///   normal to smooth surface.
+/// @pre new_coord[] is in cube gcube_index.
+void set_isovert_position_and_direction
+(const SHARPISO_GRID & grid, const NUM_TYPE gcube_index, 
+ const COORD_TYPE * new_coord, const COORD_TYPE * new_direction,
+ const NUM_TYPE num_eigenvalues, ISOVERT & isovert)
+{
+  set_isovert_position(grid, gcube_index, new_coord, num_eigenvalues, isovert);
+  IJK::copy_coord_3D(new_direction,
+                     isovert.gcube_list[gcube_index].direction);
+}
+
 /// Set isovert position
 /// @pre new_coord[] is in cube gcube_index.
 void set_isovert_position_from_other_cube
@@ -1980,6 +2037,19 @@ void set_isovert_position_from_other_cube
   isovert.gcube_list[gcube_index].flag_coord_from_other_cube = true;
 }
 
+/// Set isovert position and direction from other cube
+/// @pre new_coord[] is in cube gcube_index.
+void set_isovert_position_and_direction_from_other_cube
+(const SHARPISO_GRID & grid, const NUM_TYPE gcube_index, 
+ const COORD_TYPE * new_coord, const COORD_TYPE * new_direction,
+ const NUM_TYPE num_eigenvalues,
+ ISOVERT & isovert)
+{
+  set_isovert_position_and_direction
+    (grid, gcube_index, new_coord, new_direction, num_eigenvalues, isovert);
+  isovert.gcube_list[gcube_index].flag_coord_from_other_cube = true;
+}
+
 // Swap isovert positions of gcubeA and gcubeB
 void swap_isovert_positions
 (const SHARPISO_GRID & grid, 
@@ -1987,6 +2057,7 @@ void swap_isovert_positions
  ISOVERT & isovert)
 {
   COORD_TYPE temp_coord[DIM3];
+  COORD_TYPE temp_direction[DIM3];
   NUM_TYPE num_eigenvaluesA, num_eigenvaluesB;
 
   num_eigenvaluesA = isovert.gcube_list[gcubeA_index].num_eigenvalues;
@@ -1996,13 +2067,36 @@ void swap_isovert_positions
     isovert.gcube_list[gcubeA_index].isovert_coord;
   const COORD_TYPE * isovert_coordB =
     isovert.gcube_list[gcubeB_index].isovert_coord;
+  const COORD_TYPE * directionA =
+    isovert.gcube_list[gcubeA_index].direction;
+  const COORD_TYPE * directionB =
+    isovert.gcube_list[gcubeB_index].direction;
 
   IJK::copy_coord_3D(isovert_coordA, temp_coord);
+  if (num_eigenvaluesA == 3) 
+    { IJK::set_coord_3D(0, temp_direction); }
+  else
+    { IJK::copy_coord_3D(directionA, temp_direction); }
 
-  set_isovert_position_from_other_cube
-    (grid, gcubeA_index, isovert_coordB, num_eigenvaluesB, isovert);
-  set_isovert_position_from_other_cube
-    (grid, gcubeB_index, temp_coord, num_eigenvaluesA, isovert);
+  if (num_eigenvaluesB == 3) {
+    set_isovert_position_from_other_cube
+      (grid, gcubeA_index, isovert_coordB, num_eigenvaluesB, isovert);
+  }
+  else {
+    set_isovert_position_and_direction_from_other_cube
+      (grid, gcubeA_index, isovert_coordB, directionB, 
+       num_eigenvaluesB, isovert);
+  }
+
+  if (num_eigenvaluesA == 3) {
+    set_isovert_position_from_other_cube
+      (grid, gcubeB_index, temp_coord, num_eigenvaluesA, isovert);
+  }
+  else {
+    set_isovert_position_and_direction_from_other_cube
+      (grid, gcubeB_index, temp_coord, temp_direction, 
+       num_eigenvaluesA, isovert);
+  }
 }
 
 // Copy isovert position from from_gcube to to_gcube.
@@ -2016,8 +2110,17 @@ void MERGESHARP::copy_isovert_position
   const NUM_TYPE num_eigenvalues =
     isovert.gcube_list[from_gcube].num_eigenvalues;
 
-  set_isovert_position_from_other_cube
-    (grid, to_gcube, new_coord, num_eigenvalues, isovert);
+  if (num_eigenvalues == 3) {
+    set_isovert_position_from_other_cube
+      (grid, to_gcube, new_coord, num_eigenvalues, isovert);
+  }
+  else {
+    const COORD_TYPE * new_direction =
+      isovert.gcube_list[from_gcube].direction;
+
+    set_isovert_position_and_direction_from_other_cube
+      (grid, to_gcube, new_coord, new_direction, num_eigenvalues, isovert);
+  }
 }
 
 
@@ -2059,10 +2162,10 @@ void swap_isovert_positions
 
             MSDEBUG();
             if (flag_debug) {
+              const VERTEX_INDEX cubeA_index = isovert.CubeIndex(gcubeA_index);
               grid.PrintIndexAndCoord
-                (cerr, "*** Setting cube: ", conflicting_cube, "");
-              grid.PrintIndexAndCoord
-                (cerr, " from ", isovert.CubeIndex(gcubeA_index), "\n");
+                (cerr, "*** Setting cube: ", conflicting_cube, " from ",
+                 cubeA_index, "\n");
               cerr << "    Cube: " << conflicting_cube;
               cerr << "  isovert_coord: ";
               IJK::print_coord3D(cerr, isovert.gcube_list[gcubeB_index].isovert_coord, "\n");
@@ -2073,7 +2176,7 @@ void swap_isovert_positions
               cerr << " flag_conflict: "
                    << int(isovert.gcube_list[gcubeB_index].flag_centroid_location);
               cerr << endl;
-              cerr << "    Cube: " << isovert.CubeIndex(gcubeA_index);
+              cerr << "    Cube: " << cubeA_index;
               cerr << "  flag_far: "
                    << int(isovert.gcube_list[gcubeA_index].flag_far);
               cerr << "  flag_centroid: "
@@ -2091,13 +2194,13 @@ void swap_isovert_positions
           // Set sharp corner or edge in gcubeB_index from gcube_index.
             MSDEBUG();
             if (flag_debug) {
+              const VERTEX_INDEX cubeA_index = isovert.CubeIndex(gcubeA_index);
               grid.PrintIndexAndCoord
-                (cerr, "*** Setting cube: ", conflicting_cube, "");
-              grid.PrintIndexAndCoord
-                (cerr, " from ", isovert.CubeIndex(gcubeA_index), "\n");
-              cerr << "    NumEigenvalues(" << gcubeA_index << ") "
+                (cerr, "*** Setting cube: ", conflicting_cube, " from ",
+                 cubeA_index, "\n");
+              cerr << "    NumEigenvalues(" << cubeA_index << ") "
                    << isovert.NumEigenvalues(gcubeA_index) << endl;
-              cerr << "    NumEigenvalues(" << gcubeB_index << ") "
+              cerr << "    NumEigenvalues(" << conflicting_cube << ") "
                    << isovert.NumEigenvalues(gcubeB_index) << endl;
               cerr << "    Cube: " << conflicting_cube;
               cerr << "  old isovert_coord: ";
@@ -2109,7 +2212,7 @@ void swap_isovert_positions
               (grid, gcubeA_index, gcubeB_index, isovert);
 
             if (flag_debug) {
-              cerr << "  new isovert_coord: ";
+              cerr << "    new isovert_coord: ";
               IJK::print_coord3D
                 (cerr, isovert.gcube_list[gcubeB_index].isovert_coord, "  ");
               cerr << "  linf_dist: "
@@ -2312,7 +2415,6 @@ void MERGESHARP::store_boundary_bits
   }
 }
 
-
 /// Return true if line through sharp edge in cube0 passes near cube1.
 /// Return false if cube0 has no sharp edge.
 bool MERGESHARP::does_sharp_edge_point_to_cube
@@ -2339,6 +2441,72 @@ bool MERGESHARP::does_sharp_edge_point_to_cube
      distance);
 
   if (distance > min_distance) { 
+    // Sharp edge does not intersect cube 
+    //   (or only intersects cube near its boundary)
+
+    // *** DEBUGXXX ***
+    MSDEBUG();
+    if (flag_debug) {
+      COORD_TYPE tempc[DIM3];
+      COORD_TYPE linf_dist;
+
+      // Compute point on line closest (Linf) to cube center.
+      compute_closest_point_on_line_unscaled_linf
+        (cube1_center_coord, isovert_coord, edge_dir, 0.1,
+         grid.SpacingPtrConst(), tempc);
+      grid.ComputeCubeCenterCoord(cube1_index, cube1_center_coord);
+      compute_rescaled_Linf_distance
+        (cube1_center_coord, tempc, grid.SpacingPtrConst(), linf_dist);
+
+      cerr << "distance: " << distance << "  linf_dist: " << linf_dist
+           << endl;
+    }
+
+    return(false);
+  }
+
+  return(true);
+}
+
+
+/// Return true if line through sharp edge in cube0 passes near cube1.
+/// Use linf metric.
+/// Return false if cube0 has no sharp edge.
+bool MERGESHARP::does_sharp_edge_point_to_cube_linf
+(const SHARPISO_GRID & grid, const ISOVERT & isovert,
+ const VERTEX_INDEX cube0_index, const VERTEX_INDEX cube1_index,
+ const COORD_TYPE min_distance,
+ const SHARP_ISOVERT_PARAM & isovert_param)
+{
+  const GRADIENT_COORD_TYPE max_small_magnitude =
+    isovert_param.max_small_magnitude;
+  NUM_TYPE gcube0_index = isovert.GCubeIndex(cube0_index);
+  NUM_TYPE gcube1_index = isovert.GCubeIndex(cube1_index);
+  COORD_TYPE cube1_center_coord[DIM3];
+  COORD_TYPE closest_point[DIM3];
+  COORD_TYPE linf_distance;
+
+  if (isovert.NumEigenvalues(gcube0_index) != 2) 
+    { return(false); }
+
+  // Check that sharp edge points to the other cube.
+  const COORD_TYPE * isovert_coord = isovert.IsoVertCoord(gcube0_index);
+  const COORD_TYPE * edge_dir =
+    isovert.gcube_list[gcube0_index].direction;
+
+  grid.ComputeCubeCenterScaledCoord(cube1_index, cube1_center_coord);
+
+  // Compute point on line closest (Linf) to cube center.
+  compute_closest_point_on_line_unscaled_linf
+    (cube1_center_coord, isovert_coord, edge_dir, max_small_magnitude,
+     grid.SpacingPtrConst(), closest_point);
+
+  grid.ComputeCubeCenterCoord(cube1_index, cube1_center_coord);
+
+  compute_rescaled_Linf_distance
+    (cube1_center_coord, closest_point, grid.SpacingPtrConst(), linf_distance);
+
+  if (linf_distance > min_distance) { 
     // Sharp edge does not intersect cube 
     //   (or only intersects cube near its boundary)
     return(false);
@@ -2394,9 +2562,6 @@ bool MERGESHARP::creates_triangle
 
   // get the list of vertices connected to the vertex iv
   get_connected(scalar_grid, isovalue, iv, selected_list, connected_list);
-
-  MSDEBUG();
-  bool flag_debug = false;
 
   int limit = connected_list.size();
   // for each pair jv1 jv2 in the connected list
@@ -2589,7 +2754,6 @@ void MERGESHARP::compute_dual_isovert
     recompute_isovert_position_around_vertex
       (scalar_grid, gradient_grid, isovalue, isovert_param, isovert);
 
-    MSDEBUG();
     recompute_isovert_position_around_edge
       (scalar_grid, gradient_grid, isovalue, isovert_param, isovert);
   }
@@ -3626,7 +3790,14 @@ namespace {
       IJK::print_coord3D(cerr, isovert.gcube_list[gcube_index].isovert_coord);
       cerr << "  isovert_coordB: ";
       IJK::print_coord3D(cerr, isovert.gcube_list[gcube_index].isovert_coordB);
-      cerr << "  Linf dist: " << isovert.gcube_list[gcube_index].linf_dist << endl;
+      cerr << "  Linf dist: " << isovert.gcube_list[gcube_index].linf_dist 
+           << endl;
+      cerr << "  Num large eigenvalues: " << num_large_eigenvalues;
+      if (num_large_eigenvalues == 2) {
+        cerr << "  edge direction: ";
+        IJK::print_coord3D(cerr, isovert.gcube_list[gcube_index].direction);
+      }
+      cerr << endl;
     }
   }
 
