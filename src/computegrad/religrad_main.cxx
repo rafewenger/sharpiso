@@ -37,23 +37,16 @@ using namespace SHARPISO;
 
 /*
 * Output info
+* If bool fio is true, then write single line output.
 */
 void out_stats
 	(const string method, const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
 	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
-	INPUT_INFO io_info)
+	INPUT_INFO io_info, bool & fio)
 {
+
 	OUTPUT_INFO out = io_info.out_info;
-	cout <<"********************************\n"
-		<<"\tOutput stats ["<< method<<"]"
-		<<"\n********************************\n";
-	/*
-	cout <<"Num unreliable "<< out.num_unreliable 
-		<<" [" << (out.num_unreliable * 1.0 / scalar_grid.NumVertices())*100
-		<<"%] of total vertices.\n"
-		<<"Num reliable "<< out.num_reliable << endl;
-	*/
-	int num_unreliable=0, num_reliable=0;
+		int num_unreliable=0, num_reliable=0;
 	for (int i = 0; i < reliable_grid.NumVertices(); i++)
 	{	
 		if ( !reliable_grid.Scalar(i))
@@ -65,9 +58,18 @@ void out_stats
 			num_reliable++;
 		}
 	}
+	if (!fio){
+	cout <<"********************************\n"
+		<<"\tOutput stats ["<< method<<"]"
+		<<"\n********************************\n";
+
 	cout <<"TOTAL number of unreliable vertices: "<< num_unreliable << endl;
 	cout <<"TOTAL number of reliable vertices: "<< num_reliable << endl;
 	cout <<"TOTAL number of vertices: "<< num_unreliable + num_reliable<< endl;
+	}
+	else{
+		cout << num_unreliable*100.0/reliable_grid.NumVertices()<<","
+			<< num_reliable*100.0/reliable_grid.NumVertices()<< endl;}
 
 }
 
@@ -117,7 +119,7 @@ int main(int argc, char **argv) {
 
 		// compute central difference
 		if (input_info.flag_cdiff) {
-			cout <<"In Function "<< __FUNCTION__ << endl;
+			
 			compute_gradient_central_difference_normalized(full_scalar_grid,
 				vertex_gradient_grid, magnitude_grid, input_info);
 			OptChosen = true;
@@ -201,7 +203,8 @@ int main(int argc, char **argv) {
 			compute_reliable_gradients_advangle
 				(full_scalar_grid, vertex_gradient_grid, magnitude_grid, 
 				reliable_grid, input_info);
-			out_stats("adv_angle_based", full_scalar_grid, reliable_grid, input_info);
+			bool fileIO = true;
+			out_stats("adv_angle_based", full_scalar_grid, reliable_grid, input_info, fileIO);
 
 			OptChosen = true;
 			time(&end);
@@ -222,7 +225,8 @@ int main(int argc, char **argv) {
 			compute_reliable_gradients_advangle_version2
 				(full_scalar_grid, vertex_gradient_grid, magnitude_grid, 
 				reliable_grid, input_info);
-			out_stats("adv_angle_based_v2", full_scalar_grid, reliable_grid, input_info);
+			bool fileIO = true;
+			out_stats("adv_angle_based_v2", full_scalar_grid, reliable_grid, input_info, fileIO);
 
 
 			OptChosen = true;
@@ -247,7 +251,8 @@ int main(int argc, char **argv) {
 			compute_reliable_gradients_curvature_based_algo12
 				(full_scalar_grid, boundary_grid, vertex_gradient_grid, magnitude_grid, 
 				reliable_grid, input_info);
-			out_stats("Algorithm 1 or 2", full_scalar_grid, reliable_grid, input_info);
+			bool fileIO = true;
+			out_stats("Algorithm 1 or 2", full_scalar_grid, reliable_grid, input_info, fileIO);
 
 			OptChosen = true;
 			time(&end);
@@ -274,7 +279,8 @@ int main(int argc, char **argv) {
 			compute_reliable_gradients_curvature_basedB
 				(full_scalar_grid, boundary_grid, vertex_gradient_grid, magnitude_grid, 
 				reliable_grid, input_info);
-			out_stats("curvature based", full_scalar_grid, reliable_grid, input_info);
+			bool fileIO = true;
+			out_stats("curvature based", full_scalar_grid, reliable_grid, input_info, fileIO);
 
 			OptChosen = true;
 			time(&end);
