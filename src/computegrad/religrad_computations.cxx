@@ -1173,12 +1173,36 @@ float lambda_computationsC(
 	GRADIENT_COORD_TYPE p[DIM3], gradient_predict_at_v[DIM3];
 	compute_phi_k_B(using_vertex_v1, using_vertex_v2,
 		predict_at_distance, p, scalar_grid, gradient_grid, grad_mag_grid);
-	for (int i = 0; i < DIM3; i++)
-	{
+	for (int i = 0; i < DIM3; i++){
 		gradient_predict_at_v[i]= gradient_grid.Vector(predict_at_v,i);
 	}
 	IJK::normalize_vector(DIM3, gradient_predict_at_v, 0.0001, gradient_predict_at_v);
 	IJK::normalize_vector(DIM3, p, 0.0001, p);
+	//debug 
+	if(0 && predict_at_v == 464051){
+		GRID_COORD_TYPE * coord = new GRID_COORD_TYPE[3];
+		scalar_grid.ComputeCoord(predict_at_v, coord);
+		cout <<"predict at distance " << predict_at_distance << endl;
+		cout <<"predict at vertex " << predict_at_v<<" [";
+		for (int i=0; i<DIM3; i++)
+			cout <<coord[i]<<",";
+		cout <<"]\n";
+		cout <<"using vertex v1   " << using_vertex_v1<< " [";
+		scalar_grid.ComputeCoord( using_vertex_v1, coord);
+		for (int i=0; i<DIM3; i++)
+			cout <<coord[i]<<",";
+		cout <<"]\n";
+		cout
+			<<"using vertex v2   " << using_vertex_v2 << " [";
+		scalar_grid.ComputeCoord( using_vertex_v2, coord);
+		for (int i=0; i<DIM3; i++)
+			cout <<coord[i]<<",";
+		cout <<"]\n";
+		cout <<"prediction: ";
+		for(auto i :p) cout <<i <<' '; cout <<"\n";
+		cout <<"gradient at v : ";
+		for(auto i :gradient_predict_at_v) cout <<i <<' '; cout <<"\n";
+	}
 	float inn_pdt = 0.0;
 	IJK::compute_inner_product(DIM3, gradient_predict_at_v, p, inn_pdt);
 	float deg = acos (inn_pdt) * 180.0 / M_PI;
@@ -1384,9 +1408,8 @@ void extended_curv_per_vertex
 * @param iv
 *
 **/
-void extended_curvature_based_B_per_vertex(
+bool  extended_curvature_based_B_per_vertex(
 	const VERTEX_INDEX iv,
-	vector <VERTEX_INDEX> & extended_reliable,
 	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
 	const GRADIENT_GRID & gradient_grid,
 	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
@@ -1411,8 +1434,7 @@ void extended_curvature_based_B_per_vertex(
 
 		float alpha = 5;
 		alpha = io_info.param_angle;
-		for (int i = 0; i < tangent_neighbor_set_iv.size(); i++)
-		{
+		for (int i = 0; i < tangent_neighbor_set_iv.size(); i++){
 			VERTEX_INDEX v1 = tangent_neighbor_set_iv[i];
 			COORD_TYPE diff[DIM3];
 			COORD_TYPE v1c[DIM3], v2c[DIM3], v3c[DIM3], ivc[DIM3];
@@ -1423,50 +1445,51 @@ void extended_curvature_based_B_per_vertex(
 			IJK::add_coord_3D(v2c, diff, v3c);
 
 			//boundary
-			for (int d = 0; d < DIM3; d++)
-			{
-				if ( v3c[d] > (scalar_grid.AxisSize(d) - 1))
-					return;
-				if ( v2c[d] > (scalar_grid.AxisSize(d) - 1))
-					return;
-				if ( v3c[d] < 0)
-					return;
-				if(v2c[d] < 0)
-					return;
+			for (int d = 0; d < DIM3; d++){
+				if (( v3c[d] > (scalar_grid.AxisSize(d) - 1))
+					|| ( v2c[d] > (scalar_grid.AxisSize(d) - 1))
+					|| ( v3c[d] < 0) ||  (v2c[d] < 0))
+					return false;
 			}
-			int v2 = scalar_grid.ComputeVertexIndex(v2c); 
-			int v3 = scalar_grid.ComputeVertexIndex(v3c);
+			VERTEX_INDEX v2 = scalar_grid.ComputeVertexIndex(v2c); 
+			VERTEX_INDEX v3 = scalar_grid.ComputeVertexIndex(v3c);
 
 			//extended version
-			if(reliable_grid.Scalar(v1) && reliable_grid.Scalar(v2))
-			{
-
+			if(reliable_grid.Scalar(v1) && reliable_grid.Scalar(v2)){
 				int k=1;
 				float deg = lambda_computationsC(iv, v2, v1, k, scalar_grid, 
 					gradient_grid, grad_mag_grid);
-				if( deg < alpha)
-				{
-					if(io_info.cdist==2)
-					{
+				
+				if( deg <= alpha){
+					
+					if(io_info.cdist==2){
+						
 						if(reliable_grid.Scalar(v3)){
 							k=2;
 							float deg = lambda_computationsC(iv, v3, v2, k, scalar_grid, 
 								gradient_grid, grad_mag_grid);
-							if( deg < alpha)
-							{
-								extended_reliable.push_back(iv);
-							}
+							
+							if (deg <= alpha) 
+								return true;
+							else 
+								return false; 
+							//if( deg < alpha){
+							//	extended_reliable.push_back(iv);
+							//}
 						}
 					}
-					else
-					{
-						extended_reliable.push_back(iv);
+					else{
+						return true;
+						//extended_reliable.push_back(iv);
 					}
 				}
-			}
-
-		}
+				else
+					return false; 
+			}// v1 && v2 not reliable.
+		} // tangent neighbor set end
+		return false; 
 	}
+	return false;
 }
 
 
@@ -1582,7 +1605,8 @@ void algo12_per_vertex(
 * @param iv
 * This is the key function being called. 
 **/
-void curvature_based_B_per_vertex(
+
+bool curvature_based_B_per_vertex(
 	const VERTEX_INDEX iv,
 	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
 	const GRADIENT_GRID & gradient_grid,
@@ -1593,22 +1617,22 @@ void curvature_based_B_per_vertex(
 {
  	GRADIENT_COORD_TYPE magiv = grad_mag_grid.Scalar(iv); 
 	GRADIENT_COORD_TYPE gradiv[DIM3], normgradiv[DIM3];
+	
 	if(magiv > io_info.min_gradient_mag){
-		for (int d = 0; d < DIM3; d++) 
-		{
-			gradiv[d] = magiv*gradient_grid.Vector(iv,d);
-		}
-		IJK::normalize_vector
-			(DIM3, gradiv, io_info.min_gradient_mag, normgradiv);
+		for (int d = 0; d < DIM3; d++) {gradiv[d] = magiv*gradient_grid.Vector(iv,d);}
+
+		IJK::normalize_vector (DIM3, gradiv, io_info.min_gradient_mag, normgradiv);
 
 		vector <VERTEX_INDEX> tangent_neighbor_set_iv;
 		vector <VERTEX_INDEX> ortho_neighbor_set_iv;
+		// compute the tangent and neighbor set for iv. 
 		compute_Nt_and_No_iv (iv, normgradiv, scalar_grid, tangent_neighbor_set_iv,
 			ortho_neighbor_set_iv, io_info);
 
-		for (int i = 0; i < tangent_neighbor_set_iv.size(); i++)
-		{
-			VERTEX_INDEX v1 = tangent_neighbor_set_iv[i];
+		//for (int i = 0; i < tangent_neighbor_set_iv.size(); i++){
+		//	VERTEX_INDEX v1 = tangent_neighbor_set_iv[i];
+
+		for (VERTEX_INDEX v1 : tangent_neighbor_set_iv){
 			COORD_TYPE diff[DIM3];
 			COORD_TYPE v1c[DIM3], v2c[DIM3], v3c[DIM3], ivc[DIM3];
 			scalar_grid.ComputeCoord(iv,ivc);
@@ -1618,57 +1642,37 @@ void curvature_based_B_per_vertex(
 			IJK::add_coord_3D(v2c, diff, v3c);
 
 			//boundary
-			for (int d = 0; d < DIM3; d++)
-			{
-				if ( v3c[d] > (scalar_grid.AxisSize(d) - 1))
-					return;
-				if ( v2c[d] > (scalar_grid.AxisSize(d) - 1))
-					return;
-				if ( v3c[d] < 0)
-					return;
-				if(v2c[d] < 0 )
-					return;
+			for (int d = 0; d < DIM3; d++){
+				if (   ( v3c[d] > (scalar_grid.AxisSize(d) - 1)) ||  ( v2c[d] > (scalar_grid.AxisSize(d) - 1))
+					||  ( v3c[d] < 0) || (v2c[d] < 0 )) return false;
 			}
-			int v2 = scalar_grid.ComputeVertexIndex(v2c); 
-			int v3 = scalar_grid.ComputeVertexIndex(v3c);
+			
+			VERTEX_INDEX v2 = scalar_grid.ComputeVertexIndex(v2c); 
+			VERTEX_INDEX v3 = scalar_grid.ComputeVertexIndex(v3c);
 
-
-			float alpha = 5;
-			alpha = io_info.param_angle;
+			float alpha = 5; alpha = io_info.param_angle;
 			int k=1;
 
-			float deg = lambda_computationsC(iv, v2, v1, k, scalar_grid, 
+			//degree
+			float deg = lambda_computationsC (iv, v2, v1, k, scalar_grid, 
 				gradient_grid, grad_mag_grid);
-			if( deg > alpha)
-			{
-				return;
-			}
-			if(io_info.cdist==2){
-				k=2;
-				float deg2 = lambda_computationsC(iv, v3, v2, k, scalar_grid, 
-					gradient_grid, grad_mag_grid);
+			// end degree 
 
-				if( deg2 > alpha)
-				{
-					return;
-				}
+			if(io_info.cdist == 2){
+				k=2;
+				float deg2 = lambda_computationsC (iv, v3, v2, k, scalar_grid, 
+					gradient_grid, grad_mag_grid);
 			}
-		}
+		} // tangent neighbor set end
 
 		//ortho match 
-		if(ortho_neighbor_set_iv.size() > 0 )
-		{
-			// DEBUG
-			
+		if(ortho_neighbor_set_iv.size() > 0 ){
 			bool oMatch = does_ortho_match(
 				iv, ortho_neighbor_set_iv, scalar_grid,gradient_grid, 
 				grad_mag_grid,io_info);
 			
-			if(oMatch)
-			{
-				reliable_grid.Set(iv, true);
-			}
-			
+			//if(oMatch) { reliable_grid.Set(iv, true);}
+			if(oMatch) { return true;}
 			/*
 			if (does_ortho_matchA(
 				iv, ortho_neighbor_set_iv, scalar_grid,gradient_grid, 
@@ -1681,13 +1685,14 @@ void curvature_based_B_per_vertex(
 			else
 				return;
 			*/
-		}
+		} // ortho set. 
 		else
 		{
-				reliable_grid.Set(iv, true);
+				return true;
 		}
 		
 	}
+	return false;
 }
 
 /**
@@ -2094,11 +2099,12 @@ void compute_reliable_gradients_curvature_basedB(
 	{
 		if(!boundary_grid.Scalar(iv))
 		{
-			curvature_based_B_per_vertex(iv, scalar_grid, gradient_grid,
-				grad_mag_grid, reliable_grid, io_info);
+			if (curvature_based_B_per_vertex(iv, scalar_grid, gradient_grid,
+				grad_mag_grid, reliable_grid, io_info)){
+				reliable_grid.Set(iv, true);
+			}
 		}
 	}
-	cerr <<"Starting Extended Correct Gradients." << endl;
 	// check if extended
 	if (io_info.extended_curv_based)
 	{
@@ -2111,10 +2117,14 @@ void compute_reliable_gradients_curvature_basedB(
 
 			for (int iv = 0; iv < numVertices; iv++)
 			{
+				//debug
+				GRID_COORD_TYPE * coord = new GRID_COORD_TYPE [3];
+				scalar_grid.ComputeCoord(iv, coord);
 				if(!boundary_grid.Scalar(iv))
 				{
-					extended_curvature_based_B_per_vertex(iv,  vertex_index_of_extended_correct_grads,
+					bool flag = extended_curvature_based_B_per_vertex(iv,
 						scalar_grid, gradient_grid, grad_mag_grid, reliable_grid, io_info);
+					if (flag)  vertex_index_of_extended_correct_grads.push_back(iv);
 				}
 			}
 
