@@ -88,6 +88,10 @@ namespace MERGESHARP {
     (const GRID_COORD_DIFF_TYPE c0, const GRID_COORD_DIFF_TYPE c1, 
      const GRID_COORD_DIFF_TYPE c2, const COORD_TYPE max_distance);
 
+    /// Clear mismatch table entries.
+    void ClearEntries()
+    { entry.clear(); }
+
     /// Set mismatch grid from given cube.
     /// @pre mismatch_grid dimensions must match grid dimensions.
     void SetMismatchGrid

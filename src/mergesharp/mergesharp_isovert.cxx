@@ -2443,25 +2443,6 @@ bool MERGESHARP::does_sharp_edge_point_to_cube
   if (distance > min_distance) { 
     // Sharp edge does not intersect cube 
     //   (or only intersects cube near its boundary)
-
-    // *** DEBUGXXX ***
-    MSDEBUG();
-    if (flag_debug) {
-      COORD_TYPE tempc[DIM3];
-      COORD_TYPE linf_dist;
-
-      // Compute point on line closest (Linf) to cube center.
-      compute_closest_point_on_line_unscaled_linf
-        (cube1_center_coord, isovert_coord, edge_dir, 0.1,
-         grid.SpacingPtrConst(), tempc);
-      grid.ComputeCubeCenterCoord(cube1_index, cube1_center_coord);
-      compute_rescaled_Linf_distance
-        (cube1_center_coord, tempc, grid.SpacingPtrConst(), linf_dist);
-
-      cerr << "distance: " << distance << "  linf_dist: " << linf_dist
-           << endl;
-    }
-
     return(false);
   }
 

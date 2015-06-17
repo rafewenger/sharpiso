@@ -382,7 +382,7 @@ void check_and_select_edge_cube
 }
 
 /// Select edge cubes (eigenvalue 2)
-void select_edge_cubes
+void select_edge_cubes_ignore_mismatch
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
  const SHARP_ISOVERT_PARAM & isovert_param,
@@ -454,7 +454,7 @@ void select_edge_cubes_no_conflict
 }
 
 /// Select edge cubes (eigenvalue 2)
-void select_edge_cubes_B
+void select_edge_cubes
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
@@ -536,6 +536,51 @@ void select_edge_cubes_near_corners
   for (int i=0; i < sharp_gcube_list.size(); i++) {
     NUM_TYPE gcube_index = sharp_gcube_list[i];
     VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
+
+    if (selection_data.mismatch_grid.Scalar(cube_index)) { 
+
+      // *** DEBUG ***
+      if (flag_debug) {
+        MSDEBUG();
+        scalar_grid.PrintIndexAndCoord
+          (cerr, "Not selecting mismatched cube ", cube_index, "\n");
+      }
+
+      continue; 
+    }
+
+    //  *** SHOULD REPLACE is_neighbor BY is_edge_neighbor ***
+    if (is_dist2_neighbor
+        (isovert.gcube_list[gcube_index], isovert,  COVERED_CORNER_GCUBE) ||
+        is_neighbor
+        (isovert.gcube_list[gcube_index], isovert, COVERED_CORNER_GCUBE)) {
+
+      check_and_select_edge_cube
+        (scalar_grid, isovalue, isovert_param, gcube_index, COVERED_A_GCUBE, 
+         isovert, selection_data);
+    }
+  }
+}
+
+
+/// Select edge cubes (eigenvalue 2) near corners within given distance
+///   to cube centers.
+void select_edge_cubes_near_corners_within_dist
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ const vector<NUM_TYPE> & sharp_gcube_list,
+ const COORD_TYPE max_distance,
+ ISOVERT & isovert,
+ SELECTION_DATA & selection_data)
+{
+  for (int i=0; i < sharp_gcube_list.size(); i++) {
+    NUM_TYPE gcube_index = sharp_gcube_list[i];
+    VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
+
+    if (isovert.gcube_list[gcube_index].linf_dist > max_distance)
+      { continue; }
 
     if (selection_data.mismatch_grid.Scalar(cube_index)) { 
 
@@ -923,7 +968,7 @@ void MERGESHARP::select_sharp_isovert
   if (flag_debug) { cerr << endl << "*** Selecting edge cubes." << endl; }
 
   // select edge cubes.
-  select_edge_cubes
+  select_edge_cubes_ignore_mismatch
     (scalar_grid, isovalue, isovert_param, sharp_gcube_list, 
      isovert, selection_data);
 
@@ -1005,7 +1050,7 @@ void MERGESHARP::select_sharp_isovert
   if (flag_debug) { cerr << endl << "*** Selecting edge cubes." << endl; }
 
   // select edge cubes.
-  select_edge_cubes
+  select_edge_cubes_ignore_mismatch
     (scalar_grid, isovalue, isovert_param, sharp_gcube_list, 
      isovert, selection_data);
 
@@ -1051,7 +1096,7 @@ void MERGESHARP::select_sharp_isovert
   }
 
   // Retry selecting edge cubes.
-  select_edge_cubes
+  select_edge_cubes_ignore_mismatch
     (scalar_grid, isovalue, isovert_param, sharp_gcube_list, 
      isovert, selection_data);
 
@@ -1141,7 +1186,7 @@ void set_mismatch_near_corner
           if (flag_debug) {
             isovert.grid.PrintIndexAndCoord
               (cerr, "  Cube ", cubeA_index,
-               " near corner cube ", corner_cube_index, "\n.");
+               " near corner cube ", corner_cube_index, "\n");
             isovert.grid.PrintIndexAndCoord
               (cerr, "      does not match ", cubeB_index, "\n");
           }
@@ -2466,13 +2511,13 @@ void select_edge_cubes_mod6
  SELECTION_DATA_MOD6 & selection_data)
 {
   // Select (0,0,0) mod 6
-  select_edge_cubes_B
+  select_edge_cubes
     (scalar_grid, gradient_grid, isovalue, isovert_param,
      selection_data.gcube_lists_mod6[0][0][0], isovert, selection_data);
 
   // Select (k,0,0) mod 6
   for (NUM_TYPE i = 0; i < selection_data.k_0_0_mod6_list.NumEntries(); i++) {
-    select_edge_cubes_B
+    select_edge_cubes
       (scalar_grid, gradient_grid, isovalue, isovert_param,
        selection_data.GCubeLists_k_0_0(i), isovert, selection_data);
   }
@@ -2485,7 +2530,7 @@ void select_edge_cubes_mod6
 
   // Select (ka,kb,0) mod 6
   for (NUM_TYPE i = 0; i < selection_data.ka_kb_0_mod6_list.NumEntries(); i++) {
-    select_edge_cubes_B
+    select_edge_cubes
       (scalar_grid, gradient_grid, isovalue, isovert_param,
        selection_data.GCubeLists_ka_kb_0(i), isovert, selection_data);
   }
@@ -2499,7 +2544,7 @@ void select_edge_cubes_mod6
   // Select (ka,kb,kc) mod 6
   for (NUM_TYPE i = 0; i < selection_data.ka_kb_kc_mod6_list.NumEntries(); 
        i++) {
-    select_edge_cubes_B
+    select_edge_cubes
       (scalar_grid, gradient_grid, isovalue, isovert_param,
        selection_data.GCubeLists_ka_kb_kc(i), isovert, selection_data);
   }
@@ -2632,6 +2677,90 @@ void select_cubes_near_corners_mod6
   reset_covered_isovert_positions(selection_data.covered_grid, isovert);
 }
 
+// Select cubes near corner cubes.
+/// Only select cubes whose isovert are within given distance to cube center.
+void select_cubes_near_corners_within_dist_mod6
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ const COORD_TYPE max_distance,
+ ISOVERT & isovert,
+ SELECTION_DATA_MOD6 & selection_data)
+{
+  const COORD_TYPE linf_dist_threshold = 
+    isovert_param.linf_dist_thresh_merge_sharp;
+  const int bin_width = isovert_param.bin_width;
+
+
+  // Select (0,0,0) mod 6
+  select_edge_cubes_near_corners_within_dist
+    (scalar_grid, gradient_grid, isovalue, isovert_param,
+     selection_data.gcube_lists_mod6[0][0][0], max_distance,
+     isovert, selection_data);
+
+  // Select (k,0,0) mod 6
+  for (NUM_TYPE i = 0; i < selection_data.k_0_0_mod6_list.NumEntries(); i++) {
+    select_edge_cubes_near_corners_within_dist
+      (scalar_grid, gradient_grid, isovalue, isovert_param,
+       selection_data.GCubeLists_k_0_0(i), max_distance,
+       isovert, selection_data);
+  }
+
+  // Recomputing covered point positions
+  recompute_covered_point_positions
+    (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
+     isovert_param, isovert);
+  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+
+  // Select (ka,kb,0) mod 6
+  for (NUM_TYPE i = 0; i < selection_data.ka_kb_0_mod6_list.NumEntries(); i++) {
+    select_edge_cubes_near_corners_within_dist
+      (scalar_grid, gradient_grid, isovalue, isovert_param,
+       selection_data.GCubeLists_ka_kb_0(i), max_distance,
+       isovert, selection_data);
+  }
+
+  // Recomputing covered point positions
+  recompute_covered_point_positions
+    (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
+     isovert_param, isovert);
+  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+
+  // Select (ka,kb,kc) mod 6
+  for (NUM_TYPE i = 0; i < selection_data.ka_kb_kc_mod6_list.NumEntries(); 
+       i++) {
+    select_edge_cubes_near_corners_within_dist
+      (scalar_grid, gradient_grid, isovalue, isovert_param,
+       selection_data.GCubeLists_ka_kb_kc(i), max_distance,
+       isovert, selection_data);
+  }
+
+  // Recomputing covered point positions
+  recompute_covered_point_positions
+    (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
+     isovert_param, isovert);
+  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+}
+
+// Set mismatch table entries.
+void set_mismatch_table_entries
+(MISMATCH_TABLE & mismatch_table, const bool flag_include_5XX)
+{
+  mismatch_table.ClearEntries();
+
+  mismatch_table.AddSignedPermutations(3, 2, 2, 2);
+  mismatch_table.AddSignedPermutations(3, 2, 1, 2);
+  mismatch_table.AddSignedPermutations(3, 2, 0, 2);
+
+  if (flag_include_5XX) {
+    // Mismatches at distance 5.
+    mismatch_table.AddSignedPermutations(5, 3, 2, 4);
+  }
+
+  mismatch_table.ComputeAllBlockingLocations();
+}
+
 void MERGESHARP::select_sharp_isovert_mod6
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
@@ -2647,15 +2776,9 @@ void MERGESHARP::select_sharp_isovert_mod6
   std::vector<NUM_TYPE> sharp_gcube_list;
   SELECTION_DATA_MOD6 selection_data(scalar_grid, isovert_param);
 
-  // Set selection_data.mismatch_table.
-  selection_data.mismatch_table.AddSignedPermutations(3, 2, 2, 2);
-  selection_data.mismatch_table.AddSignedPermutations(3, 2, 1, 2);
-  selection_data.mismatch_table.AddSignedPermutations(3, 2, 0, 2);
 
-  // Mismatches at distance 5.
-  selection_data.mismatch_table.AddSignedPermutations(5, 3, 2, 4);
-
-  selection_data.mismatch_table.ComputeAllBlockingLocations();
+  // Set mismatch table entries.  Do not include 5XX entries.
+  set_mismatch_table_entries(selection_data.mismatch_table, false);
 
   // get corner or edge cubes
   get_corner_or_edge_cubes(isovert.gcube_list, sharp_gcube_list);
@@ -2685,6 +2808,24 @@ void MERGESHARP::select_sharp_isovert_mod6
   if (flag_debug) 
     { cerr << endl << "*** Selecting cubes near corners (mod6)." << endl; }
 
+  select_cubes_near_corners_within_dist_mod6
+    (scalar_grid, gradient_grid,isovalue, isovert_param, half_cube_distance,
+     isovert, selection_data);
+
+  // Recompute mismatch grid so that selected near corner cubes can block
+  //   effects of corner cubes.
+  compute_mismatch_grid(isovert, sharp_gcube_list, selection_data);
+
+  // Select edge cubes (again). distance 0.6.
+  select_cubes_near_corners_within_dist_mod6
+    (scalar_grid, gradient_grid,isovalue, isovert_param, 0.6,
+     isovert, selection_data);
+
+  // Select edge cubes (again). distance 0.8.
+  select_cubes_near_corners_within_dist_mod6
+    (scalar_grid, gradient_grid,isovalue, isovert_param, 0.8,
+     isovert, selection_data);
+
   select_cubes_near_corners_mod6
     (scalar_grid, gradient_grid,isovalue, isovert_param, 
      isovert, selection_data);
@@ -2692,6 +2833,9 @@ void MERGESHARP::select_sharp_isovert_mod6
   MSDEBUG();
   if (flag_debug)
     { cerr << endl << "*** Recomputing mismatch grid. ***" << endl; }
+
+  // Set (again) mismatch table entries.  Include 5XX entries.
+  set_mismatch_table_entries(selection_data.mismatch_table, true);
 
   // Recompute mismatch grid so that selected near corner cubes can block
   //   effects of corner cubes.
@@ -2764,7 +2908,7 @@ void MERGESHARP::select_sharp_isovert_mod6
   sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
 
   // Select edge cubes.  Ignore mismatch restrictions.
-  select_edge_cubes
+  select_edge_cubes_ignore_mismatch
     (scalar_grid, isovalue, isovert_param, sharp_gcube_list, 
      isovert, selection_data);
 
