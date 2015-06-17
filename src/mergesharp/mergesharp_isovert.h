@@ -85,6 +85,9 @@ public:
   /// Linf-dist from isovert_coord[] to cube-center.
   COORD_TYPE linf_dist;
 
+  /// L1-dist from isovert_coord[] to cube.
+  COORD_TYPE L1_dist_to_cube;
+
   /// If true, location is centroid of (grid edge)-isosurface intersections.
   bool flag_centroid_location;
 
@@ -163,7 +166,12 @@ public:
 
     if (num_eigen_i == num_eigen_j) {
 
-      return ((gcube_list->at(i).linf_dist) < (gcube_list->at(j).linf_dist)); 
+      COORD_TYPE d_i = 
+        gcube_list->at(i).linf_dist + gcube_list->at(i).L1_dist_to_cube;
+      COORD_TYPE d_j = 
+        gcube_list->at(j).linf_dist + gcube_list->at(j).L1_dist_to_cube;
+
+      return ((d_i < d_j));
     }
     else {
       return ((num_eigen_i > num_eigen_j));

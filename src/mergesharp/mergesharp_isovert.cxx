@@ -63,6 +63,13 @@ namespace {
   void compute_Linf_distance_from_cube_center
   (const SHARPISO_GRID & grid, const NUM_TYPE gcube_index, ISOVERT & isovert);
 
+  void compute_L1_distance_from_cube
+  (const SHARPISO_GRID & grid, const VERTEX_INDEX icube,
+   const COORD_TYPE coord[DIM3], COORD_TYPE & L1_dist);
+
+  void compute_L1_distance_from_cube
+  (const SHARPISO_GRID & grid, const NUM_TYPE gcube_index, ISOVERT & isovert);
+
   void compute_Linf_distance_from_grid_vertex
   (const SHARPISO_GRID & grid, const VERTEX_INDEX iv,
    const COORD_TYPE coord[DIM3], COORD_TYPE & linf_dist, int & axis);
@@ -1973,10 +1980,13 @@ void compute_all_isovert_positions
       else
         { isovert.gcube_list[index].flag=SMOOTH_GCUBE; }
 
-      // store distance
+      // store L1 and Linf distance
       compute_Linf_distance_from_cube_center
-        (scalar_grid, iv, isovert.gcube_list[index].isovert_coord,
+        (scalar_grid, iv, isovert.IsoVertCoord(index),
          isovert.gcube_list[index].linf_dist);
+      compute_L1_distance_from_cube
+        (scalar_grid, iv, isovert.IsoVertCoord(index),
+         isovert.gcube_list[index].L1_dist_to_cube);
     }
   }
 
@@ -2008,8 +2018,9 @@ void set_isovert_position
       { isovert.gcube_list[gcube_index].flag = SMOOTH_GCUBE; }
   }
 
-  // store new Linf distance
+  // store new Linf and L1 distances
   compute_Linf_distance_from_cube_center(grid, gcube_index, isovert);
+  compute_L1_distance_from_cube(grid, gcube_index, isovert);
 }
 
 /// Set isovert position and sharp edge direction or direction
@@ -3143,6 +3154,7 @@ void GRID_CUBE_DATA::Init()
   boundary_bits = 0;
   cube_index = 0;
   linf_dist = 0;
+  L1_dist_to_cube = 0;
   flag_centroid_location = false;
   flag_conflict = false;
   flag_near_corner = false;
@@ -3459,6 +3471,23 @@ namespace {
     }
   }
 
+  // Compute the scaled L-infinity distance from the cube.
+  void compute_L1_distance_from_cube
+  (const SHARPISO_GRID & grid, const VERTEX_INDEX icube,
+   const COORD_TYPE coord[DIM3], COORD_TYPE & L1_dist)
+  {
+    COORD_TYPE cc_coord[DIM3];
+
+    grid.ComputeCubeCenterScaledCoord(icube, cc_coord);
+
+    L1_dist = 0;
+    for (int d=0; d<DIM3; d++) {
+      COORD_TYPE x = abs(coord[d]-cc_coord[d])/grid.Spacing(d);
+      if (x > L1_dist)
+        { L1_dist += x; }
+    }
+  }
+
   // Compute the scaled L-infinity distance from the cube center.
   // Store in isovert.gcube_list[gcube_index].
   void compute_Linf_distance_from_cube_center
@@ -3466,8 +3495,19 @@ namespace {
   {
     const VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
     compute_Linf_distance_from_cube_center
-      (grid, cube_index, isovert.gcube_list[gcube_index].isovert_coord,
+      (grid, cube_index, isovert.IsoVertCoord(gcube_index),
        isovert.gcube_list[gcube_index].linf_dist);
+  }
+
+  // Compute the scaled L1 distance from the cube.
+  // Store in isovert.gcube_list[gcube_index].
+  void compute_L1_distance_from_cube
+  (const SHARPISO_GRID & grid, const NUM_TYPE gcube_index, ISOVERT & isovert)
+  {
+    const VERTEX_INDEX cube_index = isovert.CubeIndex(gcube_index);
+    compute_L1_distance_from_cube
+      (grid, cube_index, isovert.IsoVertCoord(gcube_index),
+       isovert.gcube_list[gcube_index].L1_dist_to_cube);
   }
 
   // Compute the scaled L-infinity distance from vertex iv.
@@ -3766,10 +3806,13 @@ namespace {
     isovert.gcube_list[gcube_index].flag_using_substitute_coord = false;
     isovert.gcube_list[gcube_index].flag_coord_from_other_cube = false;
 
-    // store distance.
+    // store Linf and L1 distances.
     compute_Linf_distance_from_cube_center
-      (scalar_grid, cube_index, isovert.gcube_list[gcube_index].isovert_coord,
+      (scalar_grid, cube_index, isovert.IsoVertCoord(gcube_index),
        isovert.gcube_list[gcube_index].linf_dist);
+    compute_L1_distance_from_cube
+      (scalar_grid, cube_index, isovert.IsoVertCoord(gcube_index),
+       isovert.gcube_list[gcube_index].L1_dist_to_cube);
 
     MSDEBUG();
     if (flag_debug) {
