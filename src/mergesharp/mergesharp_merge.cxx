@@ -5982,6 +5982,49 @@ namespace {
                      << "  j2: " << j2 << endl;
               }
 
+              if (to_gcubeB == gcubeB_index) {
+                if (!is_strict_order_correct(0, j0, to_coordB, to_coord))
+                  { return(true); }
+                if (!is_strict_order_correct(1, j1, to_coordB, to_coord))
+                  { return(true); }
+                if (!is_strict_order_correct(2, j2, to_coordB, to_coord))
+                  { return(true); }
+              }
+              else if (to_gcubeB == gcubeC_index) {
+                if (!is_order_correct(0, j0, to_coordB, to_coord))
+                  { return(true); }
+                if (!is_order_correct(1, j1, to_coordB, to_coord))
+                  { return(true); }
+                if (!is_order_correct(2, j2, to_coordB, to_coord))
+                  { return(true); }
+              }
+              else {
+                GRID_COORD_TYPE Linf_distance;
+
+                IJK::compute_Linf_distance
+                  (DIM3, to_coord, to_coordB, Linf_distance);
+
+                if (Linf_distance <= 2) {
+                  // cubeB maps to a cube which is probably connected
+                  //   to to_cube.
+                  if (!is_order_correct(0, j0, to_coordB, to_coord))
+                    { return(true); }
+                  if (!is_order_correct(1, j1, to_coordB, to_coord))
+                    { return(true); }
+                  if (!is_order_correct(2, j2, to_coordB, to_coord))
+                    { return(true); }
+                }
+                else {
+                  if (!is_strict_order_correct(0, j0, to_coordB, to_coord))
+                    { return(true); }
+                  if (!is_strict_order_correct(1, j1, to_coordB, to_coord))
+                    { return(true); }
+                  if (!is_strict_order_correct(2, j2, to_coordB, to_coord))
+                    { return(true); }
+                }
+              }
+
+              /* OBSOLETE
               if (to_gcubeB == gcubeC_index) {
                 if (!is_order_correct(0, j0, to_coordB, to_coord))
                   { return(true); }
@@ -5998,6 +6041,7 @@ namespace {
                 if (!is_strict_order_correct(2, j2, to_coordB, to_coord))
                   { return(true); }
               }
+              */
             }
           }
         }
