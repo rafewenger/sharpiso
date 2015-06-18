@@ -144,8 +144,14 @@ namespace MERGESHARP {
 
   public:
     BIN_GRID<VERTEX_INDEX> bin_grid;
-    SHARPISO_BOOL_GRID covered_grid;
     SHARPISO_BOOL_GRID selected_grid;
+
+    /// covered_grid.Scalar(icube) = true if icube is covered.
+    SHARPISO_BOOL_GRID covered_grid;
+
+    /// covered_corner_grid.Scalar(icube) = true,
+    ///   if icube is covered by a corner cube.
+    SHARPISO_BOOL_GRID covered_corner_grid;
 
     /// Cubes which should be avoided because of 3x3x3 region mismatches.
     SHARPISO_BOOL_GRID mismatch_grid;

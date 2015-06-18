@@ -5491,27 +5491,32 @@ namespace {
   /// Check if merge maps cube to same axis coordinate as some facet neighbor.
   ///   *** MAYBE CHANGED ***
   ///   Ignore neighbors which map to the same vertex as cube.
+  /// @param gcubeC_index from_gcube is facet adjacent to some cube 
+  ///    which maps to the selected cube gcubeC_index.
+  /// @param facet_adjacent_gcube Merge identifies coord of to_gcube 
+  ///    with facet_adjacent_gcube.  Defined only if return value is true.
 	bool does_merge_identify_facet_adjacent_axis_coord(
 		const SHARPISO_GRID & grid,
 		const MERGESHARP::ISOVERT & isovert,
 		const INDEX_DIFF_TYPE from_gcube,
 		const INDEX_DIFF_TYPE to_gcube,
     const INDEX_DIFF_TYPE gcubeC_index,
-		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
+    INDEX_DIFF_TYPE & facet_adjacent_gcube)
 	{
-		VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
-		VERTEX_INDEX from_cube = isovert.CubeIndex(from_gcube);
+		const VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
+		const VERTEX_INDEX from_cube = isovert.CubeIndex(from_gcube);
     const GRID_COORD_TYPE * to_coord = isovert.gcube_list[to_gcube].cube_coord;
 
 		if (isovert.gcube_list[from_gcube].boundary_bits == 0) {
 			for (int d = 0; d < DIM3; d++)
 			{
 				VERTEX_INDEX prev_cube = grid.PrevVertex(from_cube, d);
-				INDEX_DIFF_TYPE prev_gcube = isovert.GCubeIndex(prev_cube);
+				facet_adjacent_gcube = isovert.GCubeIndex(prev_cube);
 
-				if (prev_gcube != ISOVERT::NO_INDEX) {
+        if (facet_adjacent_gcube != ISOVERT::NO_INDEX) {
 
-          NUM_TYPE to_gcubeB = gcube_map[prev_gcube];
+          NUM_TYPE to_gcubeB = gcube_map[facet_adjacent_gcube];
 					if (to_gcubeB != to_gcube) {
 
             VERTEX_INDEX to_cubeB = isovert.CubeIndex(to_gcubeB);
@@ -5527,11 +5532,11 @@ namespace {
 				}
 
 				VERTEX_INDEX next_cube = grid.NextVertex(from_cube, d);
-				INDEX_DIFF_TYPE next_gcube = isovert.GCubeIndex(next_cube);
+        facet_adjacent_gcube = isovert.GCubeIndex(next_cube);
 
-				if (next_gcube != ISOVERT::NO_INDEX) {
+        if (facet_adjacent_gcube != ISOVERT::NO_INDEX) {
 
-          NUM_TYPE to_gcubeB = gcube_map[next_gcube];
+          NUM_TYPE to_gcubeB = gcube_map[facet_adjacent_gcube];
 					if (to_gcubeB != to_gcube) {
 
             VERTEX_INDEX to_cubeB = isovert.CubeIndex(to_gcubeB);
@@ -5550,6 +5555,24 @@ namespace {
 		
 		return false;
 	}
+
+  /// Check if merge maps cube to same axis coordinate as some facet neighbor.
+  /// Does not return facet_adjacent_gcube.
+	bool does_merge_identify_facet_adjacent_axis_coord
+  (const SHARPISO_GRID & grid,
+   const MERGESHARP::ISOVERT & isovert,
+   const INDEX_DIFF_TYPE from_gcube,
+   const INDEX_DIFF_TYPE to_gcube,
+   const INDEX_DIFF_TYPE gcubeC_index,
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+  {
+    INDEX_DIFF_TYPE facet_adjacent_gcube;
+
+    return(does_merge_identify_facet_adjacent_axis_coord
+           (grid, isovert, from_gcube, to_gcube,
+            gcubeC_index, gcube_map, facet_adjacent_gcube));
+
+  }
 
   /// Return true if order of coordA[d] and coordB[d] is correct.
   /// @param j If -1, coordA[d] should precede coordB[d].
@@ -5695,6 +5718,8 @@ namespace {
     
   /// Check if merge maps cube to same axis coordinate as some edge neighbor.
   ///   Ignore neighbors which map to the same vertex as cube.
+  /// @param gcubeC_index from_gcube is facet adjacent to some cube 
+  ///    which maps to the selected cube gcubeC_index.
 	bool does_merge_identify_edge_adjacent_axis_coord(
 		const SHARPISO_GRID & grid,
 		const MERGESHARP::ISOVERT & isovert,
@@ -5886,6 +5911,8 @@ namespace {
 
   /// Check if merge maps cube to same axis coordinate as some vertex neighbor.
   ///   Ignore neighbors which map to the same vertex as cube.
+  /// @param gcubeC_index from_gcube is facet adjacent to some cube 
+  ///    which maps to the selected cube gcubeC_index.
 	bool does_merge_identify_vertex_adjacent_axis_coord(
 		const SHARPISO_GRID & grid,
 		const MERGESHARP::ISOVERT & isovert,
@@ -6056,7 +6083,7 @@ namespace {
                      << "  j2: " << j2 << endl;
               }
 
-              if (to_gcubeB != cubeB_index) {
+              if (to_gcubeB != gcubeB_index) {
 
                 // *** DEBUG ***
                 MSDEBUG();
@@ -6133,13 +6160,26 @@ namespace {
     const INDEX_DIFF_TYPE gcubeC_index,
 		const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
+    INDEX_DIFF_TYPE adjacent_gcube_index;
+
     if (does_merge_identify_facet_adjacent_axis_coord
         (scalar_grid, isovert, from_gcube_index, to_gcube_index, 
-         gcubeC_index, gcube_map))
+         gcubeC_index, gcube_map, adjacent_gcube_index))
       { 
-        // *** DEBUG ***
-        using namespace std;
-        if (flag_debug) { cerr << "  Failed facet adjacent test." << endl; }
+        MSDEBUG();
+        if (flag_debug) {
+          VERTEX_INDEX adjacent_cube_index = 
+            isovert.CubeIndex(adjacent_gcube_index);
+
+          cerr << "  Merge identifies facet adjacent axis coord." << endl;
+          scalar_grid.PrintIndexAndCoord
+            (cerr, "  Facet adjacent cube: ", adjacent_cube_index, "\n");
+          if (gcube_map[adjacent_gcube_index] != adjacent_gcube_index) {
+            VERTEX_INDEX temp_cube_index = isovert.CubeIndex(temp_cube_index);
+            scalar_grid.PrintIndexAndCoord
+              (cerr, "  Facet adjacent cube maps to: ", temp_cube_index, "\n");
+          }
+        }
 
         return(false); }
 
@@ -6149,7 +6189,7 @@ namespace {
         { 
           // *** DEBUG ***
           using namespace std;
-          if (flag_debug) { cerr << "  Failed edge adjacent test B." << endl; }
+          if (flag_debug) { cerr << "  Merge identifies edge adjacent axis coord (B)." << endl; }
 
           return(false); }
 
@@ -6158,7 +6198,7 @@ namespace {
         { 
           // *** DEBUG ***
           using namespace std;
-          if (flag_debug) { cerr << "  Failed vertex adjacent test B." << endl; }
+          if (flag_debug) { cerr << "  Merge identifies vertex adjacent test axis coord (B)." << endl; }
 
           return(false); }
     }
@@ -6169,7 +6209,7 @@ namespace {
         { 
           // *** DEBUG ***
           using namespace std;
-          if (flag_debug) { cerr << "  Failed edge adjacent test." << endl; }
+          if (flag_debug) { cerr << "  Merge identifies edge adjacent axis coord." << endl; }
 
           return(false); }
 
@@ -6179,7 +6219,7 @@ namespace {
         { 
           // *** DEBUG ***
           using namespace std;
-          if (flag_debug) { cerr << "  Failed vertex adjacent test." << endl; }
+          if (flag_debug) { cerr << "  Merge identifies vertex adjacent axis coord." << endl; }
 
           return(false); }
     }
