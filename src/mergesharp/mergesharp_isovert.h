@@ -603,18 +603,22 @@ void store_table_index
 
 /// Return true if line through sharp edge in cube0 passes near cube1.
 /// Return false if cube0 has no sharp edge.
+/// @param max_distance Line points to cube if distance between line and cube
+///    is at most max_distance.
 bool does_sharp_edge_point_to_cube
 (const SHARPISO_GRID & grid, const ISOVERT & isovert,
  const VERTEX_INDEX cube0_index, const VERTEX_INDEX cube1_index,
- const COORD_TYPE min_distance);
+ const COORD_TYPE max_distance);
 
 /// Return true if line through sharp edge in cube0 passes near cube1.
 /// Use linf metric.
 /// Return false if cube0 has no sharp edge.
+/// @param max_distance Line points to cube if distance between line and cube
+///    is at most max_distance.
 bool does_sharp_edge_point_to_cube_linf
 (const SHARPISO_GRID & grid, const ISOVERT & isovert,
  const VERTEX_INDEX cube0_index, const VERTEX_INDEX cube1_index,
- const COORD_TYPE min_distance,
+ const COORD_TYPE max_distance,
  const SHARP_ISOVERT_PARAM & isovert_param);
 
 }

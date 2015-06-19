@@ -149,9 +149,9 @@ namespace MERGESHARP {
     /// covered_grid.Scalar(icube) = true if icube is covered.
     SHARPISO_BOOL_GRID covered_grid;
 
-    /// covered_corner_grid.Scalar(icube) = true,
+    /// corner_covered_grid.Scalar(icube) = true,
     ///   if icube is covered by a corner cube.
-    SHARPISO_BOOL_GRID covered_corner_grid;
+    SHARPISO_BOOL_GRID corner_covered_grid;
 
     /// Cubes which should be avoided because of 3x3x3 region mismatches.
     SHARPISO_BOOL_GRID mismatch_grid;

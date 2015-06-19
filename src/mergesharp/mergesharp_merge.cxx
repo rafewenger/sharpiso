@@ -6353,6 +6353,27 @@ namespace {
     return(true);
   }
 
+  /// Return true if sharp edge in from_gcube points to to_gcube
+  ///   or if from_gcube is sharp corner or smooth.
+	bool check_sharp_edge_direction
+	(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const MERGESHARP::ISOVERT & isovert,
+   const GRID_CUBE_DATA & from_gcube,
+   const GRID_CUBE_DATA & to_gcube)
+  {
+    const VERTEX_INDEX from_cube_index = from_gcube.cube_index;
+    const VERTEX_INDEX to_cube_index = to_gcube.cube_index;
+    const COORD_TYPE max_distance = 1;
+
+    if (from_gcube.num_eigenvalues != 2) { return(true); }
+
+    const bool return_flag =
+      does_sharp_edge_point_to_cube
+      (scalar_grid, isovert, from_cube_index, to_cube_index, max_distance);
+
+    return(return_flag);
+  }
+
   /// Return true if region contains cube.
   /// Note: Region is given by cube indices, not vertex coord.
   bool does_region_contain_cube

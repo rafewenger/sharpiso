@@ -2428,10 +2428,12 @@ void MERGESHARP::store_boundary_bits
 
 /// Return true if line through sharp edge in cube0 passes near cube1.
 /// Return false if cube0 has no sharp edge.
+/// @param max_distance Line points to cube if distance between line and cube
+///    is at most max_distance.
 bool MERGESHARP::does_sharp_edge_point_to_cube
 (const SHARPISO_GRID & grid, const ISOVERT & isovert,
  const VERTEX_INDEX cube0_index, const VERTEX_INDEX cube1_index,
- const COORD_TYPE min_distance)
+ const COORD_TYPE max_distance)
 {
   NUM_TYPE gcube0_index = isovert.GCubeIndex(cube0_index);
   COORD_TYPE cube1_center_coord[DIM3];
@@ -2451,7 +2453,7 @@ bool MERGESHARP::does_sharp_edge_point_to_cube
     (cube1_center_coord, isovert_coord, edge_dir, grid.SpacingPtrConst(), 
      distance);
 
-  if (distance > min_distance) { 
+  if (distance > max_distance) { 
     // Sharp edge does not intersect cube 
     //   (or only intersects cube near its boundary)
     return(false);
@@ -2464,10 +2466,12 @@ bool MERGESHARP::does_sharp_edge_point_to_cube
 /// Return true if line through sharp edge in cube0 passes near cube1.
 /// Use linf metric.
 /// Return false if cube0 has no sharp edge.
+/// @param max_distance Line points to cube if distance between line and cube
+///    is at most max_distance.
 bool MERGESHARP::does_sharp_edge_point_to_cube_linf
 (const SHARPISO_GRID & grid, const ISOVERT & isovert,
  const VERTEX_INDEX cube0_index, const VERTEX_INDEX cube1_index,
- const COORD_TYPE min_distance,
+ const COORD_TYPE max_distance,
  const SHARP_ISOVERT_PARAM & isovert_param)
 {
   const GRADIENT_COORD_TYPE max_small_magnitude =
@@ -2498,7 +2502,7 @@ bool MERGESHARP::does_sharp_edge_point_to_cube_linf
   compute_rescaled_Linf_distance
     (cube1_center_coord, closest_point, grid.SpacingPtrConst(), linf_distance);
 
-  if (linf_distance > min_distance) { 
+  if (linf_distance > max_distance) { 
     // Sharp edge does not intersect cube 
     //   (or only intersects cube near its boundary)
     return(false);
@@ -3884,7 +3888,7 @@ namespace {
             isovert.gcube_list[gcube_index].cube_containing_isovert) {
 
           scalar_grid.PrintIndexAndCoord
-            (cerr, "---  Resetting cube ", cube_index, 
+            (cerr, "***  Resetting cube ", cube_index, 
              " new cube_containing_isovert: ", cube_containing_point, "\n");
           cerr << "  new flag_conflict: " << int(flag_active) << endl;
           cerr << "  isovert coord: ";
