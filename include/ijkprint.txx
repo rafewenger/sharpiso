@@ -5,7 +5,7 @@
 
 /*
   IJK: Isosurface Jeneration Kode
-  Copyright (C) 2011 Rephael Wenger
+  Copyright (C) 2011-2014 Rephael Wenger
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -26,11 +26,10 @@
 #define _IJKPRINT_
 
 #include <cmath>
+#include <ctime>
 #include <iostream>
 #include <vector>
 
-// *** SHOULD BE <ctime> ***
-#include <time.h>
 
 #include "ijk.txx"
 
@@ -125,6 +124,27 @@ namespace IJK {
   {
     print_coord3D(out, coord);
     out << s;
+  }
+
+  template <typename CTYPE>
+  void print_coord3D
+  (std::ostream & out, const char * s0, const CTYPE * coord, const char * s1)
+  {
+    out << s0;
+    print_coord3D(out, coord);
+    out << s1;
+  }
+
+  template <typename CTYPE>
+  void print_coord3D
+  (std::ostream & out, const char * s0, const CTYPE * coord0, const char * s1,
+   const CTYPE * coord1, const char * s2)
+  {
+    out << s0;
+    print_coord3D(out, coord0);
+    out << s1;
+    print_coord3D(out, coord1);
+    out << s2;
   }
 
   template <typename GTYPE, typename VTYPE>

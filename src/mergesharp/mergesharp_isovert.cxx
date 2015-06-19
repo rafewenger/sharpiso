@@ -950,15 +950,22 @@ void compute_isovert_on_plane_from_sharp_edges
  const SHARP_ISOVERT_PARAM & isovert_param,
  const VERTEX_INDEX cube_index[2],
  const COORD_TYPE pointX[DIM3], const COORD_TYPE plane_normal[DIM3],
- COORD_TYPE new_isovert_coord[DIM3])
+ COORD_TYPE new_isovert_coord[DIM3],
+ COORD_TYPE new_edge_direction[DIM3])
 {
   const ANGLE_TYPE max_angle_LO = 80;
   const COORD_TYPE min_abs_cos_angle_LO = cos(max_angle_LO*M_PI/180.0);
   const COORD_TYPE min_significant_distance =
     isovert_param.min_significant_distance;
+  const GRADIENT_COORD_TYPE max_small_magnitude =
+    isovert_param.max_small_magnitude;
   COORD_TYPE intersection_point[DIM3];
+  COORD_TYPE magnitude;
+  NUM_TYPE added_gcube_index;
+  bool flag_zero;
 
   IJK::set_coord_3D(0, new_isovert_coord);
+  IJK::set_coord_3D(0, new_edge_direction);
   NUM_TYPE num_added = 0;
   for (int i = 0; i < 2; i++) {
     NUM_TYPE gcube_index = isovert.GCubeIndex(cube_index[i]);
@@ -982,6 +989,28 @@ void compute_isovert_on_plane_from_sharp_edges
 
         if (distance < 1) {
 
+          const COORD_TYPE * edge_direction =
+            isovert.gcube_list[gcube_index].direction;
+
+          if (num_added == 0) {
+            IJK::copy_coord_3D(edge_direction, new_edge_direction);
+            added_gcube_index = gcube_index;
+          }
+          else {
+            COORD_TYPE product;
+            IJK::compute_inner_product
+              (DIM3, edge_direction, new_edge_direction, product);
+            if (product >= 0) {
+              IJK::add_coord_3D
+                (edge_direction, new_edge_direction, new_edge_direction);
+            }
+            else {
+              // Add reverse of edge_direction.
+              IJK::subtract_coord_3D
+                (new_edge_direction, edge_direction, new_edge_direction);
+            }
+          }
+
           IJK::add_coord_3D
             (new_isovert_coord, intersection_point, new_isovert_coord);
           num_added++;
@@ -991,6 +1020,21 @@ void compute_isovert_on_plane_from_sharp_edges
   }
 
   if (num_added > 0) {
+    if (num_added > 1) {
+      IJK::normalize_vector(DIM3, new_edge_direction, max_small_magnitude,
+                            new_edge_direction, magnitude, flag_zero);
+
+      if (flag_zero) {
+        // Should never happen, but just in case...
+        // Use only one edge direction.
+
+        const COORD_TYPE * edge_direction =
+          isovert.gcube_list[added_gcube_index].direction;
+
+        IJK::copy_coord_3D(edge_direction, new_edge_direction);
+      }
+    }
+
     IJK::divide_coord(DIM3, COORD_TYPE(num_added), new_isovert_coord,
                       new_isovert_coord);
   }
@@ -1001,10 +1045,9 @@ void compute_isovert_on_plane_from_sharp_edges
     const NUM_TYPE gcube1_index = isovert.GCubeIndex(cube_index[1]);
     const COORD_TYPE * isovert_coord0 = isovert.IsoVertCoord(gcube0_index);
     const COORD_TYPE * isovert_coord1 = isovert.IsoVertCoord(gcube1_index);
-    COORD_TYPE line_dir[DIM3], magnitude;
+    COORD_TYPE line_dir[DIM3];
 
     IJK::subtract_coord_3D(isovert_coord1, isovert_coord0, line_dir);
-    bool flag_zero;
     IJK::normalize_vector(DIM3, line_dir, min_significant_distance, 
                           line_dir, magnitude, flag_zero);
 
@@ -1016,12 +1059,21 @@ void compute_isovert_on_plane_from_sharp_edges
       // Use point on plane closest to midpoint
       compute_closest_point_on_plane
         (midpoint, pointX, plane_normal, new_isovert_coord);
+
+      // Arbitrarily use line direction of first cube.
+      NUM_TYPE gcube_index = isovert.GCubeIndex(cube_index[0]);
+      const COORD_TYPE * edge_direction =
+        isovert.gcube_list[gcube_index].direction;
+
+      IJK::copy_coord_3D(edge_direction, new_edge_direction);
     }
     else {
       bool flag_succeeded;
       IJK::intersect_line_plane_3D
         (isovert_coord0, line_dir, pointX, plane_normal, 
          min_abs_cos_angle_LO, new_isovert_coord, flag_succeeded);
+
+      IJK::copy_coord_3D(line_dir, new_edge_direction);
 
       if (!flag_succeeded) {
         // Just in case...
@@ -1140,6 +1192,7 @@ void recompute_isovert_position_around_vertex
   COORD_TYPE pointX[DIM3];
   COORD_TYPE plane_normal[DIM3];
   COORD_TYPE new_isovert_coord[DIM3];
+  COORD_TYPE new_edge_direction[DIM3];
   COORD_TYPE intersection_point[DIM3];
   GRID_COORD_TYPE * cube_coord[2];
   bool flag_set;
@@ -1212,7 +1265,7 @@ void recompute_isovert_position_around_vertex
 
       compute_isovert_on_plane_from_sharp_edges
         (scalar_grid, isovert, isovert_param, fixed_cube, pointX, plane_normal,
-         new_isovert_coord);
+         new_isovert_coord, new_edge_direction);
 
       MSDEBUG();
       if (flag_debug) {
@@ -1221,14 +1274,12 @@ void recompute_isovert_position_around_vertex
         scalar_grid.PrintIndexAndCoord
           (cerr, "  Fixed cubes: ", fixed_cube[0], " and ");
         scalar_grid.PrintIndexAndCoord(cerr, "", fixed_cube[1], "\n");
-        cerr << "  pointX: ";
-        IJK::print_coord3D(cerr, pointX);
-        cerr << " plane_normal: ";
-        IJK::print_coord3D(cerr, plane_normal);
-        cerr << endl;
-        cerr << "  new_isovert_coord: ";
-        IJK::print_coord3D(cerr, new_isovert_coord);
-        cerr << endl;
+        IJK::print_coord3D
+          (cerr, "  pointX: ", pointX, " plane_normal: ", plane_normal, "\n");
+        IJK::print_coord3D
+          (cerr, "  new_isovert_coord: ", new_isovert_coord, "\n");
+        IJK::print_coord3D
+          (cerr, "  new_edge_direction: ", new_edge_direction, "\n");
       }
 
       COORD_TYPE Linf_distance;
@@ -1329,6 +1380,7 @@ void recompute_isovert_position_around_edge
   GRID_COORD_TYPE cube_coord[2][DIM3];
   COORD_TYPE plane_normal[DIM3];
   COORD_TYPE new_isovert_coord[DIM3];
+  COORD_TYPE new_edge_direction[DIM3];
   COORD_TYPE intersection_point[DIM3];
   SVD_INFO svd_info;
 
@@ -1414,7 +1466,7 @@ void recompute_isovert_position_around_edge
 
   compute_isovert_on_plane_from_sharp_edges
     (scalar_grid, isovert, isovert_param, fixed_cube, pointX, plane_normal,
-     new_isovert_coord);
+     new_isovert_coord, new_edge_direction);
 
   MSDEBUG();
   if (flag_debug) {
@@ -1424,14 +1476,12 @@ void recompute_isovert_position_around_edge
     scalar_grid.PrintIndexAndCoord
       (cerr, "  Fixed cubes: ", fixed_cube[0], " and ");
     scalar_grid.PrintIndexAndCoord(cerr, "", fixed_cube[1], "\n");
-    cerr << "  pointX: ";
-    IJK::print_coord3D(cerr, pointX);
-    cerr << " plane_normal: ";
-    IJK::print_coord3D(cerr, plane_normal);
-    cerr << endl;
-    cerr << "  new_isovert_coord: ";
-    IJK::print_coord3D(cerr, new_isovert_coord);
-    cerr << endl;
+    IJK::print_coord3D
+      (cerr, "  pointX: ", pointX, " plane_normal: ", plane_normal, "\n");
+    IJK::print_coord3D
+      (cerr, "  new_isovert_coord: ", new_isovert_coord, "\n");
+    IJK::print_coord3D
+      (cerr, "  new_edge_direction: ", new_edge_direction, "\n");
   }
 
   COORD_TYPE Linf_distance;
