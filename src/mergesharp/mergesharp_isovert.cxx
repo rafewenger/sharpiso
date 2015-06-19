@@ -872,7 +872,6 @@ void MERGESHARP::recompute_using_adjacent
 
 
 /// Set isovert position from grid vertex or grid edge.
-/// *** SHOULD ALSO PASS AND SET new_direction ***
 void set_isovert_position_from_face
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const SCALAR_TYPE isovalue,
@@ -939,6 +938,74 @@ void set_isovert_position_from_face
      flag_from_vertex, isovert, flag_set);
 }
 
+
+/// Set isovert position from grid vertex or grid edge.
+/// Set new direction.
+void set_isovert_position_and_direction_from_face
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const VERTEX_INDEX cube_index,
+ const COORD_TYPE new_isovert_coord[DIM3],
+ const COORD_TYPE new_direction[DIM3],
+ const NUM_TYPE num_large_eigenvalues,
+ const bool flag_from_vertex,
+ ISOVERT & isovert,
+ bool & flag_set)
+{
+  const INDEX_DIFF_TYPE gcube_index = isovert.GCubeIndex(cube_index);
+
+  flag_set = false;
+
+  if (gcube_index == ISOVERT::NO_INDEX) { return; }
+
+  MSDEBUG();
+  if (flag_debug) {
+    cerr << "*** In " << __FUNCTION__ << ".";
+    if (flag_from_vertex) { cerr << "  From vertex."; }
+    else { cerr << "  From edge."; }
+    scalar_grid.PrintIndexAndCoord(cerr, "  Cube: ", cube_index, "\n");
+    cerr << "    Old coord: ";
+    IJK::print_coord3D
+      (cerr, "    Old coord: ", isovert.IsoVertCoord(gcube_index), "");
+    cerr << "  num eigen: " << isovert.NumEigenvalues(gcube_index) << endl;
+    IJK::print_coord3D(cerr, "    New coord: ", new_isovert_coord, "");
+    cerr << " num eigen: " << num_large_eigenvalues << endl;
+    IJK::print_coord3D(cerr, "    New direction: ", new_direction, "\n");
+  }
+
+  set_isovert_position_and_direction
+    (scalar_grid, gcube_index, new_isovert_coord, new_direction,
+     num_large_eigenvalues, isovert);
+
+  // Corrected - May, 2015 - R. Wenger
+  set_cube_containing_isovert(scalar_grid, isovalue, gcube_index, isovert);
+
+  isovert.gcube_list[gcube_index].flag_using_substitute_coord = false;
+
+  if (flag_from_vertex) 
+    { isovert.gcube_list[gcube_index].flag_coord_from_vertex = true; }
+  else
+    { isovert.gcube_list[gcube_index].flag_coord_from_edge = true; }
+
+  flag_set = true;
+}
+
+/// Set isovert position and direction from grid vertex or grid edge.
+void set_isovert_position_and_direction_from_face
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const VERTEX_INDEX cube_index,
+ const COORD_TYPE new_isovert_coord[DIM3],
+ const COORD_TYPE new_direction[DIM3],
+ const NUM_TYPE num_large_eigenvalues,
+ const bool flag_from_vertex,
+ ISOVERT & isovert)
+{
+  bool flag_set;
+  set_isovert_position_and_direction_from_face
+    (scalar_grid, isovalue, cube_index, new_isovert_coord, new_direction,
+     num_large_eigenvalues, flag_from_vertex, isovert, flag_set);
+}
 
 /// Compute isovert coordinate on plane from sharp edges.
 /// If no sharp edges or intersections are not near pointX,
@@ -1089,12 +1156,13 @@ void compute_isovert_on_plane_from_sharp_edges
 
 }
 
-
 /// Set isovert position around vertex to new_isovert_coord.
+/// Set edge direction to new_direction.
 void set_isovert_position_around_vertex
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
  const SCALAR_TYPE isovalue, const VERTEX_INDEX iv,
  const COORD_TYPE new_isovert_coord[DIM3], 
+ const COORD_TYPE new_direction[DIM3], 
  ISOVERT & isovert, bool & flag_set)
 {
   const NUM_TYPE index_lastv = NUM_CUBE_VERTICES3D - 1;
@@ -1117,9 +1185,9 @@ void set_isovert_position_around_vertex
         { continue; }
 
       bool flag_set1;
-      set_isovert_position_from_face
-        (scalar_grid, isovalue, cube1_index, new_isovert_coord, 2, true, 
-         isovert, flag_set1);
+      set_isovert_position_and_direction_from_face
+        (scalar_grid, isovalue, cube1_index, new_isovert_coord, new_direction,
+         2, true, isovert, flag_set1);
 
       if (flag_set1) { flag_set = true; }
     }
@@ -1141,9 +1209,9 @@ void set_isovert_position_around_vertex
     if (cube_contains_point(scalar_grid, cube1_index, isovert_coord))
       { continue; }
 
-    set_isovert_position_from_face
-      (scalar_grid, isovalue, cube1_index, new_isovert_coord, 2, 
-       true, isovert);
+    set_isovert_position_and_direction_from_face
+      (scalar_grid, isovalue, cube1_index, new_isovert_coord, new_direction,
+       2, true, isovert);
   }
 }
 
@@ -1289,7 +1357,8 @@ void recompute_isovert_position_around_vertex
 
       bool flag_set;
       set_isovert_position_around_vertex
-        (scalar_grid, isovalue, iv, new_isovert_coord, isovert, flag_set);
+        (scalar_grid, isovalue, iv, new_isovert_coord, new_edge_direction,
+         isovert, flag_set);
     }
   }
 }
@@ -1501,9 +1570,9 @@ void recompute_isovert_position_around_edge
       if (cube_contains_point(scalar_grid, cube_index, new_isovert_coord)) {
 
         bool flag_set1;
-        set_isovert_position_from_face
-          (scalar_grid, isovalue, cube_index, new_isovert_coord, 2, false, 
-           isovert, flag_set1);
+        set_isovert_position_and_direction_from_face
+          (scalar_grid, isovalue, cube_index, new_isovert_coord, 
+           new_edge_direction, 2, false, isovert, flag_set1);
 
         if (flag_set1) { flag_set = true; }
       }
@@ -1523,9 +1592,9 @@ void recompute_isovert_position_around_edge
         if (cube_index == fixed_cube[0] || cube_index == fixed_cube[1]) 
           { continue; }
 
-        set_isovert_position_from_face
-          (scalar_grid, isovalue, cube_index, new_isovert_coord, 2, 
-           false, isovert);
+        set_isovert_position_and_direction_from_face
+          (scalar_grid, isovalue, cube_index, new_isovert_coord, 
+           new_edge_direction, 2, false, isovert);
       }
     }
 
@@ -2042,8 +2111,18 @@ void apply_secondary_isovert_positions
             NUM_TYPE num_eigenvalues =
               isovert.gcube_list[gcubeA_index].num_eigenvalues;
 
-            set_isovert_position_from_other_cube
-              (grid, gcubeB_index, isovert_coordB, num_eigenvalues, isovert);
+            if (num_eigenvalues == 3) {
+              set_isovert_position_from_other_cube
+                (grid, gcubeB_index, isovert_coordB, num_eigenvalues, isovert);
+            }
+            else {
+              const COORD_TYPE * directionB =
+                isovert.gcube_list[gcubeA_index].direction;
+
+              set_isovert_position_and_direction_from_other_cube
+                (grid, gcubeB_index, isovert_coordB, directionB, 
+                 num_eigenvalues, isovert);
+            }
             isovert.gcube_list[gcubeB_index].flag_using_substitute_coord = true;
           }
         }
