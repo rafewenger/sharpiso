@@ -2212,11 +2212,10 @@ void MERGESHARP::store_boundary_bits
 bool MERGESHARP::does_sharp_edge_point_to_cube
 (const SHARPISO_GRID & grid, const ISOVERT & isovert,
  const VERTEX_INDEX cube0_index, const VERTEX_INDEX cube1_index,
- const COORD_TYPE max_distance)
+ const COORD_TYPE max_distance, COORD_TYPE & distance)
 {
   NUM_TYPE gcube0_index = isovert.GCubeIndex(cube0_index);
   COORD_TYPE cube1_center_coord[DIM3];
-  COORD_TYPE distance;
 
   if (isovert.NumEigenvalues(gcube0_index) != 2) 
     { return(false); }
@@ -2240,6 +2239,22 @@ bool MERGESHARP::does_sharp_edge_point_to_cube
 
   return(true);
 }
+
+/// Return true if line through sharp edge in cube0 passes near cube1.
+/// Return false if cube0 has no sharp edge.
+/// @param max_distance Line points to cube if distance between line and cube
+///    is at most max_distance.
+bool MERGESHARP::does_sharp_edge_point_to_cube
+(const SHARPISO_GRID & grid, const ISOVERT & isovert,
+ const VERTEX_INDEX cube0_index, const VERTEX_INDEX cube1_index,
+ const COORD_TYPE max_distance)
+{
+  COORD_TYPE distance;
+
+  return(does_sharp_edge_point_to_cube
+         (grid, isovert, cube0_index, cube1_index, max_distance, distance));
+}
+
 
 
 /// Return true if line through sharp edge in cube0 passes near cube1.

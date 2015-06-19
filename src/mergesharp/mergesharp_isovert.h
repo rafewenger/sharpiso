@@ -608,6 +608,13 @@ void store_table_index
 bool does_sharp_edge_point_to_cube
 (const SHARPISO_GRID & grid, const ISOVERT & isovert,
  const VERTEX_INDEX cube0_index, const VERTEX_INDEX cube1_index,
+ const COORD_TYPE max_distance, COORD_TYPE & distance);
+
+/// Return true if line through sharp edge in cube0 passes near cube1.
+/// Version which does not return distance.
+bool does_sharp_edge_point_to_cube
+(const SHARPISO_GRID & grid, const ISOVERT & isovert,
+ const VERTEX_INDEX cube0_index, const VERTEX_INDEX cube1_index,
  const COORD_TYPE max_distance);
 
 /// Return true if line through sharp edge in cube0 passes near cube1.

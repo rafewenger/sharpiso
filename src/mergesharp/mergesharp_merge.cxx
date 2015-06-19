@@ -324,15 +324,6 @@ namespace {
    const std::vector<NUM_TYPE> & sharp_gcube_list,
    const AXIS_SIZE_TYPE bin_width, BIN_GRID<VERTEX_INDEX> & bin_grid);
 
-	bool check_connected_sharp
-  ( const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-		const SCALAR_TYPE isovalue,
-		const MERGESHARP::ISOVERT & isovert, 
-    const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
-    const VERTEX_INDEX from_vertex,
-    const VERTEX_INDEX to_vertex,
-    const CUBE_CONNECTED_ARRAY & connected_sharp);
-
   void get_adjacent_unmapped_in_5x5x5_region
   (const VERTEX_INDEX icubeA, const VERTEX_INDEX icubeB,
    const MERGESHARP::ISOVERT & isovert, 
@@ -4080,20 +4071,6 @@ namespace {
         
         return; }
 
-    if (!check_connected_sharp
-        (scalar_grid, isovalue, isovert, gcube_map, from_cube, to_cube,
-         connected_sharp))
-      { 
-        // *** DEBUG ***
-        if (flag_debug) {
-          scalar_grid.PrintIndexAndCoord
-            (cerr, "*** Failed check_connected_sharp. Cube: ", from_cube, "");
-          scalar_grid.PrintIndexAndCoord
-            (cerr, " to ", to_cube, "\n");
-        }
-
-        return; }
-
     map_iso_vertex(scalar_grid, isovalue, isovert.gcube_list, 
                    from_gcube, to_gcube, gcube_map);
     isovert.gcube_list[from_gcube].flag = COVERED_B_GCUBE;
@@ -4111,7 +4088,7 @@ namespace {
 
 namespace {
 
-  // forward declaraion
+  // forward declaration
 	void extend_mapping_corner_region_multi
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
@@ -4951,43 +4928,6 @@ namespace {
     }
 
     return(false);
-	}
-
-
-	/// Check that mapping does not create degenerate/thin triangle 
-  ///   between connected, selected cubes.
-	bool check_connected_sharp
-  ( const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
-		const SCALAR_TYPE isovalue,
-		const MERGESHARP::ISOVERT & isovert, 
-    const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
-    const VERTEX_INDEX from_vertex,
-    const VERTEX_INDEX to_vertex,
-    const CUBE_CONNECTED_ARRAY & connected_sharp)
-	{
-		if (connected_sharp.NumElements() == 3) {
-
-      for (int k = 0; k < 3; k++) {
-
-        if (connected_sharp[k] == to_vertex) {
-						
-          VERTEX_INDEX k1 = (k+1)%3;
-          VERTEX_INDEX k2 = (k+2)%3;
-
-          VERTEX_INDEX cube0_index = connected_sharp[k];
-          VERTEX_INDEX cube1_index = connected_sharp[k1];
-          VERTEX_INDEX cube2_index = connected_sharp[k2];
-
-          // Check that cube1_index and cube2_index are NOT connected.
-          if (are_connected_by_iso_edge
-              (scalar_grid, cube1_index, cube2_index, 
-               isovalue, isovert, gcube_map))
-            { return(false); }
-        }
-      }
-    }
-
-    return(true);
 	}
 
   // Return true if array contains x.
@@ -6023,25 +5963,6 @@ namespace {
                     { return(true); }
                 }
               }
-
-              /* OBSOLETE
-              if (to_gcubeB == gcubeC_index) {
-                if (!is_order_correct(0, j0, to_coordB, to_coord))
-                  { return(true); }
-                if (!is_order_correct(1, j1, to_coordB, to_coord))
-                  { return(true); }
-                if (!is_order_correct(2, j2, to_coordB, to_coord))
-                  { return(true); }
-              }
-              else {
-                if (!is_strict_order_correct(0, j0, to_coordB, to_coord))
-                  { return(true); }
-                if (!is_strict_order_correct(1, j1, to_coordB, to_coord))
-                  { return(true); }
-                if (!is_strict_order_correct(2, j2, to_coordB, to_coord))
-                  { return(true); }
-              }
-              */
             }
           }
         }
@@ -6353,8 +6274,8 @@ namespace {
     return(true);
   }
 
-  /// Return true if sharp edge in from_gcube points to to_gcube
-  ///   or if from_gcube is sharp corner or smooth.
+  /// Return true if sharp edge in to_gcube points to from_gcube
+  ///   or if to_gcube is sharp corner.
 	bool check_sharp_edge_direction
 	(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
    const MERGESHARP::ISOVERT & isovert,
@@ -6364,12 +6285,27 @@ namespace {
     const VERTEX_INDEX from_cube_index = from_gcube.cube_index;
     const VERTEX_INDEX to_cube_index = to_gcube.cube_index;
     const COORD_TYPE max_distance = 1;
+    COORD_TYPE distance;
 
-    if (from_gcube.num_eigenvalues != 2) { return(true); }
+    if (to_gcube.num_eigenvalues != 2) { return(true); }
 
     const bool return_flag =
       does_sharp_edge_point_to_cube
-      (scalar_grid, isovert, from_cube_index, to_cube_index, max_distance);
+      (scalar_grid, isovert, to_cube_index, from_cube_index, 
+       max_distance, distance);
+
+    if (flag_debug) {
+      if (return_flag == false) {
+        MSDEBUG();
+        scalar_grid.PrintIndexAndCoord 
+          (cerr, "    Cube ", to_gcube.cube_index, "\n");
+        IJK::print_coord3D
+          (cerr, "    isovert coord: ", to_gcube.isovert_coord,
+           "  direction: ", to_gcube.direction, "\n");
+        cerr << "  Failed check_sharp_edge_direction."
+             << "  distance: " << distance << endl;
+      }
+    }
 
     return(return_flag);
   }
@@ -6486,7 +6422,13 @@ namespace {
         (cerr, "*** Checking mapping from ", from_cube,
          " to ", to_cube, "\n");
     }
-      
+
+    /* CURRENTLY, NOT USED.
+    if (!check_sharp_edge_direction
+        (scalar_grid, isovert, isovert.gcube_list[from_gcube],
+         isovert.gcube_list[to_gcube])) 
+      { return; }
+    */
 
     if (!check_facet_adjacent_maps
         (scalar_grid, isovert, gcube_map, from_cube, to_cube, cubeC_index))
@@ -6527,21 +6469,6 @@ namespace {
         if (flag_debug) 
           { cerr << "  Failed check_adjacent_cubes_manifold." << endl; }
         
-        return; }
-
-    // *** DOES check_map ALREADY CHECK THIS? ***
-    if (!check_connected_sharp
-        (scalar_grid, isovalue, isovert, gcube_map, from_cube, to_cube,
-         connected_sharp))
-      { 
-        // *** DEBUG ***
-        if (flag_debug) {
-          scalar_grid.PrintIndexAndCoord
-            (cerr, "*** Failed check_connected_sharp. Cube: ", from_cube, "");
-          scalar_grid.PrintIndexAndCoord
-            (cerr, " to ", to_cube, "\n");
-        }
-
         return; }
 
     map_iso_vertex(scalar_grid, isovalue, isovert.gcube_list, 
