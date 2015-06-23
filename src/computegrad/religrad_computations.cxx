@@ -1612,9 +1612,18 @@ bool curvature_based_B_per_vertex(
 	const GRADIENT_GRID & gradient_grid,
 	const  GRADIENT_MAGNITUDE_GRID & grad_mag_grid,
 	IJK::BOOL_GRID<RELIGRADIENT_GRID> & reliable_grid,
-	INPUT_INFO & io_info
+	INPUT_INFO & io_info,
+	bool & debugFunction
 	)
 {
+	//debug 
+	if (debugFunction){
+		COORD_TYPE garb[DIM3];
+		scalar_grid.ComputeCoord(iv,garb);
+		if (garb[0]==72 && garb[1]==44 && garb[2]==56){
+			cout <<"vertex "<< iv << endl;
+		}
+	}
  	GRADIENT_COORD_TYPE magiv = grad_mag_grid.Scalar(iv); 
 	GRADIENT_COORD_TYPE gradiv[DIM3], normgradiv[DIM3];
 	
@@ -1628,9 +1637,6 @@ bool curvature_based_B_per_vertex(
 		// compute the tangent and neighbor set for iv. 
 		compute_Nt_and_No_iv (iv, normgradiv, scalar_grid, tangent_neighbor_set_iv,
 			ortho_neighbor_set_iv, io_info);
-
-		//for (int i = 0; i < tangent_neighbor_set_iv.size(); i++){
-		//	VERTEX_INDEX v1 = tangent_neighbor_set_iv[i];
 
 		for (VERTEX_INDEX v1 : tangent_neighbor_set_iv){
 			COORD_TYPE diff[DIM3];
@@ -2084,6 +2090,7 @@ void compute_reliable_gradients_curvature_based_algo12(
 /*
 *Curvature based reliable gradients computations B
 *Check reliablity at vertex iv using vertices distance 2 from v.
+*This function is called. 
 */
 void compute_reliable_gradients_curvature_basedB(
 	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
@@ -2095,12 +2102,14 @@ void compute_reliable_gradients_curvature_basedB(
 	)
 {
 	const int numVertices = scalar_grid.NumVertices();
-	for (int iv = 0; iv < numVertices; iv++)
+	bool debugVertex = false; 
+	for (unsigned int iv = 0; iv < numVertices; iv++)
 	{
 		if(!boundary_grid.Scalar(iv))
 		{
+			//iv==1266672 ? debugVertex=true : debugVertex=false; 
 			if (curvature_based_B_per_vertex(iv, scalar_grid, gradient_grid,
-				grad_mag_grid, reliable_grid, io_info)){
+				grad_mag_grid, reliable_grid, io_info, debugVertex)){
 				reliable_grid.Set(iv, true);
 			}
 		}
