@@ -51,6 +51,11 @@ namespace {
   void reset_covered_isovert_positions
   (const SHARPISO_BOOL_GRID & covered_grid, ISOVERT & isovert);
 
+  void reset_covered_isovert_positions
+  (const SHARPISO_BOOL_GRID & covered_grid,
+   const std::vector<NUM_TYPE> & gcube_index_list,
+   ISOVERT & isovert);
+
   bool check_covered_point
   (const SHARPISO_BOOL_GRID & covered_grid,
    ISOVERT & isovert,
@@ -2589,6 +2594,7 @@ void select_edge_cubes_mod6
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
+ const std::vector<NUM_TYPE> & gcube_index_list,
  const SHARP_ISOVERT_PARAM & isovert_param,
  ISOVERT & isovert,
  SELECTION_DATA_MOD6 & selection_data)
@@ -2608,8 +2614,9 @@ void select_edge_cubes_mod6
   // Recomputing covered point positions
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
-     isovert_param, isovert);
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+     gcube_index_list, isovert_param, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, gcube_index_list, isovert);
 
   // Select (ka,kb,0) mod 6
   for (NUM_TYPE i = 0; i < selection_data.ka_kb_0_mod6_list.NumEntries(); i++) {
@@ -2621,8 +2628,9 @@ void select_edge_cubes_mod6
   // Recomputing covered point positions
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
-     isovert_param, isovert);
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+     gcube_index_list, isovert_param, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, gcube_index_list, isovert);
 
   // Select (ka,kb,kc) mod 6
   for (NUM_TYPE i = 0; i < selection_data.ka_kb_kc_mod6_list.NumEntries(); 
@@ -2635,8 +2643,9 @@ void select_edge_cubes_mod6
   // Recomputing covered point positions
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
-     isovert_param, isovert);
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+     gcube_index_list, isovert_param, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, gcube_index_list, isovert);
 }
 
 /// Select edge cubes (eigenvalue 2) using mod 6 algorithm
@@ -2645,6 +2654,7 @@ void select_edge_cubes_within_dist_mod6
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
+ const std::vector<NUM_TYPE> & gcube_index_list,
  const SHARP_ISOVERT_PARAM & isovert_param,
  const COORD_TYPE max_distance,
  ISOVERT & isovert,
@@ -2667,8 +2677,9 @@ void select_edge_cubes_within_dist_mod6
   // Recomputing covered point positions
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
-     isovert_param, isovert);
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+     gcube_index_list, isovert_param, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, gcube_index_list, isovert);
 
   // Select (ka,kb,0) mod 6
   for (NUM_TYPE i = 0; i < selection_data.ka_kb_0_mod6_list.NumEntries(); i++) {
@@ -2681,8 +2692,9 @@ void select_edge_cubes_within_dist_mod6
   // Recomputing covered point positions
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
-     isovert_param, isovert);
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+     gcube_index_list, isovert_param, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, gcube_index_list, isovert);
 
   // Select (ka,kb,kc) mod 6
   for (NUM_TYPE i = 0; i < selection_data.ka_kb_kc_mod6_list.NumEntries(); 
@@ -2696,8 +2708,9 @@ void select_edge_cubes_within_dist_mod6
   // Recomputing covered point positions
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
-     isovert_param, isovert);
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+     gcube_index_list, isovert_param, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, gcube_index_list, isovert);
 }
 
 // Select cubes near corner cubes.
@@ -2705,6 +2718,7 @@ void select_cubes_near_corners_mod6
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
+ const std::vector<NUM_TYPE> & gcube_index_list,
  const SHARP_ISOVERT_PARAM & isovert_param,
  ISOVERT & isovert,
  SELECTION_DATA_MOD6 & selection_data)
@@ -2735,8 +2749,9 @@ void select_cubes_near_corners_mod6
   // Recomputing covered point positions
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
-     isovert_param, isovert);
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+     gcube_index_list, isovert_param, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, gcube_index_list, isovert);
 
   // Select (ka,kb,0) mod 6
   for (NUM_TYPE i = 0; i < selection_data.ka_kb_0_mod6_list.NumEntries(); i++) {
@@ -2748,8 +2763,9 @@ void select_cubes_near_corners_mod6
   // Recomputing covered point positions
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
-     isovert_param, isovert);
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+     gcube_index_list, isovert_param, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, gcube_index_list, isovert);
 
   // Select (ka,kb,kc) mod 6
   for (NUM_TYPE i = 0; i < selection_data.ka_kb_kc_mod6_list.NumEntries(); 
@@ -2762,9 +2778,11 @@ void select_cubes_near_corners_mod6
   // Recomputing covered point positions
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
-     isovert_param, isovert);
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+     gcube_index_list, isovert_param, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, gcube_index_list, isovert);
 }
+
 
 // Select cubes near corner cubes.
 /// Only select cubes whose isovert are within given distance to cube center.
@@ -2772,6 +2790,7 @@ void select_cubes_near_corners_within_dist_mod6
 (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
  const GRADIENT_GRID_BASE & gradient_grid,
  const SCALAR_TYPE isovalue,
+ const std::vector<NUM_TYPE> & gcube_index_list,
  const SHARP_ISOVERT_PARAM & isovert_param,
  const COORD_TYPE max_distance,
  ISOVERT & isovert,
@@ -2803,8 +2822,9 @@ void select_cubes_near_corners_within_dist_mod6
   // Recomputing covered point positions
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
-     isovert_param, isovert);
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+     gcube_index_list, isovert_param, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, gcube_index_list, isovert);
 
   // Select (ka,kb,0) mod 6
   for (NUM_TYPE i = 0; i < selection_data.ka_kb_0_mod6_list.NumEntries(); i++) {
@@ -2817,8 +2837,9 @@ void select_cubes_near_corners_within_dist_mod6
   // Recomputing covered point positions
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
-     isovert_param, isovert);
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+     gcube_index_list, isovert_param, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, gcube_index_list, isovert);
 
   // Select (ka,kb,kc) mod 6
   for (NUM_TYPE i = 0; i < selection_data.ka_kb_kc_mod6_list.NumEntries(); 
@@ -2832,8 +2853,9 @@ void select_cubes_near_corners_within_dist_mod6
   // Recomputing covered point positions
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, isovalue, 
-     isovert_param, isovert);
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+     gcube_index_list, isovert_param, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, gcube_index_list, isovert);
 }
 
 // Set mismatch table entries.
@@ -2892,14 +2914,15 @@ void MERGESHARP::select_sharp_isovert_mod6
 
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, 
-     isovalue, isovert_param, isovert);
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+     isovalue, sharp_gcube_list, isovert_param, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, sharp_gcube_list, isovert);
 
   set_mismatch_near_corner(isovert, sharp_gcube_list, selection_data);
 
   select_cubes_near_corners_within_dist_mod6
-    (scalar_grid, gradient_grid,isovalue, isovert_param, half_cube_distance,
-     isovert, selection_data);
+    (scalar_grid, gradient_grid, isovalue, sharp_gcube_list,
+     isovert_param, half_cube_distance, isovert, selection_data);
 
   // Recompute mismatch grid so that selected near corner cubes can block
   //   effects of corner cubes.
@@ -2907,16 +2930,16 @@ void MERGESHARP::select_sharp_isovert_mod6
 
   // Select edge cubes (again). distance 0.6.
   select_cubes_near_corners_within_dist_mod6
-    (scalar_grid, gradient_grid,isovalue, isovert_param, 0.6,
-     isovert, selection_data);
+    (scalar_grid, gradient_grid,isovalue, sharp_gcube_list,
+     isovert_param, 0.6, isovert, selection_data);
 
   // Select edge cubes (again). distance 0.8.
   select_cubes_near_corners_within_dist_mod6
-    (scalar_grid, gradient_grid,isovalue, isovert_param, 0.8,
-     isovert, selection_data);
+    (scalar_grid, gradient_grid,isovalue, sharp_gcube_list,
+     isovert_param, 0.8, isovert, selection_data);
 
   select_cubes_near_corners_mod6
-    (scalar_grid, gradient_grid,isovalue, isovert_param, 
+    (scalar_grid, gradient_grid,isovalue, sharp_gcube_list, isovert_param, 
      isovert, selection_data);
 
   // Set (again) mismatch table entries.  Include 5XX entries.
@@ -2932,8 +2955,8 @@ void MERGESHARP::select_sharp_isovert_mod6
 
   // select edge cubes.
   select_edge_cubes_within_dist_mod6
-    (scalar_grid, gradient_grid, isovalue, isovert_param, half_cube_distance,
-     isovert, selection_data);
+    (scalar_grid, gradient_grid, isovalue, sharp_gcube_list,
+     isovert_param, half_cube_distance, isovert, selection_data);
 
   MSDEBUG();
   if (flag_debug) 
@@ -2941,9 +2964,10 @@ void MERGESHARP::select_sharp_isovert_mod6
 
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, 
-     isovalue, isovert_param, isovert);
+     isovalue, sharp_gcube_list, isovert_param, isovert);
 
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, sharp_gcube_list, isovert);
 
   // Recompute mismatch grid so that selected cubes can block effects
   //   of other cubes.
@@ -2952,41 +2976,47 @@ void MERGESHARP::select_sharp_isovert_mod6
   // Select edge cubes (again). distance 0.6.
   max_distance = 0.6;
   select_edge_cubes_within_dist_mod6
-    (scalar_grid, gradient_grid, isovalue, isovert_param, max_distance,
-     isovert, selection_data);
+    (scalar_grid, gradient_grid, isovalue, sharp_gcube_list,
+     isovert_param, max_distance, isovert, selection_data);
 
   // Select edge cubes (again). distance 0.7.
   max_distance = 0.7;
   select_edge_cubes_within_dist_mod6
-    (scalar_grid, gradient_grid, isovalue, isovert_param, max_distance,
-     isovert, selection_data);
+    (scalar_grid, gradient_grid, isovalue, sharp_gcube_list,
+     isovert_param, max_distance, isovert, selection_data);
 
   // Select edge cubes (again). distance 0.8.
   max_distance = 0.8;
   select_edge_cubes_within_dist_mod6
-    (scalar_grid, gradient_grid, isovalue, isovert_param, max_distance,
-     isovert, selection_data);
+    (scalar_grid, gradient_grid, isovalue, sharp_gcube_list,
+     isovert_param, max_distance, isovert, selection_data);
 
   // Recompute mismatch grid one last time.
   compute_mismatch_grid(isovert, sharp_gcube_list, selection_data);
 
+  // Reselect corner/edge cubes.
+  sharp_gcube_list.clear();
+  get_corner_or_edge_cubes(isovert.gcube_list, sharp_gcube_list);
+
   // Select edge cubes (again).  (No distance restrictions.)
   select_edge_cubes_mod6
-    (scalar_grid, gradient_grid, isovalue, isovert_param,
+    (scalar_grid, gradient_grid, isovalue, sharp_gcube_list, isovert_param,
      isovert, selection_data);
 
   recompute_covered_point_positions
     (scalar_grid, gradient_grid, selection_data.covered_grid, 
-     isovalue, isovert_param, isovert);
+     isovalue, sharp_gcube_list, isovert_param, isovert);
 
-  reset_covered_isovert_positions(selection_data.covered_grid, isovert);
+  reset_covered_isovert_positions
+    (selection_data.covered_grid, sharp_gcube_list, isovert);
 
   // Select edge cubes (again)
   MSDEBUG();
   if (flag_debug) { cerr << endl << "--- Selecting edge cubes." << endl; }
 
-  // Resort sharp gcube_list
-  sort(sharp_gcube_list.begin(), sharp_gcube_list.end(), gcube_compare);
+  // Reselect corner/edge cubes.
+  sharp_gcube_list.clear();
+  get_corner_or_edge_cubes(isovert.gcube_list, sharp_gcube_list);
 
   // Select edge cubes.  Ignore mismatch restrictions.
   select_edge_cubes_ignore_mismatch
@@ -3005,17 +3035,15 @@ void MERGESHARP::select_sharp_isovert_mod6
 namespace {
 
   // Change isovert positions which lie in covered cubes.
+  // @param gcube_index_list Examine only cubes in gcube_index_list.
   void reset_covered_isovert_positions
   (const SHARPISO_BOOL_GRID & covered_grid,
+   const std::vector<NUM_TYPE> & gcube_index_list,
    ISOVERT & isovert)
   {
-    std::vector<NUM_TYPE> gcube_sharp_list;
+    for (NUM_TYPE i = 0; i < gcube_index_list.size(); i++) {
 
-    get_corner_or_edge_cubes(isovert.gcube_list, gcube_sharp_list);
-
-    for (NUM_TYPE i = 0; i < gcube_sharp_list.size(); i++) {
-
-      NUM_TYPE gcubeA_index = gcube_sharp_list[i];
+      NUM_TYPE gcubeA_index = gcube_index_list[i];
 
       if (isovert.gcube_list[gcubeA_index].flag_conflict) {
 
@@ -3032,7 +3060,6 @@ namespace {
               isovert.gcube_list[gcubeB_index].cube_containing_isovert;
 
             if (cubeC_index != cubeB_index) {
-
 
               if (covered_grid.Scalar(cubeC_index)) {
 
@@ -3067,8 +3094,19 @@ namespace {
 
         }
       }
-    }
 
+    }
+  }
+
+  // Change isovert positions which lie in covered cubes.
+  void reset_covered_isovert_positions
+  (const SHARPISO_BOOL_GRID & covered_grid,
+   ISOVERT & isovert)
+  {
+    std::vector<NUM_TYPE> gcube_sharp_list;
+
+    get_corner_or_edge_cubes(isovert.gcube_list, gcube_sharp_list);
+    reset_covered_isovert_positions(covered_grid, gcube_sharp_list, isovert);
   }
 
 }

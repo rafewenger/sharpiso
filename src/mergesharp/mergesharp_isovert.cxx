@@ -550,6 +550,44 @@ void MERGESHARP::recompute_covered_point_positions
 
 }
 
+/// Recompute isovert positions for cubes containing covered points.
+/// Use voxel for gradient cube offset, 
+///   not isovert_param.grad_selection_cube_offset.
+/// Version which examines only cubes in gcube_index_list[].
+/// @param gcube_index_list List of gcube indices.
+/// @param flag_min_offset If true, voxel uses minimum gradient cube offset.
+void MERGESHARP::recompute_covered_point_positions
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SHARPISO_BOOL_GRID & covered_grid,
+ const SCALAR_TYPE isovalue,
+ const std::vector<NUM_TYPE> gcube_index_list,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ const OFFSET_VOXEL & voxel,
+ const bool flag_min_offset,
+ ISOVERT & isovert)
+{
+  for (NUM_TYPE i = 0; i < gcube_index_list.size(); i++) {
+
+    NUM_TYPE gcube_index = gcube_index_list[i];
+    GRID_CUBE_FLAG cube_flag = isovert.gcube_list[gcube_index].flag;
+    bool flag_recomputed_coord_min_offset =
+      isovert.gcube_list[gcube_index].flag_recomputed_coord_min_offset;
+    if (cube_flag == COVERED_POINT) {
+      if (!flag_recomputed_coord_min_offset) {
+
+        recompute_isovert_position_lindstrom
+          (scalar_grid, gradient_grid, isovalue,
+           isovert_param, voxel, flag_min_offset, gcube_index, isovert);
+
+        check_covered_and_substitute
+          (scalar_grid, covered_grid, isovalue, gcube_index, isovert);
+      }
+    }
+  }
+
+}
+
 
 /// Recompute isovert positions for cubes containing covered points.
 void MERGESHARP::recompute_covered_point_positions
@@ -583,6 +621,43 @@ void MERGESHARP::recompute_covered_point_positions
     recompute_covered_point_positions
       (scalar_grid, gradient_grid, covered_grid, isovalue, isovert_param, 
        voxel, true, isovert);
+  }
+}
+
+
+/// Recompute isovert positions for cubes containing covered points.
+void MERGESHARP::recompute_covered_point_positions
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SHARPISO_BOOL_GRID & covered_grid,
+ const SCALAR_TYPE isovalue,
+ const std::vector<NUM_TYPE> gcube_index_list,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ ISOVERT & isovert)
+{
+  const SIGNED_COORD_TYPE grad_selection_cube_offset =
+    isovert_param.grad_selection_cube_offset;
+  OFFSET_VOXEL voxel;
+
+  if (grad_selection_cube_offset > 0.5) {
+    if (isovert_param.min_grad_selection_cube_offset <= 0.5) {
+
+      voxel.SetVertexCoord
+        (scalar_grid.SpacingPtrConst(), 0.5);
+
+      recompute_covered_point_positions
+        (scalar_grid, gradient_grid, covered_grid, isovalue, 
+         gcube_index_list, isovert_param, voxel, false, isovert);
+    }
+  }
+
+  if (isovert_param.min_grad_selection_cube_offset <= 0) {
+
+    voxel.SetVertexCoord(scalar_grid.SpacingPtrConst(), 0.0);
+
+    recompute_covered_point_positions
+      (scalar_grid, gradient_grid, covered_grid, isovalue, 
+       gcube_index_list, isovert_param, voxel, true, isovert);
   }
 }
 

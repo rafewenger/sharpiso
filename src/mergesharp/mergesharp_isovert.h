@@ -395,6 +395,18 @@ void recompute_covered_point_positions
  ISOVERT & isovert);
 
 /// Recompute isovert positions for cubes containing covered points.
+/// Version which examines only cubes in gcube_index_list[].
+/// @param gcube_index_list List of gcube indices.
+void recompute_covered_point_positions
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SHARPISO_BOOL_GRID & covered_grid,
+ const SCALAR_TYPE isovalue,
+ const std::vector<NUM_TYPE> gcube_index_list,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ ISOVERT & isovert);
+
+/// Recompute isovert positions for cubes containing covered points.
 /// Use voxel for gradient cube offset, 
 ///   not isovert_param.grad_selection_cube_offset.
 /// @param flag_min_offset If true, voxel uses minimum gradient cube offset.
@@ -403,6 +415,23 @@ void recompute_covered_point_positions
  const GRADIENT_GRID_BASE & gradient_grid,
  const SHARPISO_BOOL_GRID & covered_grid,
  const SCALAR_TYPE isovalue,
+ const SHARP_ISOVERT_PARAM & isovert_param,
+ const OFFSET_VOXEL & voxel,
+ const bool flag_min_offset,
+ ISOVERT & isovert);
+
+/// Recompute isovert positions for cubes containing covered points.
+/// Use voxel for gradient cube offset, 
+///   not isovert_param.grad_selection_cube_offset.
+/// Version which examines only cubes in gcube_index_list[].
+/// @param gcube_index_list List of gcube indices.
+/// @param flag_min_offset If true, voxel uses minimum gradient cube offset.
+void recompute_covered_point_positions
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const GRADIENT_GRID_BASE & gradient_grid,
+ const SHARPISO_BOOL_GRID & covered_grid,
+ const SCALAR_TYPE isovalue,
+ const std::vector<NUM_TYPE> gcube_index_list,
  const SHARP_ISOVERT_PARAM & isovert_param,
  const OFFSET_VOXEL & voxel,
  const bool flag_min_offset,
