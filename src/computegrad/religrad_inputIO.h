@@ -64,6 +64,8 @@ public:
 	int cdist; // associated with curvature based reliablity prediction
 	int extend_max;
 
+	enum fail_reason{};
+
 	
 
 	OUTPUT_INFO	 out_info;    // generate some output_info
