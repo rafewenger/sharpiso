@@ -1261,7 +1261,17 @@ namespace {
     // reset gcube_map[gcube_index[1]].
     gcube_map[gcube_index[1]] = store_map[1];
 
-    if (!flag_result) { return(false); }
+    if (!flag_result) { 
+
+      if (flag_debug) {
+        MSDEBUG();
+        scalar_grid.PrintIndexAndCoord
+          (cerr, "    Cubes ", cube0, " and ", cube1,
+           " failed check_separating_cubes test.\n");
+      }
+
+      return(false); 
+    }
 
     return(true);
   }
@@ -1860,20 +1870,18 @@ namespace {
   }
 
 	// Map cube pairs which share an ambiguous facet
-  // Simple version.  No repeat mapping.
-	void map_ambiguous_pairs_simple
+	void map_ambiguous_pairs
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
    const MERGESHARP::ISOVERT & isovert, 
    const std::vector<NUM_TYPE> & selected_gcube_list,
+   const bool flag_extended,
    const bool flag_strict,
    const MERGE_PARAM & merge_param,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
-    const bool flag_extended(false);
-    const MAP_PARAM_FLAGS param_flags = {flag_extended, flag_strict};
     bool flag;
 
     // Map cube pairs where one cube is facet adjacent to a cube in the list.
@@ -1949,9 +1957,9 @@ namespace {
        selected_gcube_list, flag_strict, merge_param, gcube_map);
 
     // Map ambiguous pairs
-    map_ambiguous_pairs_simple
+    map_ambiguous_pairs
       (scalar_grid, isodual_table, ambig_info, isovalue, isovert, 
-       selected_gcube_list, flag_strict, merge_param, gcube_map);
+       selected_gcube_list, flag_extended, flag_strict, merge_param, gcube_map);
 
     // Try again to map cube pairs (cube0, cube1) where cube0 
     //   is facet adjacent to a selected cube
@@ -1986,9 +1994,9 @@ namespace {
        selected_gcube_list, flag_strict, merge_param, gcube_map);
 
     // Try again to map ambiguous pairs
-    map_ambiguous_pairs_simple
+    map_ambiguous_pairs
       (scalar_grid, isodual_table, ambig_info, isovalue, isovert, 
-       selected_gcube_list, flag_strict, merge_param, gcube_map);
+       selected_gcube_list, flag_extended, flag_strict, merge_param, gcube_map);
 
     // Try again to map cube pairs (cube0, cube1) where cube0 
     //   is facet adjacent to a selected cube
@@ -2053,6 +2061,11 @@ namespace {
        selected_gcube_list, merge_param, gcube_map);
 
 		if (flag_map_extended) {
+
+      map_ambiguous_pairs
+        (scalar_grid, isodual_table, ambig_info, isovalue, isovert, 
+         selected_gcube_list, flag_map_extended, flag_strict, 
+         merge_param, gcube_map);
 
       extend_map_adjacent_pairs_covered
         (scalar_grid, isodual_table, ambig_info, isovalue, isovert, 
@@ -2169,9 +2182,9 @@ namespace {
                   MSDEBUG();
                   cerr << "    Multi isov check failed." << endl;
                   scalar_grid.PrintIndexAndCoord
-                    (cerr, "    From ", from_cube, " to ", to_cube,
+                    (cerr, "      From ", from_cube, " to ", to_cube,
                      " adjacent ", adj_cube_index, "\n");
-                  cerr << "    Cube " << from_cube
+                  cerr << "      Cube " << from_cube
                        << " has " << isodual_table.NumIsoVertices(table_index)
                        << " isosurface vertices. (Table index: " 
                        << table_index << ")." << endl;
@@ -2464,8 +2477,18 @@ namespace {
 
 
     if (linf_distanceA > max_linf_distance ||
-        linf_distanceB > max_linf_distance)
-      { return(false); }
+        linf_distanceB > max_linf_distance) {
+
+      if (flag_debug) {
+        MSDEBUG();
+        cerr << "    max_linf_distance = " << max_linf_distance << endl;
+        scalar_grid.PrintIndexAndCoord
+          (cerr, "    Cube ", cube0, " or ", cube1,
+           " are not within max_distance.\n");
+      }
+
+      return(false); 
+    }
 
     bool flag_connectedA =
       is_unselected_cube_connected_to
@@ -2475,7 +2498,18 @@ namespace {
       is_unselected_cube_connected_to
       (scalar_grid, isovalue, isovert, cube1, to_cube1, gcube_map);
 
-    if (!flag_connectedA && !flag_connectedB) { return(false); }
+    if (!flag_connectedA && !flag_connectedB) { 
+
+      if (flag_debug) {
+        MSDEBUG();
+        scalar_grid.PrintIndexAndCoord
+          (cerr, "Cube ", cube0, " is not connected to ", to_cube0, "\n");
+        scalar_grid.PrintIndexAndCoord
+          (cerr, "Cube ", cube1, " is not connected to ", to_cube1, "\n");
+      }
+
+      return(false); 
+    }
 
     if (!check_edge_manifoldII
         (scalar_grid, isovalue, cube0, to_cube0, cube1, to_cube1,
@@ -3112,11 +3146,17 @@ namespace {
     if (gcube0 == ISOVERT::NO_INDEX) { return; }
     if (gcube_map[gcube0] != gcube0) { return; }
 
+    if (flag_debug) {
+      MSDEBUG();
+      cerr << "In " << __func__;
+      scalar_grid.PrintIndexAndCoord(cerr, ".  Cube 0: ", cube0, "\n");
+    }
+
     // Check that if cube0 has multiple isosurface vertices,
     //   then any connecting adjacent cubes map to to_cube.
     if (!check_cubes_with_multi_isov
         (scalar_grid, isodual_table, ambig_info, isovalue,
-         cube0, to_cube, isovert, gcube_map))
+         cube0, to_cube, isovert, gcube_map)) 
       { return; }
 
     boundary_bits = isovert.gcube_list[gcube0].boundary_bits;
@@ -4554,6 +4594,13 @@ namespace {
   {
     const bool flag_extended = true;
     BOUNDARY_BITS_TYPE boundary_bits;
+
+    if (flag_debug) {
+      MSDEBUG();
+      cerr << endl
+           << "--- Extended mapping, adjacent pairs where 1 is covered."
+           << endl;
+    }
 
 		for (NUM_TYPE i = 0; i < sharp_gcube_list.size(); i++) {
 
