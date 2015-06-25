@@ -3100,6 +3100,7 @@ void MERGE_PARAM::Init()
   SetMinSharpCubeTriangleAngle(5);
   SetMinNormalAngle(30);
   SetCollapseAngle(20);
+  flag_collapse_triangles_with_small_angles = false;
 }
 
 void MERGE_PARAM::SetMinTriangleAngle(const ANGLE_TYPE degrees)

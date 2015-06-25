@@ -49,6 +49,8 @@ namespace {
   bool is_strictly_between
   (const COORD_TYPE x, const COORD_TYPE a0, const COORD_TYPE a1);
 
+  bool is_covered_A_or_corner(const GRID_CUBE_FLAG flag);
+
   bool are_separated
   (const SHARPISO_GRID & grid,
    const GRID_CUBE_DATA & gcubeA, const COORD_TYPE coordA[DIM3],
@@ -461,12 +463,8 @@ bool MERGESHARP::check_tri_distortion_mapA
   GRID_CUBE_FLAG gcubeB_flag = isovert.gcube_list[gcube_map[gcubeB_index]].flag;
   GRID_CUBE_FLAG gcubeC_flag = isovert.gcube_list[gcube_map[gcubeC_index]].flag;
 
-  if (gcubeB_flag == COVERED_A_GCUBE || gcubeB_flag == COVERED_CORNER_GCUBE) {
-    return(true);
-  }
-  if (gcubeC_flag == COVERED_A_GCUBE || gcubeC_flag == COVERED_CORNER_GCUBE) {
-    return(true);
-  }
+  if (is_covered_A_or_corner(gcubeB_flag)) { return(true); }
+  if (is_covered_A_or_corner(gcubeC_flag)) { return(true); }
 
   if (gcubeB_flag == UNAVAILABLE_GCUBE || gcubeC_flag == UNAVAILABLE_GCUBE)
     { return(true); }
@@ -519,7 +517,7 @@ bool MERGESHARP::check_tri_distortion_mapA
       // *** DEBUG ***
       if (flag_debug) {
         MSDEBUG();
-        cerr << "--- Failed angle test." 
+        cerr << "xxx Failed angle test." 
              << "  angle_ABC: " << acos(cos_angle_ABC) * 180.0/M_PI
              << "  angle_ACB: " << acos(cos_angle_ACB) * 180.0/M_PI
              << endl;
@@ -538,8 +536,21 @@ bool MERGESHARP::check_tri_distortion_mapA
      min_dist, cos_normal_angle, flag_small_magnitude);
 
   if (!flag_small_magnitude) {
-    if (cos_normal_angle >= cos_min_normal_angle)
-      { return(true); }
+    if (cos_normal_angle >= cos_min_normal_angle) {
+
+      if (flag_debug) {
+        MSDEBUG();
+        // Numerical error could cause cos_normal_angle to be out of bounds.
+        if (cos_normal_angle > 1) { cos_normal_angle = 1; }
+        if (cos_normal_angle < -1) { cos_normal_angle = -1; }
+        cerr << "    Passed normal angle test.  cos_normal_angle: "
+             << cos_normal_angle
+             << ".  Normal angle: "
+             << acos(cos_normal_angle)*180.0/M_PI << endl;
+      }
+
+      return(true);
+    }
   }
 
   // Cube orientation test
@@ -680,12 +691,9 @@ bool MERGESHARP::check_tri_distortion_mapB
 
   GRID_CUBE_FLAG gcubeA_flag = isovert.gcube_list[gcube_map[gcubeA_index]].flag;
   GRID_CUBE_FLAG gcubeC_flag = isovert.gcube_list[gcube_map[gcubeC_index]].flag;
-  if (gcubeA_flag == COVERED_A_GCUBE || gcubeA_flag == COVERED_CORNER_GCUBE) {
-    return(true);
-  }
-  if (gcubeC_flag == COVERED_A_GCUBE || gcubeC_flag == COVERED_CORNER_GCUBE) {
-    return(true);
-  }
+
+  if (is_covered_A_or_corner(gcubeA_flag)) { return(true); }
+  if (is_covered_A_or_corner(gcubeC_flag)) { return(true); }
 
   if (gcubeA_flag == UNAVAILABLE_GCUBE || gcubeC_flag == UNAVAILABLE_GCUBE)
     { return(true); }
@@ -904,6 +912,15 @@ void MERGESHARP::compute_cos_dihedral_angle
   if (flag_small_magnitude) { return; }
 
   IJK::compute_inner_product_3D(u0, u1, cos_dihedral);
+
+  // *** DEBUGXXX ***
+  if (flag_debug) {
+    MSDEBUG();
+    IJK::print_coord3D(cerr, "    A0: ", coordA0, "  A1: ", coordA1, "\n");
+    IJK::print_coord3D(cerr, "    wBC: ", wBC, "\n");
+    IJK::print_coord3D(cerr, "    wA0B: ", wA0B, "  wA1B:", wA1B, "\n");
+    IJK::print_coord3D(cerr, "    u0: ", u0, "  u1: ", u1, "\n");
+  }
 }
 
 
@@ -1334,6 +1351,14 @@ namespace {
     if ((a0 <= x) && (x <= a1)) { return(true); }
     if ((a0 >= x) && (x >= a1)) { return(true); }
     return(false);
+  }
+
+  bool is_covered_A_or_corner(const GRID_CUBE_FLAG flag)
+  {
+    if (flag == COVERED_A_GCUBE || flag == COVERED_CORNER_GCUBE)
+      { return(true); }
+    else
+      { return(false); }
   }
 
   bool are_separated

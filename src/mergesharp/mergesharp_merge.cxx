@@ -4778,11 +4778,16 @@ void MERGESHARP::collapse_triangles_with_small_angles
  MERGESHARP::ISOVERT & isovert, 
  std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
 {
-  IJK::PROCEDURE_ERROR error("merge_small_triangle_angles");
+  IJK::PROCEDURE_ERROR error("collapse_triangle_with_small_angles");
   VERTEX_INDEX quad_cube[NUM_VERT_PER_QUAD];
   INDEX_DIFF_TYPE quad_gcube[NUM_VERT_PER_QUAD];
   NUM_TYPE tri_gcube[NUM_VERT_PER_TRI];
   const COORD_TYPE cos_min_angle = param.CosCollapseAngle();
+
+  if (flag_debug) {
+    MSDEBUG();
+    cerr << endl << "--- In " << __func__ << endl;
+  }
 
   IJK_FOR_EACH_INTERIOR_GRID_EDGE
     (iend0, edge_dir, scalar_grid, VERTEX_INDEX) {
@@ -6201,9 +6206,13 @@ namespace {
         { 
           // *** DEBUG ***
           using namespace std;
-          if (flag_debug) { cerr << "  Merge identifies edge adjacent axis coord (B)." << endl; }
+          if (flag_debug) {
+            cerr << "  Merge identifies edge adjacent axis coord (B)." 
+                 << endl; 
+          }
 
-          return(false); }
+          return(false); 
+        }
 
       if (does_merge_identify_vertex_adjacent_axis_coord_B
           (scalar_grid, isovert, from_gcube_index, to_gcube_index, gcube_map))
@@ -6221,7 +6230,9 @@ namespace {
         { 
           // *** DEBUG ***
           using namespace std;
-          if (flag_debug) { cerr << "  Merge identifies edge adjacent axis coord." << endl; }
+          if (flag_debug) { 
+            cerr << "  Merge identifies edge adjacent axis coord." << endl; 
+          }
 
           return(false); }
 
