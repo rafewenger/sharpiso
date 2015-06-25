@@ -1461,9 +1461,7 @@ bool  extended_curvature_based_B_per_vertex(
 					gradient_grid, grad_mag_grid);
 				
 				if( deg <= alpha){
-					
 					if(io_info.cdist==2){
-						
 						if(reliable_grid.Scalar(v3)){
 							k=2;
 							float deg = lambda_computationsC(iv, v3, v2, k, scalar_grid, 
@@ -1473,14 +1471,10 @@ bool  extended_curvature_based_B_per_vertex(
 								return true;
 							else 
 								return false; 
-							//if( deg < alpha){
-							//	extended_reliable.push_back(iv);
-							//}
 						}
 					}
 					else{
 						return true;
-						//extended_reliable.push_back(iv);
 					}
 				}
 				else
@@ -1606,7 +1600,7 @@ void algo12_per_vertex(
 * This is the key function being called. 
 **/
 
-bool curvature_based_B_per_vertex(
+pair<bool,string> curvature_based_B_per_vertex(
 	const VERTEX_INDEX iv,
 	const RELIGRADIENT_SCALAR_GRID_BASE & scalar_grid,
 	const GRADIENT_GRID & gradient_grid,
@@ -1616,14 +1610,7 @@ bool curvature_based_B_per_vertex(
 	bool & debugFunction
 	)
 {
-	//debug 
-	if (debugFunction){
-		COORD_TYPE garb[DIM3];
-		scalar_grid.ComputeCoord(iv,garb);
-		if (garb[0]==72 && garb[1]==44 && garb[2]==56){
-			cout <<"vertex "<< iv << endl;
-		}
-	}
+
  	GRADIENT_COORD_TYPE magiv = grad_mag_grid.Scalar(iv); 
 	GRADIENT_COORD_TYPE gradiv[DIM3], normgradiv[DIM3];
 	
@@ -1649,8 +1636,9 @@ bool curvature_based_B_per_vertex(
 
 			//boundary
 			for (int d = 0; d < DIM3; d++){
-				if (   ( v3c[d] > (scalar_grid.AxisSize(d) - 1)) ||  ( v2c[d] > (scalar_grid.AxisSize(d) - 1))
-					||  ( v3c[d] < 0) || (v2c[d] < 0 )) return false;
+				if (   ( v3c[d] > (scalar_grid.AxisSize(d) - 1)) ||  
+					( v2c[d] > (scalar_grid.AxisSize(d) - 1))
+					||  ( v3c[d] < 0) || (v2c[d] < 0 )) return make_pair(false,"boundary");
 			}
 			
 			VERTEX_INDEX v2 = scalar_grid.ComputeVertexIndex(v2c); 
@@ -1658,47 +1646,42 @@ bool curvature_based_B_per_vertex(
 
 			float alpha = 5; alpha = io_info.param_angle;
 			int k=1;
-
-			//degree
-			float deg = lambda_computationsC (iv, v2, v1, k, scalar_grid, 
-				gradient_grid, grad_mag_grid);
-			// end degree 
-
+			float deg = lambda_computationsC 
+				(iv, v2, v1, k, scalar_grid, gradient_grid, grad_mag_grid);
+			if (deg > alpha) return make_pair(false,"deg("+to_string(deg)+")> alpha");
 			if(io_info.cdist == 2){
 				k=2;
 				float deg2 = lambda_computationsC (iv, v3, v2, k, scalar_grid, 
 					gradient_grid, grad_mag_grid);
+				if (deg2 > alpha) return make_pair(false,"deg2("+to_string(deg2)+")> alpha");
 			}
 		} // tangent neighbor set end
 
 		//ortho match 
-		if(ortho_neighbor_set_iv.size() > 0 ){
+		if(ortho_neighbor_set_iv.size() == 0 ) 
+			return  make_pair(true,"all angle tests passed");
+		else{
 			bool oMatch = does_ortho_match(
 				iv, ortho_neighbor_set_iv, scalar_grid,gradient_grid, 
 				grad_mag_grid,io_info);
-			
-			//if(oMatch) { reliable_grid.Set(iv, true);}
-			if(oMatch) { return true;}
+
+			return oMatch ? make_pair(true,"orthomatch success") :
+				make_pair(false, "ortho match failed");
 			/*
 			if (does_ortho_matchA(
-				iv, ortho_neighbor_set_iv, scalar_grid,gradient_grid, 
-				grad_mag_grid,io_info))
-				reliable_grid.Set(iv, true);
+			iv, ortho_neighbor_set_iv, scalar_grid,gradient_grid, 
+			grad_mag_grid,io_info))
+			reliable_grid.Set(iv, true);
 			else if(does_ortho_matchB(
-				iv, ortho_neighbor_set_iv, scalar_grid,gradient_grid, 
-				grad_mag_grid,io_info))
-				reliable_grid.Set(iv, true);
+			iv, ortho_neighbor_set_iv, scalar_grid,gradient_grid, 
+			grad_mag_grid,io_info))
+			reliable_grid.Set(iv, true);
 			else
-				return;
+			return;
 			*/
-		} // ortho set. 
-		else
-		{
-				return true;
 		}
-		
 	}
-	return false;
+	return make_pair(false,"mag iv falied");
 }
 
 /**
@@ -2107,11 +2090,20 @@ void compute_reliable_gradients_curvature_basedB(
 	{
 		if(!boundary_grid.Scalar(iv))
 		{
-			//iv==1266672 ? debugVertex=true : debugVertex=false; 
-			if (curvature_based_B_per_vertex(iv, scalar_grid, gradient_grid,
-				grad_mag_grid, reliable_grid, io_info, debugVertex)){
+			iv == 1360428 ? debugVertex= true : debugVertex=false; 
+			pair<bool, string> isReli =
+				curvature_based_B_per_vertex(iv, scalar_grid, gradient_grid,
+				grad_mag_grid, reliable_grid, io_info, debugVertex);
+			if (isReli.first){
 				reliable_grid.Set(iv, true);
 			}
+			//debug
+			if(debugVertex){
+					cout <<"vertex "<< iv <<endl;
+					cout <<"reliable gradient "<<
+						(isReli.first) ? "yes" : "no"; 
+					cout<<" why ? "<< isReli.second <<endl;
+				}
 		}
 	}
 	// check if extended
