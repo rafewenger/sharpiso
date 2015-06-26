@@ -990,6 +990,32 @@ namespace MERGESHARP {
   }
 
 
+  /// Apply to each cube which is facet adjacent to a cube in gcube_list.
+  /// (3 + 10 arguments.)
+  template <typename FTYPE, typename ATYPE1, typename ATYPE2,
+            typename ATYPE3,typename ATYPE4, typename ATYPE5,
+            typename ATYPE6, typename ATYPE7, typename ATYPE8,
+            typename ATYPE9, typename ATYPE10>
+  void apply_to_cubes_facet_adjacent_to_list
+  (FTYPE f, const std::vector<NUM_TYPE> & gcube_list, const ISOVERT & isovert,
+   ATYPE1 & arg1, ATYPE2 & arg2, ATYPE3 & arg3, ATYPE4 & arg4, ATYPE5 & arg5,
+   ATYPE6 & arg6, ATYPE7 & arg7, ATYPE8 & arg8, ATYPE9 & arg9, ATYPE10 & arg10)
+  {
+    for (NUM_TYPE i = 0; i < gcube_list.size(); i++) {
+
+      NUM_TYPE to_gcube = gcube_list[i];
+      VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube);
+
+      BOUNDARY_BITS_TYPE boundary_bits = 
+        isovert.gcube_list[to_gcube].boundary_bits;
+
+      apply_to_cubes_facet_adjacent_to
+        (f, isovert.grid, to_cube, boundary_bits,
+         arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+    }
+  }
+
+
   // **************************************************
   // EDGE ADJACENT TO LIST APPLY TEMPLATES
   // **************************************************

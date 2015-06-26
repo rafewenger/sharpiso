@@ -465,15 +465,15 @@ bool MERGESHARP::check_tri_distortion_mapA
   GRID_CUBE_FLAG gcubeB_flag = isovert.gcube_list[gcube_map[gcubeB_index]].flag;
   GRID_CUBE_FLAG gcubeC_flag = isovert.gcube_list[gcube_map[gcubeC_index]].flag;
 
+  /* DEBUGXXX
   if (is_covered_A_or_corner(gcubeB_flag)) { return(true); }
   if (is_covered_A_or_corner(gcubeC_flag)) { return(true); }
+  */
 
-  /* DEBUGXXX
   if (gcubeB_flag != SELECTED_GCUBE || gcubeC_flag != SELECTED_GCUBE) {
     if (is_in_3x3x3_region(gcubeB_flag) && is_in_3x3x3_region(gcubeC_flag))
       { return(true); }
   }
-  */
 
   if (gcubeB_flag == UNAVAILABLE_GCUBE || gcubeC_flag == UNAVAILABLE_GCUBE)
     { return(true); }
@@ -754,7 +754,7 @@ bool MERGESHARP::check_tri_distortion_mapB
       // *** DEBUG ***
       if (flag_debug) {
         MSDEBUG();
-        cerr << "--- Failed angle test." 
+        cerr << "xxx Failed angle test." 
              << "  angle_BAC: " << acos(cos_angle_BAC) * 180.0/M_PI
              << "  angle_BCA: " << acos(cos_angle_BCA) * 180.0/M_PI
              << endl;
@@ -1106,7 +1106,7 @@ bool MERGESHARP::check_edge_manifoldII
     if (flag_debug) {
       MSDEBUG();
       isovert.grid.PrintIndexAndCoord
-        (cerr, "  -- Checking from ", from_cube0, " to ", to_cube0,
+        (cerr, "    Checking from ", from_cube0, " to ", to_cube0,
          " connected to ", cubeA_index, "\n");
     }
 
@@ -1121,7 +1121,7 @@ bool MERGESHARP::check_edge_manifoldII
     if (flag_debug) {
       MSDEBUG();
       isovert.grid.PrintIndexAndCoord
-        (cerr, "  -- Checking from ", from_cube1, " to ", to_cube1,
+        (cerr, "   Checking from ", from_cube1, " to ", to_cube1,
          " connected to ", cubeA_index, "\n");
     }
 
