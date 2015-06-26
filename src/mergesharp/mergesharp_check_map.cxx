@@ -51,6 +51,8 @@ namespace {
 
   bool is_covered_A_or_corner(const GRID_CUBE_FLAG flag);
 
+  bool is_in_3x3x3_region(const GRID_CUBE_FLAG flag);
+
   bool are_separated
   (const SHARPISO_GRID & grid,
    const GRID_CUBE_DATA & gcubeA, const COORD_TYPE coordA[DIM3],
@@ -465,6 +467,13 @@ bool MERGESHARP::check_tri_distortion_mapA
 
   if (is_covered_A_or_corner(gcubeB_flag)) { return(true); }
   if (is_covered_A_or_corner(gcubeC_flag)) { return(true); }
+
+  /* DEBUGXXX
+  if (gcubeB_flag != SELECTED_GCUBE || gcubeC_flag != SELECTED_GCUBE) {
+    if (is_in_3x3x3_region(gcubeB_flag) && is_in_3x3x3_region(gcubeC_flag))
+      { return(true); }
+  }
+  */
 
   if (gcubeB_flag == UNAVAILABLE_GCUBE || gcubeC_flag == UNAVAILABLE_GCUBE)
     { return(true); }
@@ -1268,6 +1277,9 @@ namespace {
               return(true);
             }
           }
+
+          // restore gcube_map[i1]
+          gcube_map[gcube_index[i1]] = store_map[i1];        
         }
       }
 
@@ -1356,6 +1368,18 @@ namespace {
   bool is_covered_A_or_corner(const GRID_CUBE_FLAG flag)
   {
     if (flag == COVERED_A_GCUBE || flag == COVERED_CORNER_GCUBE)
+      { return(true); }
+    else
+      { return(false); }
+  }
+
+  // If a cube is an 3x3x3 region around a selected cube,
+  //   then the cube is COVERED_A_GCUBE or COVERED_CORNER_GCUBE
+  //   or SELECTED_GCUBE.
+  bool is_in_3x3x3_region(const GRID_CUBE_FLAG flag)
+  {
+    if (flag == COVERED_A_GCUBE || flag == COVERED_CORNER_GCUBE ||
+        flag == SELECTED_GCUBE)
       { return(true); }
     else
       { return(false); }
