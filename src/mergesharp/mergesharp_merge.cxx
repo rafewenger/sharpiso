@@ -2391,6 +2391,68 @@ namespace {
   }
 
 
+  // Check that cubes which share ambiguous facets will map to to_cube.
+  // Return true if passed check.
+  bool check_cubes_with_ambig_facets
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid, 
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
+   const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
+   const VERTEX_INDEX gcube_index[],
+   const NUM_TYPE num_cube,
+   const VERTEX_INDEX to_gcube,
+   const MERGESHARP::ISOVERT & isovert, 
+   const std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
+  {
+    IJK::PROCEDURE_ERROR error("check_cubes_with_ambig_facets");
+    int orth_dir;
+    int side;
+
+    for (NUM_TYPE i = 0; i < num_cube; i++) {
+
+      const NUM_TYPE gcube_index_i = gcube_index[i];
+
+      const IJKDUALTABLE::TABLE_INDEX table_index = 
+        isovert.gcube_list[gcube_index_i].table_index;
+
+      if (ambig_info.NumAmbiguousFacets(table_index) == 0) { continue; }
+
+      const BOUNDARY_BITS_TYPE boundary_bits =
+        isovert.gcube_list[gcube_index_i].boundary_bits;
+      const VERTEX_INDEX cube_index_i = isovert.CubeIndex(gcube_index_i);
+
+      for (NUM_TYPE jfacet = 0; jfacet < NUM_CUBE_FACETS3D; jfacet++) {
+
+        if (ambig_info.IsFacetAmbiguous(table_index, jfacet)) {
+          orth_dir = IJK::cube_facet_orth_dir(DIM3, jfacet);
+          side = IJK::cube_facet_side(DIM3, jfacet);
+
+          BOUNDARY_BITS_TYPE mask = (BOUNDARY_BITS_TYPE(1) << jfacet);
+          if (!(boundary_bits & mask)) { 
+            VERTEX_INDEX adj_cube_index = 
+              isovert.grid.AdjacentVertex(cube_index_i, orth_dir, side);
+            INDEX_DIFF_TYPE adj_gcube_index =
+              isovert.GCubeIndex(adj_cube_index, error);
+
+            if (adj_gcube_index == ISOVERT::NO_INDEX) { throw error; }
+
+            if (gcube_map[adj_gcube_index] == to_gcube) { continue; }
+
+            bool flag_found_adj = false;
+            for (int j = 0; j < num_cube; j++) {
+              if (gcube_index[j] == adj_gcube_index)
+                { flag_found_adj = true; }
+            }
+
+            if (!flag_found_adj) { return(false); }
+          }
+        }
+      }
+    }
+
+    return(true);
+  }
+
+
   // check for some violations of manifold conditions by map
   // (Does not catch all violations.)
   bool check_map_multi
@@ -3663,24 +3725,23 @@ namespace {
    bool & flag_map)
   {
     const INDEX_DIFF_TYPE gcube0_index = isovert.GCubeIndex(cube0_index);
+    const INDEX_DIFF_TYPE to_gcube = isovert.GCubeIndex(to_cube);
+    const int num_cubes = 3;
+    INDEX_DIFF_TYPE gcube_index[num_cubes];
     BOUNDARY_BITS_TYPE boundary_bits;
 
     flag_map = false;
 
     if (gcube0_index == ISOVERT::NO_INDEX) { return; }
+    if (to_gcube == ISOVERT::NO_INDEX) { return; }
     if (gcube_map[gcube0_index] != gcube0_index) { return; }
-
-    // Check that if cube0 has multiple isosurface vertices,
-    //   then any connecting adjacent cubes map to to_cube.
-    if (!check_cubes_with_multi_isov
-        (scalar_grid, isodual_table, ambig_info, isovalue,
-         cube0_index, to_cube, isovert, gcube_map))
-      { return; }
 
     boundary_bits = isovert.gcube_list[gcube0_index].boundary_bits;
 
     if (boundary_bits == 0) {
       // Cube cube0 is an interior cube.
+
+      gcube_index[0] = gcube0_index;
 
       for (int d = 0; d < DIM3; d++) {
 
@@ -3701,41 +3762,43 @@ namespace {
         
             if (!is_cube_unmapped_unselected_active
                 (cube2_index, isovert, gcube_map)) { continue; }
-
-            // Check that if cube2 has multiple isosurface vertices,
-            //   then any connecting adjacent cubes map to to_cube.
-            if (!check_cubes_with_multi_isov
-                (scalar_grid, isodual_table, ambig_info, isovalue,
-                 cube2_index, to_cube, isovert, gcube_map))
-              { continue; }
+            gcube_index[2] = isovert.GCubeIndex(cube2_index);
 
             if (is_cube_unmapped_unselected_active
                 (cube1_index, isovert, gcube_map)) { 
+              gcube_index[1] = isovert.GCubeIndex(cube1_index);
 
-              if (check_cubes_with_multi_isov
-                  (scalar_grid, isodual_table, ambig_info, isovalue,
-                   cube1_index, to_cube, isovert, gcube_map))
+              if (check_cubes_with_ambig_facets
+                  (scalar_grid, isodual_table, ambig_info, gcube_index, 
+                   num_cubes, to_gcube, isovert, gcube_map)) {
 
                 check_and_mapIII
                   (scalar_grid, isovalue, cube0_index, cube1_index, cube2_index,
                    to_cube, isovert, flag_extended, merge_param,
                    gcube_map, flag_map);
-              if (flag_map) { return; }
+
+                if (flag_map) { return; }
+              }
             }
 
 
             if (is_cube_unmapped_unselected_active
                 (cube3_index, isovert, gcube_map)) { 
 
-              if (check_cubes_with_multi_isov
-                  (scalar_grid, isodual_table, ambig_info, isovalue,
-                   cube3_index, to_cube, isovert, gcube_map))
+              gcube_index[1] = isovert.GCubeIndex(cube3_index);
+
+              if (check_cubes_with_ambig_facets
+                  (scalar_grid, isodual_table, ambig_info, gcube_index,
+                   num_cubes, to_gcube, isovert, gcube_map)) {
 
                 check_and_mapIII
-                  (scalar_grid, isovalue, cube0_index, cube3_index, cube2_index,
+                  (scalar_grid, isovalue, cube0_index, cube1_index, cube2_index,
                    to_cube, isovert, flag_extended, merge_param,
                    gcube_map, flag_map);
-              if (flag_map) { return; }
+
+                if (flag_map) { return; }
+              }
+
             }
           }
         }
