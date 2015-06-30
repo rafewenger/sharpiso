@@ -267,6 +267,7 @@ namespace {
    const SCALAR_TYPE isovalue,
    const MERGESHARP::ISOVERT & isovert, 
    const std::vector<NUM_TYPE> & sharp_gcube_list,
+   const bool flag_strict,
    const MERGESHARP::MERGE_PARAM & merge_param,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
@@ -276,6 +277,7 @@ namespace {
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
    const MERGESHARP::ISOVERT & isovert, 
+   const bool flag_strict,
    const MERGESHARP::MERGE_PARAM & merge_param,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map);
 
@@ -2235,8 +2237,8 @@ namespace {
          merge_param, gcube_map);
 
       extend_map_around_edges
-        (scalar_grid, isodual_table, ambig_info, isovalue, isovert, merge_param,
-         gcube_map);
+        (scalar_grid, isodual_table, ambig_info, isovalue, isovert, 
+         param_flags.strict, merge_param, gcube_map);
 
       // Redo map to adjacent cubes.
       map_adjacent_cubes_multi_simple
@@ -2280,9 +2282,10 @@ namespace {
         (scalar_grid, isodual_table, ambig_info, isovalue, isovert, 
          merge_param, gcube_map);
 
+      const bool flag_strict = false;
       extend_map_around_edges
-        (scalar_grid, isodual_table, ambig_info, isovalue, isovert, merge_param,
-         gcube_map);
+        (scalar_grid, isodual_table, ambig_info, isovalue, isovert, 
+         flag_strict, merge_param, gcube_map);
 
       extend_mapping
         (scalar_grid, isovalue, selected_gcube_list, isovert, gcube_map);
@@ -2838,11 +2841,13 @@ namespace {
    const VERTEX_INDEX cube_index[3],
    const VERTEX_INDEX to_cube,
    const MERGESHARP::ISOVERT & isovert,
+   const MAP_PARAM_FLAGS & map_param,
    const MERGE_PARAM & merge_param,
-   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
-   const bool flag_extended)
+   std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
     const NUM_TYPE to_gcube = isovert.GCubeIndex(to_cube);
+    const bool flag_extended = map_param.extended;
+    const bool flag_strict = map_param.strict;
     GRID_COORD_TYPE max_linf_distance;
 
     for (int i = 0; i < 3; i++) {
@@ -2895,7 +2900,6 @@ namespace {
       return(false); 
     }
 
-    const bool flag_strict = true;
     if (!check_distortionIII
         (scalar_grid, isovalue, isovert, gcube_map, 
          cube_index, to_cube, flag_strict, merge_param)) {
@@ -3114,6 +3118,10 @@ namespace {
     INDEX_DIFF_TYPE gcube_index[3];
     bool adjacent_cube_found;
     int orth_dir, side;
+    MAP_PARAM_FLAGS map_param;
+
+    map_param.extended = flag_extended;
+    map_param.strict = true;
 
     if (to_gcube == ISOVERT::NO_INDEX) { throw error; }
 
@@ -3168,7 +3176,7 @@ namespace {
         }
 
         if (check_mapIII(scalar_grid, isovalue, cube_index, to_cube,
-                         isovert, merge_param, gcube_map, flag_extended)) {
+                         isovert, map_param, merge_param, gcube_map)) {
 
           for (int i = 0; i < 3; i++) {
             if (gcube_map[gcube_index[i]] == gcube_index[i]) {
@@ -3365,7 +3373,7 @@ namespace {
    const VERTEX_INDEX cube_index[3],
    const VERTEX_INDEX to_cube,
    const MERGESHARP::ISOVERT & isovert,
-   const bool flag_extended,
+   const MAP_PARAM_FLAGS & map_param,
    const MERGE_PARAM & merge_param,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
    bool & flag_map)
@@ -3389,8 +3397,8 @@ namespace {
     }
 
     if (check_mapIII
-        (scalar_grid, isovalue, cube_index, to_cube, isovert, merge_param,
-         gcube_map, flag_extended)) {
+        (scalar_grid, isovalue, cube_index, to_cube, isovert, map_param,
+         merge_param, gcube_map)) {
 
       NUM_TYPE to_gcube = isovert.GCubeIndex(to_cube);
       for (int i = 0; i < 3; i++) {
@@ -3426,7 +3434,7 @@ namespace {
    const VERTEX_INDEX cube_index2,
    const VERTEX_INDEX to_cube,
    const MERGESHARP::ISOVERT & isovert,
-   const bool flag_extended,
+   const MAP_PARAM_FLAGS & map_param,
    const MERGE_PARAM & merge_param,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
    bool & flag_map)
@@ -3435,7 +3443,7 @@ namespace {
       { cube_index0, cube_index1, cube_index2 };
 
     check_and_mapIII(scalar_grid, isovalue, cube_index, to_cube, isovert,
-                     flag_extended, merge_param, gcube_map, flag_map);
+                     map_param, merge_param, gcube_map, flag_map);
   }
 
   /// Return true if cube is active, unmapped and unselected
@@ -3711,7 +3719,7 @@ namespace {
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE & isodual_table,
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
-   const bool flag_extended,
+   const MAP_PARAM_FLAGS & param_flags,
    const MERGE_PARAM & merge_param,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
    bool & flag_map)
@@ -3721,6 +3729,7 @@ namespace {
     const int num_cubes = 3;
     INDEX_DIFF_TYPE gcube_index[num_cubes];
     BOUNDARY_BITS_TYPE boundary_bits;
+
 
     flag_map = false;
 
@@ -3766,7 +3775,7 @@ namespace {
 
                 check_and_mapIII
                   (scalar_grid, isovalue, cube0_index, cube1_index, cube2_index,
-                   to_cube, isovert, flag_extended, merge_param,
+                   to_cube, isovert, param_flags, merge_param,
                    gcube_map, flag_map);
 
                 if (flag_map) { return; }
@@ -3785,7 +3794,7 @@ namespace {
 
                 check_and_mapIII
                   (scalar_grid, isovalue, cube0_index, cube1_index, cube2_index,
-                   to_cube, isovert, flag_extended, merge_param,
+                   to_cube, isovert, param_flags, merge_param,
                    gcube_map, flag_map);
 
                 if (flag_map) { return; }
@@ -5159,11 +5168,15 @@ namespace {
    const SCALAR_TYPE isovalue,
    const MERGESHARP::ISOVERT & isovert, 
    const std::vector<NUM_TYPE> & sharp_gcube_list,
+   const bool flag_strict,
    const MERGE_PARAM & merge_param,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
-    const bool flag_extended = true;
+    MAP_PARAM_FLAGS param_flags;
     BOUNDARY_BITS_TYPE boundary_bits;
+
+    param_flags.extended = true;
+    param_flags.strict = flag_strict;
 
     MSDEBUG();
     if (flag_debug)
@@ -5181,17 +5194,17 @@ namespace {
         apply_to_cubes_facet_adjacent_to
           (map_cubes_around_edge, isovert.grid, to_cube, boundary_bits,
            isovert, scalar_grid, isodual_table, ambig_info, isovalue,
-           flag_extended, merge_param, gcube_map, flag_map);
+           param_flags, merge_param, gcube_map, flag_map);
 
         apply_to_cubes_edge_adjacent_to
           (map_cubes_around_edge, isovert.grid, to_cube, boundary_bits,
            isovert, scalar_grid, isodual_table, ambig_info, isovalue,
-           flag_extended, merge_param, gcube_map, flag_map);
+           param_flags, merge_param, gcube_map, flag_map);
 
         apply_to_cubes_vertex_adjacent_to
           (map_cubes_around_edge, isovert.grid, to_cube, boundary_bits,
            isovert, scalar_grid, isodual_table, ambig_info, isovalue,
-           flag_extended, merge_param, gcube_map, flag_map);
+           param_flags, merge_param, gcube_map, flag_map);
       }
 		}
 
@@ -5206,6 +5219,7 @@ namespace {
    const IJKDUALTABLE::ISODUAL_CUBE_TABLE_AMBIG_INFO & ambig_info,
    const SCALAR_TYPE isovalue,
    const MERGESHARP::ISOVERT & isovert, 
+   const bool flag_strict,
    const MERGE_PARAM & merge_param,
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map)
   {
@@ -5215,7 +5229,7 @@ namespace {
 
     extend_map_around_edges
       (scalar_grid, isodual_table, ambig_info, isovalue, isovert, 
-       sharp_gcube_list, merge_param, gcube_map);
+       sharp_gcube_list, flag_strict, merge_param, gcube_map);
   }
 
 }
@@ -7152,6 +7166,10 @@ namespace {
     INDEX_DIFF_TYPE gcube_index[3];
     const INDEX_DIFF_TYPE to_gcube_index = 
       isovert.GCubeIndex(to_cube_index, error);
+    MAP_PARAM_FLAGS map_param;
+
+    map_param.extended = true;
+    map_param.strict = true;
 
     flag_map = false;
 
@@ -7222,7 +7240,7 @@ namespace {
     }
 
     if (!check_mapIII(scalar_grid, isovalue, cube_index, to_cube_index,
-                      isovert, merge_param, gcube_map, true)) {
+                      isovert, map_param, merge_param, gcube_map)) {
 
       MSDEBUG();
       if (flag_debug) 
