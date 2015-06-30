@@ -34,6 +34,20 @@ namespace MERGESHARP {
   /// Return true if mapping of from_cube to to_cube does not reverse any
   ///   triangles incident on vertex in from_cube 
   ///   or create any degenerate triangles.
+  /// @param flag_strict If true, use strict tests.
+  bool check_distortion
+  (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+   const SCALAR_TYPE isovalue,
+   const ISOVERT & isovert,
+   const std::vector<VERTEX_INDEX> & gcube_map,
+   const VERTEX_INDEX from_cube,
+   const VERTEX_INDEX to_cube,
+   const bool flag_strict,
+   const MERGE_PARAM & param);
+
+  /// Return true if mapping of from_cube to to_cube does not reverse any
+  ///   triangles incident on vertex in from_cube 
+  ///   or create any degenerate triangles.
   /// Use check_quad_distortion_strict.
   bool check_distortion_strict
   (const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
@@ -68,6 +82,7 @@ namespace MERGESHARP {
    std::vector<VERTEX_INDEX> & gcube_map,
    const VERTEX_INDEX from_cube0, const VERTEX_INDEX to_cube0,
    const VERTEX_INDEX from_cube1, const VERTEX_INDEX to_cube1,
+   const bool flag_strict,
    const MERGE_PARAM & param);
 
   // Return true if simultaneous mapping of three cubes to to_cube
@@ -79,6 +94,7 @@ namespace MERGESHARP {
    const ISOVERT & isovert,
    std::vector<VERTEX_INDEX> & gcube_map,
    const VERTEX_INDEX cube_index[3], const VERTEX_INDEX to_cube,
+   const bool flag_strict,
    const MERGE_PARAM & param);
 
   /// Return true if mapping of from_cube to to_cube does not reverse/distort

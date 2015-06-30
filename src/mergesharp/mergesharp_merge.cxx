@@ -2520,35 +2520,25 @@ namespace {
          gcube_map, flag_extended))
       { return(false); }
 
-    if (flag_strict) {
-      if (!check_distortion_strict
-          (scalar_grid, isovalue, isovert, gcube_map, 
-           from_cube, to_cube, merge_param)) {
+    if (!check_distortion
+        (scalar_grid, isovalue, isovert, gcube_map, 
+         from_cube, to_cube, flag_strict, merge_param)) {
 
-        if (flag_debug) {
+      if (flag_debug) {
         MSDEBUG();
-        scalar_grid.PrintIndexAndCoord
-          (cerr, "Map failed (strict distortion). From: ", from_cube, 
-           " to ", to_cube, "\n");
+        if (flag_strict) {
+          scalar_grid.PrintIndexAndCoord
+            (cerr, "Map failed (distortion strict). From: ", from_cube, 
+             " to ", to_cube, "\n");
         }
-
-        return(false);
-      }
-    }
-    else {
-      if (!check_distortion_loose
-          (scalar_grid, isovalue, isovert, gcube_map, 
-           from_cube, to_cube, merge_param)) {
-
-        if (flag_debug) {
-        MSDEBUG();
-        scalar_grid.PrintIndexAndCoord
-          (cerr, "Map failed (loose distortion). From: ", from_cube, 
-           " to ", to_cube, "\n");
+        else {
+          scalar_grid.PrintIndexAndCoord
+            (cerr, "Map failed (distortion loose). From: ", from_cube, 
+             " to ", to_cube, "\n");
         }
-
-        return(false);
       }
+
+      return(false);
     }
 
     return(true);
@@ -2815,9 +2805,10 @@ namespace {
       return(false); 
     }
 
+    const bool flag_strict = true;
     if (!check_distortionII
-        (scalar_grid, isovalue, isovert, gcube_map, 
-         cube0, to_cube0, cube1, to_cube1, merge_param)) {
+        (scalar_grid, isovalue, isovert, gcube_map, cube0, to_cube0, 
+         cube1, to_cube1, flag_strict, merge_param)) {
 
       if (flag_debug) {
         MSDEBUG();
@@ -2904,9 +2895,10 @@ namespace {
       return(false); 
     }
 
+    const bool flag_strict = true;
     if (!check_distortionIII
         (scalar_grid, isovalue, isovert, gcube_map, 
-         cube_index, to_cube, merge_param)) {
+         cube_index, to_cube, flag_strict, merge_param)) {
 
       if (flag_debug) {
         MSDEBUG();

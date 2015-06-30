@@ -103,6 +103,36 @@ namespace {
 //  Check distortion
 // **************************************************
 
+/// Return true if mapping of from_cube to to_cube does not reverse any
+///   triangles incident on vertex in from_cube 
+///   or create any degenerate triangles.
+/// @param flag_strict If true, use strict tests.
+bool MERGESHARP::check_distortion
+(const SHARPISO_SCALAR_GRID_BASE & scalar_grid,
+ const SCALAR_TYPE isovalue,
+ const ISOVERT & isovert,
+ const std::vector<VERTEX_INDEX> & gcube_map,
+ const VERTEX_INDEX from_cube,
+ const VERTEX_INDEX to_cube,
+ const bool flag_strict,
+ const MERGE_PARAM & param)
+{
+  bool flag;
+
+  if (flag_strict) {
+    flag = 
+      check_distortion_strict
+      (scalar_grid, isovalue, isovert, gcube_map, from_cube, to_cube, param);
+  }
+  else {
+    flag =
+      check_distortion_loose
+      (scalar_grid, isovalue, isovert, gcube_map, from_cube, to_cube, param);
+  }
+
+  return(flag);
+}
+
 
 /// Return true if mapping of from_cube to to_cube does not reverse any
 ///   triangles incident on vertex in from_cube 
@@ -212,6 +242,7 @@ bool MERGESHARP::check_distortionII
  std::vector<VERTEX_INDEX> & gcube_map,
  const VERTEX_INDEX from_cube0, const VERTEX_INDEX to_cube0,
  const VERTEX_INDEX from_cube1, const VERTEX_INDEX to_cube1,
+ const bool flag_strict,
  const MERGE_PARAM & param)
 {
   IJK::PROCEDURE_ERROR error("check_distortionII");
@@ -237,8 +268,9 @@ bool MERGESHARP::check_distortionII
   // temporarily set gcube_map[from_gcube1_index] to to_cube1
   gcube_map[from_gcube1_index] = to_gcube1_index;
 
-  flag = check_distortion_strict
-    (scalar_grid, isovalue, isovert, gcube_map, from_cube0, to_cube0, param);
+  flag = check_distortion
+    (scalar_grid, isovalue, isovert, gcube_map, from_cube0, to_cube0, 
+     flag_strict, param);
 
   // restore gcube_map[from_gcube1_index]
   gcube_map[from_gcube1_index] = store_map[1];
@@ -248,8 +280,9 @@ bool MERGESHARP::check_distortionII
   // temporarily set gcube_map[from_gcube0_index] to to_cube0
   gcube_map[from_gcube0_index] = to_gcube0_index;
 
-  flag = check_distortion_strict
-    (scalar_grid, isovalue, isovert, gcube_map, from_cube1, to_cube1, param);
+  flag = check_distortion
+    (scalar_grid, isovalue, isovert, gcube_map, from_cube1, to_cube1, 
+     flag_strict, param);
 
   // restore gcube_map[from_gcube0_index]
   gcube_map[from_gcube0_index] = store_map[0];
@@ -269,6 +302,7 @@ bool MERGESHARP::check_distortionIII
  const ISOVERT & isovert,
  std::vector<VERTEX_INDEX> & gcube_map,
  const VERTEX_INDEX cube_index[3], const VERTEX_INDEX to_cube,
+ const bool flag_strict,
  const MERGE_PARAM & param)
 {
   INDEX_DIFF_TYPE gcube_index[3], to_gcube;
@@ -295,9 +329,9 @@ bool MERGESHARP::check_distortionIII
     gcube_map[gcube_index[i1]] = to_gcube;
     gcube_map[gcube_index[i2]] = to_gcube;
 
-    flag = check_distortion_strict
+    flag = check_distortion
       (scalar_grid, isovalue, isovert, gcube_map, cube_index[i0], 
-       to_cube, param);
+       to_cube, flag_strict, param);
 
     // restore gcube_map[]
     gcube_map[gcube_index[i1]] = store_map[i1];
