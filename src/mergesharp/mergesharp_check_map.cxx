@@ -552,15 +552,8 @@ bool MERGESHARP::check_tri_distortion_mapA
   GRID_CUBE_FLAG gcubeB_flag = isovert.gcube_list[gcube_map[gcubeB_index]].flag;
   GRID_CUBE_FLAG gcubeC_flag = isovert.gcube_list[gcube_map[gcubeC_index]].flag;
 
-  /* DEBUGXXX
   if (is_covered_A_or_corner(gcubeB_flag)) { return(true); }
   if (is_covered_A_or_corner(gcubeC_flag)) { return(true); }
-  */
-
-  if (gcubeB_flag != SELECTED_GCUBE || gcubeC_flag != SELECTED_GCUBE) {
-    if (is_in_3x3x3_region(gcubeB_flag) && is_in_3x3x3_region(gcubeC_flag))
-      { return(true); }
-  }
 
   if (gcubeB_flag == UNAVAILABLE_GCUBE || gcubeC_flag == UNAVAILABLE_GCUBE)
     { return(true); }
@@ -1185,8 +1178,7 @@ bool MERGESHARP::check_edge_manifold
 
   // *** DEBUGXXX ***
   /*
-  if (from_cube == 38338
-      && (to_cube == 38388 || to_cube == 38273)) {
+  if (from_cube == 1153131 || from_cube == 1153132) {
     MSDEBUG();
     scalar_grid.PrintIndexAndCoord
       (cerr, "$$$ NOT Mapping ", from_cube, " to " , to_cube, "\n");
@@ -1229,25 +1221,26 @@ bool check_edge_XA_manifoldII
 
   // *** DEBUGXXX ***
   /*
-  VERTEX_INDEX icubeX = 38338;
-  VERTEX_INDEX icubeY = 38388;
-  if ((from_cube0_index == icubeX || from_cube1_index == icubeX)
-      && (to_cube0_index == icubeY || to_cube1_index == icubeY)) {
+  if (from_cube0_index == 1755446 || from_cube0_index == 755447 ||
+      from_cube0_index == 777946 || from_cube0_index == 777947 ||
+      from_cube0_index == 755296) {
     MSDEBUG();
     scalar_grid.PrintIndexAndCoord
-      (cerr, "$$$ NOT Mapping ", icubeX, " to " , icubeY, "\n");
+      (cerr, "$$$ NOT Mapping ", from_cube0_index, " to " , 
+       to_cube0_index, "\n");
     return(false);
   }
-  icubeX = 38339;
-  icubeY = 38237;
-  if ((from_cube0_index == icubeX || from_cube1_index == icubeX)
-      && (to_cube0_index == icubeY || to_cube1_index == icubeY)) {
+
+  if (from_cube1_index == 1755446 || from_cube1_index == 755447 ||
+      from_cube1_index == 777946 || from_cube1_index == 777947 ||
+      from_cube1_index == 755296) {
     MSDEBUG();
     scalar_grid.PrintIndexAndCoord
-      (cerr, "$$$ NOT Mapping ", icubeX, " to " , icubeY, "\n");
+      (cerr, "$$$ NOT Mapping ", from_cube1_index, " to " , to_cube1_index, "\n");
     return(false);
   }
   */
+
 
   if (check_single_edge_manifold
       (scalar_grid, isovalue, from_cube0_index, to_cube0_index, cubeA_index,
