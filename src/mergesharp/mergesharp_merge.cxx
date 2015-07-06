@@ -5705,31 +5705,8 @@ namespace {
     // Check that moving from_coord to to_coord does not create small angle.
     IJK::compute_inner_product(DIM3, v0, v1, cos_angle);
     
-    // *** DEBUG **
-    /*
-    using namespace std;
-    VERTEX_INDEX from_cube = isovert.CubeIndex(from_gcube_index);
-    VERTEX_INDEX to_cube = isovert.CubeIndex(to_gcube_index);
-    if (to_cube == 150825) {
-      cerr << "from_cube: " << from_cube;
-      cerr << "  cos_angle: " << cos_angle << "  max_cos: " << max_cos << endl;
-    }
-    */
-
     if (cos_angle > max_cos) 
       { return(true); }
-
-    /* DISABLE
-    // Check that moving from_coord to to_coord does not flip triangle.
-    IJK::compute_cross_product_3D(v0, v1, wA);
-    IJK::compute_cross_product_3D(v2, v1, wB);
-
-    IJK::compute_inner_product(DIM3, wA, wB, cos_angle);
-    if (cos_angle <= 0) { 
-      // Angle between wA and wB is at least 90 degrees.
-      return(true); 
-    }
-    */
 
     return(false);
   }
