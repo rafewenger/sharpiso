@@ -241,4 +241,15 @@ namespace MERGESHARP {
    std::vector<SHARPISO::VERTEX_INDEX> & gcube_map,
    const bool flag_extended);
 
+
+  // **************************************************
+  //  Misc routines
+  // **************************************************
+
+  /// Get cubes in clockwise order around edge.
+  /// @pre edge is in the interior of the grid.
+  void get_cubes_around_edge
+  (const SHARPISO_GRID & grid, const VERTEX_INDEX iend0,
+   const int edge_dir, VERTEX_INDEX cube_index[NUM_VERT_PER_QUAD]);
+
 }

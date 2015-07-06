@@ -4,8 +4,6 @@
 
 use strict;
 
-my $testdir = "data";
-
 my @proglist = @ARGV;
 my @input_options;
 my @input_options0;
@@ -165,9 +163,11 @@ if ($use_all_data) {
   if (!$veryfastflag) {
     $testdata{cube_A}{fname} = "cube.A.nrrd";
     $testdata{cube_A}{isovalue} = [ 4.9, 5, 5.5 ];
+    $testdata{cube_A}{testdir} = "data";
 
     $testdata{cube_B}{fname} = "cube.B.nrrd";
     $testdata{cube_B}{isovalue} = [ 5, 5.5];
+    $testdata{cube_B}{testdir} = "data";
   }
 }
 
@@ -178,22 +178,24 @@ if ($use_all_data || defined($data_flag{cubes})) {
   if (!$veryfastflag) {
     $testdata{cube_dir111_A}{fname} = "cube.dir111.A.nrrd";
     $testdata{cube_dir111_A}{isovalue} = [ 4.9, 5, 5.5 ];
+    $testdata{cube_dir111_A}{testdir} = "data";
 
     $testdata{cube_dir111_B}{fname} = "cube.dir111.B.nrrd";
     $testdata{cube_dir111_B}{isovalue} = [ 4.9, 5, 5.5 ];
-
-    $testdata{cube_dir321_A}{fname} = "cube.dir111.A.nrrd";
-    $testdata{cube_dir321_A}{isovalue} = [ 4.9, 5, 5.5 ];
-
-    $testdata{cube_dir321_A}{fname} = "cube.dir111.B.nrrd";
-    $testdata{cube_dir321_A}{isovalue} = [ 4.9, 5, 5.5 ];
+    $testdata{cube_dir111_B}{testdir} = "data";
 
     $testdata{cube_dir321_A}{fname} = "cube.dir321.A.nrrd";
     $testdata{cube_dir321_A}{isovalue} = [ 4.9, 5, 5.5 ];
+    $testdata{cube_dir321_A}{testdir} = "data";
+
+    $testdata{cube_dir321_B}{fname} = "cube.dir321.A.nrrd";
+    $testdata{cube_dir321_B}{isovalue} = [ 4.9, 5, 5.5 ];
+    $testdata{cube_dir321_B}{testdir} = "data";
   }
   else {
     $testdata{cube_dir321_A}{fname} = "cube.dir321.A.nrrd";
     $testdata{cube_dir321_A}{isovalue} = [ 4.9, 5 ];
+    $testdata{cube_dir321_A}{testdir} = "data";
   }
 
 
@@ -205,13 +207,24 @@ if ($use_all_data || defined($data_flag{twocubes})) {
   if (!$veryfastflag) {
     $testdata{twocubes_A}{fname} = "twocubes.A.nrrd";
     $testdata{twocubes_A}{isovalue} = [ 9.8, 10, 10.1 ];
+    $testdata{twocubes_A}{testdir} = "data";
 
     $testdata{twocubes_dir111_A}{fname} = "twocubes.dir111.A.nrrd";
     $testdata{twocubes_dir111_A}{isovalue} = [ 9.8, 10, 10.1 ];
+    $testdata{twocubes_dir111_A}{testdir} = "data";
+
+    $testdata{twocubes_321E}{fname} = "twocubes321E.51x.nrrd";
+    $testdata{twocubes_321E}{isovalue} = [ 8.0, 8.01, 8.3 ];
+    $testdata{twocubes_321E}{testdir} = "dataB";
+
+    $testdata{twocubes_321F}{fname} = "twocubes321F.51x.nrrd";
+    $testdata{twocubes_321F}{isovalue} = [ 8.0, 8.01, 8.3 ];
+    $testdata{twocubes_321F}{testdir} = "dataB";
   }
   else {
     $testdata{twocubes_dir111_A}{fname} = "twocubes.dir111.A.nrrd";
     $testdata{twocubes_dir111_A}{isovalue} = [ 9.8, 10 ];
+    $testdata{twocubes_dir111_A}{testdir} = "data";
   }
 
 }
@@ -222,10 +235,12 @@ if ($use_all_data || defined($data_flag{annulus})) {
 
     $testdata{annulus_dir100_A}{fname} = "annulus.dir100.A.nrrd";
     $testdata{annulus_dir100_A}{isovalue} = [ 4.9, 5 ];
+    $testdata{annulus_dir100_A}{testdir} = "data";
   }
 
-  $testdata{annulus_dir100_A}{fname} = "annulus.dir111.A.nrrd";
-  $testdata{annulus_dir100_A}{isovalue} = [ 4.9, 5 ];
+  $testdata{annulus_dir111_A}{fname} = "annulus.dir111.A.nrrd";
+  $testdata{annulus_dir111_A}{isovalue} = [ 4.9, 5 ];
+  $testdata{annulus_dir111_A}{testdir} = "data";
 }
 
 if ($use_all_data || defined($data_flag{flange})) {
@@ -233,10 +248,20 @@ if ($use_all_data || defined($data_flag{flange})) {
   if (!$veryfastflag) {
     $testdata{flange_dir100_A}{fname} = "flange.dir100.A.nrrd";
     $testdata{flange_dir100_A}{isovalue} = [ 4.9, 5 ];
+    $testdata{flange_dir100_A}{testdir} = "data";
+
+    $testdata{flange_E61x}{fname} = "flange3D.E61x.nrrd";
+    $testdata{flange_E61x}{isovalue} = [ 4.1, 4.4 ];
+    $testdata{flange_E61x}{testdir} = "dataB";
+
+    $testdata{flange_F61x}{fname} = "flange3D.F61x.nrrd";
+    $testdata{flange_F61x}{isovalue} = [ 4.1, 4.4 ];
+    $testdata{flange_F61x}{testdir} = "dataB";
   }
 
   $testdata{flange_dir111_A}{fname} = "flange.dir111.A.nrrd";
   $testdata{flange_dir111_A}{isovalue} = [ 4.9, 5 ];
+  $testdata{flange_dir111_A}{testdir} = "data";
 }
 
 if (defined($data_flag{hermite})) {
@@ -244,6 +269,7 @@ if (defined($data_flag{hermite})) {
     $testdata{weld}{fname} = "weld.nhdr";
     $testdata{weld}{normalFile} = "weld-normals.off";
     $testdata{weld}{isovalue} = [ 0.5 ];
+    $testdata{cube_A}{testdir} = "data";
 }
 
 
@@ -298,6 +324,7 @@ sub run_mergesharp_count_sharp_edges {
 
   foreach my $tdata (keys %testdata) {
 
+    my $testdir = "$testdata{$tdata}{testdir}";
     my $tfile = "$testdir"."/"."$testdata{$tdata}{fname}";
     my @isovalue_list = @{$testdata{$tdata}{isovalue}};
     my @option_listB = @option_list;
@@ -418,6 +445,7 @@ sub compare_executables {
 
   foreach my $tdata (keys %testdata) {
 
+    my $testdir = "$testdata{$tdata}{testdir}";
     my $tfile = "$testdir"."/"."$testdata{$tdata}{fname}";
     my @isovalue_list = @{$testdata{$tdata}{isovalue}};
     my @option_listB0 = @option_list0;

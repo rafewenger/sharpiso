@@ -113,6 +113,10 @@ namespace MERGESHARP {
     std::vector<COORD_TYPE> minc;
     std::vector<COORD_TYPE> maxc;
 
+    /// Output cubes which map to themselves and are covered by a 3x3x3 region
+    ///   around a selected cube.
+    bool flag_output_covered_map_to_self;   
+
     ///< Output pairs of selected neighboring cubes which are far apart.
     bool flag_output_neighbors;
     bool flag_output_neighbors_222;
@@ -439,6 +443,12 @@ namespace MERGESHARP {
 
   /// Report information about cubes which map to themselves.
   void report_cubes_which_map_to_self
+  (const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
+   const ISOVERT & isovert);
+
+  /// Report information about cubes which map to themselves and are
+  ///   covered by a 3x3x3 region around a selected cube.
+  void report_covered_cubes_which_map_to_self
   (const OUTPUT_INFO & output_info, const SHARPISO_GRID & grid,
    const ISOVERT & isovert);
 
