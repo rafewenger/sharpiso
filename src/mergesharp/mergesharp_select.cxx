@@ -604,19 +604,6 @@ void select_edge_cubes_near_corners
          isovert, selection_data);
     }
 
-    /* OBSOLETE
-    //  *** SHOULD REPLACE is_neighbor BY is_edge_neighbor ***
-    if (is_dist2_neighbor
-        (isovert.gcube_list[gcube_index], isovert,  COVERED_CORNER_GCUBE) ||
-        is_neighbor
-        (isovert.gcube_list[gcube_index], isovert, COVERED_CORNER_GCUBE)) {
-
-      check_and_select_edge_cube
-        (scalar_grid, isovalue, isovert_param, gcube_index, COVERED_A_GCUBE, 
-         isovert, selection_data);
-    }
-    */
-
   }
 }
 
@@ -673,26 +660,6 @@ void select_edge_cubes_near_corners_within_dist
         (scalar_grid, isovalue, isovert_param, gcube_index, COVERED_A_GCUBE, 
          isovert, selection_data);
     }
-
-    /* OBSOLETE
-    //  *** SHOULD REPLACE is_neighbor BY is_edge_neighbor ***
-    if (is_dist2_neighbor
-        (isovert.gcube_list[gcube_index], isovert,  COVERED_CORNER_GCUBE) ||
-        is_neighbor
-        (isovert.gcube_list[gcube_index], isovert, COVERED_CORNER_GCUBE)) {
-
-      // *** DEBUGXXX ***
-      MSDEBUG();
-      if (flag_debug) {
-        scalar_grid.PrintIndexAndCoord
-          (cerr, "*** Checking near corner cube ", cube_index, "\n");
-      }
-
-      check_and_select_edge_cube
-        (scalar_grid, isovalue, isovert_param, gcube_index, COVERED_A_GCUBE, 
-         isovert, selection_data);
-    }
-    */
   }
 }
 
