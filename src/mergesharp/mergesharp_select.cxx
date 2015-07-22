@@ -3574,6 +3574,7 @@ namespace {
 MISMATCH_TABLE::MISMATCH_TABLE(const SHARPISO_GRID & sharpiso_grid)
 {
   grid.SetSize(sharpiso_grid);
+  grid.SetSpacing(sharpiso_grid.SpacingPtrConst());
 }
 
 NUM_TYPE MISMATCH_TABLE::AddEntry

@@ -68,6 +68,11 @@ while (scalar(@proglist) > 0 &&
     next;
   }
 
+  if ($new_option eq "-nonuniform") {
+    $data_flag{nonuniform} = 1;
+    next;
+  }
+
   if ($new_option eq "-hermite") {
     $data_flag{hermite} = 1;
     next;
@@ -264,6 +269,16 @@ if ($use_all_data || defined($data_flag{flange})) {
   $testdata{flange_dir111_A}{testdir} = "data";
 }
 
+if (defined($data_flag{nonuniform})) {
+  $testdata{flange_nu_dir111_B}{fname} = "flange111B.nu200x.nrrd";
+  $testdata{flange_nu_dir111_B}{isovalue} = [ 9.8, 10.01 ];
+  $testdata{flange_nu_dir111_B}{testdir} = "dataD";
+
+  $testdata{flange_nu_dir321_B}{fname} = "flange321B.nu200x.nrrd";
+  $testdata{flange_nu_dir321_B}{isovalue} = [ 9.8, 10.01 ];
+  $testdata{flange_nu_dir321_B}{testdir} = "dataD";
+}
+
 if (defined($data_flag{hermite})) {
 
     $testdata{weld}{fname} = "weld.nhdr";
@@ -271,7 +286,6 @@ if (defined($data_flag{hermite})) {
     $testdata{weld}{isovalue} = [ 0.5 ];
     $testdata{cube_A}{testdir} = "data";
 }
-
 
 # test data parameters for -random
 my %random_test;

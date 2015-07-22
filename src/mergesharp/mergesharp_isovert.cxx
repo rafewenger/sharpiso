@@ -2572,6 +2572,8 @@ void create_active_cubes
   isovert.index_grid.SetSize(scalar_grid);
   isovert.grid.SetSize(scalar_grid);
 
+  // *** SHOULD SET Spacing for grid and index_grid.
+
   IJK_FOR_EACH_GRID_CUBE(icube, scalar_grid, VERTEX_INDEX) {
     if (is_gt_cube_min_le_cube_max(scalar_grid, icube, isovalue)) {
       index = isovert.gcube_list.size();
