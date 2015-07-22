@@ -2568,11 +2568,11 @@ void create_active_cubes
 {
   NUM_TYPE index = 0;
 
-  // Set the size of index_grid and grid.
+  // Set the size and spacing of index_grid and grid.
   isovert.index_grid.SetSize(scalar_grid);
   isovert.grid.SetSize(scalar_grid);
-
-  // *** SHOULD SET Spacing for grid and index_grid.
+  isovert.index_grid.SetSpacing(scalar_grid.SpacingPtrConst());
+  isovert.grid.SetSpacing(scalar_grid.SpacingPtrConst());
 
   IJK_FOR_EACH_GRID_CUBE(icube, scalar_grid, VERTEX_INDEX) {
     if (is_gt_cube_min_le_cube_max(scalar_grid, icube, isovalue)) {
