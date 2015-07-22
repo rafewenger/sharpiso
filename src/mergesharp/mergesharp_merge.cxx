@@ -5988,6 +5988,16 @@ namespace {
 		const VERTEX_INDEX from_cube = isovert.CubeIndex(from_gcube);
     const GRID_COORD_TYPE * to_coord = isovert.gcube_list[to_gcube].cube_coord;
 
+    // *** DEBUG ***
+    using namespace std;
+    if (flag_debug) {
+      cerr << "In " << __func__ << endl;
+      grid.PrintIndexAndCoord(cerr, "  From cube: ", from_cube, "\n");
+      grid.PrintIndexAndCoord(cerr, "  To cube: ", to_cube, "\n");
+      grid.PrintIndexAndCoord
+        (cerr, "  cubeC: ", isovert.CubeIndex(gcubeC_index), "\n");
+    }
+
 		if (isovert.gcube_list[from_gcube].boundary_bits == 0) {
 			for (int d = 0; d < DIM3; d++)
 			{
@@ -6007,7 +6017,7 @@ namespace {
               if (to_coord[d] < to_coordB[d]) { return(true); }
             }
             else if (to_coord[d] <= to_coordB[d])
-              { return true;	}
+              { return true; }
 					}
 				}
 
@@ -6023,10 +6033,10 @@ namespace {
             const GRID_COORD_TYPE * to_coordB = 
               isovert.gcube_list[to_gcubeB].cube_coord;
 
-            if (to_gcubeB != gcubeC_index) { 
+            if (to_gcubeB == gcubeC_index) { 
               if (to_coord[d] > to_coordB[d]) { return true; }
             }
-            else if (to_coord[d] >= to_coordB[d])
+            else if (to_coord[d] >= to_coordB[d]) 
               { return true;	}
 					}
 				}
@@ -6680,7 +6690,8 @@ namespace {
           scalar_grid.PrintIndexAndCoord
             (cerr, "  Facet adjacent cube: ", adjacent_cube_index, "\n");
           if (gcube_map[adjacent_gcube_index] != adjacent_gcube_index) {
-            VERTEX_INDEX temp_cube_index = isovert.CubeIndex(temp_cube_index);
+            VERTEX_INDEX temp_cube_index = 
+              isovert.CubeIndex(gcube_map[adjacent_gcube_index]);
             scalar_grid.PrintIndexAndCoord
               (cerr, "  Facet adjacent cube maps to: ", temp_cube_index, "\n");
           }

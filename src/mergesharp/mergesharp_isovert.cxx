@@ -1594,6 +1594,15 @@ void recompute_isovert_position_around_edge
       if (!does_sharp_edge_point_to_cube
           (scalar_grid, isovert, fixed_cube[i], fixed_cube[1-i], 0.5)) {
         // Sharp edge in fixed_cube[i] does not point to fixed_cube[1-i].
+
+        // *** DEBUG ***
+        if (flag_debug) {
+          MSDEBUG();
+          scalar_grid.PrintIndexAndCoord
+            (cerr, "xxx Edge pair: ", fixed_cube[0], " ",
+             fixed_cube[1], " fails sharp edge test.\n");
+        }
+
         return;
       }
 
@@ -2309,6 +2318,16 @@ bool MERGESHARP::does_sharp_edge_point_to_cube
   if (distance > max_distance) { 
     // Sharp edge does not intersect cube 
     //   (or only intersects cube near its boundary)
+
+    // *** DEBUG ***
+    if (flag_debug) {
+      IJK::print_coord3D
+        (cerr, "    Distance from ", cube1_center_coord, " + t ", edge_dir, "");
+      IJK::print_coord3D
+        (cerr, "\n        to ", isovert_coord, " = ");
+      cerr << distance << endl;
+    }
+
     return(false);
   }
 
