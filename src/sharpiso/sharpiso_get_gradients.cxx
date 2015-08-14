@@ -2336,6 +2336,7 @@ void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
 		use_selected_gradients = true;
 		break;
 
+  case GRAD_3x3x3:
 	case GRAD_NS:
 		use_only_cube_gradients = false;
 		use_selected_gradients = true;
@@ -2395,6 +2396,9 @@ void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
 		use_intersected_edge_endpoint_gradients = true;
 		break;
 
+  case GRAD_5x5x5:
+  case GRAD_7x7x7:
+  case GRAD_9x9x9:
 	case GRAD_BIES:
 		use_only_cube_gradients = false;
 		use_selected_gradients = true;
@@ -2424,6 +2428,21 @@ void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
 		throw error;
 	};
 
+  // Set max_grad_dist, if necessary.
+  switch(grad_selection_method) {
+
+  case GRAD_5x5x5:
+    max_grad_dist = 2;
+    break;
+
+  case GRAD_7x7x7:
+    max_grad_dist = 3;
+    break;
+
+  case GRAD_9x9x9:
+    max_grad_dist = 4;
+    break;
+  }
 }
 
 // **************************************************
@@ -2433,7 +2452,11 @@ void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
 GRAD_SELECTION_METHOD SHARPISO::get_grad_selection_method
 	(const std::string & s)
 {
-	if (s == "gradC") { return(GRAD_C); }
+  if (s == "grad3") { return(GRAD_3x3x3); }
+  else if (s == "grad5") { return(GRAD_5x5x5); }
+  else if (s == "grad7") { return(GRAD_7x7x7); }
+  else if (s == "grad9") { return(GRAD_9x9x9); }
+	else if (s == "gradC") { return(GRAD_C); }
 	else if (s == "gradN") { return(GRAD_N); }
 	else if (s == "gradCS") { return(GRAD_CS); }
 	else if (s == "gradNS") { return(GRAD_NS); }
@@ -2457,7 +2480,11 @@ GRAD_SELECTION_METHOD SHARPISO::get_grad_selection_method
 void SHARPISO::get_grad_selection_string
 	(const GRAD_SELECTION_METHOD grad_sel, std::string & s)
 {
-	if (grad_sel == GRAD_C) { s = "gradCD"; }
+	if (grad_sel == GRAD_3x3x3) { s = "grad3"; }
+	else if (grad_sel == GRAD_5x5x5) { s = "grad5"; }
+	else if (grad_sel == GRAD_7x7x7) { s = "grad7"; }
+	else if (grad_sel == GRAD_9x9x9) { s = "grad9"; }
+  else if (grad_sel == GRAD_C) { s = "gradCD"; }
 	else if (grad_sel == GRAD_CS) { s = "gradCS"; }
 	else if (grad_sel == GRAD_NS) { s = "gradNS"; }
 	else if (grad_sel == GRAD_XS) { s = "gradXS"; }

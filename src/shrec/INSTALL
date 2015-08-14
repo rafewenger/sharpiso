@@ -1,0 +1,18 @@
+
+Installation directions for shrec
+
+Requires library expat available from expat.sourceforge.net.
+Requires library NrrdIO available from teem.sourceforge.net.
+Requires library Eigen available from eigen.tuxfamily.org.
+
+Install using cmake.
+Type "ccmake ." and "c" twice to configure.
+Check that EIGEN_DIR is set to directory containing the Eigen library.
+Check that NRDD_DIR is set to directory containing the libNrrdIO.a.
+Check that SHARPISO_DIR is set to sharpiso directory.
+(If not, modify the path for EIGEN_DIR or NRRD_DIR or SHARPISO_DIR.)
+Press "g" to generate the Makefile and exit.
+Type "cmake .".
+Type "make" to create executables.
+Type "make install" to install executables in ${SHARPISO_DIR}/bin.
+

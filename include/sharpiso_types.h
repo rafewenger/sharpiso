@@ -59,7 +59,8 @@ namespace SHARPISO {
 
   typedef enum { LOC_NONE, CENTROID, CUBE_CENTER, LOC_SVD } LOC_TYPE ;
 
-  typedef enum { GRAD_C, GRAD_N, GRAD_CS, GRAD_NS, GRAD_XS, GRAD_IE, GRAD_IES,
+  typedef enum { GRAD_3x3x3, GRAD_5x5x5, GRAD_7x7x7, GRAD_9x9x9,
+                 GRAD_C, GRAD_N, GRAD_CS, GRAD_NS, GRAD_XS, GRAD_IE, GRAD_IES,
                  GRAD_IE_DIR, GRAD_CD, GRAD_CD_DUP, GRAD_NIE, GRAD_NIES,
                  GRAD_BIES,
                  GRAD_BIES_OLD, // Old, deprecated version.
