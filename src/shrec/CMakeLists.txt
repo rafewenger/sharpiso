@@ -15,6 +15,8 @@ SET(EIGEN_DIR "${SHARPISO_DIR}/src/eigen" CACHE PATH "Eigen directory")
 SET(SHARPISO_SRC_DIR "${SHARPISO_DIR}/src/sharpiso/" CACHE PATH "sharpiso src directory")
 SET(NRRD_LIBDIR "${SHARPISO_DIR}/lib" CACHE PATH "Nrrd library directory")
 SET(SHREC_DIR "src/shrec")
+SET(TAR_SHARPISO_SRC_DIR "src/sharpiso")
+
 
 #---------------------------------------------------------
 
@@ -86,5 +88,5 @@ target_link_libraries(shrec ${EXPAT_LIBRARIES} NrrdIO ${LIB_ZLIB})
 SET(CMAKE_INSTALL_PREFIX ${SHARPISO_DIR})
 INSTALL(TARGETS shrec DESTINATION "bin/$ENV{OSTYPE}")
 
-ADD_CUSTOM_TARGET(tar WORKING_DIRECTORY ../.. COMMAND tar cvfh ${SHREC_DIR}/shrec.tar ${SHREC_DIR}/*.cxx ${SHREC_DIR}/*.h ${SHREC_DIR}/CMakeLists.txt ${SHREC_DIR}/INSTALL ${SHREC_DIR}/RELEASE_NOTES)
+ADD_CUSTOM_TARGET(tar WORKING_DIRECTORY ../.. COMMAND tar cvfh ${SHREC_DIR}/shrec.tar ${SHREC_DIR}/*.cxx ${SHREC_DIR}/*.h ${SHREC_DIR}/*.txx ${TAR_SHARPISO_SRC_DIR}/*.cxx ${TAR_SHARPISO_SRC_DIR}/*.h ${TAR_SHARPISO_SRC_DIR}/*.txx include/*.h include/*.txx ${SHREC_DIR}/CMakeLists.txt ${SHREC_DIR}/INSTALL ${SHREC_DIR}/RELEASE_NOTES)
 

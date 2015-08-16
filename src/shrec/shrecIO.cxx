@@ -673,7 +673,6 @@ namespace {
     case POSITION_PARAM:
     case POS_PARAM:
       set_vertex_position_method(value_string, input_info);
-
       input_info.is_vertex_position_method_set = true;
       break;
 
@@ -907,6 +906,7 @@ void SHREC::parse_isovalue_and_filename
     if (get_parameter_token(argv[j]) != UNKNOWN_PARAM) {
       // argv[iarg] is not an isovalue
       cerr << "Error. Illegal parameter: " << argv[iarg] << endl;
+      cerr << endl;
       usage_error(argv[0]);
     }
   }
@@ -942,8 +942,8 @@ void SHREC::set_input_info_defaults(INPUT_INFO & input_info)
   SHREC_DEFAULTS shrec_defaults;
 
   if (!input_info.is_vertex_position_method_set) {
-    input_info.vertex_position_method = GRADIENT_POSITIONING;
-    input_info.SetGradSelectionMethod(GRAD_NS);
+    input_info.vertex_position_method = shrec_defaults.vertex_position_method;
+    input_info.SetGradSelectionMethod(shrec_defaults.grad_selection_method);
   }
 
   if (!input_info.is_cube_selection_method_set) {
@@ -1063,8 +1063,15 @@ void SHREC::parse_command_line
   else if (input_info.flag_list_all_options)
     { usage_error(argv[0], true); }
 
-  parse_isovalue_and_filename(argc, argv, iarg, input_info);
   set_input_info_defaults(input_info);
+
+  if (input_info.flag_output_param) {
+    report_shrec_param(input_info); 
+
+    if (iarg == argc) { exit(0); }
+  }
+
+  parse_isovalue_and_filename(argc, argv, iarg, input_info);
   check_input_info(input_info);
 }
 
@@ -1907,13 +1914,12 @@ void SHREC::report_shrec_param
       cout << "Allow isosurface vertex conflicts." << endl;
     }
     else {
-      if (shrec_param.flag_clamp_conflict) 
-        {   cout <<"Do NOT allow conflicts, instead "<<endl;
-			cout << "Resolve conflict by clamping coordinates." << endl; }
-      else
-        { 
-			cout <<"Do NOT allow conflicts, instead "<<endl;
-			cout << "Resolve conflict by reverting to centroid." << endl; }
+      if (shrec_param.flag_clamp_conflict) {
+        cout << "Do NOT allow conflicts.  Resolve conflicts by clamping coordinates." << endl;
+      }
+      else {
+        cout << "Do NOT allow conflicts.  Resolve conflicts by using centroid vertex locations." << endl;
+      }
     }
   }
 
@@ -2571,9 +2577,16 @@ void SHREC::usage_error
 
 void help_main_options()
 {
+  SHREC_DEFAULTS shrec_defaults;
+  string s;
+
+
   cout << "MAIN OPTIONS:" << endl;
 
-  cout << "  -position {method}: Isosurface vertex position method." << endl;
+
+  get_grad_selection_string(shrec_defaults.grad_selection_method, s);
+  cout << "  -position {method}: Isosurface vertex position method." 
+       << "  (Default: " << s << ".)" << endl;
   cout << "  -position centroid: Position isosurface vertices at centroid of"
        << endl;
   cout << "                      intersection of grid edges and isosurface."
@@ -2590,12 +2603,15 @@ void help_main_options()
        << "      and normals from OFF file normal_off_filename." << endl;
   cout << "  -subsample S: Subsample grid at every S vertices." << endl;
   cout << "                S must be an integer greater than 1." << endl;
-  cout << "  -max_eigen {max}: Set maximum small eigenvalue to max."
+  cout << "  -max_eigen {E}: Set maximum small eigenvalue to E."
+       << "  (Default: " << shrec_defaults.max_small_eigenvalue << ".)"
        << endl;
-  cout << "  -trimesh:   Output triangle mesh." << endl;
-  cout << "  -keepv:    Keep isosurface vertices.  Do not remove isosurface vertices"
+  cout << "                  Eigenvalues at or below E are clamped to 0." 
+       << endl;
+  cout << "  -trimesh: Output triangle mesh." << endl;
+  cout << "  -keepv:   Keep isosurface vertices.  Do not remove isosurface vertices"
        << endl
-       << "             which do not lie in any isosurface polygon." << endl;
+       << "            which do not lie in any isosurface polygon." << endl;
   cout << "  -o {output_filename}: Write isosurface to file {output_filename}." << endl;
   cout << "  -usev_in_outfname: Include isovalue in output filename." << endl
        << "     (Ignored if -o option is used.)" << endl;

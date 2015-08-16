@@ -237,6 +237,13 @@ namespace SHREC {
 
   public:
 
+    /// Isosurface vertex position method.
+    static const VERTEX_POSITION_METHOD vertex_position_method
+      = GRADIENT_POSITIONING; 
+
+    /// Gradient selection.
+    static const GRAD_SELECTION_METHOD grad_selection_method = GRAD_5x5x5;
+
     /// Extend mapping beyond 3x3x3 region.
     static const bool flag_map_extended = true;
 

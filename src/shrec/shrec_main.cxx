@@ -138,10 +138,6 @@ int main(int argc, char **argv)
     //       must be called before set_shrec_data.
     set_shrec_data(input_info, shrec_data, shrec_time);
 
-    if (input_info.flag_output_param) 
-      { report_shrec_param(shrec_data); }
- 
-
     report_num_cubes(full_scalar_grid, input_info, shrec_data);
     construct_isosurface(input_info, shrec_data, shrec_time, io_time);
 
