@@ -1,4 +1,5 @@
 /// \file find sharp edges and corners from a triangle mesh 
+/// Version: v0.1.0
 
 /*
 IJK: Isosurface Jeneration Code
@@ -57,6 +58,7 @@ vector<int> vec;
 vector<COORD_TYPE> new_vertex;
 vector<int> L;
 bool output_specified = false;
+const std::string VERSION = "v0.1.0";
 
 const ANGLE_TYPE DEFAULT_ANGLE(140);
 ANGLE_TYPE input_angle(DEFAULT_ANGLE);
@@ -491,6 +493,11 @@ void parse_command_line(int argc, char **argv)
 {
 	if (argc < 2) {usage_error();}
 
+  if (argc == 2 && string(argv[1]) == "-version") {
+    cout << "Version: " << VERSION << endl;
+    exit(0);
+  }
+
   input_angle = DEFAULT_ANGLE;
 
 	int iarg = 1;
@@ -520,6 +527,8 @@ void parse_command_line(int argc, char **argv)
 			eigen_info.eigen_info_filename = string(argv[iarg]);
 			eigen_info.read_file();
 		}
+    else if (s == "-version")
+      { cout << "Version: " << VERSION << endl; }
     else if (s == "-help")
       { help(); }
 		else
@@ -552,7 +561,7 @@ void usage_error()
   usage_msg(cerr);
   cerr << "OPTIONS:" << endl;
   cerr << "  [-angle {A}] [-o {output_filename}] [-eigen_info {isov info file}]" << endl;
-  cerr << "  [-help]" << endl;
+  cerr << "  [-help] [-version]" << endl;
 
 	exit(10);
 }
@@ -581,6 +590,8 @@ void help()
   cout << "     Read number of eigenvalues for each isosurface vertex" << endl
        << "     from {isov info file}.  File {isov info file} can be " << endl
        << "     produced using shrec with option -write_isov_info." << endl;
+  cout << "  -version: Print version." << endl;
+  cout << "  -help:    Print this help message." << endl;
 
   exit(0);
 }

@@ -13,6 +13,7 @@ SET(CMAKE_INSTALL_PREFIX "${SHARP_DIR}/")
 SET(LIBRARY_OUTPUT_PATH ${SHARP_DIR}/lib CACHE PATH "Library directory")
 SET(NRRD_LIBDIR "${SHARP_DIR}/lib")
 SET(SHARP_ISOTABLE_DIR "${SHARP_DIR}/isotable" CACHE PATH "Isotable directory")
+SET(FINDSHARP_DIR "src/findsharp")
 
 #---------------------------------------------------------
 
@@ -23,11 +24,10 @@ ENDIF (NOT CMAKE_BUILD_TYPE)
 
 INCLUDE_DIRECTORIES("${SHARP_DIR}/include")
 INCLUDE_DIRECTORIES("${SHARP_DIR}/src/sharpiso")
-#LINK_DIRECTORIES("${NRRD_LIBDIR}")
-#LINK_LIBRARIES(expat NrrdIO z)
-ADD_DEFINITIONS(-DSHARP_ISOTABLE_DIR=\"${SHARP_ISOTABLE_DIR}\")
 
 ADD_EXECUTABLE(findsharp findsharp.cxx findsharp_eigen_info.cxx)
 
 SET(CMAKE_INSTALL_PREFIX ${SHARP_DIR})
 INSTALL(TARGETS findsharp DESTINATION "bin/$ENV{OSTYPE}")
+
+ADD_CUSTOM_TARGET(tar WORKING_DIRECTORY ../.. COMMAND tar cvfh ${FINDSHARP_DIR}/findsharp.tar ${FINDSHARP_DIR}/*.cxx ${FINDSHARP_DIR}/*.h ${FINDSHARP_DIR}/*.txx ${FINDSHARP_DIR}/CMakeLists.txt)
