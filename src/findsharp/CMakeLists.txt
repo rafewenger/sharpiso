@@ -27,9 +27,7 @@ INCLUDE_DIRECTORIES("${SHARP_DIR}/src/sharpiso")
 #LINK_LIBRARIES(expat NrrdIO z)
 ADD_DEFINITIONS(-DSHARP_ISOTABLE_DIR=\"${SHARP_ISOTABLE_DIR}\")
 
-ADD_EXECUTABLE(findsharp findsharp.cxx findSharp_eigen_info.cxx)
+ADD_EXECUTABLE(findsharp findsharp.cxx findsharp_eigen_info.cxx)
 
 SET(CMAKE_INSTALL_PREFIX ${SHARP_DIR})
-INSTALL(TARGETS findsharp DESTINATION "/bin/$ENV{OSTYPE}")
-
-
+INSTALL(TARGETS findsharp DESTINATION "bin/$ENV{OSTYPE}")

@@ -2,7 +2,7 @@
 
 /*
 IJK: Isosurface Jeneration Code
-Copyright (C) 2008 Arindam Bhattacharya
+Copyright (C) 2008-2015 Arindam Bhattacharya
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <fstream>
@@ -29,7 +30,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <algorithm>
 #include <time.h>
 #include <stdlib.h>
-#include "findSharp_eigen_info.h"
+
+#include "findsharp_eigen_info.h"
 
 
 #include "ijk.txx"
@@ -39,6 +41,7 @@ using namespace std;
 using namespace IJK;
 
 typedef float COORD_TYPE;
+typedef float ANGLE_TYPE;
 
 // global variables
 int dimension = 3;
@@ -54,10 +57,15 @@ vector<int> vec;
 vector<COORD_TYPE> new_vertex;
 vector<int> L;
 bool output_specified = false;
-double input_angle;
+
+const ANGLE_TYPE DEFAULT_ANGLE(140);
+ANGLE_TYPE input_angle(DEFAULT_ANGLE);
+
+
 // output routine 
 void output_mesh_info();
 bool edge_equals( int a, int b);
+
 //If manually set to true then in DEBUG MODE
 bool debugMode = true;
 
@@ -122,7 +130,7 @@ int x=0;
 // misc routines
 void memory_exhaustion();
 void parse_command_line(int argc, char **argv);
-void usage_error();
+void help(), usage_error();
 
 struct myclass {
 	bool operator() (const int& i0, const int& i1) { 
@@ -158,8 +166,8 @@ int main(int argc, char **argv)
 			exit(30);
 		};
 
-		ijkinOFF(in, dimension, mesh_dimension,
-				vertex_coord, num_vertices, simplex_vert, num_simplices);
+    ijkinOFF(in, dimension, mesh_dimension,
+             vertex_coord, num_vertices, simplex_vert, num_simplices);
 		in.close();
 
 		if (debugMode)
@@ -481,12 +489,20 @@ void memory_exhaustion()
 
 void parse_command_line(int argc, char **argv)
 {
-	if (argc<3) {usage_error();}
+	if (argc < 2) {usage_error();}
+
+  input_angle = DEFAULT_ANGLE;
+
 	int iarg = 1;
 	while (iarg < argc && argv[iarg][0]=='-')
 	{
 		string s = argv[iarg];
-		if (s=="-o")
+    if (s == "-angle") {
+      iarg++;
+      if (iarg >= argc) { usage_error(); }
+      input_angle = atoi(argv[iarg]);
+    }
+		else if (s == "-o")
 		{
 			iarg++;
 			output_specified = true;
@@ -496,41 +512,76 @@ void parse_command_line(int argc, char **argv)
 		{
 			debugMode = true;
 		}
-		else if (s=="-eigen_info")
+		else if (s == "-eigen_info")
 		{
 			iarg++;
+      if (iarg >= argc) { usage_error(); }
 			eigen_info.flag_eigen_based = true;
-			eigen_info.eigen_info_fame = string(argv[iarg]);
+			eigen_info.eigen_info_filename = string(argv[iarg]);
 			eigen_info.read_file();
-			//***DEBUG
-			cout <<" *** size "<< eigen_info.num_eigen.size() <<endl;
 		}
+    else if (s == "-help")
+      { help(); }
 		else
 		{
+      cerr << "Error.  Illegal option: " << s << endl;
+      cerr << endl;
 			usage_error();
 		}
 		iarg++;
 	}
-	if (argc != iarg+2)
-	{
 
+	if (argc != iarg+1) {
 		usage_error();
-		exit(0);
+		exit(10);
 	}
-	else
-	{
-		input_angle=atoi(argv[iarg]);
-		input_filename = argv[iarg+1];
 
-		cout <<" input angle " << input_angle << endl;
-		cout <<" input file name "<< input_filename <<endl;
-	}
+  input_filename = argv[iarg];
+
+  cout <<" input angle " << input_angle << endl;
+  cout <<" input file name "<< input_filename <<endl;
+}
+
+void usage_msg(std::ostream & out)
+{
+	out << "Usage: findsharp [OPTIONS] {input filename}" << endl;
 }
 
 void usage_error()
 {
-	cerr << "Usage: findsharp -debug -o {outputfile name ending in .line} {angle} {input filename}" << endl;
-	cerr << "help : angle and input_filename  are required input"<<endl;
-	cerr << "\t\t-eigen_info: read in the eigen info\n";
+  usage_msg(cerr);
+  cerr << "OPTIONS:" << endl;
+  cerr << "  [-angle {A}] [-o {output_filename}] [-eigen_info {isov info file}]" << endl;
+  cerr << "  [-help]" << endl;
+
 	exit(10);
 }
+
+void help()
+{
+  usage_msg(cout);
+  cout << endl;
+  cout << "findsharp - Output sharp mesh edges." << endl;
+  cout << "            Input is a geomview .off file." << endl;
+  cout << "            Output geomview .line file of sharp edges." << endl;
+  cout << "            Sharp edges have dihedral angle less than {angle}."
+       << endl;
+  cout << "            Input file can only contain triangles." << endl;
+  cout << endl;
+
+  cout << "OPTIONS:" << endl;
+  cout << "  -angle {A}:  Dihedral angle." 
+       << "  (Default: " << DEFAULT_ANGLE << ".)" << endl
+       << "     Edges with dihedral angle at most {A} are sharp." << endl;
+  cout << "  -o {output_filename}:  Output to file geomview .line file output_filename." << endl;
+  cout << "  -eigen_info {isov info file}:" << endl;
+  cout << "     Output only mesh edges incident on isosurface vertices"
+       << endl
+       << "     associated with 2 or 3 eigenvalues." << endl;
+  cout << "     Read number of eigenvalues for each isosurface vertex" << endl
+       << "     from {isov info file}.  File {isov info file} can be " << endl
+       << "     produced using shrec with option -write_isov_info." << endl;
+
+  exit(0);
+}
+

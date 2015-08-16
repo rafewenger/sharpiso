@@ -7,24 +7,23 @@
 
 #ifndef FINDSHARP_EIGEN_INFO_H_
 #define FINDSHARP_EIGEN_INFO_H_
+
 #include <string>
 #include <vector>
-using namespace std;
 
 class EIGEN_INFO{
 public:
 	bool flag_eigen_based;
-	string eigen_info_fame;
+  std::string eigen_info_filename;
 	void read_file();
 	int num_degen_edges;
-	vector <int> vertex_index;
-	vector <int> num_eigen;
-	vector <bool> flag_centroid;
+  std::vector <int> vertex_index;
+  std::vector <int> num_eigen;
+  std::vector <bool> flag_centroid;
 	EIGEN_INFO()
 	{
 		flag_eigen_based = false;
 		num_degen_edges = 0;
-
 	}
 };
 
