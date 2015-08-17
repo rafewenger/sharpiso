@@ -2336,7 +2336,6 @@ void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
 		use_selected_gradients = true;
 		break;
 
-  case GRAD_3x3x3:
 	case GRAD_NS:
 		use_only_cube_gradients = false;
 		use_selected_gradients = true;
@@ -2390,6 +2389,7 @@ void SHARPISO::GET_GRADIENTS_PARAM::SetGradSelectionMethod
 		use_intersected_edge_endpoint_gradients = true;
 		break;
 
+  case GRAD_3x3x3:
 	case GRAD_NIES:
 		use_only_cube_gradients = false;
 		use_selected_gradients = true;

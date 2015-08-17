@@ -2731,12 +2731,15 @@ void help_testing_options()
   cout << "       on selected gradients at endpoints of intersected cube"
        << endl;
   cout << "       and cube neighbor edges." << endl;
+  cout << "       Equivalent to \"-position grad3\"." << endl;
   cout << "  -position gradBIES: Position isosurface vertices using svd"
        << endl;
   cout << "       on selected gradients on boundary of zero gradient region."
        << endl;
   cout << "       Use only gradients from vertices incident on bipolar edges."
        << endl;
+  cout << "       When used with \"-max_grad_dist [2|3|4]\", gradBIES is" << endl
+       << "       equivalent to \"-position [grad5|grad7|grad9]\"." << endl;
   cout << "  -position gradES: Position using isosurface vertices using svd"
        << endl;
   cout << "       on gradients at isosurface-edge intersections."
