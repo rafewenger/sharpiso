@@ -29,5 +29,5 @@ LINK_LIBRARIES(expat NrrdIO z)
 
 ADD_EXECUTABLE(countdegree countdegree.cxx countdegree_IO.cxx countdegree_main.cxx)
 SET(CMAKE_INSTALL_PREFIX ${IJK_DIR})
-INSTALL(TARGETS countdegree DESTINATION "/bin/$ENV{OSTYPE}")
+INSTALL(TARGETS countdegree DESTINATION "bin/$ENV{OSTYPE}")
 

@@ -1,4 +1,5 @@
 // Countdegree main
+// Version: 0.1.0
 
 #include <cstdlib>
 #include <cmath>
@@ -18,6 +19,7 @@ VERTEX_INDEX * edge_endpoint(NULL);
 int dimension(3);
 int num_vertices(0);
 int num_edges(0);
+const char * VERSION("0.1.0");
 
 // decides which functions to call for output
 
@@ -42,7 +44,7 @@ int main(int argc, char **argv)
 		ifstream in(input_filename, ios::in);
 		compute_output_fn ();
 		if (!in.good()) {
-			cerr << "Unable to open file " << input_filename << "." << endl;
+			cerr << "Error.  Unable to open file " << input_filename << "." << endl;
 			exit(30);
 		};
     
@@ -100,65 +102,96 @@ int main(int argc, char **argv)
 // Miscellaneous routines
 // **************************************************
 
-void usage_msg()
+void usage_msg(std::ostream & out)
 {
-	cerr << "Usage: countdegree <options> <*.>" << endl;
-	cerr <<"\t-e prints the vertices which have deg 1 , 3 or >3"<<endl;
-  cerr <<"\t-fshort: short ouput, the sum of deg1, deg3 or deg>3"<<endl;
-  cerr <<"\t-flong: long output,degree 0, for degree 1, degree 3, degree > 3, degree 1 or 3 or more, total num non-o ver and total num vert."<<endl;
-	//cerr <<" example : countdegree -deg3 32 cube.off "<<endl;
+  out << "Usage: countdegree [OPTIONS] <input filename>" << endl;
 }
 
 void usage_error()
 {
-	usage_msg();
+	usage_msg(cerr);
+  cerr << endl;
+  cerr << "OPTIONS:" << endl;
+  cerr << "  [-e | -fshort | -flong] [-help] [-version]" << endl;
+
 	exit(10);
 }
+
+void help()
+{
+  usage_msg(cout);
+  cout << endl;
+  cout << "countdegree - Count vertex degrees in graph composed of line segments." << endl;
+  cout << "              Input is a .line file (usually produced by findsharp.)"
+       << endl;
+  cout  << "              Output is the number of vertices with each degree."
+       << endl;
+	cout << "  -e:      Print vertices which have degrees other than zero or two."
+      << endl;
+  cout << "  -fshort: Short output format." << endl
+      << "           Print the number of vertices with degree other than zero or two."
+      << endl;
+  cout << "  -flong:  Long (condensed) output format." << endl
+       << "           Print comma separated list of number of vertices with:" << endl
+       << "             1) degree 0; 2) degree 1; 3) degree 2; 4) degree 3;"
+       << endl
+       << "             5) degree > 3; 6) degree not 0 or 2; 7) degree not 0;"
+       << endl
+       << "             8) total number of vertices." << endl;
+  cout << "  -version: Print version." << endl;
+  cout << "  -help:    Print this help message." << endl;
+  exit(0);
+}
+
 // parse command line
 void parse_command_line(int argc, char **argv)
 {
 	if (argc == 1)  {usage_error();}
+
+  if (argc == 2 && std::string(argv[1]) == "-version") {
+    cout << "Version: " << VERSION << endl;
+    exit(0);
+  }
+
 	int iarg=1;
-	while (iarg<argc && argv[iarg][0]=='-')
-    {
+	while (iarg<argc && argv[iarg][0]=='-') {
 		string s = argv[iarg];
-		if (s=="-deg3"){
-			real_degree_3_verts=atoi(argv[++iarg]);
-			iarg++;
-		}
-		else if (s=="-deg1"){
-			real_degree_1_verts=atoi(argv[++iarg]);
-			iarg++;
-		}
-		else if (s=="-fshort")
-      {
-			flag_op_to_file_short = true;
-			iarg++;
-      }
-  	else if (s=="-flong")
-      {
-			flag_op_to_file_long = true;
-			iarg++;
-      }
-		else if (s=="-e")
-      {
-			flag_print_edges=true;
-			iarg++;
-      }
-    else if (s=="-help" || s=="=h")
-      {
-      usage_msg();
+		if (s == "-deg3") {
       iarg++;
-      exit(0);
-      }
-		else
-      {
-			cout <<"There is no option called ["<<argv[iarg]<<"] here are the possible options."<<endl;
-      usage_msg();
-			iarg++;
-			exit(0);
-      }
+      if (iarg >= argc) { usage_error(); }
+      real_degree_3_verts = atoi(argv[iarg]); 
     }
+		else if (s == "-deg1") {
+      iarg++;
+      if (iarg >= argc) { usage_error(); }
+			real_degree_1_verts=atoi(argv[iarg]);
+		}
+		else if (s=="-fshort") 
+      { flag_op_to_file_short = true; }
+  	else if (s=="-flong")
+      { flag_op_to_file_long = true; }
+		else if (s=="-e") 
+      { flag_print_edges=true; }
+    else if (s == "-version") 
+      { cout << "Version: " << VERSION << endl; }
+    else if (s == "-help" || s=="=h") 
+      { help(); }
+		else {
+			cerr <<"Error.  Illegal option " << argv[iarg] << "." << endl;
+      cerr << endl;
+      usage_error();
+			exit(10);
+    }
+
+    iarg++;
+  }
+
+  if (iarg >= argc) {
+    cerr << "Error.  Missing input filename." << endl;
+    cerr << endl;
+    usage_error();
+  }
+
 	input_filename = argv[iarg];
 }
 

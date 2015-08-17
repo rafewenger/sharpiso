@@ -905,7 +905,7 @@ void SHREC::parse_isovalue_and_filename
   for (int j = iarg; j < argc; j++) {
     if (get_parameter_token(argv[j]) != UNKNOWN_PARAM) {
       // argv[iarg] is not an isovalue
-      cerr << "Error. Illegal parameter: " << argv[iarg] << endl;
+      cerr << "Error. Illegal option: " << argv[iarg] << endl;
       cerr << endl;
       usage_error(argv[0]);
     }
