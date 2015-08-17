@@ -1178,31 +1178,6 @@ float lambda_computationsC(
 	}
 	IJK::normalize_vector(DIM3, gradient_predict_at_v, 0.0001, gradient_predict_at_v);
 	IJK::normalize_vector(DIM3, p, 0.0001, p);
-	//debug 
-	if(0 && predict_at_v == 464051){
-		GRID_COORD_TYPE * coord = new GRID_COORD_TYPE[3];
-		scalar_grid.ComputeCoord(predict_at_v, coord);
-		cout <<"predict at distance " << predict_at_distance << endl;
-		cout <<"predict at vertex " << predict_at_v<<" [";
-		for (int i=0; i<DIM3; i++)
-			cout <<coord[i]<<",";
-		cout <<"]\n";
-		cout <<"using vertex v1   " << using_vertex_v1<< " [";
-		scalar_grid.ComputeCoord( using_vertex_v1, coord);
-		for (int i=0; i<DIM3; i++)
-			cout <<coord[i]<<",";
-		cout <<"]\n";
-		cout
-			<<"using vertex v2   " << using_vertex_v2 << " [";
-		scalar_grid.ComputeCoord( using_vertex_v2, coord);
-		for (int i=0; i<DIM3; i++)
-			cout <<coord[i]<<",";
-		cout <<"]\n";
-		cout <<"prediction: ";
-		for(auto i :p) cout <<i <<' '; cout <<"\n";
-		cout <<"gradient at v : ";
-		for(auto i :gradient_predict_at_v) cout <<i <<' '; cout <<"\n";
-	}
 	float inn_pdt = 0.0;
 	IJK::compute_inner_product(DIM3, gradient_predict_at_v, p, inn_pdt);
 	float deg = acos (inn_pdt) * 180.0 / M_PI;

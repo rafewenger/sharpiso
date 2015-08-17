@@ -1,4 +1,5 @@
-///Compute reliable gradients directly from the scalar data
+/// Compute reliable gradients directly from the scalar data
+/// Version: 0.1.0
 
 #include <iostream>
 #include <vector>
@@ -25,6 +26,7 @@ char * gradient_filename = NULL;
 bool report_time_flag = false;
 bool flag_gzip = false;
 bool flag_out_param = false;
+const char * VERSION = "0.1.0";
 
 // local subroutines
 void memory_exhaustion();
@@ -446,6 +448,11 @@ void output_param(INPUT_INFO & io_info) {
 void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 	int iarg = 1;
 
+  if (argc == 2 && std::string(argv[0]) == "-version") {
+    cout << "Version: " << VERSION << endl;
+    exit(0);
+  }
+
 	while (iarg < argc && argv[iarg][0] == '-') {
 
 		string s = string(argv[iarg]);
@@ -572,6 +579,9 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 		else if (s == "-gzip") {
 			flag_gzip = true;
 		} 
+    else if (s == "-version") {
+      cout << "Version: " << VERSION << endl;
+    }
 		else if (s == "-help") {
 			help_msg();
 		}
