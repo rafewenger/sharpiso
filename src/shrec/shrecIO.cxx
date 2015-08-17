@@ -814,7 +814,7 @@ namespace {
     string fname = filename;
 
 #ifndef _WIN32
-    // remove path from file name
+    // remove path from filename
     split_string(fname, PATH_DELIMITER, prefix, suffix);
     if (suffix != "") { fname = suffix; }
 #endif
@@ -835,7 +835,7 @@ namespace {
     string fname = filename;
 
 #ifndef _WIN32
-    // remove path from file name
+    // remove path from filename
     split_string(fname, PATH_DELIMITER, prefix, suffix);
     if (suffix != "") { fname = suffix; }
 #endif
@@ -899,7 +899,7 @@ void SHREC::parse_isovalue_and_filename
 (const int argc, char **argv, const int iarg, INPUT_INFO & input_info)
 {
   // remaining parameters should be list of isovalues followed
-  // by input file name
+  // by input filename
 
   // check for more parameter tokens
   for (int j = iarg; j < argc; j++) {
@@ -911,8 +911,37 @@ void SHREC::parse_isovalue_and_filename
     }
   }
 
+  if (iarg == argc) {
+    cerr << "Error.  Missing input isovalue and input filename." << endl;
+    usage_error(argv[0]);
+  }
+  else if (iarg+1 == argc) {
+    SCALAR_TYPE value;
+    istringstream input_string(argv[iarg]);
+
+    input_string >> value;
+
+    if (input_string.fail()) {
+      if (argv[iarg][0] == '-') {
+        cerr << "Error.  Illegal option: " << argv[iarg] << endl;
+        cerr << endl;
+        usage_error(argv[0]);
+      }
+      else {
+        cerr << "Error.  Missing input isovalue." << endl;
+        cerr << endl;
+        usage_error(argv[0]);
+      }
+    }
+    else {
+      cerr << "Error.  Missing input filename." << endl;
+      cerr << endl;
+      usage_error(argv[0]);
+    }
+  }
+
   if (iarg+2 > argc) {
-    cerr << "Error.  Missing input isovalue or input file name." << endl;
+    cerr << "Error.  Missing input isovalue or input filename." << endl;
     usage_error(argv[0]);
   };
 
@@ -927,6 +956,7 @@ void SHREC::parse_isovalue_and_filename
     if (input_string.fail()) {
       cerr << "Error. \"" << argv[j] << "\" is not a valid input isovalue."
            << endl;
+      cerr << endl;
       usage_error(argv[0]);
     };
 
@@ -2488,7 +2518,7 @@ namespace {
 
     command_name = command_path;
 
-    // remove path from file name
+    // remove path from filename
     split_string(command_path, PATH_DELIMITER, prefix, suffix);
     if (suffix != "") { command_name = suffix; }
 
