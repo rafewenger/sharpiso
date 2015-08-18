@@ -1660,12 +1660,12 @@ pair<bool,string> curvature_based_B_per_vertex(
 			int k=1;
 			float deg = lambda_computationsC 
 				(iv, v2, v1, k, scalar_grid, gradient_grid, grad_mag_grid);
-			if (deg > alpha) return make_pair(false,"deg("+to_string(deg)+")> alpha");
+			if (deg > alpha) return make_pair(false,"DEBUG");
 			if(io_info.cdist == 2){
 				k=2;
 				float deg2 = lambda_computationsC (iv, v3, v2, k, scalar_grid, 
 					gradient_grid, grad_mag_grid);
-				if (deg2 > alpha) return make_pair(false,"deg2("+to_string(deg2)+")> alpha");
+				if (deg2 > alpha) return make_pair(false,"DEBUG");
 			}
 		} // tangent neighbor set end
 
@@ -2103,19 +2103,11 @@ void compute_reliable_gradients_curvature_basedB(
 	{
 		if(!boundary_grid.Scalar(iv))
 		{
-			iv == 1360428 ? debugVertex= true : debugVertex=false; 
 			pair<bool, string> isReli =
 				curvature_based_B_per_vertex(iv, scalar_grid, gradient_grid,
 				grad_mag_grid, reliable_grid, io_info, debugVertex);
 			if (isReli.first){
 				reliable_grid.Set(iv, true);
-			}
-			//debug
-			if(debugVertex){
-				cout <<"vertex "<< iv <<endl;
-				cout <<"reliable gradient "<<
-					(isReli.first) ? "yes" : "no"; 
-				cout<<" why ? "<< isReli.second <<endl;
 			}
 		}
 	}
