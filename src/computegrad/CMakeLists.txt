@@ -58,7 +58,7 @@ ADD_EXECUTABLE(religrad religrad_main.cxx religrad_computations.cxx)
 target_link_libraries(religrad ${EXPAT_LIBRARIES} NrrdIO ${LIB_ZLIB})
 
 SET(CMAKE_INSTALL_PREFIX ${SHARP_DIR})
-INSTALL(TARGETS religrad DESTINATION "/usr/local/bin")
+INSTALL(TARGETS religrad DESTINATION "bin/$ENV{OSTYPE}")
 
 ADD_CUSTOM_TARGET(tar WORKING_DIRECTORY ../.. COMMAND tar cvfh ${CGRADIENT_DIR}/isodual3D.tar ${CGRADIENT_DIR}/*.cxx ${CGRADIENT_DIR}/*.h ${CGRADIENT_DIR}/*.txx ${CGRADIENT_DIR}/CMakeLists.txt)
 

@@ -448,7 +448,7 @@ void output_param(INPUT_INFO & io_info) {
 void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 	int iarg = 1;
 
-  if (argc == 2 && std::string(argv[0]) == "-version") {
+  if (argc == 2 && std::string(argv[1]) == "-version") {
     cout << "Version: " << VERSION << endl;
     exit(0);
   }
@@ -605,15 +605,13 @@ void usage_msg() {
 		<< endl;
 	cerr << "OPTIONS:" << endl;
 	cerr << "  [-cdiff] [-angle_test] [-scalar_test] [-advangle]" << endl;
-	cerr << "  [min_gradient_mag {M}] [-angle {A}] [-min_num_agree {N}]" << endl;
+	cerr << "  [-min_gradient_mag {M}] [-angle {A}] [-min_num_agree {N}]" << endl;
 	cerr << "  [-angle_based_dist {D}] [-reliable_scalar_pred_dist {D}]" << endl;
-	cerr << "  [-neighbor_angle {A}]"<< endl;
-	cerr << "  [-scalar_pred_err {E}]" << endl;
-	cerr << "  [-curvature_based]" << endl;
-	cerr << "  [-cdist {D}]" << endl;
-	cerr << "  [-extended_curv]"   << endl;
-	cerr << "  [-gzip]" << endl;
-	cerr << "  [-out_param] [-print_info {V}] [-print_grad_loc] [-help]" << endl;
+	cerr << "  [-neighbor_angle {A}]  [-scalar_pred_err {E}]" << endl;
+	cerr << "  [-curvature_based] [-cdist {D}] [-extended_curv]"   << endl;
+	cerr << "  [-gzip] [-out_param] [-print_info {V}] [-print_grad_loc]"
+       << endl;
+  cerr << "  [-help] [-version]" << endl;
 }
 
 void help_msg() {
@@ -647,7 +645,8 @@ void help_msg() {
 	cerr << "  -out_param:  Print parameters." << endl;
 	cerr << "  -print_info {V} : Print information about vertex {IV}." << endl;
 	cerr << "  -print_grad_loc : Print location of vertices with unreliable gradients." << endl;
-	cerr << "  -help: Print this help message." << endl;
+  cerr << "  -version: Print version." << endl;
+	cerr << "  -help:    Print this help message." << endl;
 
 	exit(0);
 }
