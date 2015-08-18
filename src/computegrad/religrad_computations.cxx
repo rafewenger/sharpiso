@@ -548,20 +548,13 @@ void compute_reliable_gradients_advangle(
 
 	//float degree_param = 30*M_PI/180.0;
 	float degree_param = io_info.neighbor_angle_parameter*M_PI/180.0;
-	//DEBUG
-	/*cout <<"degree param cos "<< cos(30*M_PI/180.0) <<endl;
-	cout <<"num vertices "<<scalar_grid.NumVertices()<<endl;
-	cout <<"axis size "<< scalar_grid.AxisSize(0) 
-	<<", "<<scalar_grid.AxisSize(1)
-	<<", "<<scalar_grid.AxisSize(2);
 
-	cout <<" axis increment  "<<  scalar_grid.AxisIncrement(0)
-	<<", " <<scalar_grid.AxisIncrement(1) <<"," <<scalar_grid.AxisIncrement(2);*/
 	for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) 
 	{
 		COORD_TYPE coord_iv[DIM3] = {0.0,0.0,0.0};
 		COORD_TYPE coord1[DIM3] = {0.0,0.0,0.0};
 		scalar_grid.ComputeCoord(iv, coord_iv);
+
 		if(debug){
 			cout <<"\n---------------------\nvertex "<< iv <<
 				" coord ["<<coord_iv[0]<<","<<coord_iv[1]<<","<<coord_iv[2]<<"]"<<endl;
@@ -594,32 +587,18 @@ void compute_reliable_gradients_advangle(
 					cout <<"previous vertex {from axis increment} "
 						<<prev_vertex<<"  "<< coord1[0]<<","<<coord1[1]<<","<<coord1[2];
 				}
+
 				COORD_TYPE edge_vec[DIM3] = {0, 0, 0};
 				compute_vector_between_grid_vertex
 					(scalar_grid, iv, prev_vertex, &(edge_vec[0]));
 				IJK::normalize_vector(DIM3, &(edge_vec[0]), 0.0, &(edge_vec[0]));
 
-				//DEBUG
-				//cout <<" ["<< edge_vec[0]<<","<< edge_vec[1]<<","<< edge_vec[2]<<"] ";
-
 				float inn_pdt = 0.0;
 				IJK::compute_inner_product(DIM3, gradient_iv, edge_vec, inn_pdt);
-
-				//debug
-				//cout <<" inn pdt " << inn_pdt <<" angle "<< acos(inn_pdt)*57.2957795;
 
 				bool insert_flag = update_tangent_vertex_list
 					(prev_vertex, inn_pdt, degree_param, tangent_vertex_list);
 
-				//debug 
-				/*if(insert_flag)
-				{
-				cout <<" inserted.  "<< endl;
-				}
-				else
-				{
-				cout <<" NOT inserted."<< endl;
-				}*/
 				k = min(io_info.angle_based_dist,
 					(scalar_grid.AxisSize(d) - int(coord_iv[d]) - 1));
 
@@ -634,24 +613,10 @@ void compute_reliable_gradients_advangle(
 					(scalar_grid, iv, next_vertex, &(edge_vec[0]));
 				IJK::normalize_vector(DIM3, &(edge_vec[0]), 0.0, &(edge_vec[0]));
 
-				//DEBUG
-				//cout <<" ["<< edge_vec[0]<<","<< edge_vec[1]<<","<< edge_vec[2]<<"] ";
 				IJK::compute_inner_product(DIM3, gradient_iv, edge_vec, inn_pdt);
 
-				//debug
-				//cout <<" inn pdt " << inn_pdt <<" angle "<< acos(inn_pdt)*57.2957795;
 				insert_flag = update_tangent_vertex_list
 					(next_vertex, inn_pdt, degree_param, tangent_vertex_list);
-
-				//debug 
-				/*if(insert_flag)
-				{
-				cout <<" inserted." << endl;
-				}
-				else
-				{
-				cout <<" NOT inserted." << endl;
-				}*/
 			}
 			//cout <<"tangent neighbor sizes " << tangent_vertex_list.size() << endl;
 			for (int v = 0; v < tangent_vertex_list.size(); v++)
@@ -2099,6 +2064,7 @@ void compute_reliable_gradients_curvature_basedB(
 {
 	const int numVertices = scalar_grid.NumVertices();
 	bool debugVertex = false; 
+
 	for (unsigned int iv = 0; iv < numVertices; iv++)
 	{
 		if(!boundary_grid.Scalar(iv))
@@ -2140,6 +2106,7 @@ void compute_reliable_gradients_curvature_basedB(
 			}
 		}
 	}
+
 }
 
 //

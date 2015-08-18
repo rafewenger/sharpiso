@@ -263,6 +263,7 @@ int main(int argc, char **argv) {
 			finish = clock();	
 
 		}
+
 		if(input_info.curv_based)
 		{
 			only_cdiff = false;
