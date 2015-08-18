@@ -30,6 +30,7 @@ const char * VERSION = "0.1.0";
 
 // local subroutines
 void memory_exhaustion();
+void usage_msg(const bool flag_list_all_options);
 void usage_error(), help_msg();
 void parse_command_line(int argc, char **argv, INPUT_INFO & io_info);
 void output_param(INPUT_INFO & io_info);
@@ -453,6 +454,7 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
     exit(0);
   }
 
+  bool flag_list_all_options(false);
 	while (iarg < argc && argv[iarg][0] == '-') {
 
 		string s = string(argv[iarg]);
@@ -585,33 +587,56 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 		else if (s == "-help") {
 			help_msg();
 		}
+    else if (s == "-list_all_options") {
+      flag_list_all_options = true;
+    }
 		else {
-			cout << "Error in  " << s << endl;
+			cerr << "Error in  " << s << endl;
+      cerr << endl;
 			usage_error();
 		}
 		iarg++;
 	}
 
-	if (iarg + 2 != argc) {
-		usage_error();
-	};
+  if (flag_list_all_options) {
+    usage_msg(true);
+    exit(0);
+  }
+
+	if (iarg + 2 != argc) {	usage_error(); };
 
 	scalar_filename = argv[iarg];
 	gradient_filename = argv[iarg + 1];
 }
 
-void usage_msg() {
-	cerr << "Usage: religrad [OPTIONS] {scalar nrrd file} {gradient nrrd file}"
-		<< endl;
+void main_options_msg() {
 	cerr << "OPTIONS:" << endl;
-	cerr << "  [-cdiff] [-angle_test] [-scalar_test] [-advangle]" << endl;
-	cerr << "  [-min_gradient_mag {M}] [-angle {A}] [-min_num_agree {N}]" << endl;
-	cerr << "  [-angle_based_dist {D}] [-reliable_scalar_pred_dist {D}]" << endl;
-	cerr << "  [-neighbor_angle {A}]  [-scalar_pred_err {E}]" << endl;
-	cerr << "  [-curvature_based] [-cdist {D}] [-extended_curv]"   << endl;
+	cerr << "  [-cdiff] [-curvature_based] [-cdist {D}] [-extended_curv]"   
+       << endl;
+	cerr << "  [-min_gradient_mag {M}] [-angle {A}]" << endl;
+	cerr << "  [-neighbor_angle {A}]" << endl;
 	cerr << "  [-gzip] [-out_param] [-print_info {V}] [-print_grad_loc]"
        << endl;
-  cerr << "  [-help] [-version]" << endl;
+  cerr << "  [-help] [-version] [-list_all_options]" << endl;
+}
+
+void testing_options_msg() {
+	cerr << "TESTING OPTIONS:" << endl;
+  cerr << "  [-angle_test] [-scalar_test] [-advangle]" << endl;
+  cerr << "  [-min_num_agree {N}]" << endl;
+	cerr << "  [-angle_based_dist {D}] [-reliable_scalar_pred_dist {D}]" << endl;
+  cerr << "  [-scalar_pred_err {E}]" << endl;
+}
+
+void usage_msg(const bool flag_list_all_options = false) {
+	cerr << "Usage: religrad [OPTIONS] {scalar nrrd file} {gradient nrrd file}"
+       << endl;
+  main_options_msg();
+
+  if (flag_list_all_options) {
+    cerr << endl;
+    testing_options_msg();
+  }
 }
 
 void help_msg() {

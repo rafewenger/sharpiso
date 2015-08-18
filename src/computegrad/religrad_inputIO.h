@@ -30,7 +30,7 @@ public:
 };
 class INPUT_INFO {
 public:
-  bool algo12;                // run algorithm 1 or 2 look in IEEE vis 2015 paper for details. 
+  bool algo12;                // run algorithm 1 or 2
   bool flag_cdiff;            // compute central difference
   bool flag_reliable_grad;    // reliable grad
   bool print_info;            // print info of the vertex
