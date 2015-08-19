@@ -723,6 +723,7 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 	gradient_filename = argv[iarg + 1];
 }
 
+
 void usage_msg() {
 	cerr << "Usage: religrad [OPTIONS] {scalar nrrd file} {gradient nrrd file}"
 		<< endl;
