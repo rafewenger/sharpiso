@@ -557,6 +557,8 @@ void usage_error(const bool flag_list_all_options = false)
 //Parse command line
 void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 	int iarg = 1;
+
+
   if (argc == 2 && std::string(argv[1]) == "-version") {
     cout << "Version: " << VERSION << endl;
     exit(0);
@@ -720,7 +722,6 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 	scalar_filename = argv[iarg];
 	gradient_filename = argv[iarg + 1];
 }
-<<<<<<< HEAD
 
 void usage_msg() {
 	cerr << "Usage: religrad [OPTIONS] {scalar nrrd file} {gradient nrrd file}"
@@ -778,6 +779,3 @@ void usage_error() {
 	usage_msg();
 	exit(100);
 }
-
-=======
->>>>>>> origin/master
