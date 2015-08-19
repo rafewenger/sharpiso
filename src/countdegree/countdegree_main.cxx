@@ -40,45 +40,45 @@ int main(int argc, char **argv)
 {
 	try {
 		parse_command_line(argc, argv);
-    
+
 		ifstream in(input_filename, ios::in);
 		compute_output_fn ();
 		if (!in.good()) {
 			cerr << "Error.  Unable to open file " << input_filename << "." << endl;
 			exit(30);
 		};
-    
+
 		ijkinLINE(in, dimension, vertex_coord, num_vertices,
-              edge_endpoint, num_edges);
+			edge_endpoint, num_edges);
 		in.close();
-    
+
 		// count the degree of each vertex
 		vector <int> vert_degree(num_vertices,0);
-    
+
 		// count the degrees of the different edge points
 		count_edge_degrees
-		(dimension, vertex_coord, num_vertices, edge_endpoint, num_edges, vert_degree);
-    
+			(dimension, vertex_coord, num_vertices, edge_endpoint, num_edges, vert_degree);
+
 		if ( flag_op_to_file_short){
-      //compute the output file name
+			//compute the output file name
 			output_short_info(num_vertices, vert_degree, output_fn);
 		}
-    else if (flag_op_to_file_long)
-      {
-      output_vert_degree_2_file
-      (num_vertices,vert_degree);
-      }
+		else if (flag_op_to_file_long)
+		{
+			output_vert_degree_2_file
+				(num_vertices,vert_degree);
+		}
 		else{
 			// output the edge information
 			output_vert_degree( num_vertices, vert_degree, output_fn);
 		}
-    
+
 		// print the edges degrees for analysis
 		if (flag_print_edges){
 			print_edge_info
-			(num_vertices, vertex_coord,  vert_degree);
-    }
-    
+				(num_vertices, vertex_coord,  vert_degree);
+		}
+
 	}
 	catch (ERROR & error) {
 		if (error.NumMessages() == 0) {
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 		cerr << "Unknown error." << endl;
 		exit(50);
 	};
-  
+
 	return 0;
 }
 
@@ -104,43 +104,43 @@ int main(int argc, char **argv)
 
 void usage_msg(std::ostream & out)
 {
-  out << "Usage: countdegree [OPTIONS] <input filename>" << endl;
+	out << "Usage: countdegree [OPTIONS] <input filename>" << endl;
 }
 
 void usage_error()
 {
 	usage_msg(cerr);
-  cerr << endl;
-  cerr << "OPTIONS:" << endl;
-  cerr << "  [-e | -fshort | -flong] [-help] [-version]" << endl;
+	cerr << endl;
+	cerr << "OPTIONS:" << endl;
+	cerr << "  [-e | -fshort | -flong] [-help] [-version]" << endl;
 
 	exit(10);
 }
 
 void help()
 {
-  usage_msg(cout);
-  cout << endl;
-  cout << "countdegree - Count vertex degrees in graph composed of line segments." << endl;
-  cout << "              Input is a .line file (usually produced by findsharp.)"
-       << endl;
-  cout  << "              Output is the number of vertices with each degree."
-       << endl;
+	usage_msg(cout);
+	cout << endl;
+	cout << "countdegree - Count vertex degrees in graph composed of line segments." << endl;
+	cout << "              Input is a .line file (usually produced by findsharp.)"
+		<< endl;
+	cout  << "              Output is the number of vertices with each degree."
+		<< endl;
 	cout << "  -e:      Print vertices which have degrees other than zero or two."
-      << endl;
-  cout << "  -fshort: Short output format." << endl
-      << "           Print the number of vertices with degree other than zero or two."
-      << endl;
-  cout << "  -flong:  Long (condensed) output format." << endl
-       << "           Print comma separated list of number of vertices with:" << endl
-       << "             1) degree 0; 2) degree 1; 3) degree 2; 4) degree 3;"
-       << endl
-       << "             5) degree > 3; 6) degree not 0 or 2; 7) degree not 0;"
-       << endl
-       << "             8) total number of vertices." << endl;
-  cout << "  -version: Print version." << endl;
-  cout << "  -help:    Print this help message." << endl;
-  exit(0);
+		<< endl;
+	cout << "  -fshort: Short output format." << endl
+		<< "           Print the number of vertices with degree other than zero or two."
+		<< endl;
+	cout << "  -flong:  Long (condensed) output format." << endl
+		<< "           Print comma separated list of number of vertices with:" << endl
+		<< "             1) degree 0; 2) degree 1; 3) degree 2; 4) degree 3;"
+		<< endl
+		<< "             5) degree > 3; 6) degree not 0 or 2; 7) degree not 0;"
+		<< endl
+		<< "             8) total number of vertices." << endl;
+	cout << "  -version: Print version." << endl;
+	cout << "  -help:    Print this help message." << endl;
+	exit(0);
 }
 
 // parse command line
@@ -148,49 +148,49 @@ void parse_command_line(int argc, char **argv)
 {
 	if (argc == 1)  {usage_error();}
 
-  if (argc == 2 && std::string(argv[1]) == "-version") {
-    cout << "Version: " << VERSION << endl;
-    exit(0);
-  }
+	if (argc == 2 && std::string(argv[1]) == "-version") {
+		cout << "Version: " << VERSION << endl;
+		exit(0);
+	}
 
 	int iarg=1;
 	while (iarg<argc && argv[iarg][0]=='-') {
 		string s = argv[iarg];
 		if (s == "-deg3") {
-      iarg++;
-      if (iarg >= argc) { usage_error(); }
-      real_degree_3_verts = atoi(argv[iarg]); 
-    }
+			iarg++;
+			if (iarg >= argc) { usage_error(); }
+			real_degree_3_verts = atoi(argv[iarg]); 
+		}
 		else if (s == "-deg1") {
-      iarg++;
-      if (iarg >= argc) { usage_error(); }
+			iarg++;
+			if (iarg >= argc) { usage_error(); }
 			real_degree_1_verts=atoi(argv[iarg]);
 		}
 		else if (s=="-fshort") 
-      { flag_op_to_file_short = true; }
-  	else if (s=="-flong")
-      { flag_op_to_file_long = true; }
+		{ flag_op_to_file_short = true; }
+		else if (s=="-flong")
+		{ flag_op_to_file_long = true; }
 		else if (s=="-e") 
-      { flag_print_edges=true; }
-    else if (s == "-version") 
-      { cout << "Version: " << VERSION << endl; }
-    else if (s == "-help" || s=="=h") 
-      { help(); }
+		{ flag_print_edges=true; }
+		else if (s == "-version") 
+		{ cout << "Version: " << VERSION << endl; }
+		else if (s == "-help" || s=="=h") 
+		{ help(); }
 		else {
 			cerr <<"Error.  Illegal option " << argv[iarg] << "." << endl;
-      cerr << endl;
-      usage_error();
+			cerr << endl;
+			usage_error();
 			exit(10);
-    }
+		}
 
-    iarg++;
-  }
+		iarg++;
+	}
 
-  if (iarg >= argc) {
-    cerr << "Error.  Missing input filename." << endl;
-    cerr << endl;
-    usage_error();
-  }
+	if (iarg >= argc) {
+		cerr << "Error.  Missing input filename." << endl;
+		cerr << endl;
+		usage_error();
+	}
 
 	input_filename = argv[iarg];
 }
