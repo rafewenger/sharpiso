@@ -27,6 +27,9 @@ bool report_time_flag = false;
 bool flag_gzip = false;
 bool flag_out_param = false;
 const char * VERSION = "0.1.0";
+float DEFAULT_ANGLE = 20;
+float DEFAULT_NEIGHBOR_ANGLE = 20;
+int DEFAULT_CDIST = 2;
 
 // local subroutines
 void memory_exhaustion();
@@ -295,9 +298,10 @@ int main(int argc, char **argv) {
 		}
 
 		if (!OptChosen) {
-			cerr << "No gradients were computed" << endl;
-			exit(0);
+			cerr << "No algorithm specified.  Recommended: -extended_curv." << endl;
+			exit(10);
 		}
+
 		// set the correct gradients
 		// set gradients
 		int num_unreliable = 0;
@@ -429,20 +433,20 @@ void output_param(INPUT_INFO & io_info) {
 
 			cout <<"Advanced Angle based Reliability criteria."<<endl;
 
-			cout <<"Angle threshold for gradients to agree "<<io_info.param_angle << endl;
-			cout <<"Neighbor angle "<<io_info.neighbor_angle_parameter<<endl;
-			cout <<"\t{angle between grad at v and vector vv' where v' is an edge neighbor}"<<endl;
-
+			cout <<"Gradient prediction angle: "<<io_info.param_angle << endl;
+			cout <<"Angle for determining vertice in tangent plane: "<<io_info.neighbor_angle_parameter<<endl;
 		}
 		else if(io_info.curv_based)
 		{
 
-			cout <<"Curvature  based."<<endl;
+			cout << "Curvature based."<<endl;
 
-			cout <<"Neighbor angle "<<io_info.neighbor_angle_parameter<<endl;
-			cout <<"Angle threshold for gradients to agree "<<io_info.param_angle << endl;
+			cout <<"Gradient prediction angle: "<<io_info.param_angle << endl;
+			cout <<"Angle for determining vertice in tangent plane: "<<io_info.neighbor_angle_parameter<<endl;
+      cout << "Compare vertex gradient with gradients at distance: "
+           << io_info.cdist << endl;
 		}
-		if (io_info.flag_cdiff) {
+		else if (io_info.flag_cdiff) {
 			cerr << "Central Difference for computing gradients.\n";
 		}
 
@@ -451,10 +455,8 @@ void output_param(INPUT_INFO & io_info) {
 
 void main_options_msg() {
 	cerr << "OPTIONS:" << endl;
-	cerr << "  [-cdiff] [-curvature_based] [-cdist {D}] [-extended_curv]"   
-       << endl;
-	cerr << "  [-min_gradient_mag {M}] [-angle {A}]" << endl;
-	cerr << "  [-neighbor_angle {A}]" << endl;
+	cerr << "  [-curvature_based] [-extended_curv] [-cdiff]"   << endl;
+  cerr << "  [-cdist {D}] [-angle {A}] [-min_gradient_mag {M}]" << endl;
 	cerr << "  [-gzip] [-out_param] [-print_info {V}] [-print_grad_loc]"
        << endl;
   cerr << "  [-help] [-version] [-list_all_options]" << endl;
@@ -466,6 +468,7 @@ void testing_options_msg() {
   cerr << "  [-min_num_agree {N}]" << endl;
 	cerr << "  [-angle_based_dist {D}] [-reliable_scalar_pred_dist {D}]" << endl;
   cerr << "  [-scalar_pred_err {E}]" << endl;
+	cerr << "  [-neighbor_angle {A}]" << endl;
   cerr << "  [-help_testing]" << endl;
 }
 
@@ -479,16 +482,24 @@ void usage_msg(std::ostream & out)
 void help_main_options()
 {
   cout << "MAIN OPTIONS:" << endl;
+	cout << "  -curvature_based: Curvature based gradient prediction."<<endl;
+  cout << "     Gradients close to predicted direction are reliable." << endl;
+	cout << "  -extended_curv: Curvature based gradient prediction" << endl
+       << "     with extension of reliable gradients." << endl;
+  cout << "     Gradients close to predicted direction are reliable." << endl;
+  cout << "     Gradients predicted by reliable gradients are reliable."
+       << endl;
 	cout << "  -cdiff: Compute the central difference (default)." << endl;
-	cout << "  -curvature_based: two parameters, alpha set by -angle and -neighbor_angle."<<endl;
-	cout <<	"  -cdist {D} : distance associated with option -curvature_based."<< endl;
-	cout <<	"     How check reliability at distance D (use 1 or 2) from vertex v" << endl;
-	cout << "  -extended_curv: extended version of curvature based reliable gradients."<< endl
-		 << "     Takes parameters -angle and -neighbor-angle"<<endl;
+	cout <<	"  -cdist {D} :  Distance (1 or 2) for curvature based gradient prediction." << endl;
+	cout <<	"     D=1: Compare each vertex gradient with gradients at adjacent vertices."
+       << endl;
+  cout << "     D=2: Compare each vertex gradient with gradients at adjacent vertices"
+       << endl
+       << "          and at distance 2 from vertex." << endl;
+  cout << "          (Default: D=" << DEFAULT_CDIST << ".)" << endl;
+	cout << "  -angle {A}: Set angle to {A} (float).  (Default: A="
+       << DEFAULT_ANGLE << ".)" << endl;
 	cout << "  -min_gradient_mag {M}:  Set min gradient magnitude to {M} (float)." << endl;
-	cout << "  -angle {A}: Set angle to {A} (float)." << endl;
-	cout <<	"  -neighbor_angle {A} Angle between grad at v and vector vv'\n\t"
-		<<	"Where v' is an edge neighbor. Default is 30." << endl;
 	cout << "  -gzip: Store gradients in compressed (gzip) format." << endl;
 	cout << "  -out_param:  Print parameters." << endl;
 	cout << "  -print_info {V} : Print information about vertex {IV}." << endl;
@@ -511,12 +522,15 @@ void help_testing_options()
 		<<	"     in angle test.  (Default 1.)" << endl;
 	cout << "  -reliable_scalar_pred_dist: Distance (integer) to neighboring vertices" << endl
 		<<	"     in scalar test.  (Default 2.)" << endl;
-	cout <<	"  -neighbor_angle {A} Angle between grad at v and vector vv'\n\t"
-		<<	"Where v' is an edge neighbor. Default is 30." << endl;
 	cout << "  -scalar_pred_err {E}:  Error threshold for scalar test." 
 		<< endl;
 	cout << "     Errors above the threshold fail the test. (Default 0.4.)" 
 		<< endl;
+	cout <<	"  -neighbor_angle {A} Angle used in determining vertices near tangent plane." << endl;
+  cout << "     If angle between (v'-v) and gradient is more than {A},"
+       << endl
+       << "     then v' is near tangent plane." << endl;
+  cout << "     (Default: A=" << DEFAULT_NEIGHBOR_ANGLE << ".)" << endl;
 	cout << "  -help_testing:    Print this help message." << endl;
 }
 
@@ -561,6 +575,10 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
     cout << "Version: " << VERSION << endl;
     exit(0);
   }
+
+  io_info.param_angle = DEFAULT_ANGLE;
+  io_info.neighbor_angle_parameter = DEFAULT_NEIGHBOR_ANGLE;
+  io_info.cdist = DEFAULT_CDIST;
 
   bool flag_list_all_options(false);
   bool flag_output_help(false);
@@ -648,12 +666,8 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 		{
 			io_info.flag_cdiff = true;
 			io_info.curv_based = true;
-			//default parameters
-			io_info.param_angle =  20; // alpha
-			io_info.neighbor_angle_parameter = 20;
 		}
-
-		else if(s == "-cdist")
+		else if (s == "-cdist")
 		{
 			iarg++;
 			io_info.cdist = atoi(argv[iarg]);
@@ -666,9 +680,6 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 		{
 			io_info.flag_cdiff = true;
 			io_info.curv_based = true;
-			//default parameters
-			io_info.param_angle = 20;
-			io_info.neighbor_angle_parameter = 20;
 			io_info.extended_curv_based = true;
 		}
 		else if (s == "-extend_max")
