@@ -48,7 +48,7 @@ void out_stats
 {
 
 	OUTPUT_INFO out = io_info.out_info;
-		int num_unreliable=0, num_reliable=0;
+	int num_unreliable=0, num_reliable=0;
 	for (int i = 0; i < reliable_grid.NumVertices(); i++)
 	{	
 		if ( !reliable_grid.Scalar(i))
@@ -61,17 +61,18 @@ void out_stats
 		}
 	}
 	if (!fio){
-	cout <<"********************************\n"
-		<<"\tOutput stats ["<< method<<"]"
-		<<"\n********************************\n";
+		cout <<"********************************\n"
+			<<"\tOutput stats ["<< method<<"]"
+			<<"\n********************************\n";
 
-	cout <<"TOTAL number of unreliable vertices: "<< num_unreliable << endl;
-	cout <<"TOTAL number of reliable vertices: "<< num_reliable << endl;
-	cout <<"TOTAL number of vertices: "<< num_unreliable + num_reliable<< endl;
+		cout <<"TOTAL number of unreliable vertices: "<< num_unreliable << endl;
+		cout <<"TOTAL number of reliable vertices: "<< num_reliable << endl;
+		cout <<"TOTAL number of vertices: "<< num_unreliable + num_reliable<< endl;
 	}
 	else{
-		cout << num_unreliable*100.0/reliable_grid.NumVertices()<<","
-			<< num_reliable*100.0/reliable_grid.NumVertices()<< endl;}
+		// 	cout << num_unreliable*100.0/reliable_grid.NumVertices()<<","
+		//		<< num_reliable*100.0/reliable_grid.NumVertices()<< endl;
+	}
 
 }
 
@@ -121,7 +122,7 @@ int main(int argc, char **argv) {
 
 		// compute central difference
 		if (input_info.flag_cdiff) {
-			
+
 			compute_gradient_central_difference_normalized(full_scalar_grid,
 				vertex_gradient_grid, magnitude_grid, input_info);
 			OptChosen = true;
@@ -160,7 +161,7 @@ int main(int argc, char **argv) {
 		}
 
 		if (input_info.flag_reliable_scalar_prediction) {
-			
+
 			only_cdiff = false;
 
 			input_info.out_info.num_unreliable = 0;
@@ -213,7 +214,7 @@ int main(int argc, char **argv) {
 			finish = clock();			
 		}
 		if(input_info.adv_angle_based_v2){
-			
+
 			only_cdiff = false;
 
 			//reset num unreliables. 
@@ -448,10 +449,10 @@ void output_param(INPUT_INFO & io_info) {
 void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 	int iarg = 1;
 
-  if (argc == 2 && std::string(argv[0]) == "-version") {
-    cout << "Version: " << VERSION << endl;
-    exit(0);
-  }
+	if (argc == 2 && std::string(argv[0]) == "-version") {
+		cout << "Version: " << VERSION << endl;
+		exit(0);
+	}
 
 	while (iarg < argc && argv[iarg][0] == '-') {
 
@@ -579,9 +580,9 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 		else if (s == "-gzip") {
 			flag_gzip = true;
 		} 
-    else if (s == "-version") {
-      cout << "Version: " << VERSION << endl;
-    }
+		else if (s == "-version") {
+			cout << "Version: " << VERSION << endl;
+		}
 		else if (s == "-help") {
 			help_msg();
 		}
@@ -642,7 +643,7 @@ void help_msg() {
 	cerr <<	"  -cdist {D} : distance associated with option -curvature_based."<< endl;
 	cerr <<	"     How check reliability at distance D (use 1 or 2) from vertex v" << endl;
 	cerr << "  -extended_curv: extended version of curvature based reliable gradients."<< endl  
-		 << "     Takes parameters -angle and -neighbor-angle"<<endl;
+		<< "     Takes parameters -angle and -neighbor-angle"<<endl;
 	cerr << "  -gzip: Store gradients in compressed (gzip) format." << endl;
 	cerr << "  -out_param:  Print parameters." << endl;
 	cerr << "  -print_info {V} : Print information about vertex {IV}." << endl;

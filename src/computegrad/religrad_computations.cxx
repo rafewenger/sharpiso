@@ -548,24 +548,13 @@ void compute_reliable_gradients_advangle(
 
 	//float degree_param = 30*M_PI/180.0;
 	float degree_param = io_info.neighbor_angle_parameter*M_PI/180.0;
-	//DEBUG
-	/*cout <<"degree param cos "<< cos(30*M_PI/180.0) <<endl;
-	cout <<"num vertices "<<scalar_grid.NumVertices()<<endl;
-	cout <<"axis size "<< scalar_grid.AxisSize(0) 
-	<<", "<<scalar_grid.AxisSize(1)
-	<<", "<<scalar_grid.AxisSize(2);
 
-	cout <<" axis increment  "<<  scalar_grid.AxisIncrement(0)
-	<<", " <<scalar_grid.AxisIncrement(1) <<"," <<scalar_grid.AxisIncrement(2);*/
 	for (VERTEX_INDEX iv = 0; iv < scalar_grid.NumVertices(); iv++) 
 	{
 		COORD_TYPE coord_iv[DIM3] = {0.0,0.0,0.0};
 		COORD_TYPE coord1[DIM3] = {0.0,0.0,0.0};
 		scalar_grid.ComputeCoord(iv, coord_iv);
-		if(debug){
-			cout <<"\n---------------------\nvertex "<< iv <<
-				" coord ["<<coord_iv[0]<<","<<coord_iv[1]<<","<<coord_iv[2]<<"]"<<endl;
-		}
+
 		int numAgree = 0;
 
 		vector<VERTEX_INDEX> tangent_vertex_list;
@@ -576,24 +565,17 @@ void compute_reliable_gradients_advangle(
 		std::copy(gradient_grid.VectorPtrConst(iv),
 			gradient_grid.VectorPtrConst(iv) + DIM3, &(gradient_iv[0]));
 
-		if(debug){
-			cout <<"Grad "<< gradient_iv[0]<<","<< gradient_iv[1]<<","<< gradient_iv[2]
-			<<" Mag "<< gradient_iv_mag<< endl;
-		}
+
 		if (gradient_iv_mag > io_info.min_gradient_mag) 
 		{
 			for (int d = 0; d < DIM3; d++) 
 			{
-				//cout <<"D "<< d <<"\t";
+
 				int k = min(io_info.angle_based_dist, int(coord_iv[d]));
 				VERTEX_INDEX prev_vertex = 
 					iv - k * scalar_grid.AxisIncrement(d);
 				//scalar_grid.ComputeCoord(prev_vertex, &(coord1[0]));				
 
-				if(debug){
-					cout <<"previous vertex {from axis increment} "
-						<<prev_vertex<<"  "<< coord1[0]<<","<<coord1[1]<<","<<coord1[2];
-				}
 				COORD_TYPE edge_vec[DIM3] = {0, 0, 0};
 				compute_vector_between_grid_vertex
 					(scalar_grid, iv, prev_vertex, &(edge_vec[0]));
@@ -1995,6 +1977,7 @@ void curvature_based_per_vertex(
 			ortho_neighbor_set_iv, io_info);
 
 		//DEBUG
+		/*
 		if(debug || iv == test_iv){
 			cout <<"debug "<< debug ;
 			using namespace std;
@@ -2021,6 +2004,7 @@ void curvature_based_per_vertex(
 			}
 			cout <<"}"<<endl;
 		}//DEBUG_END
+		*/
 
 
 		float alpha = 5;
