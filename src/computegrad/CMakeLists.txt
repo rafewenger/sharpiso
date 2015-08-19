@@ -11,9 +11,10 @@ ENDIF (NOT DEFINED ${SHARP_DIR})
 
 SET(CMAKE_INSTALL_PREFIX "${SHARP_DIR}/")
 SET(LIBRARY_OUTPUT_PATH ${SHARP_DIR}/lib CACHE PATH "Library directory")
-SET(CGRADIENT_DIR "cgradient")
+SET(CGRADIENT_DIR "src/computegrad")
 SET(NRRD_LIBDIR "${SHARP_DIR}/lib")
 SET(SHARP_ISOTABLE_DIR "${SHARP_DIR}/isotable" CACHE PATH "Isotable directory")
+SET(TAR_SHARPISO_SRC_DIR "src/sharpiso")
 
 #---------------------------------------------------------
 
@@ -58,7 +59,7 @@ ADD_EXECUTABLE(religrad religrad_main.cxx religrad_computations.cxx)
 target_link_libraries(religrad ${EXPAT_LIBRARIES} NrrdIO ${LIB_ZLIB})
 
 SET(CMAKE_INSTALL_PREFIX ${SHARP_DIR})
-INSTALL(TARGETS religrad DESTINATION "/usr/local/bin")
+INSTALL(TARGETS religrad DESTINATION "bin/$ENV{OSTYPE}")
 
-ADD_CUSTOM_TARGET(tar WORKING_DIRECTORY ../.. COMMAND tar cvfh ${CGRADIENT_DIR}/isodual3D.tar ${CGRADIENT_DIR}/*.cxx ${CGRADIENT_DIR}/*.h ${CGRADIENT_DIR}/*.txx ${CGRADIENT_DIR}/CMakeLists.txt)
+ADD_CUSTOM_TARGET(tar WORKING_DIRECTORY ../.. COMMAND tar cvfh ${CGRADIENT_DIR}/religrad.tar ${CGRADIENT_DIR}/*.cxx ${CGRADIENT_DIR}/*.h include/*.h include/*.txx ${TAR_SHARPISO_SRC_DIR}/*.cxx ${TAR_SHARPISO_SRC_DIR}/*.h ${TAR_SHARPISO_SRC_DIR}/*.txx ${CGRADIENT_DIR}/CMakeLists.txt)
 

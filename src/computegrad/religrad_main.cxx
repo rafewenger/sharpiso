@@ -30,7 +30,9 @@ const char * VERSION = "0.1.0";
 
 // local subroutines
 void memory_exhaustion();
-void usage_error(), help_msg();
+void usage_msg(const bool flag_list_all_options);
+void usage_error(const bool flag_list_all_options);
+void help(const bool flag_list_all_options);
 void parse_command_line(int argc, char **argv, INPUT_INFO & io_info);
 void output_param(INPUT_INFO & io_info);
 
@@ -262,6 +264,7 @@ int main(int argc, char **argv) {
 			finish = clock();	
 
 		}
+
 		if(input_info.curv_based)
 		{
 			only_cdiff = false;
@@ -445,15 +448,122 @@ void output_param(INPUT_INFO & io_info) {
 
 	}
 }
+
+void main_options_msg() {
+	cerr << "OPTIONS:" << endl;
+	cerr << "  [-cdiff] [-curvature_based] [-cdist {D}] [-extended_curv]"   
+       << endl;
+	cerr << "  [-min_gradient_mag {M}] [-angle {A}]" << endl;
+	cerr << "  [-neighbor_angle {A}]" << endl;
+	cerr << "  [-gzip] [-out_param] [-print_info {V}] [-print_grad_loc]"
+       << endl;
+  cerr << "  [-help] [-version] [-list_all_options]" << endl;
+}
+
+void testing_options_msg() {
+	cerr << "TESTING OPTIONS:" << endl;
+  cerr << "  [-angle_test] [-scalar_test] [-advangle]" << endl;
+  cerr << "  [-min_num_agree {N}]" << endl;
+	cerr << "  [-angle_based_dist {D}] [-reliable_scalar_pred_dist {D}]" << endl;
+  cerr << "  [-scalar_pred_err {E}]" << endl;
+  cerr << "  [-help_testing]" << endl;
+}
+
+void usage_msg(std::ostream & out) 
+{
+  out << "Usage: religrad [OPTIONS] {scalar nrrd file} {gradient nrrd file}"
+       << endl;
+}
+  
+
+void help_main_options()
+{
+  cout << "MAIN OPTIONS:" << endl;
+	cout << "  -cdiff: Compute the central difference (default)." << endl;
+	cout << "  -curvature_based: two parameters, alpha set by -angle and -neighbor_angle."<<endl;
+	cout <<	"  -cdist {D} : distance associated with option -curvature_based."<< endl;
+	cout <<	"     How check reliability at distance D (use 1 or 2) from vertex v" << endl;
+	cout << "  -extended_curv: extended version of curvature based reliable gradients."<< endl
+		 << "     Takes parameters -angle and -neighbor-angle"<<endl;
+	cout << "  -min_gradient_mag {M}:  Set min gradient magnitude to {M} (float)." << endl;
+	cout << "  -angle {A}: Set angle to {A} (float)." << endl;
+	cout <<	"  -neighbor_angle {A} Angle between grad at v and vector vv'\n\t"
+		<<	"Where v' is an edge neighbor. Default is 30." << endl;
+	cout << "  -gzip: Store gradients in compressed (gzip) format." << endl;
+	cout << "  -out_param:  Print parameters." << endl;
+	cout << "  -print_info {V} : Print information about vertex {IV}." << endl;
+	cout << "  -print_grad_loc : Print location of vertices with unreliable gradients." << endl;
+  cout << "  -version: Print version." << endl;
+  cout << "  -list_all_options: List all options." << endl;
+	cout << "  -help:    Print this help message." << endl;
+}
+
+void help_testing_options()
+{
+  cout << "TESTING OPTIONS:" << endl;
+	cout << "  -angle_test: Apply angle test." << endl;
+	cout << "  -scalar_test: Apply scalar test." << endl;
+	cout << "  -angle {A}: Set angle to {A} (float)." << endl;
+	cout << "  -min_num_agree {N}: Set minimum agree number to {N}." << endl;
+	cout << "     {N} gradient directions must agree to pass the angle test."<< endl;
+	cout << "     (Default 4.)" << endl;
+	cout << "  -angle_based_dist {D}: Distance (integer) to neighboring vertices"<< endl
+		<<	"     in angle test.  (Default 1.)" << endl;
+	cout << "  -reliable_scalar_pred_dist: Distance (integer) to neighboring vertices" << endl
+		<<	"     in scalar test.  (Default 2.)" << endl;
+	cout <<	"  -neighbor_angle {A} Angle between grad at v and vector vv'\n\t"
+		<<	"Where v' is an edge neighbor. Default is 30." << endl;
+	cout << "  -scalar_pred_err {E}:  Error threshold for scalar test." 
+		<< endl;
+	cout << "     Errors above the threshold fail the test. (Default 0.4.)" 
+		<< endl;
+	cout << "  -help_testing:    Print this help message." << endl;
+}
+
+void help_testing()
+{
+  usage_msg(cout);
+  help_testing_options();
+
+  exit(0);
+}
+
+void help(const bool flag_list_all_options = false) 
+{
+  usage_msg(cout);
+  help_main_options();
+
+  if (flag_list_all_options) {
+    cout << endl;
+    help_testing_options();
+  }
+
+	exit(0);
+}
+
+void usage_error(const bool flag_list_all_options = false) 
+{
+	usage_msg(cerr);
+  main_options_msg();
+
+  if (flag_list_all_options) {
+    cerr << endl;
+    testing_options_msg();
+  }
+
+	exit(100);
+}
+
 //Parse command line
 void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 	int iarg = 1;
+  if (argc == 2 && std::string(argv[1]) == "-version") {
+    cout << "Version: " << VERSION << endl;
+    exit(0);
+  }
 
-	if (argc == 2 && std::string(argv[0]) == "-version") {
-		cout << "Version: " << VERSION << endl;
-		exit(0);
-	}
-
+  bool flag_list_all_options(false);
+  bool flag_output_help(false);
 	while (iarg < argc && argv[iarg][0] == '-') {
 
 		string s = string(argv[iarg]);
@@ -584,22 +694,33 @@ void parse_command_line(int argc, char **argv, INPUT_INFO & io_info) {
 			cout << "Version: " << VERSION << endl;
 		}
 		else if (s == "-help") {
-			help_msg();
+      flag_output_help = true;
 		}
+		else if (s == "-help_testing") {
+      help_testing();
+		}
+    else if (s == "-list_all_options") {
+      flag_list_all_options = true;
+    }
 		else {
-			cout << "Error in  " << s << endl;
+			cerr << "Error in  " << s << endl;
+      cerr << endl;
 			usage_error();
 		}
 		iarg++;
 	}
 
-	if (iarg + 2 != argc) {
-		usage_error();
-	};
+  if (flag_output_help) 
+    { help(flag_list_all_options); }
+  else if (flag_list_all_options) 
+    { usage_error(true); }
+
+	if (iarg + 2 != argc) {	usage_error(); };
 
 	scalar_filename = argv[iarg];
 	gradient_filename = argv[iarg + 1];
 }
+<<<<<<< HEAD
 
 void usage_msg() {
 	cerr << "Usage: religrad [OPTIONS] {scalar nrrd file} {gradient nrrd file}"
@@ -658,3 +779,5 @@ void usage_error() {
 	exit(100);
 }
 
+=======
+>>>>>>> origin/master

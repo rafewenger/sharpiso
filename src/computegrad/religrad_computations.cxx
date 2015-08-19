@@ -554,7 +554,6 @@ void compute_reliable_gradients_advangle(
 		COORD_TYPE coord_iv[DIM3] = {0.0,0.0,0.0};
 		COORD_TYPE coord1[DIM3] = {0.0,0.0,0.0};
 		scalar_grid.ComputeCoord(iv, coord_iv);
-
 		int numAgree = 0;
 
 		vector<VERTEX_INDEX> tangent_vertex_list;
@@ -575,33 +574,17 @@ void compute_reliable_gradients_advangle(
 				VERTEX_INDEX prev_vertex = 
 					iv - k * scalar_grid.AxisIncrement(d);
 				//scalar_grid.ComputeCoord(prev_vertex, &(coord1[0]));				
-
 				COORD_TYPE edge_vec[DIM3] = {0, 0, 0};
 				compute_vector_between_grid_vertex
 					(scalar_grid, iv, prev_vertex, &(edge_vec[0]));
 				IJK::normalize_vector(DIM3, &(edge_vec[0]), 0.0, &(edge_vec[0]));
 
-				//DEBUG
-				//cout <<" ["<< edge_vec[0]<<","<< edge_vec[1]<<","<< edge_vec[2]<<"] ";
-
 				float inn_pdt = 0.0;
 				IJK::compute_inner_product(DIM3, gradient_iv, edge_vec, inn_pdt);
-
-				//debug
-				//cout <<" inn pdt " << inn_pdt <<" angle "<< acos(inn_pdt)*57.2957795;
 
 				bool insert_flag = update_tangent_vertex_list
 					(prev_vertex, inn_pdt, degree_param, tangent_vertex_list);
 
-				//debug 
-				/*if(insert_flag)
-				{
-				cout <<" inserted.  "<< endl;
-				}
-				else
-				{
-				cout <<" NOT inserted."<< endl;
-				}*/
 				k = min(io_info.angle_based_dist,
 					(scalar_grid.AxisSize(d) - int(coord_iv[d]) - 1));
 
@@ -616,24 +599,10 @@ void compute_reliable_gradients_advangle(
 					(scalar_grid, iv, next_vertex, &(edge_vec[0]));
 				IJK::normalize_vector(DIM3, &(edge_vec[0]), 0.0, &(edge_vec[0]));
 
-				//DEBUG
-				//cout <<" ["<< edge_vec[0]<<","<< edge_vec[1]<<","<< edge_vec[2]<<"] ";
 				IJK::compute_inner_product(DIM3, gradient_iv, edge_vec, inn_pdt);
 
-				//debug
-				//cout <<" inn pdt " << inn_pdt <<" angle "<< acos(inn_pdt)*57.2957795;
 				insert_flag = update_tangent_vertex_list
 					(next_vertex, inn_pdt, degree_param, tangent_vertex_list);
-
-				//debug 
-				/*if(insert_flag)
-				{
-				cout <<" inserted." << endl;
-				}
-				else
-				{
-				cout <<" NOT inserted." << endl;
-				}*/
 			}
 			//cout <<"tangent neighbor sizes " << tangent_vertex_list.size() << endl;
 			for (int v = 0; v < tangent_vertex_list.size(); v++)
@@ -2083,6 +2052,7 @@ void compute_reliable_gradients_curvature_basedB(
 {
 	const int numVertices = scalar_grid.NumVertices();
 	bool debugVertex = false; 
+
 	for (unsigned int iv = 0; iv < numVertices; iv++)
 	{
 		if(!boundary_grid.Scalar(iv))
@@ -2124,6 +2094,7 @@ void compute_reliable_gradients_curvature_basedB(
 			}
 		}
 	}
+
 }
 
 //

@@ -30,23 +30,24 @@ public:
 };
 class INPUT_INFO {
 public:
-	bool algo12;                // run algorithm 1 or 2 look in IEEE vis 2015 paper for details. 
-	bool flag_cdiff;	 		// compute central difference
-	bool flag_reliable_grad;   // reliable grad
-	bool print_info;           // print info of the vertex
-	bool flag_print_grad_loc;  // prints the location of the unreliable grads
+  bool algo12;                // run algorithm 1 or 2
+  bool flag_cdiff;            // compute central difference
+  bool flag_reliable_grad;    // reliable grad
+  bool print_info;            // print info of the vertex
+  bool flag_print_grad_loc;   // prints the location of the unreliable grads
 
-	bool adv_angle_based;     // advanced angle based 
-	bool adv_angle_based_v2;     // advanced angle based version 2 
-	bool curv_based;           // curvature based.
-	bool extended_curv_based;  //extended version of curvature based. 
+	bool adv_angle_based;       // advanced angle based 
+	bool adv_angle_based_v2;    // advanced angle based version 2 
+	bool curv_based;            // curvature based.
+	bool extended_curv_based;   // extended version of curvature based. 
 	
-	//Compare the cdiff gradient with immediate neighbors or
-	//neighbors at a certain distance
+	// Compare the cdiff gradient with immediate neighbors or
+	//   neighbors at a certain distance
 	bool angle_based;
 
-	bool flag_reliable_scalar_prediction; // check how good the gradient predicts the scalar
-	// of the neighborhood grid vertices
+  // check how good the gradient predicts the scalar 
+  //   of the neighborhood grid vertices.
+	bool flag_reliable_scalar_prediction; 
 	int scalar_prediction_dist;
 	float scalar_prediction_err;
 
@@ -59,13 +60,15 @@ public:
 	bool draw;
 	int draw_vert;
 	int num_vertices_mag_grt_zero;
-	float neighbor_angle_parameter; // threshold for angle between gradient at vertex v
-			// and the vector connecting the neighbor vertex.
+
+  // threshold for angle between gradient at vertex v
+  //   and the vector connecting the neighbor vertex.
+	float neighbor_angle_parameter; 
+
 	int cdist; // associated with curvature based reliablity prediction
 	int extend_max;
 
 	enum fail_reason{};
-
 	
 
 	OUTPUT_INFO	 out_info;    // generate some output_info
@@ -73,11 +76,14 @@ public:
 	void set_defaults()
 	{
 		algo12 = false; 
+
 		//central diff flags
 		flag_cdiff = false;
+
 		//angle based 
 		angle_based = false;
 		angle_based_dist = 1;
+
 		//scalar_based
 		flag_reliable_scalar_prediction = false;
 
