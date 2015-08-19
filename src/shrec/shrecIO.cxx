@@ -223,7 +223,7 @@ namespace {
     float x;
     if (!IJK::string2val(value_string, x)) {
       cerr << "Error in argument for option: " << option << endl;
-      cerr << "Non-numertic character in string: " << value_string << endl;
+      cerr << "Non-numeric character in string: " << value_string << endl;
       exit(50);
     }
 

@@ -112,7 +112,7 @@ void usage_error()
 	usage_msg(cerr);
 	cerr << endl;
 	cerr << "OPTIONS:" << endl;
-	cerr << "  [-e | -fshort | -flong] [-help] [-version]" << endl;
+	cerr << "  [-e | -fshort | -flong] [-deg1 <N>] [-deg3 <N>] [-help] [-version]" << endl;
 
 	exit(10);
 }
@@ -132,15 +132,43 @@ void help()
 		<< "           Print the number of vertices with degree other than zero or two."
 		<< endl;
 	cout << "  -flong:  Long (condensed) output format." << endl
-		<< "           Print comma separated list of number of vertices with:" << endl
-		<< "             1) degree 0; 2) degree 1; 3) degree 2; 4) degree 3;"
-		<< endl
-		<< "             5) degree > 3; 6) degree not 0 or 2; 7) degree not 0;"
-		<< endl
-		<< "             8) total number of vertices." << endl;
+       << "           Print comma separated list of number of vertices with:" << endl
+       << "             1) degree 0; 2) degree 1; 3) degree 2; 4) degree 3;"
+       << endl
+       << "             5) degree > 3; 6) degree not 0 or 2; 7) degree not 0;"
+       << endl
+       << "             8) total number of vertices." << endl;
+  cout << "  -deg1 <N>:  Expected number of degree 1 vertices." << endl;
+  cout << "    When set, countdegree reports difference between N and"
+       << endl
+       << "    number of degree 1 vertices." << endl;
+  cout << "  -deg3 <N>:  Expected number of degree 3 vertices." << endl;
+  cout << "    When set, countdegree reports difference between N and"
+       << endl
+       << "    number of degree 3 vertices." << endl;
 	cout << "  -version: Print version." << endl;
 	cout << "  -help:    Print this help message." << endl;
 	exit(0);
+}
+
+float get_option_float
+(const char * option, const char * value_string)
+{
+  float x;
+  std::istringstream v_string;
+
+  v_string.str(value_string);
+
+  v_string >> x;
+
+  if (!v_string.eof()) {
+    cerr << "Error in argument for option: " << option << endl;
+    cerr << "Non-numeric character in string: " << value_string << endl;
+
+    exit(50);
+  }
+
+  return(x);
 }
 
 // parse command line
@@ -159,12 +187,14 @@ void parse_command_line(int argc, char **argv)
 		if (s == "-deg3") {
 			iarg++;
 			if (iarg >= argc) { usage_error(); }
-			real_degree_3_verts = atoi(argv[iarg]); 
+			real_degree_3_verts = 
+        get_option_float(argv[iarg-1], argv[iarg]);
 		}
 		else if (s == "-deg1") {
 			iarg++;
 			if (iarg >= argc) { usage_error(); }
-			real_degree_1_verts=atoi(argv[iarg]);
+			real_degree_1_verts =
+        get_option_float(argv[iarg-1], argv[iarg]);
 		}
 		else if (s=="-fshort") 
 		{ flag_op_to_file_short = true; }
